@@ -5,6 +5,7 @@
 #include <type_traits>
 
 #include "./config.hpp"
+#include "./error.hpp"
 
 C4_BEGIN_NAMESPACE(c4)
 
@@ -158,6 +159,8 @@ public:
 
     using iterator = C*;
     using const_iterator = CC*;
+
+    enum : size_t { npos = (size_t)-1, NONE = (size_t)-1 };
 
 public:
 
