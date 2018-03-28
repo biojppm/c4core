@@ -1,0 +1,24 @@
+# text editor files
+*.bck
+\#*
+*~
+
+# Visual Studio files
+.vs/
+# QtCreator files
+CMakeLists.txt.user
+# Eclipse
+.project
+.cproject
+/.settings/
+
+# build files
+build/
+install/
+.python-version
+
+# test files
+/Testing/
+
+# continuous integration files
+.ci/.vagrant
