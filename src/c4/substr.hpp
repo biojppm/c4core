@@ -9,18 +9,18 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
-template< class C > class basic_sub_tring;
+template< class C > class basic_substring;
 
 /**
  * @see to_substr
  * @see to_csubstr
  * */
-using substr = basic_sub_tring< char >;
+using substr = basic_substring< char >;
 /** @see to_csubstr */
-using csubstr = basic_sub_tring< const char >;
+using csubstr = basic_substring< const char >;
 
 template< class OStream, class C >
-inline OStream& operator<< (OStream& s, basic_sub_tring< C > sp)
+inline OStream& operator<< (OStream& s, basic_substring< C > sp)
 {
     s.write(sp.str, sp.len);
     return s;
@@ -31,22 +31,22 @@ inline OStream& operator<< (OStream& s, basic_sub_tring< C > sp)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 template< class C, class Impl >
-struct _basic_sub_tring_crtp;
+struct _basic_substring_crtp;
 
 /** specialize for const chars */
 template< class C, class Impl >
-struct _basic_sub_tring_crtp< const C, Impl >
+struct _basic_substring_crtp< const C, Impl >
 {
 #define _c4this   static_cast<      Impl*>(this)
 #define _c4cthis  static_cast<const Impl*>(this)
 
     // allow construction and assignments from non-const chars
-    _basic_sub_tring_crtp() {}
+    _basic_substring_crtp() {}
 
     template< size_t N > explicit
-    _basic_sub_tring_crtp(C (&s_)[N]) { _c4this->str = s_; _c4this->len = N-1; }
-    _basic_sub_tring_crtp(C *s_, size_t len_) { _c4this->str = s_; _c4this->len = len_; }
-    _basic_sub_tring_crtp(C *beg_, C *end_) { C4_ASSERT(end_ >= beg_); _c4this->str = beg_; _c4this->len = end_ - beg_;  }
+    _basic_substring_crtp(C (&s_)[N]) { _c4this->str = s_; _c4this->len = N-1; }
+    _basic_substring_crtp(C *s_, size_t len_) { _c4this->str = s_; _c4this->len = len_; }
+    _basic_substring_crtp(C *beg_, C *end_) { C4_ASSERT(end_ >= beg_); _c4this->str = beg_; _c4this->len = end_ - beg_;  }
 
     template< size_t N >
     void assign(C (&s_)[N]) { _c4this->str = s_; _c4this->len = N-1; }
@@ -65,13 +65,13 @@ struct _basic_sub_tring_crtp< const C, Impl >
 /** since there's a specialization for const C, here we can provide methods
  * which modify the string, provided they don't expand it. */
 template< class C, class Impl >
-struct _basic_sub_tring_crtp
+struct _basic_substring_crtp
 {
 #define _c4this   static_cast<      Impl*>(this)
 #define _c4cthis  static_cast<const Impl*>(this)
 public:
 
-    using const_impl_type = _basic_sub_tring_crtp< const C, Impl >;
+    using const_impl_type = _basic_substring_crtp< const C, Impl >;
 
     void reverse()
     {
@@ -137,10 +137,10 @@ public:
 //-----------------------------------------------------------------------------
 /** a span of characters and a length. Works like a writeable string_view. */
 template< class C >
-class basic_sub_tring : public _basic_sub_tring_crtp< C, basic_sub_tring<C> >
+class basic_substring : public _basic_substring_crtp< C, basic_substring<C> >
 {
 
-    using base_crtp = _basic_sub_tring_crtp< C, basic_sub_tring<C> >;
+    using base_crtp = _basic_substring_crtp< C, basic_substring<C> >;
 
 public:
 
@@ -152,8 +152,8 @@ public:
     using  CC = typename std::add_const< C >::type;
     using NCC = typename std::remove_const< C >::type;
 
-    using basic_csubstr = basic_sub_tring<  CC >;
-    using basic_ncsubstr = basic_sub_tring< NCC >;
+    using basic_csubstr = basic_substring<  CC >;
+    using basic_ncsubstr = basic_substring< NCC >;
 
     using char_type = C;
 
@@ -164,18 +164,18 @@ public:
 
 public:
 
-    /// convert automatically to sub_tring of const C
+    /// convert automatically to substring of const C
     operator basic_csubstr () const { basic_csubstr s(str, len); return s; }
 
 public:
 
-    basic_sub_tring() : str(nullptr), len(0) {}
+    basic_substring() : str(nullptr), len(0) {}
 
-    basic_sub_tring(basic_sub_tring const&) = default;
-    basic_sub_tring(basic_sub_tring     &&) = default;
+    basic_substring(basic_substring const&) = default;
+    basic_substring(basic_substring     &&) = default;
 
-    basic_sub_tring& operator= (basic_sub_tring const&) = default;
-    basic_sub_tring& operator= (basic_sub_tring     &&) = default;
+    basic_substring& operator= (basic_substring const&) = default;
+    basic_substring& operator= (basic_substring     &&) = default;
 
 public:
 
@@ -189,13 +189,13 @@ public:
      * @see c4::yml::to_span()
      * @see c4::yml::to_cspan() */
     template< size_t N >
-    basic_sub_tring(C (&s_)[N]) : str(s_), len(N-1) {}
-    basic_sub_tring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
-    basic_sub_tring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
+    basic_substring(C (&s_)[N]) : str(s_), len(N-1) {}
+    basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
+    basic_substring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
 
 	//basic_span& operator= (C *s_) { this->assign(s_); return *this; }
 	template< size_t N >
-	basic_sub_tring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
+	basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
 
     //void assign(C *s_) { str = (s_); len = (s_ ? strlen(s_) : 0); }
     /** the overload for receiving a single C* pointer will always
@@ -267,19 +267,19 @@ public:
 public:
 
     /** return [first,first+num[ */
-    basic_sub_tring sub(size_t first, size_t num = npos) const
+    basic_substring sub(size_t first, size_t num = npos) const
     {
         size_t rnum = num != npos ? num : len - first;
         C4_ASSERT((first >= 0 && first + rnum <= len) || num == 0);
-        return basic_sub_tring(str + first, rnum);
+        return basic_substring(str + first, rnum);
     }
 
     /** return [first,last[ */
-    basic_sub_tring range(size_t first, size_t last=npos) const
+    basic_substring range(size_t first, size_t last=npos) const
     {
         last = last != npos ? last : len;
         C4_ASSERT(first >= 0 && last <= len);
-        return basic_sub_tring(str + first, last - first);
+        return basic_substring(str + first, last - first);
     }
 
     /** true if *this is a sub of that */
@@ -296,14 +296,14 @@ public:
 
 public:
 
-    basic_sub_tring right_of(size_t pos, bool include_pos = false) const
+    basic_substring right_of(size_t pos, bool include_pos = false) const
     {
         if(pos == npos) return sub(0, 0);
         if( ! include_pos) ++pos;
         return sub(pos);
     }
 
-    basic_sub_tring left_of(size_t pos, bool include_pos = false) const
+    basic_substring left_of(size_t pos, bool include_pos = false) const
     {
         if(pos == npos) return *this;
         if( ! include_pos && pos > 0) --pos;
@@ -312,7 +312,7 @@ public:
 
 public:
 
-    basic_sub_tring left_of(basic_csubstr const ss) const
+    basic_substring left_of(basic_csubstr const ss) const
     {
         auto ssb = ss.begin();
         auto b = begin();
@@ -327,7 +327,7 @@ public:
         }
     }
 
-    basic_sub_tring right_of(basic_csubstr const ss) const
+    basic_substring right_of(basic_csubstr const ss) const
     {
         auto sse = ss.end();
         auto b = begin();
@@ -345,34 +345,34 @@ public:
 public:
 
     /** trim left */
-    basic_sub_tring triml(const C c) const
+    basic_substring triml(const C c) const
     {
         return right_of(first_not_of(c), /*include_pos*/true);
     }
     /** trim left ANY of the characters */
-    basic_sub_tring triml(basic_csubstr chars) const
+    basic_substring triml(basic_csubstr chars) const
     {
         return right_of(first_not_of(chars), /*include_pos*/true);
     }
 
     /** trim right */
-    basic_sub_tring trimr(const C c) const
+    basic_substring trimr(const C c) const
     {
         return left_of(last_not_of(c), /*include_pos*/true);
     }
     /** trim right ANY of the characters */
-    basic_sub_tring trimr(basic_csubstr chars) const
+    basic_substring trimr(basic_csubstr chars) const
     {
         return left_of(last_not_of(chars), /*include_pos*/true);
     }
 
     /** trim left and right */
-    basic_sub_tring trim(const C c) const
+    basic_substring trim(const C c) const
     {
         return triml(c).trimr(c);
     }
     /** trim left and right ANY of the characters */
-    basic_sub_tring trim(basic_csubstr const chars) const
+    basic_substring trim(basic_csubstr const chars) const
     {
         return triml(chars).trimr(chars);
     }
@@ -629,7 +629,7 @@ public:
 public:
 
     /** get the first span consisting exclusively of non-empty characters */
-    basic_sub_tring first_non_empty_span() const
+    basic_substring first_non_empty_span() const
     {
         basic_csubstr empty_chars(" \n\r\t");
         size_t pos = first_not_of(empty_chars);
@@ -640,9 +640,9 @@ public:
     }
 
     /** get the first span which can be interpreted as an unsigned integer */
-    basic_sub_tring first_uint_span() const
+    basic_substring first_uint_span() const
     {
-        basic_sub_tring ne = first_non_empty_span();
+        basic_substring ne = first_non_empty_span();
         for(size_t i = 0; i < ne.len; ++i)
         {
             char c = ne.str[i];
@@ -655,9 +655,9 @@ public:
     }
 
     /** get the first span which can be interpreted as a signed integer */
-    basic_sub_tring first_int_span() const
+    basic_substring first_int_span() const
     {
-        basic_sub_tring ne = first_non_empty_span();
+        basic_substring ne = first_non_empty_span();
         for(size_t i = 0; i < ne.len; ++i)
         {
             char c = ne.str[i];
@@ -674,9 +674,9 @@ public:
     }
 
     /** get the first span which can be interpreted as a real (floating-point) number */
-    basic_sub_tring first_real_span() const
+    basic_substring first_real_span() const
     {
-        basic_sub_tring ne = first_non_empty_span();
+        basic_substring ne = first_non_empty_span();
         for(size_t i = 0; i < ne.len; ++i)
         {
             char c = ne.str[i];
