@@ -105,6 +105,9 @@ after_success:
   - echo "Success!"
   - |
     if [ "${BT}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
+      # Coveralls
       coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .
+      # Codecov
+      bash < (curl -s https://codecov.io/bash) -t a1a6f2e9-9490-4f16-afe0-d2b6dab53b9e
     fi
 
