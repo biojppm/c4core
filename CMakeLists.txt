@@ -3,6 +3,11 @@ project(c4core)
 
 include(./cmake/c4project.cmake)
 
+if(MSVC)
+    # silence MSVC pedantic error on googletest's use of tr1: https://github.com/google/googletest/issues/1111
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING")
+endif()
+
 c4_declare_project(C4CORE)
 
 set(C4CORE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
