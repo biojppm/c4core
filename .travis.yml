@@ -108,5 +108,5 @@ after_success:
       # Coveralls
       coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .
       # Codecov
-      bash < (curl -s https://codecov.io/bash) -t d64e8387-b35e-4ff9-96f4-5c5707071331
+      bash < ( curl -s https://codecov.io/bash ) -t d64e8387-b35e-4ff9-96f4-5c5707071331
     fi
