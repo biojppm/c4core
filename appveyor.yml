@@ -66,7 +66,7 @@ test_script:
   - cmake -G "%generator%" "-DCMAKE_BUILD_TYPE=%configuration%" -DC4CORE_DEV=ON ..
   - dir
   - dir test
-  - cmake --build . --config %configuration% --target ryml-test
+  - cmake --build . --config %configuration% --target c4core-test
   #- ctest -c %configuration% --timeout 300 --output-on-failure
 
 artifacts:
