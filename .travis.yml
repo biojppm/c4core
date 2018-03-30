@@ -110,4 +110,3 @@ after_success:
       # Codecov
       bash < (curl -s https://codecov.io/bash) -t a1a6f2e9-9490-4f16-afe0-d2b6dab53b9e
     fi
-
