@@ -63,6 +63,10 @@ if [ "$A" == "32" ] ; then
     DPKG="$DPKG libc6-dbg:i386"
 fi
 
+if [ "$BT" == "Coverage" ] ; then
+    DPKG="$DPKG lcov genhtml"
+fi
+
 if [ ! -z "$DPKG" ] ; then
     echo "additional packages: $DPKG"
 fi
