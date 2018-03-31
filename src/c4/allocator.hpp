@@ -230,6 +230,7 @@ public:
     T* allocate(size_t num_objs, size_t alignment = alignof(T))
     {
         C4_ASSERT(m_resource != nullptr);
+        C4_ASSERT(alignment >= alignof(T));
         if(num_objs <= N)
         {
             return m_arr;
@@ -246,12 +247,14 @@ public:
             return;
         }
         C4_ASSERT(m_resource != nullptr);
+        C4_ASSERT(alignment >= alignof(T));
         m_resource->deallocate(ptr, num_objs * sizeof(T), alignment);
     }
 
-    T* reallocate(T* ptr, size_t oldnum, size_t newnum, size_t alignment = alignof(T))
+    T* reallocate(T * ptr, size_t oldnum, size_t newnum, size_t alignment = alignof(T))
     {
         C4_ASSERT(m_resource != nullptr);
+        C4_ASSERT(alignment >= alignof(T));
         if(oldnum <= N && newnum <= N)
         {
             return m_arr;
