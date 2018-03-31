@@ -20,79 +20,79 @@ env:
 matrix:
 
   include:
-#    #
-#    #
-#    #- env: CXX_=clang++-7   A=32 BT=Debug   SAN=ALL VG=ON
-#    #- env: CXX_=clang++-7   A=64 BT=Debug   SAN=ALL VG=ON
-#    #- env: CXX_=clang++-7   A=32 BT=Release SAN=ALL VG=ON
-#    #- env: CXX_=clang++-7   A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=g++-7       A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=g++-7       A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=g++-7       A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=g++-7       A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=clang++-6.0 A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-6.0 A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-6.0 A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=clang++-6.0 A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=clang++-5.0 A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-5.0 A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-5.0 A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=clang++-5.0 A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=clang++-4.0 A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-4.0 A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-4.0 A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=clang++-4.0 A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=clang++-3.9 A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.9 A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.9 A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.9 A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=g++-6       A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=g++-6       A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=g++-6       A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=g++-6       A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=clang++-3.8 A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.8 A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.8 A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.8 A=64 BT=Release SAN=ALL VG=ON
-# 
-#    - env: CXX_=g++-5       A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=g++-5       A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=g++-5       A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=g++-5       A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=clang++-3.7 A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.7 A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.7 A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.7 A=64 BT=Release SAN=ALL VG=ON
-# 
-#    #- env: CXX_=g++-4.9     A=32 BT=Debug   SAN=ALL VG=ON
-#    #- env: CXX_=g++-4.9     A=64 BT=Debug   SAN=ALL VG=ON
-#    #- env: CXX_=g++-4.9     A=32 BT=Release SAN=ALL VG=ON
-#    #- env: CXX_=g++-4.9     A=64 BT=Release SAN=ALL VG=ON
-#
-#    - env: CXX_=clang++-3.6 A=32 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.6 A=64 BT=Debug   SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.6 A=32 BT=Release SAN=ALL VG=ON
-#    - env: CXX_=clang++-3.6 A=64 BT=Release SAN=ALL VG=ON
-#
-#    # ----------- clang-tidy
-#    #
-#    - env: CXX_=clang++-6.0 A=32 BT=Debug   LINT=clang-tidy
-#    - env: CXX_=clang++-6.0 A=64 BT=Debug   LINT=clang-tidy
-#    - env: CXX_=clang++-6.0 A=32 BT=Release LINT=clang-tidy
-#    - env: CXX_=clang++-6.0 A=64 BT=Release LINT=clang-tidy
+    #
+    #
+    #- env: CXX_=clang++-7   A=32 BT=Debug   SAN=ALL VG=ON
+    #- env: CXX_=clang++-7   A=64 BT=Debug   SAN=ALL VG=ON
+    #- env: CXX_=clang++-7   A=32 BT=Release SAN=ALL VG=ON
+    #- env: CXX_=clang++-7   A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=g++-7       A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=g++-7       A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=g++-7       A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=g++-7       A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=clang++-6.0 A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-6.0 A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-6.0 A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=clang++-6.0 A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=clang++-5.0 A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-5.0 A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-5.0 A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=clang++-5.0 A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=clang++-4.0 A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-4.0 A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-4.0 A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=clang++-4.0 A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=clang++-3.9 A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-3.9 A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-3.9 A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=clang++-3.9 A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=g++-6       A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=g++-6       A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=g++-6       A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=g++-6       A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=clang++-3.8 A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-3.8 A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-3.8 A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=clang++-3.8 A=64 BT=Release SAN=ALL VG=ON
+ 
+    - env: CXX_=g++-5       A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=g++-5       A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=g++-5       A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=g++-5       A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=clang++-3.7 A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-3.7 A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-3.7 A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=clang++-3.7 A=64 BT=Release SAN=ALL VG=ON
+ 
+    #- env: CXX_=g++-4.9     A=32 BT=Debug   SAN=ALL VG=ON
+    #- env: CXX_=g++-4.9     A=64 BT=Debug   SAN=ALL VG=ON
+    #- env: CXX_=g++-4.9     A=32 BT=Release SAN=ALL VG=ON
+    #- env: CXX_=g++-4.9     A=64 BT=Release SAN=ALL VG=ON
+
+    - env: CXX_=clang++-3.6 A=32 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-3.6 A=64 BT=Debug   SAN=ALL VG=ON
+    - env: CXX_=clang++-3.6 A=32 BT=Release SAN=ALL VG=ON
+    - env: CXX_=clang++-3.6 A=64 BT=Release SAN=ALL VG=ON
+
+    # ----------- clang-tidy
+    #
+    - env: CXX_=clang++-6.0 A=32 BT=Debug   LINT=clang-tidy
+    - env: CXX_=clang++-6.0 A=64 BT=Debug   LINT=clang-tidy
+    - env: CXX_=clang++-6.0 A=32 BT=Release LINT=clang-tidy
+    - env: CXX_=clang++-6.0 A=64 BT=Release LINT=clang-tidy
     #
     # ----------- Coverage
     #
     - env: CXX_=g++-7 A=64 BT=Coverage
-    - env: CXX_=g++-7 A=32 BT=Coverage
+    #- env: CXX_=g++-7 A=32 BT=Coverage
     #
 
 install:
@@ -106,7 +106,7 @@ after_success:
   - |
     function submit_coverage()
     {
-        coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .
+        env COVERALLS_REPO_TOKEN=CA38CKJfGL2juulJSwK5LeeTFy3KTaJZF coveralls --include src --gcov-options '\-lp' --root .. --build-root .
         curl -s https://codecov.io/bash > submit_codecov.bash
         chmod a+x submit_codecov.bash
         ./submit_codecov.bash -t d64e8387-b35e-4ff9-96f4-5c5707071331
