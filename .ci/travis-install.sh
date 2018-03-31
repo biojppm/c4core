@@ -80,8 +80,8 @@ sudo -E apt-get install -y --force-yes \
      valgrind \
      $DPKG
 
-if [ "${BUILD_TYPE}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
-    PATH=~/.local/bin:${PATH};
+if [ "$BT" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
+    export PATH=~/.local/bin:${PATH};
     pip install --user --upgrade pip;
     pip install --user cpp-coveralls;
 fi
