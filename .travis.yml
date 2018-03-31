@@ -104,9 +104,14 @@ script:
 after_success:
   - echo "Success!"
   - |
+    function submit_coverage()
+    {
+        coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .
+        curl -s https://codecov.io/bash > submit_codecov.bash
+        chmod a+x submit_codecov.bash
+        ./submit_codecov.bash -t d64e8387-b35e-4ff9-96f4-5c5707071331
+    }
+    
     if [ "${BT}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
-      # Coveralls
-      coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .
-      # Codecov
-      bash < ( curl -s https://codecov.io/bash ) -t d64e8387-b35e-4ff9-96f4-5c5707071331
+        make c4core-coverage && submit_coverage
     fi
