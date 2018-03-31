@@ -64,7 +64,7 @@ if [ "$A" == "32" ] ; then
 fi
 
 if [ "$BT" == "Coverage" ] ; then
-    DPKG="$DPKG lcov genhtml"
+    DPKG="$DPKG lcov"
 fi
 
 if [ ! -z "$DPKG" ] ; then
