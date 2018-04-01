@@ -106,10 +106,11 @@ after_success:
   - |
     function submit_coverage()
     {
-        env COVERALLS_REPO_TOKEN=CA38CKJfGL2juulJSwK5LeeTFy3KTaJZF coveralls --include src --gcov-options '\-lp' --root .. --build-root .
+        env COVERALLS_REPO_TOKEN=CA38CKJfGL2juulJSwK5LeeTFy3KTaJZF \
+            coveralls --include src --root .. --build-root . --gcov-options '\-lp'
         curl -s https://codecov.io/bash > submit_codecov.bash
         chmod a+x submit_codecov.bash
-        ./submit_codecov.bash -t d64e8387-b35e-4ff9-96f4-5c5707071331
+        ./submit_codecov.bash -t d64e8387-b35e-4ff9-96f4-5c5707071331 -g test -G src -p .. -a '\-lp'
     }
     
     if [ "${BT}" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" -a "${A}" == "64" ] ; then
