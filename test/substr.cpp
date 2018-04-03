@@ -205,6 +205,23 @@ TEST(substr, compare)
     EXPECT_TRUE((c1 > c2) != (c1 < c2));
 }
 
+TEST(substr, eqne)
+{
+    char buf[128];
+    for(size_t i = 0; i < 5; ++i) buf[i] = '0' + i;
+    csubstr cmp(buf, 5);
+
+    EXPECT_EQ(csubstr("01234"), cmp);
+    EXPECT_EQ(        "01234" , cmp);
+    EXPECT_EQ(             cmp, "01234");
+    EXPECT_NE(csubstr("0123"), cmp);
+    EXPECT_NE(        "0123" , cmp);
+    EXPECT_NE(            cmp, "0123");
+    EXPECT_NE(csubstr("012345"), cmp);
+    EXPECT_NE(        "012345" , cmp);
+    EXPECT_NE(              cmp, "012345");
+}
+
 TEST(substr, substr2csubstr)
 {
     char b[] = "some string";

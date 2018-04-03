@@ -5,6 +5,7 @@
 #include "c4/memory_resource.hpp"
 #include "c4/allocator.hpp"
 #include "c4/log.hpp"
+#include "c4/substr.hpp"
 
 #ifdef __clang__
 #   pragma clang diagnostic push
@@ -38,6 +39,9 @@
 
 
 C4_BEGIN_NAMESPACE(c4)
+
+inline void PrintTo(const substr& s, ::std::ostream* os) { *os << s; }
+inline void PrintTo(const csubstr& s, ::std::ostream* os) { *os << s; }
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

@@ -5,6 +5,7 @@
 
 # Visual Studio files
 .vs/
+.vscode/
 # QtCreator files
 CMakeLists.txt.user
 # Eclipse
