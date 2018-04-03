@@ -107,4 +107,107 @@ TEST(to_str, trimmed_fit_double)
     EXPECT_EQ(sp, to_csubstr(str)); // ehemm.
 }
 
+TEST(cat, vars)
+{
+    char buf[256];
+    substr sp(buf);
+    csubstr result;
+    size_t sz;
+
+    sz = cat(buf, 1, ' ', 2, ' ', 3, ' ', 4);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 2 3 4");
+}
+
+TEST(uncat, vars)
+{
+    size_t sz;
+    int v1, v2, v3, v4;
+
+    sz = uncat("1 2 3 4", v1, v2, v3, v4);
+    EXPECT_NE(sz, csubstr::npos);
+    EXPECT_EQ(v1, 1);
+    EXPECT_EQ(v2, 2);
+    EXPECT_EQ(v3, 3);
+    EXPECT_EQ(v4, 4);
+}
+
+TEST(cat, tuple)
+{
+    char buf[256];
+    substr sp(buf);
+    csubstr result;
+    size_t sz;
+
+    sz = cat(buf, std::forward_as_tuple(1, ' ', 2, ' ', 3, ' ', 4));
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 2 3 4");
+}
+
+TEST(uncat, tuple)
+{
+    size_t sz;
+    int v1, v2, v3, v4;
+
+    auto tp = std::forward_as_tuple(v1, v2, v3, v4);
+    sz = uncat("1 2 3 4", tp);
+    EXPECT_NE(sz, csubstr::npos);
+}
+
+TEST(catsep, vars)
+{
+    char buf[256];
+    substr sp(buf);
+    csubstr result;
+    size_t sz;
+
+    sz = catsep(buf, ' ', 1, 2);
+    EXPECT_EQ(sz, 3);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 2");
+
+    sz = catsep(buf, '/', 1, 2);
+    EXPECT_EQ(sz, 3);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1/2");
+
+    sz = catsep(buf, ' ', 1, 2, 3, 4);
+    EXPECT_EQ(sz, 7);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 2 3 4");
+
+    sz = catsep(buf, '/', 1, 2, 3, 4);
+    EXPECT_EQ(sz, 7);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1/2/3/4");
+}
+
+TEST(catsep, tuple)
+{
+    char buf[256];
+    substr sp(buf);
+    csubstr result;
+    size_t sz;
+
+    sz = catsep(buf, ' ', std::forward_as_tuple(1, 2));
+    EXPECT_EQ(sz, 3);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 2");
+
+    sz = catsep(buf, '/', std::forward_as_tuple(1, 2));
+    EXPECT_EQ(sz, 3);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1/2");
+
+    sz = catsep(buf, ' ', std::forward_as_tuple(1, 2, 3, 4));
+    EXPECT_EQ(sz, 7);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 2 3 4");
+
+    sz = catsep(buf, '/', std::forward_as_tuple(1, 2, 3, 4));
+    EXPECT_EQ(sz, 7);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1/2/3/4");
+}
+
 } // namespace c4

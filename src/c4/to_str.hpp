@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <type_traits>
 #include <utility>
+#include <tuple>
 
 #include "./substr.hpp"
 
@@ -152,7 +153,7 @@ inline bool from_str(csubstr buf, ty *v)                \
     return ato##id<ty>(buf, v);                         \
 }                                                       \
                                                         \
-inline size_t from_str_untrimmed(csubstr buf, ty *v)    \
+inline size_t from_str_trim(csubstr buf, ty *v)         \
 {                                                       \
     return ato##id##_untrimmed<ty>(buf, v);             \
 }
@@ -209,7 +210,7 @@ inline size_t to_str(substr buf, ty v)                                  \
                                                                         \
 _C4_DEFINE_TO_STR(ty, pri_fmt)                                          \
                                                                         \
-inline size_t from_str_untrimmed(csubstr buf, ty *v)                    \
+inline size_t from_str_trim(csubstr buf, ty *v)                         \
 {                                                                       \
     /* snscanf() is absolutely needed here as we must be sure that      \
      * buf.len is strictly respected, because the span string is        \
@@ -240,7 +241,7 @@ inline size_t from_str_untrimmed(csubstr buf, ty *v)                    \
                                                                         \
 inline bool from_str(csubstr buf, ty *v)                                \
 {                                                                       \
-    size_t num = from_str_untrimmed(buf, v);                            \
+    size_t num = from_str_trim(buf, v);                                 \
     return (num != csubstr::npos);                                      \
 }
 
@@ -269,6 +270,10 @@ _C4_DEFINE_TO_FROM_STR_TOA(uint64_t, u)
 #undef _C4_DEFINE_TO_FROM_STR_TOA
 
 
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif
+
 //-----------------------------------------------------------------------------
 inline size_t to_str(substr buf, bool v)
 {
@@ -284,17 +289,13 @@ inline bool from_str(csubstr buf, bool *v)
     return ret;
 }
 
-inline size_t from_str_untrimmed(csubstr buf, bool *v)
+inline size_t from_str_trim(csubstr buf, bool *v)
 {
     int val;
-    size_t ret = from_str_untrimmed(buf, &val);
+    size_t ret = from_str_trim(buf, &val);
     *v = (bool)val;
     return ret;
 }
-
-#ifdef _MSC_VER
-#   pragma warning(pop)
-#endif
 
 //-----------------------------------------------------------------------------
 inline size_t to_str(substr buf, char v)
@@ -310,7 +311,7 @@ inline bool from_str(csubstr buf, char *v)
     return true;
 }
 
-inline size_t from_str_untrimmed(csubstr buf, char *v)
+inline size_t from_str_trim(csubstr buf, char *v)
 {
     if(buf.len < 1) return csubstr::npos;
     *v = buf[0];
@@ -331,7 +332,7 @@ inline bool from_str(csubstr buf, csubstr *v)
     return true;
 }
 
-inline size_t from_str_untrimmed(substr buf, csubstr *v)
+inline size_t from_str_trim(substr buf, csubstr *v)
 {
     csubstr trimmed = buf.first_non_empty_span();
     if(trimmed.len == 0) return csubstr::npos;
@@ -354,7 +355,7 @@ inline bool from_str(csubstr buf, substr *v)
     return buf.len <= v->len;
 }
 
-inline size_t from_str_untrimmed(csubstr buf, substr *v)
+inline size_t from_str_trim(csubstr buf, substr *v)
 {
     csubstr trimmed = buf.first_non_empty_span();
     if(trimmed.len == 0) return csubstr::npos;
@@ -410,7 +411,7 @@ inline size_t uncat(csubstr /*buf*/)
 template< class Arg, class... Args >
 size_t uncat(csubstr buf, Arg & a, Args & ...more)
 {
-    size_t num = from_str_untrimmed(buf, &a);
+    size_t num = from_str_trim(buf, &a);
     if(num == csubstr::npos) return csubstr::npos;
     buf  = buf.len >= num ? buf.sub(num) : substr{};
     num += uncat(buf, more...);
@@ -422,21 +423,37 @@ size_t uncat(csubstr buf, Arg & a, Args & ...more)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template< class Sep, class Arg, class... Args >
-size_t catsep(substr buf, Sep const& sep, Arg const& a, Args const& ...more)
+namespace detail {
+
+template< class Sep >
+inline size_t catsep_more(substr /*buf*/, Sep const& /*sep*/)
 {
-    size_t num = to_str(buf, sep);
-    buf  = buf.len >= num ? buf.sub(num) : substr{};
-    num += to_str(buf, a);
-    buf  = buf.len >= num ? buf.sub(num) : substr{};
-    num += catsep(buf, sep, more...);
+    return 0;
+}
+
+template< class Sep, class Arg, class... Args >
+size_t catsep_more(substr buf, Sep const& sep, Arg const& a, Args const& ...more)
+{
+    size_t ret = to_str(buf, sep), num = ret;
+    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+    ret  = to_str(buf, a);
+    num += ret;
+    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+    ret  = catsep_more(buf, sep, more...);
+    num += ret;
     return num;
 }
 
-template< class Sep >
-inline size_t catsep(substr /*buf*/, Sep const& /*sep*/)
+} // namespace detail
+
+
+template< class Sep, class Arg, class... Args >
+size_t catsep(substr buf, Sep const& sep, Arg const& a, Args const& ...more)
 {
-    return 0;
+    size_t num = to_str(buf, a);
+    buf  = buf.len >= num ? buf.sub(num) : substr{};
+    num += detail::catsep_more(buf, sep, more...);
+    return num;
 }
 
 
@@ -525,6 +542,108 @@ inline void formatrs(CharOwningContainer *cont, csubstr fmt, Args const& ...args
             cont->resize(ret);
         }
     }
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+namespace detail {
+
+template< size_t Curr, class... Types >
+struct tuple_helper
+{
+    static size_t do_cat(substr buf, std::tuple< Types... > const& tp)
+    {
+        size_t num = to_str(buf, std::get<Curr>(tp));
+        buf = buf.len >= num ? buf.sub(num) : substr{};
+        num += tuple_helper< Curr+1, Types... >::do_cat(buf, tp);
+        return num;
+    }
+
+    static size_t do_uncat(csubstr buf, std::tuple< Types... > & tp)
+    {
+        size_t num = from_str_trim(buf, &std::get<Curr>(tp));
+        if(num == csubstr::npos) return csubstr::npos;
+        buf = buf.len >= num ? buf.sub(num) : substr{};
+        num += tuple_helper< Curr+1, Types... >::do_uncat(buf, tp);
+        return num;
+    }
+
+    template< class Sep >
+    static size_t do_catsep_more(substr buf, Sep const& sep, std::tuple< Types... > const& tp)
+    {
+        size_t ret = to_str(buf, sep), num = ret;
+        buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+        ret  = to_str(buf, std::get<Curr>(tp));
+        num += ret;
+        buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+        ret  = tuple_helper< Curr+1, Types... >::do_catsep_more(buf, sep, tp);
+        num += ret;
+        return num;
+    }
+
+    static size_t do_format(substr buf, csubstr fmt, std::tuple< Types... > const& tp)
+    {
+        auto pos = fmt.find("{}");
+        if(pos != csubstr::npos)
+        {
+            size_t num = to_str(buf, fmt.sub(0, pos));
+            size_t out = num;
+            buf  = buf.len >= num ? buf.sub(num) : substr{};
+            num  = to_str(buf, std::get<Curr>(tp));
+            out += num;
+            buf  = buf.len >= num ? buf.sub(num) : substr{};
+            num  = tuple_helper< Curr+1, Types... >::do_format(buf, fmt.sub(pos + 2), tp);
+            out += num;
+            return out;
+        }
+        else
+        {
+            return format(buf, fmt);
+        }
+    }
+
+};
+
+template< class... Types >
+struct tuple_helper< sizeof...(Types), Types... >
+{
+    static size_t do_cat(substr /*buf*/, std::tuple<Types...> const& /*tp*/) { return 0; }
+    static size_t do_uncat(csubstr /*buf*/, std::tuple<Types...> & /*tp*/) { return 0; }
+
+    template< class Sep > static size_t do_catsep_more(substr /*buf*/, Sep const& /*sep*/, std::tuple<Types...> const& /*tp*/) { return 0; }
+
+    static size_t do_format(substr /*buf*/, csubstr fmt /*sep*/, std::tuple<Types...> const& /*tp*/) { return 0; }
+};
+
+} // namespace detail
+
+template< class... Types >
+inline size_t cat(substr buf, std::tuple< Types... > const& tp)
+{
+    return detail::tuple_helper< 0, Types... >::do_cat(buf, tp);
+}
+
+template< class... Types >
+inline size_t uncat(csubstr buf, std::tuple< Types... > & tp)
+{
+    return detail::tuple_helper< 0, Types... >::do_uncat(buf, tp);
+}
+
+template< class Sep, class... Types >
+inline size_t catsep(substr buf, Sep const& sep, std::tuple< Types... > const& tp)
+{
+    size_t num = to_str(buf, std::cref(std::get<0>(tp)));
+    buf  = buf.len >= num ? buf.sub(num) : substr{};
+    num += detail::tuple_helper< 1, Types... >::do_catsep_more(buf, sep, tp);
+    return num;
+}
+
+template< class... Types >
+inline size_t format(substr buf, csubstr fmt, std::tuple< Types... > const& tp)
+{
+    return detail::tuple_helper< 0, Types... >::do_format(buf, fmt, tp);
 }
 
 } // namespace c4
