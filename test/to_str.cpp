@@ -119,19 +119,6 @@ TEST(cat, vars)
     EXPECT_EQ(result, "1 2 3 4");
 }
 
-TEST(uncat, vars)
-{
-    size_t sz;
-    int v1, v2, v3, v4;
-
-    sz = uncat("1 2 3 4", v1, v2, v3, v4);
-    EXPECT_NE(sz, csubstr::npos);
-    EXPECT_EQ(v1, 1);
-    EXPECT_EQ(v2, 2);
-    EXPECT_EQ(v3, 3);
-    EXPECT_EQ(v4, 4);
-}
-
 TEST(cat, tuple)
 {
     char buf[256];
@@ -144,6 +131,20 @@ TEST(cat, tuple)
     EXPECT_EQ(result, "1 2 3 4");
 }
 
+TEST(uncat, vars)
+{
+    size_t sz;
+    int v1, v2, v3, v4;
+
+    sz = uncat("1 2 3 4", v1, v2, v3, v4);
+    EXPECT_NE(sz, csubstr::npos);
+    EXPECT_EQ(sz, 7);
+    EXPECT_EQ(v1, 1);
+    EXPECT_EQ(v2, 2);
+    EXPECT_EQ(v3, 3);
+    EXPECT_EQ(v4, 4);
+}
+
 TEST(uncat, tuple)
 {
     size_t sz;
@@ -152,6 +153,11 @@ TEST(uncat, tuple)
     auto tp = std::forward_as_tuple(v1, v2, v3, v4);
     sz = uncat("1 2 3 4", tp);
     EXPECT_NE(sz, csubstr::npos);
+    EXPECT_EQ(sz, 7);
+    EXPECT_EQ(v1, 1);
+    EXPECT_EQ(v2, 2);
+    EXPECT_EQ(v3, 3);
+    EXPECT_EQ(v4, 4);
 }
 
 TEST(catsep, vars)
@@ -208,6 +214,35 @@ TEST(catsep, tuple)
     EXPECT_EQ(sz, 7);
     result = sp.left_of(sz);
     EXPECT_EQ(result, "1/2/3/4");
+}
+
+TEST(uncatsep, vars)
+{
+    size_t sz;
+    int v1, v2, v3, v4;
+    char sep;
+
+    sz = uncatsep("1 2 3 4", sep, v1, v2, v3, v4);
+    EXPECT_EQ(sz, 7);
+    EXPECT_EQ(v1, 1);
+    EXPECT_EQ(v2, 2);
+    EXPECT_EQ(v3, 3);
+    EXPECT_EQ(v4, 4);
+}
+
+TEST(uncatsep, tuple)
+{
+    size_t sz;
+    int v1, v2, v3, v4;
+    char sep;
+
+    auto tp = std::forward_as_tuple(v1, v2, v3, v4);
+    sz = uncatsep("1 2 3 4", sep, tp);
+    EXPECT_EQ(sz, 7);
+    EXPECT_EQ(v1, 1);
+    EXPECT_EQ(v2, 2);
+    EXPECT_EQ(v3, 3);
+    EXPECT_EQ(v4, 4);
 }
 
 } // namespace c4

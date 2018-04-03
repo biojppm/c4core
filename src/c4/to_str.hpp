@@ -444,6 +444,28 @@ size_t catsep_more(substr buf, Sep const& sep, Arg const& a, Args const& ...more
     return num;
 }
 
+template< class Sep >
+inline size_t uncatsep_more(csubstr /*buf*/, Sep & /*sep*/)
+{
+    return 0;
+}
+
+template< class Sep, class Arg, class... Args >
+size_t uncatsep_more(csubstr buf, Sep & sep, Arg & a, Args & ...more)
+{
+    size_t ret = from_str_trim(buf, &sep), num = ret;
+    if(ret == csubstr::npos) return csubstr::npos;
+    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+    ret  = from_str_trim(buf, &a);
+    if(ret == csubstr::npos) return csubstr::npos;
+    num += ret;
+    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+    ret  = uncatsep_more(buf, sep, more...);
+    if(ret == csubstr::npos) return csubstr::npos;
+    num += ret;
+    return num;
+}
+
 } // namespace detail
 
 
@@ -453,6 +475,18 @@ size_t catsep(substr buf, Sep const& sep, Arg const& a, Args const& ...more)
     size_t num = to_str(buf, a);
     buf  = buf.len >= num ? buf.sub(num) : substr{};
     num += detail::catsep_more(buf, sep, more...);
+    return num;
+}
+
+template< class Sep, class Arg, class... Args >
+size_t uncatsep(csubstr buf, Sep & sep, Arg & a, Args & ...more)
+{
+    size_t ret = from_str_trim(buf, &a), num = ret;
+    if(ret == csubstr::npos) return csubstr::npos;
+    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+    ret  = detail::uncatsep_more(buf, sep, more...);
+    if(ret == csubstr::npos) return csubstr::npos;
+    num += ret;
     return num;
 }
 
@@ -583,6 +617,22 @@ struct tuple_helper
         return num;
     }
 
+    template< class Sep >
+    static size_t do_uncatsep_more(csubstr buf, Sep & sep, std::tuple< Types... > & tp)
+    {
+        size_t ret = from_str_trim(buf, &sep), num = ret;
+        if(ret == csubstr::npos) return csubstr::npos;
+        buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+        ret  = from_str_trim(buf, &std::get<Curr>(tp));
+        if(ret == csubstr::npos) return csubstr::npos;
+        num += ret;
+        buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+        ret  = tuple_helper< Curr+1, Types... >::do_uncatsep_more(buf, sep, tp);
+        if(ret == csubstr::npos) return csubstr::npos;
+        num += ret;
+        return num;
+    }
+
     static size_t do_format(substr buf, csubstr fmt, std::tuple< Types... > const& tp)
     {
         auto pos = fmt.find("{}");
@@ -613,6 +663,7 @@ struct tuple_helper< sizeof...(Types), Types... >
     static size_t do_uncat(csubstr /*buf*/, std::tuple<Types...> & /*tp*/) { return 0; }
 
     template< class Sep > static size_t do_catsep_more(substr /*buf*/, Sep const& /*sep*/, std::tuple<Types...> const& /*tp*/) { return 0; }
+    template< class Sep > static size_t do_uncatsep_more(csubstr /*buf*/, Sep & /*sep*/, std::tuple<Types...> & /*tp*/) { return 0; }
 
     static size_t do_format(substr /*buf*/, csubstr fmt /*sep*/, std::tuple<Types...> const& /*tp*/) { return 0; }
 };
@@ -637,6 +688,18 @@ inline size_t catsep(substr buf, Sep const& sep, std::tuple< Types... > const& t
     size_t num = to_str(buf, std::cref(std::get<0>(tp)));
     buf  = buf.len >= num ? buf.sub(num) : substr{};
     num += detail::tuple_helper< 1, Types... >::do_catsep_more(buf, sep, tp);
+    return num;
+}
+
+template< class Sep, class... Types >
+inline size_t uncatsep(csubstr buf, Sep & sep, std::tuple< Types... > & tp)
+{
+    size_t ret = from_str_trim(buf, &std::get<0>(tp)), num = ret;
+    if(ret == csubstr::npos) return csubstr::npos;
+    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
+    ret  = detail::tuple_helper< 1, Types... >::do_uncatsep_more(buf, sep, tp);
+    if(ret == csubstr::npos) return csubstr::npos;
+    num += ret;
     return num;
 }
 
