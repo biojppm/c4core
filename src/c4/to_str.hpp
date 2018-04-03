@@ -11,6 +11,17 @@
 
 namespace c4 {
 
+typedef enum {
+    /** print the real number in floating point format, (like %f) */
+    FTOA_FLOAT,
+    /** print the real number in scientific format, (like %e) */
+    FTOA_SCIENT,
+    /** print the real number in flexible format, (like %g) */
+    FTOA_FLEX,
+    /** print the real number in hexadecimal format, (like %a) */
+    FTOA_HEXA
+} RealFormat_e;
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -98,7 +109,7 @@ inline bool atoi(csubstr str, T *v)
 }
 
 template< class T >
-inline size_t atoi_untrimmed(csubstr str, T *v)
+inline size_t atoi_trim(csubstr str, T *v)
 {
     csubstr trimmed = str.first_int_span();
     if(trimmed.len == 0) return csubstr::npos;
@@ -129,11 +140,153 @@ inline bool atou(csubstr str, T *v)
 
 
 template< class T >
-inline size_t atou_untrimmed(csubstr str, T *v)
+inline size_t atou_trim(csubstr str, T *v)
 {
     csubstr trimmed = str.first_uint_span();
     if(trimmed.len == 0) return csubstr::npos;
     if(atou(trimmed, v)) return trimmed.end() - str.begin();
+    return csubstr::npos;
+}
+
+
+//-----------------------------------------------------------------------------
+
+namespace detail {
+
+template< size_t N >
+void get_real_format_str(char (&fmt)[N], int precision, RealFormat_e formatting, const char* length_modifier="")
+{
+    char c;
+    switch(formatting)
+    {
+    case FTOA_FLOAT: c = 'f'; break;
+    case FTOA_SCIENT: c = 'e'; break;
+    case FTOA_HEXA: c = 'a'; break;
+    case FTOA_FLEX:
+    default:
+         c = 'g';
+    }
+    int iret;
+    if(precision == -1)
+    {
+        iret = snprintf(fmt, sizeof(fmt), "%%%s%c", length_modifier, c);
+    }
+    else if(precision == 0)
+    {
+        iret = snprintf(fmt, sizeof(fmt), "%%.%s%c", length_modifier, c);
+    }
+    else
+    {
+        iret = snprintf(fmt, sizeof(fmt), "%%.%d%s%c", precision, length_modifier, c);
+    }
+    C4_ASSERT(iret >= 2 && size_t(iret) < sizeof(fmt));
+}
+
+
+
+template< class T >
+size_t print_one(substr str, const char* full_fmt, T v)
+{
+#ifdef _MSC_VER
+    /** use _snprintf() to prevent early termination of the output
+     * for writing the null character at the last position
+     * @see https://msdn.microsoft.com/en-us/library/2ts7cx93.aspx */
+    int iret = _snprintf(str.str, str.len, full_fmt, v);
+    if(iret < 0)
+    {
+        /* when buf.len is not enough, VS returns a negative value.
+         * so call it again with a negative value for getting an
+         * actual length of the string */
+        iret = snprintf(nullptr, 0, full_fmt, v);
+        C4_ASSERT(iret > 0);
+    }
+    size_t ret = (size_t) iret;
+    return ret;
+#else
+    int iret = snprintf(str.str, str.len, full_fmt, v);
+    C4_ASSERT(iret >= 0);
+    size_t ret = (size_t) iret;
+    if(ret >= str.len)
+    {
+        ++ret; /* snprintf() reserves the last character to write \0 */
+    }
+    return ret;
+#endif
+}
+
+template< typename T >
+inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
+{
+    /* snscanf() is absolutely needed here as we must be sure that
+     * str.len is strictly respected, because the span string is
+     * generally not null-terminated.
+     *
+     * Alas, there is no snscanf().
+     *
+     * So we fake it by using a dynamic format with an explicit
+     * field size set to the length of the given span.
+     * This trick is taken from:
+     * https://stackoverflow.com/a/18368910/5875572 */
+
+    /* this is the actual format we'll use for scanning */
+    char fmt[16];
+
+    /* write the length into it. Eg "%12f".
+     * Also, get the number of characters read from the string.
+     * So the final format ends up as "%12f%n"*/
+    int iret = snprintf(fmt, sizeof(fmt), "%%" "%zu" "%s" "%%n", str.len, type_fmt);
+    /* no nasty surprises, please! */
+    C4_ASSERT(iret >= 0 && size_t(iret) < sizeof(fmt));
+
+    /* now we scan with confidence that the span length is respected */
+    int num_chars;
+    iret = sscanf(str.str, fmt, v, &num_chars);
+    /* scanf returns the number of successful conversions */
+    if(iret != 1) return csubstr::npos;
+    C4_ASSERT(num_chars >= 0);
+    return (size_t)(num_chars);
+}
+
+} // namespace detail
+
+
+inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
+{
+    char fmt[16];
+    detail::get_real_format_str(fmt, precision, formatting, /*length_modifier*/"");
+    return detail::print_one(str, fmt, v);
+}
+
+inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
+{
+    char fmt[16];
+    detail::get_real_format_str(fmt, precision, formatting, /*length_modifier*/"l");
+    return detail::print_one(str, fmt, v);
+}
+
+inline size_t atof(csubstr str, float *v)
+{
+    return detail::scan_one(str, "g", v);
+}
+
+inline size_t atod(csubstr str, double *v)
+{
+    return detail::scan_one(str, "lg", v);
+}
+
+inline size_t atof_trim(csubstr str, float *v)
+{
+    csubstr trimmed = str.first_real_span();
+    if(trimmed.len == 0) return csubstr::npos;
+    if(atof(trimmed, v)) return trimmed.end() - str.begin();
+    return csubstr::npos;
+}
+
+inline size_t atod_trim(csubstr str, double *v)
+{
+    csubstr trimmed = str.first_real_span();
+    if(trimmed.len == 0) return csubstr::npos;
+    if(atod(trimmed, v)) return trimmed.end() - str.begin();
     return csubstr::npos;
 }
 
@@ -145,17 +298,17 @@ inline size_t atou_untrimmed(csubstr str, T *v)
                                                         \
 inline size_t to_str(substr buf, ty v)                  \
 {                                                       \
-    return id##toa<ty>(buf, v);                         \
+    return id##toa(buf, v);                             \
 }                                                       \
                                                         \
 inline bool from_str(csubstr buf, ty *v)                \
 {                                                       \
-    return ato##id<ty>(buf, v);                         \
+    return ato##id(buf, v);                             \
 }                                                       \
                                                         \
 inline size_t from_str_trim(csubstr buf, ty *v)         \
 {                                                       \
-    return ato##id##_untrimmed<ty>(buf, v);             \
+    return ato##id##_trim(buf, v);                      \
 }
 
 #ifdef _MSC_VER
@@ -246,8 +399,8 @@ inline bool from_str(csubstr buf, ty *v)                                \
 }
 
 _C4_DEFINE_TO_FROM_STR(void*   , "p"             , "p"             )
-_C4_DEFINE_TO_FROM_STR(double  , "lg"            , "lg"            )
-_C4_DEFINE_TO_FROM_STR(float   , "g"             , "g"             )
+//_C4_DEFINE_TO_FROM_STR(double  , "lg"            , "lg"            )
+//_C4_DEFINE_TO_FROM_STR(float   , "g"             , "g"             )
 //_C4_DEFINE_TO_FROM_STR(char    , "c"             , "c"             )
 //_C4_DEFINE_TO_FROM_STR(  int8_t, PRId8 /*"%hhd"*/, SCNd8 /*"%hhd"*/)
 //_C4_DEFINE_TO_FROM_STR( uint8_t, PRIu8 /*"%hhu"*/, SCNu8 /*"%hhu"*/)
@@ -257,6 +410,8 @@ _C4_DEFINE_TO_FROM_STR(float   , "g"             , "g"             )
 //_C4_DEFINE_TO_FROM_STR(uint32_t, PRIu32/*"%u"  */, SCNu32/*"%u"  */)
 //_C4_DEFINE_TO_FROM_STR( int64_t, PRId64/*"%lld"*/, SCNd64/*"%lld"*/)
 //_C4_DEFINE_TO_FROM_STR(uint64_t, PRIu64/*"%llu"*/, SCNu64/*"%llu"*/)
+_C4_DEFINE_TO_FROM_STR_TOA(   float, f)
+_C4_DEFINE_TO_FROM_STR_TOA(  double, d)
 _C4_DEFINE_TO_FROM_STR_TOA(  int8_t, i)
 _C4_DEFINE_TO_FROM_STR_TOA( int16_t, i)
 _C4_DEFINE_TO_FROM_STR_TOA( int32_t, i)

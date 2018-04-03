@@ -45,6 +45,133 @@ TEST(atoi, basic)
 #undef _woof
 }
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+void test_ftoa(substr buf, float f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa)
+{
+    size_t ret;
+
+    memset(buf.str, 0, buf.len);
+    ret = ftoa(buf, f, precision, FTOA_SCIENT);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(scient));
+
+    memset(buf.str, 0, ret);
+    ret = ftoa(buf, f, precision, FTOA_FLOAT); // precision is the number of decimals
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(flt));
+
+    memset(buf.str, 0, ret);
+    ret = ftoa(buf, f, precision+1, FTOA_FLEX); // precision is the number of significand digits
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(flex));
+
+    memset(buf.str, 0, ret);
+    ret = ftoa(buf, f, precision, FTOA_HEXA);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(hexa));
+}
+
+void test_dtoa(substr buf, double f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa)
+{
+    size_t ret;
+
+    memset(buf.str, 0, buf.len);
+    ret = dtoa(buf, f, precision, FTOA_SCIENT);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(scient));
+
+    memset(buf.str, 0, ret);
+    ret = dtoa(buf, f, precision, FTOA_FLOAT); // precision is the number of decimals
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(flt));
+
+    memset(buf.str, 0, ret);
+    ret = dtoa(buf, f, precision+1, FTOA_FLEX); // precision is the number of significand digits
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(flex));
+
+    memset(buf.str, 0, ret);
+    ret = dtoa(buf, f, precision, FTOA_HEXA);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(hexa));
+}
+
+
+TEST(ftoa, basic)
+{
+    char bufc[128];
+    substr buf(bufc);
+    C4_ASSERT(buf.len == sizeof(bufc)-1);
+
+    size_t ret;
+
+    float f = 1.1234123f;
+    double d = 1.1234123f;
+
+    {
+        SCOPED_TRACE("precision 0");
+        test_ftoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+        test_dtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    }
+
+    {
+        SCOPED_TRACE("precision 1");
+        test_ftoa(buf, f, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
+        test_dtoa(buf, d, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
+    }
+
+    {
+        SCOPED_TRACE("precision 2");
+        test_ftoa(buf, f, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
+        test_dtoa(buf, d, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
+    }
+
+    {
+        SCOPED_TRACE("precision 3");
+        test_ftoa(buf, f, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
+        test_dtoa(buf, d, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
+    }
+
+    {
+        SCOPED_TRACE("precision 4");
+        test_ftoa(buf, f, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
+        test_dtoa(buf, d, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
+    }
+
+    f = 1.01234123f;
+    d = 1.01234123;
+
+    {
+        SCOPED_TRACE("precision 0");
+        test_ftoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+        test_dtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    }
+
+    {
+        SCOPED_TRACE("precision 1");
+        test_ftoa(buf, f, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
+        test_dtoa(buf, d, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
+    }
+
+    {
+        SCOPED_TRACE("precision 2");
+        test_ftoa(buf, f, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
+        test_dtoa(buf, d, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
+    }
+
+    {
+        SCOPED_TRACE("precision 3");
+        test_ftoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0");
+        test_dtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0");
+    }
+
+    {
+        SCOPED_TRACE("precision 4");
+        test_ftoa(buf, f, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
+        test_dtoa(buf, d, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 TEST(to_str, trimmed_fit_int)
 {
     // test that no characters are trimmed at the end of
