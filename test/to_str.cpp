@@ -42,6 +42,7 @@ TEST(atoi, basic)
     _woof(101);
     _woof(1001);
     _woof(10001);
+#undef _woof
 }
 
 TEST(to_str, trimmed_fit_int)
@@ -239,6 +240,109 @@ TEST(uncatsep, tuple)
     auto tp = std::forward_as_tuple(v1, v2, v3, v4);
     sz = uncatsep("1 2 3 4", sep, tp);
     EXPECT_EQ(sz, 7);
+    EXPECT_EQ(v1, 1);
+    EXPECT_EQ(v2, 2);
+    EXPECT_EQ(v3, 3);
+    EXPECT_EQ(v4, 4);
+}
+
+TEST(format, vars)
+{
+    char buf[256];
+    substr sp(buf);
+    csubstr result;
+    size_t sz;
+
+    sz = format(buf, "{} and {} and {} and {}", 1, 2, 3, 4);
+    EXPECT_EQ(sz, 19);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and 2 and 3 and 4");
+
+    sz = format(buf, "{} and {} and {} and {}", 1, 2, 3, 4, 5, 6, 7);
+    EXPECT_EQ(sz, 19);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and 2 and 3 and 4");
+
+    sz = format(buf, "{} and {} and {} and {}", 1, 2, 3);
+    EXPECT_EQ(sz, 20);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and 2 and 3 and {}");
+
+    sz = format(buf, "{} and {} and {} and {}", 1, 2);
+    EXPECT_EQ(sz, 21);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and 2 and {} and {}");
+
+    sz = format(buf, "{} and {} and {} and {}", 1);
+    EXPECT_EQ(sz, 22);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and {} and {} and {}");
+
+    sz = format(buf, "{} and {} and {} and {}");
+    EXPECT_EQ(sz, 23);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "{} and {} and {} and {}");
+}
+
+TEST(format, tuple)
+{
+    char buf[256];
+    substr sp(buf);
+    csubstr result;
+    size_t sz;
+
+    sz = format(buf, "{} and {} and {} and {}", std::forward_as_tuple(1, 2, 3, 4));
+    EXPECT_EQ(sz, 19);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and 2 and 3 and 4");
+
+    sz = format(buf, "{} and {} and {} and {}", std::forward_as_tuple(1, 2, 3, 4, 5, 6, 7));
+    EXPECT_EQ(sz, 19);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and 2 and 3 and 4");
+
+    sz = format(buf, "{} and {} and {} and {}", std::forward_as_tuple(1, 2, 3));
+    EXPECT_EQ(sz, 20);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and 2 and 3 and {}");
+
+    sz = format(buf, "{} and {} and {} and {}", std::forward_as_tuple(1, 2));
+    EXPECT_EQ(sz, 21);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and 2 and {} and {}");
+
+    sz = format(buf, "{} and {} and {} and {}", std::forward_as_tuple(1));
+    EXPECT_EQ(sz, 22);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "1 and {} and {} and {}");
+
+    sz = format(buf, "{} and {} and {} and {}");
+    EXPECT_EQ(sz, 23);
+    result = sp.left_of(sz);
+    EXPECT_EQ(result, "{} and {} and {} and {}");
+}
+
+TEST(unformat, vars)
+{
+    size_t sz;
+    int v1, v2, v3, v4;
+
+    sz = unformat("1 and 2 and 3 and 4", "{} and {} and {} and {}", v1, v2, v3, v4);
+    EXPECT_EQ(sz, 19);
+    EXPECT_EQ(v1, 1);
+    EXPECT_EQ(v2, 2);
+    EXPECT_EQ(v3, 3);
+    EXPECT_EQ(v4, 4);
+}
+
+TEST(unformat, tuple)
+{
+    size_t sz;
+    int v1, v2, v3, v4;
+
+    auto tp = std::forward_as_tuple(v1, v2, v3, v4);
+    sz = unformat("1 and 2 and 3 and 4", "{} and {} and {} and {}", tp);
+    EXPECT_EQ(sz, 19);
     EXPECT_EQ(v1, 1);
     EXPECT_EQ(v2, 2);
     EXPECT_EQ(v3, 3);

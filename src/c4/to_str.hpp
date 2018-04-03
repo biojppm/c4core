@@ -522,6 +522,33 @@ size_t format(substr buf, csubstr fmt, Arg const& a, Args const& ...more)
     }
 }
 
+inline size_t unformat(csubstr buf, csubstr fmt)
+{
+    return 0;
+}
+
+template< class Arg, class... Args >
+size_t unformat(csubstr buf, csubstr fmt, Arg & a, Args & ...more)
+{
+    auto pos = fmt.find("{}");
+    if(pos != csubstr::npos)
+    {
+        size_t num = pos;
+        size_t out = num;
+        buf  = buf.len >= num ? buf.sub(num) : substr{};
+        num  = from_str_trim(buf, &a);
+        out += num;
+        buf  = buf.len >= num ? buf.sub(num) : substr{};
+        num  = unformat(buf, fmt.sub(pos + 2), more...);
+        out += num;
+        return out;
+    }
+    else
+    {
+        return unformat(buf, fmt);
+    }
+}
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -654,6 +681,27 @@ struct tuple_helper
         }
     }
 
+    static size_t do_unformat(csubstr buf, csubstr fmt, std::tuple< Types... > & tp)
+    {
+        auto pos = fmt.find("{}");
+        if(pos != csubstr::npos)
+        {
+            size_t num = pos;
+            size_t out = num;
+            buf  = buf.len >= num ? buf.sub(num) : substr{};
+            num  = from_str_trim(buf, &std::get<Curr>(tp));
+            out += num;
+            buf  = buf.len >= num ? buf.sub(num) : substr{};
+            num  = tuple_helper< Curr+1, Types... >::do_unformat(buf, fmt.sub(pos + 2), tp);
+            out += num;
+            return out;
+        }
+        else
+        {
+            return tuple_helper< sizeof...(Types), Types... >::do_unformat(buf, fmt, tp);
+        }
+    }
+
 };
 
 template< class... Types >
@@ -665,7 +713,15 @@ struct tuple_helper< sizeof...(Types), Types... >
     template< class Sep > static size_t do_catsep_more(substr /*buf*/, Sep const& /*sep*/, std::tuple<Types...> const& /*tp*/) { return 0; }
     template< class Sep > static size_t do_uncatsep_more(csubstr /*buf*/, Sep & /*sep*/, std::tuple<Types...> & /*tp*/) { return 0; }
 
-    static size_t do_format(substr /*buf*/, csubstr fmt /*sep*/, std::tuple<Types...> const& /*tp*/) { return 0; }
+    static size_t do_format(substr buf, csubstr fmt, std::tuple<Types...> const& /*tp*/)
+    {
+        return to_str(buf, fmt);
+    }
+
+    static size_t do_unformat(csubstr buf, csubstr fmt, std::tuple<Types...> const& /*tp*/)
+    {
+        return 0;
+    }
 };
 
 } // namespace detail
@@ -707,6 +763,12 @@ template< class... Types >
 inline size_t format(substr buf, csubstr fmt, std::tuple< Types... > const& tp)
 {
     return detail::tuple_helper< 0, Types... >::do_format(buf, fmt, tp);
+}
+
+template< class... Types >
+inline size_t unformat(csubstr buf, csubstr fmt, std::tuple< Types... > & tp)
+{
+    return detail::tuple_helper< 0, Types... >::do_unformat(buf, fmt, tp);
 }
 
 } // namespace c4
