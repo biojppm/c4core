@@ -888,6 +888,9 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & a, Args & ...more)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+struct append_t {};
+constexpr const append_t append = {};
+
 template< class CharOwningContainer, class... Args >
 inline void catrs(CharOwningContainer *cont, Args const& ...args)
 {
@@ -901,6 +904,24 @@ inline void catrs(CharOwningContainer *cont, Args const& ...args)
         if(ret != buf.len)
         {
             cont->resize(ret);
+        }
+    }
+}
+
+template< class CharOwningContainer, class... Args >
+inline void catrs(append_t, CharOwningContainer *cont, Args const& ...args)
+{
+    size_t pos = cont->size();
+    substr buf = to_substr(*cont).sub(pos);
+    size_t ret = cat(buf, args...);
+    cont->resize(pos + ret);
+    if(ret > buf.len)
+    {
+        buf = to_substr(*cont).sub(pos);
+        ret = cat(buf, args...);
+        if(ret != buf.len)
+        {
+            cont->resize(pos + ret);
         }
     }
 }
@@ -922,6 +943,24 @@ inline void catseprs(CharOwningContainer *cont, Sep const& sep, Args const& ...a
     }
 }
 
+template< class CharOwningContainer, class Sep, class... Args >
+inline void catseprs(append_t, CharOwningContainer *cont, Sep const& sep, Args const& ...args)
+{
+    size_t pos = cont->size();
+    substr buf = to_substr(*cont).sub(pos);
+    size_t ret = catsep(buf, sep, args...);
+    cont->resize(pos + ret);
+    if(ret > buf.len)
+    {
+        buf = to_substr(*cont).sub(pos);
+        ret = catsep(buf, sep, args...);
+        if(ret != buf.len)
+        {
+            cont->resize(pos + ret);
+        }
+    }
+}
+
 template< class CharOwningContainer, class... Args >
 inline void formatrs(CharOwningContainer *cont, csubstr fmt, Args const& ...args)
 {
@@ -935,6 +974,24 @@ inline void formatrs(CharOwningContainer *cont, csubstr fmt, Args const& ...args
         if(ret != buf.len)
         {
             cont->resize(ret);
+        }
+    }
+}
+
+template< class CharOwningContainer, class... Args >
+inline void formatrs(append_t, CharOwningContainer *cont, csubstr fmt, Args const& ...args)
+{
+    size_t pos = cont->size();
+    substr buf = to_substr(*cont).sub(pos);
+    size_t ret = format(buf, fmt, args...);
+    cont->resize(pos + ret);
+    if(ret > buf.len)
+    {
+        buf = to_substr(*cont).sub(pos);
+        ret = format(buf, fmt, args...);
+        if(ret != buf.len)
+        {
+            cont->resize(pos + ret);
         }
     }
 }

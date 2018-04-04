@@ -1,6 +1,7 @@
 #include "c4/test.hpp"
 #include "c4/to_str.hpp"
 #include "c4/std/string.hpp"
+#include "c4/std/vector.hpp"
 
 namespace c4 {
 
@@ -629,5 +630,89 @@ TEST(unformat, tuple)
 }
 #endif // C4_TUPLE_TO_STR
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+TEST(catrs, basic)
+{
+    std::vector<char> buf;
+
+    catrs(&buf, 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1234");
+    catrs(&buf, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5678");
+}
+
+TEST(catrs, basic_append)
+{
+    std::vector<char> buf;
+
+    catrs(append, &buf, 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1234");
+    catrs(append, &buf, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "12345678");
+    catrs(append, &buf, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "123456789012345678");
+}
+
+TEST(catseprs, basic)
+{
+    std::vector<char> buf;
+
+    catseprs(&buf, ' ', 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1 2 3 4");
+    catseprs(&buf, ' ', 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5 6 7 8");
+
+    catseprs(&buf, ',', 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1,2,3,4");
+    catseprs(&buf, ',', 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5,6,7,8");
+
+    catseprs(&buf, '/', 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1/2/3/4");
+    catseprs(&buf, '/', 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5/6/7/8");
+
+    catseprs(&buf, "///", 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1///2///3///4");
+    catseprs(&buf, "///", 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5///6///7///8");
+}
+
+TEST(catseprs, basic_append)
+{
+    std::vector<char> buf;
+
+    catseprs(append, &buf, ' ', 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1 2 3 4");
+    catseprs(append, &buf, ' ', 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "1 2 3 45 6 7 8");
+    catseprs(append, &buf, ' ', 9, 0, 1, 2, 3, 4, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "1 2 3 45 6 7 89 0 1 2 3 4 5 6 7 8");
+}
+
+TEST(formatrs, basic)
+{
+    std::vector<char> buf;
+
+    formatrs(&buf, "{} goes with food, {} goes with heat, {} anytime", "wine", "beer", "coffee");
+    EXPECT_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat, coffee anytime");
+}
+
+TEST(formatrs, basic_append)
+{
+    std::vector<char> buf;
+
+    formatrs(append, &buf, "{} goes with food", "wine");
+    EXPECT_EQ(to_csubstr(buf), "wine goes with food");
+    formatrs(append, &buf, ", {} goes with heat", "beer");
+    EXPECT_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat");
+    formatrs(append, &buf, ", {} anytime", "coffee");
+    EXPECT_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat, coffee anytime");
+
+    formatrs(append, &buf, ". And water. {} glass of {}cl in the morning clears you up for the day", 1, 40);
+    EXPECT_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat, coffee anytime. And water. 1 glass of 40cl in the morning clears you up for the day");
+}
 
 } // namespace c4
