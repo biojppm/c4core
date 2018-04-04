@@ -21,6 +21,12 @@ matrix:
 
   include:
     #
+    # ----------- Coverage
+    #
+    - env: CXX_=g++-7 A=64 BT=Coverage
+    #- env: CXX_=g++-7 A=32 BT=Coverage
+    #
+    #
     #
     #- env: CXX_=clang++-7   A=32 BT=Debug   SAN=ALL VG=ON
     #- env: CXX_=clang++-7   A=64 BT=Debug   SAN=ALL VG=ON
@@ -88,12 +94,6 @@ matrix:
     - env: CXX_=clang++-6.0 A=64 BT=Debug   LINT=clang-tidy
     - env: CXX_=clang++-6.0 A=32 BT=Release LINT=clang-tidy
     - env: CXX_=clang++-6.0 A=64 BT=Release LINT=clang-tidy
-    #
-    # ----------- Coverage
-    #
-    - env: CXX_=g++-7 A=64 BT=Coverage
-    #- env: CXX_=g++-7 A=32 BT=Coverage
-    #
 
 install:
   - bash -x .ci/travis-install.sh
