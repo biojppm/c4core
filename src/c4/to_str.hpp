@@ -12,13 +12,13 @@
 namespace c4 {
 
 typedef enum {
-    /** print the real number in floating point format, (like %f) */
+    /** print the real number in floating point format (like %f) */
     FTOA_FLOAT,
-    /** print the real number in scientific format, (like %e) */
+    /** print the real number in scientific format (like %e) */
     FTOA_SCIENT,
-    /** print the real number in flexible format, (like %g) */
+    /** print the real number in flexible format (like %g) */
     FTOA_FLEX,
-    /** print the real number in hexadecimal format, (like %a) */
+    /** print the real number in hexadecimal format (like %a) */
     FTOA_HEXA
 } RealFormat_e;
 
@@ -66,24 +66,23 @@ size_t itoa(substr buf, T v, T radix)
     size_t pos = 0;
 
     // write the sign prefix
-    size_t pfx = 0;
     if(v < 0)
     {
         v = -v;
         _c4append('-');
-        ++pfx;
     }
 
     // write the radix prefix
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
     switch(radix)
     {
-    case 2 : _c4append('0'); _c4append('b'); pfx += 2; break;
-    case 8 : _c4append('0');                 pfx += 1; break;
-    case 16: _c4append('0'); _c4append('x'); pfx += 2; break;
+    case 2 : _c4append('0'); _c4append('b'); break;
+    case 8 : _c4append('0');                 break;
+    case 16: _c4append('0'); _c4append('x'); break;
     }
 
     // write the number
+    size_t pfx = pos;
     do {
         _c4append(_c4getrdxchar(v % radix));
         v /= radix;
@@ -116,13 +115,15 @@ size_t utoa(substr buf, T v, T radix)
 
     // write the radix prefix
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
-    size_t pfx = 0;
     switch(radix)
     {
-    case 2 : _c4append('0'); _c4append('b'); pfx = 2; break;
-    case 8 : _c4append('0');                 pfx = 1; break;
-    case 16: _c4append('0'); _c4append('x'); pfx = 2; break;
+    case 2 : _c4append('0'); _c4append('b'); break;
+    case 8 : _c4append('0');                 break;
+    case 16: _c4append('0'); _c4append('x'); break;
     }
+
+    // write the number
+    size_t pfx = 0;
     do {
         _c4append(_c4getrdxchar(v % radix));
         v /= radix;
@@ -214,7 +215,7 @@ inline size_t atou_trim(csubstr str, T *v)
 //-----------------------------------------------------------------------------
 
 namespace detail {
-
+/** @see http://www.exploringbinary.com/ for many good examples on float-str conversion */
 template< size_t N >
 void get_real_format_str(char (&fmt)[N], int precision, RealFormat_e formatting, const char* length_modifier="")
 {
