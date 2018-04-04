@@ -22,6 +22,7 @@ set(src
     c4/szconv.hpp
     c4/time.hpp
     c4/time.cpp
+    c4/to_str.hpp
     c4/type_name.hpp
     c4/types.hpp
     c4/windows.hpp

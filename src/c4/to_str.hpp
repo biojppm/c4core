@@ -32,10 +32,11 @@ typedef enum {
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-// Helper macro: appends chars to the buffer, without overflow. Always counts.
+// Helper macros, undefined below
+
+// append chars to the buffer, without overflow. Always counts.
 #define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = (c); } else { ++pos; } }
-// Helper macro: gets the char
-#define _c4getrdxchar(c) (radix == 16 ? hexchars[c] : (c + '0'))
+#define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (i) + '0'); } else { ++pos; } }
 
 template< class T >
 size_t itoa(substr buf, T v)
@@ -47,7 +48,7 @@ size_t itoa(substr buf, T v)
         _c4append('-');
         v = -v;
         do {
-            _c4append((char)(v % 10) + '0');
+            _c4append((v % 10) + '0');
             v /= 10;
         } while(v);
         buf.reverse_range(1, pos <= buf.len ? pos : buf.len);
@@ -55,7 +56,7 @@ size_t itoa(substr buf, T v)
     else
     {
         do {
-            _c4append((char)(v % 10) + '0');
+            _c4append((v % 10) + '0');
             v /= 10;
         } while(v);
         buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
@@ -90,7 +91,7 @@ size_t itoa(substr buf, T v, T radix)
     // write the number
     size_t pfx = pos;
     do {
-        _c4append(_c4getrdxchar(v % radix));
+        _c4appendrdx(v % radix);
         v /= radix;
     } while(v);
     buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
@@ -129,12 +130,13 @@ size_t utoa(substr buf, T v, T radix)
     }
 
     // write the number
-    size_t pfx = 0;
+    size_t pfx = pos;
     do {
-        _c4append(_c4getrdxchar(v % radix));
+        _c4appendrdx(v % radix);
         v /= radix;
     } while(v);
     buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+
     return pos;
 }
 
@@ -318,7 +320,10 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 
 } // namespace detail
 
-
+/**
+ * For FTOA_FLEX, precision is the number of significand digits. Otherwise
+ * precision is the number of decimals.
+ */
 inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
     char fmt[16];
@@ -326,6 +331,10 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
     return detail::print_one(str, fmt, v);
 }
 
+/**
+ * For FTOA_FLEX, precision is the number of significand digits. Otherwise
+ * precision is the number of decimals.
+ */
 inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
     char fmt[16];
@@ -363,6 +372,13 @@ inline size_t atod_trim(csubstr str, double *v)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+template< class T >
+inline substr to_str_sub(substr buf, T const& v)
+{
+    size_t sz = to_str(buf, v);
+    return buf.left_of(sz <= buf.len ? sz : buf.len);
+}
+
 #define _C4_DEFINE_TO_FROM_STR_TOA(ty, id)              \
                                                         \
 inline size_t to_str(substr buf, ty v)                  \
@@ -378,13 +394,6 @@ inline bool from_str(csubstr buf, ty *v)                \
 inline size_t from_str_trim(csubstr buf, ty *v)         \
 {                                                       \
     return ato##id##_trim(buf, v);                      \
-}
-
-template< class T >
-inline substr to_str_substr(substr buf, T const& v)
-{
-    size_t sz = to_str(buf, v);
-    return buf.left_of(sz <= buf.len ? sz : buf.len);
 }
 
 #ifdef _MSC_VER
@@ -598,55 +607,73 @@ inline size_t to_str(substr buf, const char *v)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** @todo add custom formatting */
-template< class T >
-struct fmt_wrapper;
-
 
 namespace detail {
 template< class T >
 struct float_formatter
 {
-    float &val;
+    T val;
     int precision;
     RealFormat_e fmt;
-    float_formatter(float &v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
+    float_formatter(T v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
 };
 
+template< class T >
+struct int_formatter
+{
+    T val;
+    uint8_t radix;
+    int_formatter(T val_, uint8_t radix_=10) : val(val_), radix(radix_) {}
+};
 } // namespace detail
 
-template<> struct fmt_wrapper<float > : public detail::float_formatter<float > { using detail::float_formatter<float >::float_formatter; };
-template<> struct fmt_wrapper<double> : public detail::float_formatter<double> { using detail::float_formatter<double>::float_formatter; };
+template< class T >
+struct fmt_wrapper;
+
+// define format settings for intrinsic types.
+// The references are needed for reading, in case a format_wrapper
+// is used to read
+
+template<> struct fmt_wrapper<   float > : public detail::float_formatter< float > { using detail::float_formatter< float >::float_formatter; };
+template<> struct fmt_wrapper<   float&> : public detail::float_formatter< float&> { using detail::float_formatter< float&>::float_formatter; };
+template<> struct fmt_wrapper<  double > : public detail::float_formatter<double > { using detail::float_formatter<double >::float_formatter; };
+template<> struct fmt_wrapper<  double&> : public detail::float_formatter<double&> { using detail::float_formatter<double&>::float_formatter; };
+template<> struct fmt_wrapper<  int8_t > : public detail::int_formatter<  int8_t > { using detail::int_formatter<  int8_t >::int_formatter; };
+template<> struct fmt_wrapper<  int8_t&> : public detail::int_formatter<  int8_t&> { using detail::int_formatter<  int8_t&>::int_formatter; };
+template<> struct fmt_wrapper< uint8_t > : public detail::int_formatter< uint8_t > { using detail::int_formatter< uint8_t >::int_formatter; };
+template<> struct fmt_wrapper< uint8_t&> : public detail::int_formatter< uint8_t&> { using detail::int_formatter< uint8_t&>::int_formatter; };
+template<> struct fmt_wrapper< int16_t > : public detail::int_formatter< int16_t > { using detail::int_formatter< int16_t >::int_formatter; };
+template<> struct fmt_wrapper< int16_t&> : public detail::int_formatter< int16_t&> { using detail::int_formatter< int16_t&>::int_formatter; };
+template<> struct fmt_wrapper<uint16_t > : public detail::int_formatter<uint16_t > { using detail::int_formatter<uint16_t >::int_formatter; };
+template<> struct fmt_wrapper<uint16_t&> : public detail::int_formatter<uint16_t&> { using detail::int_formatter<uint16_t&>::int_formatter; };
+template<> struct fmt_wrapper< int32_t > : public detail::int_formatter< int32_t > { using detail::int_formatter< int32_t >::int_formatter; };
+template<> struct fmt_wrapper< int32_t&> : public detail::int_formatter< int32_t&> { using detail::int_formatter< int32_t&>::int_formatter; };
+template<> struct fmt_wrapper<uint32_t > : public detail::int_formatter<uint32_t > { using detail::int_formatter<uint32_t >::int_formatter; };
+template<> struct fmt_wrapper<uint32_t&> : public detail::int_formatter<uint32_t&> { using detail::int_formatter<uint32_t&>::int_formatter; };
+template<> struct fmt_wrapper< int64_t > : public detail::int_formatter< int64_t > { using detail::int_formatter< int64_t >::int_formatter; };
+template<> struct fmt_wrapper< int64_t&> : public detail::int_formatter< int64_t&> { using detail::int_formatter< int64_t&>::int_formatter; };
+template<> struct fmt_wrapper<uint64_t > : public detail::int_formatter<uint64_t > { using detail::int_formatter<uint64_t >::int_formatter; };
+template<> struct fmt_wrapper<uint64_t&> : public detail::int_formatter<uint64_t&> { using detail::int_formatter<uint64_t&>::int_formatter; };
+
 
 
 /** mark a variable to be written in custom format */
 template< class T, class... Args >
-inline fmt_wrapper<T> fmt(T &v, Args && ...args)
+inline fmt_wrapper<T> fmt(T v, Args && ...args)
 {
     return fmt_wrapper<T>(std::ref(v), std::forward<Args>(args)...);
 }
 
-/** write a formatted float */
-inline size_t to_str(substr buf, fmt_wrapper<float> fmt)
-{
-    return ftoa(buf, fmt.val, fmt.precision, fmt.fmt);
-}
-/** write a formatted double */
-inline size_t to_str(substr buf, fmt_wrapper<double> fmt)
-{
-    return dtoa(buf, fmt.val, fmt.precision, fmt.fmt);
-}
-
-/** read a formatted float. format is ignored */
-inline size_t from_str(csubstr buf, fmt_wrapper<float> *b)
-{
-    return atof(buf, &b->val);
-}
-/** read a formatted double. format is ignored */
-inline size_t from_str(csubstr buf, fmt_wrapper<double> *b)
-{
-    return atof(buf, &b->val);
-}
+inline size_t to_str(substr buf, fmt_wrapper<   float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
+inline size_t to_str(substr buf, fmt_wrapper<  double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); }
+inline size_t to_str(substr buf, fmt_wrapper<  int8_t> fmt) { return itoa(buf, fmt.val, (  int8_t)fmt.radix); }
+inline size_t to_str(substr buf, fmt_wrapper< uint8_t> fmt) { return utoa(buf, fmt.val, ( uint8_t)fmt.radix); }
+inline size_t to_str(substr buf, fmt_wrapper< int16_t> fmt) { return itoa(buf, fmt.val, ( int16_t)fmt.radix); }
+inline size_t to_str(substr buf, fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, (uint16_t)fmt.radix); }
+inline size_t to_str(substr buf, fmt_wrapper< int32_t> fmt) { return itoa(buf, fmt.val, ( int32_t)fmt.radix); }
+inline size_t to_str(substr buf, fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, (uint32_t)fmt.radix); }
+inline size_t to_str(substr buf, fmt_wrapper< int64_t> fmt) { return itoa(buf, fmt.val, ( int64_t)fmt.radix); }
+inline size_t to_str(substr buf, fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, (uint64_t)fmt.radix); }
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1012,6 +1039,7 @@ struct tuple_helper
 
 };
 
+/** @todo VS compilation fails for this class */
 template< class... Types >
 struct tuple_helper< sizeof...(Types), Types... >
 {

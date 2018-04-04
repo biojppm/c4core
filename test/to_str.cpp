@@ -142,19 +142,19 @@ void test_ftoa(substr buf, float f, int precision, const char *scient, const cha
 
     memset(buf.str, 0, buf.len);
     ret = ftoa(buf, f, precision, FTOA_SCIENT);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(scient));
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(scient)) << "num=" << f;
 
     memset(buf.str, 0, ret);
-    ret = ftoa(buf, f, precision, FTOA_FLOAT); // precision is the number of decimals
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(flt));
+    ret = ftoa(buf, f, precision, FTOA_FLOAT);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(flt)) << "num=" << f;
 
     memset(buf.str, 0, ret);
-    ret = ftoa(buf, f, precision+1, FTOA_FLEX); // precision is the number of significand digits
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(flex));
+    ret = ftoa(buf, f, precision+1, FTOA_FLEX);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(flex)) << "num=" << f;
 
     memset(buf.str, 0, ret);
     ret = ftoa(buf, f, precision, FTOA_HEXA);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(hexa));
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(hexa)) << "num=" << f;
 }
 
 void test_dtoa(substr buf, double f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa)
@@ -163,19 +163,19 @@ void test_dtoa(substr buf, double f, int precision, const char *scient, const ch
 
     memset(buf.str, 0, buf.len);
     ret = dtoa(buf, f, precision, FTOA_SCIENT);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(scient));
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(scient)) << "num=" << f;
 
     memset(buf.str, 0, ret);
-    ret = dtoa(buf, f, precision, FTOA_FLOAT); // precision is the number of decimals
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(flt));
+    ret = dtoa(buf, f, precision, FTOA_FLOAT);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(flt)) << "num=" << f;
 
     memset(buf.str, 0, ret);
-    ret = dtoa(buf, f, precision+1, FTOA_FLEX); // precision is the number of significand digits
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(flex));
+    ret = dtoa(buf, f, precision+1, FTOA_FLEX);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(flex)) << "num=" << f;
 
     memset(buf.str, 0, ret);
     ret = dtoa(buf, f, precision, FTOA_HEXA);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(hexa));
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(hexa)) << "num=" << f;
 }
 
 
@@ -271,7 +271,7 @@ TEST(to_str, trimmed_fit_int)
     char buf2[8+1];
     C4_ASSERT(sizeof(buf2) == sz+1);
     substr sp2(buf2, sizeof(buf2)); // make sure it spans the whole buffer
-    sp2 = to_str_substr(sp2, v);
+    sp2 = to_str_sub(sp2, v);
     EXPECT_EQ(sp2, sp); // ehemm.
     std::string str;
     catrs(&str, v);
@@ -292,7 +292,7 @@ TEST(to_str, trimmed_fit_float)
     char buf2[7 + 1];
     C4_ASSERT(sizeof(buf2) == sz+1);
     substr sp2(buf2, sizeof(buf2)); // make sure it spans the whole buffer
-    sp2 = to_str_substr(sp2, v);
+    sp2 = to_str_sub(sp2, v);
     EXPECT_EQ(sp2, sp); // ehemm.
     std::string str;
     catrs(&str, v);
@@ -313,12 +313,63 @@ TEST(to_str, trimmed_fit_double)
     char buf2[7 + 1];
     C4_ASSERT(sizeof(buf2) == sz+1);
     substr sp2(buf2, sizeof(buf2)); // make sure it spans the whole buffer
-    sp2 = to_str_substr(sp2, v);
+    sp2 = to_str_sub(sp2, v);
     EXPECT_EQ(sp2, sp); // ehemm.
     std::string str;
     catrs(&str, v);
     EXPECT_EQ(sp, to_csubstr(str)); // ehemm.
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+template< class T >
+void test_to_str_fmt_basic(T f, int precision, const char* flt, T fltv, const char *scient, T scientv)
+{
+    char bufc[64];
+    substr buf(bufc);
+    substr r;
+    T copy;
+
+    r = to_str_sub(buf, fmt(f, precision));
+    EXPECT_EQ(r, to_csubstr(flt)) << "num=" << f;
+    from_str(r, &copy);
+    EXPECT_FLOAT_EQ(fltv, copy);
+
+    r = to_str_sub(buf, fmt(f, precision, FTOA_SCIENT));
+    EXPECT_EQ(r, to_csubstr(scient)) << "num=" << f;
+    from_str(r, &copy);
+    EXPECT_FLOAT_EQ(scientv, copy);
+}
+
+TEST(to_str, fmt_basic)
+{
+    char bufc[128];
+    substr buf(bufc);
+
+    size_t s = 0xff;
+    EXPECT_EQ(to_str_sub(buf, fmt( int8_t(0x7f), 16)), "0x7f");
+    EXPECT_EQ(to_str_sub(buf, fmt(uint8_t(0xff), 16)), "0xff");
+
+    float f = 256.064f;
+    test_to_str_fmt_basic(f, 0, "256", 256.f, "3e+02", 300.f);
+    test_to_str_fmt_basic(f, 1, "256.1", 256.1f, "2.6e+02", 260.f);
+    test_to_str_fmt_basic(f, 2, "256.06", 256.06f, "2.56e+02", 256.f);
+    test_to_str_fmt_basic(f, 3, "256.064", 256.064f, "2.561e+02", 256.1f);
+    test_to_str_fmt_basic(f, 4, "256.0640", 256.0640f, "2.5606e+02", 256.06f);
+    test_to_str_fmt_basic(f, 5, "256.06400", 256.06400f, "2.56064e+02", 256.064f);
+
+    double d = 256.064;
+    test_to_str_fmt_basic(d, 0, "256", 256., "3e+02", 300.);
+    test_to_str_fmt_basic(d, 1, "256.1", 256.1, "2.6e+02", 260.);
+    test_to_str_fmt_basic(d, 2, "256.06", 256.06, "2.56e+02", 256.);
+    test_to_str_fmt_basic(d, 3, "256.064", 256.064, "2.561e+02", 256.1);
+    test_to_str_fmt_basic(d, 4, "256.0640", 256.0640, "2.5606e+02", 256.06);
+    test_to_str_fmt_basic(d, 5, "256.06400", 256.06400, "2.56064e+02", 256.064);
+}
+
 
 
 //-----------------------------------------------------------------------------
