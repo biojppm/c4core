@@ -9,8 +9,8 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
-C4_ALWAYS_INLINE bool isspace(char c) { return std::isspace(c); }
-C4_ALWAYS_INLINE bool isspace(wchar_t c) { return std::iswspace(c); }
+C4_ALWAYS_INLINE bool isspace(char c) { return std::isspace(c) != 0; }
+C4_ALWAYS_INLINE bool isspace(wchar_t c) { return std::iswspace(c) != 0; }
 
 //-----------------------------------------------------------------------------
 template< typename C >
