@@ -28,6 +28,8 @@ typedef enum {
 
 // Helper macro: appends chars to the buffer, without overflow. Always counts.
 #define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = (c); } else { ++pos; } }
+// Helper macro: gets the char
+#define _c4getrdxchar(c) (radix == 16 ? hexchars[c] : (c + '0'))
 
 template< class T >
 size_t itoa(substr buf, T v)
@@ -56,6 +58,41 @@ size_t itoa(substr buf, T v)
 }
 
 
+template< class T >
+size_t itoa(substr buf, T v, T radix)
+{
+    static_assert(std::is_integral<T>::value, "must be integral type");
+    constexpr static const char hexchars[] = "0123456789abcdef";
+    size_t pos = 0;
+
+    // write the sign prefix
+    size_t pfx = 0;
+    if(v < 0)
+    {
+        v = -v;
+        _c4append('-');
+        ++pfx;
+    }
+
+    // write the radix prefix
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    switch(radix)
+    {
+    case 2 : _c4append('0'); _c4append('b'); pfx += 2; break;
+    case 8 : _c4append('0');                 pfx += 1; break;
+    case 16: _c4append('0'); _c4append('x'); pfx += 2; break;
+    }
+
+    // write the number
+    do {
+        _c4append(_c4getrdxchar(v % radix));
+        v /= radix;
+    } while(v);
+    buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+
+    return pos;
+}
+
 //-----------------------------------------------------------------------------
 template< class T >
 size_t utoa(substr buf, T v)
@@ -70,6 +107,31 @@ size_t utoa(substr buf, T v)
     return pos;
 }
 
+template< class T >
+size_t utoa(substr buf, T v, T radix)
+{
+    static_assert(std::is_integral<T>::value, "must be integral type");
+    constexpr static const char hexchars[] = "0123456789abcdef";
+    size_t pos = 0;
+
+    // write the radix prefix
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    size_t pfx = 0;
+    switch(radix)
+    {
+    case 2 : _c4append('0'); _c4append('b'); pfx = 2; break;
+    case 8 : _c4append('0');                 pfx = 1; break;
+    case 16: _c4append('0'); _c4append('x'); pfx = 2; break;
+    }
+    do {
+        _c4append(_c4getrdxchar(v % radix));
+        v /= radix;
+    } while(v);
+    buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+    return pos;
+}
+
+#undef _c4getrdxchar
 #undef _c4append
 
 
@@ -533,6 +595,99 @@ inline size_t to_str(substr buf, const char *v)
 {
     return to_str(buf, to_csubstr(v));
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** @todo add custom formatting */
+template< class T >
+struct fmt_wrapper;
+
+
+namespace detail {
+template< class T >
+struct float_formatter
+{
+    float &val;
+    int precision;
+    RealFormat_e fmt;
+    float_formatter(float &v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
+};
+
+} // namespace detail
+
+template<> struct fmt_wrapper<float > : public detail::float_formatter<float > { using detail::float_formatter<float >::float_formatter; };
+template<> struct fmt_wrapper<double> : public detail::float_formatter<double> { using detail::float_formatter<double>::float_formatter; };
+
+
+/** mark a variable to be written in custom format */
+template< class T, class... Args >
+inline fmt_wrapper<T> fmt(T &v, Args && ...args)
+{
+    return fmt_wrapper<T>(std::ref(v), std::forward<Args>(args)...);
+}
+
+/** write a formatted float */
+inline size_t to_str(substr buf, fmt_wrapper<float> fmt)
+{
+    return ftoa(buf, fmt.val, fmt.precision, fmt.fmt);
+}
+/** write a formatted double */
+inline size_t to_str(substr buf, fmt_wrapper<double> fmt)
+{
+    return dtoa(buf, fmt.val, fmt.precision, fmt.fmt);
+}
+
+/** read a formatted float. format is ignored */
+inline size_t from_str(csubstr buf, fmt_wrapper<float> *b)
+{
+    return atof(buf, &b->val);
+}
+/** read a formatted double. format is ignored */
+inline size_t from_str(csubstr buf, fmt_wrapper<double> *b)
+{
+    return atof(buf, &b->val);
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** @todo add custom alignment */
+template< class T >
+struct binary_wrapper
+{
+    T& val;
+    binary_wrapper(T& v) : val(v) {}
+};
+
+/** mark a variable to be written in binary format */
+template< class T >
+inline binary_wrapper<T> fmtbin(T &v)
+{
+    return binary_wrapper<T>(std::ref(v));
+}
+
+/** write a variable in binary format */
+template< class T >
+inline size_t to_str(substr buf, binary_wrapper<T> b)
+{
+    if(sizeof(T) > buf.len) return buf.len;
+    memcpy(buf.str, &b.val, sizeof(T));
+    return sizeof(T);
+}
+
+/** read a variable in binary format */
+template< class T >
+inline size_t from_str(csubstr buf, binary_wrapper<T> *b)
+{
+    if(sizeof(T) > buf.len) return csubstr::npos;
+    memcpy(&b->val, buf.str, sizeof(T));
+    return sizeof(T);
+}
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

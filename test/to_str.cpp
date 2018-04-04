@@ -4,6 +4,93 @@
 
 namespace c4 {
 
+void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const char *r10, const char *r16)
+{
+    size_t ret;
+
+    memset(buf.str, 0, buf.len);
+    ret = itoa(buf, num, 2);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(r2)) << "num=" << num;
+
+    memset(buf.str, 0, ret);
+    ret = itoa(buf, num, 8);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(r8)) << "num=" << num;
+
+    memset(buf.str, 0, ret);
+    ret = itoa(buf, num, 10);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(r10)) << "num=" << num;
+
+    memset(buf.str, 0, ret);
+    ret = itoa(buf, num, 16);
+    EXPECT_EQ(buf.left_of(ret), to_csubstr(r16)) << "num=" << num;
+
+    if(num == 0) return;
+    // test negative values
+    num *= -1;
+    char nbufc[128];
+    csubstr nbuf;
+
+#define _c4getn(which) nbufc[0] = '-'; memcpy(nbufc+1, which, strlen(which)+1); nbuf.assign(nbufc, 1 + strlen(which));
+
+    memset(buf.str, 0, ret);
+    _c4getn(r2);
+    ret = itoa(buf, num, 2);
+    EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
+
+    memset(buf.str, 0, ret);
+    _c4getn(r8);
+    ret = itoa(buf, num, 8);
+    EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
+
+    memset(buf.str, 0, ret);
+    _c4getn(r10);
+    ret = itoa(buf, num, 10);
+    EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
+
+    memset(buf.str, 0, ret);
+    _c4getn(r16);
+    ret = itoa(buf, num, 16);
+    EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
+}
+
+TEST(itoa_radix, basic)
+{
+    char bufc[100] = {0};
+    substr buf(bufc);
+    C4_ASSERT(buf.len == sizeof(bufc)-1);
+
+    test_itoa_radix(buf,   0,         "0b0",   "00",   "0",   "0x0");
+    test_itoa_radix(buf,   1,         "0b1",   "01",   "1",   "0x1");
+    test_itoa_radix(buf,   2,        "0b10",   "02",   "2",   "0x2");
+    test_itoa_radix(buf,   3,        "0b11",   "03",   "3",   "0x3");
+    test_itoa_radix(buf,   4,       "0b100",   "04",   "4",   "0x4");
+    test_itoa_radix(buf,   5,       "0b101",   "05",   "5",   "0x5");
+    test_itoa_radix(buf,   6,       "0b110",   "06",   "6",   "0x6");
+    test_itoa_radix(buf,   7,       "0b111",   "07",   "7",   "0x7");
+    test_itoa_radix(buf,   8,      "0b1000",  "010",   "8",   "0x8");
+    test_itoa_radix(buf,   9,      "0b1001",  "011",   "9",   "0x9");
+    test_itoa_radix(buf,  10,      "0b1010",  "012",  "10",   "0xa");
+    test_itoa_radix(buf,  11,      "0b1011",  "013",  "11",   "0xb");
+    test_itoa_radix(buf,  12,      "0b1100",  "014",  "12",   "0xc");
+    test_itoa_radix(buf,  13,      "0b1101",  "015",  "13",   "0xd");
+    test_itoa_radix(buf,  14,      "0b1110",  "016",  "14",   "0xe");
+    test_itoa_radix(buf,  15,      "0b1111",  "017",  "15",   "0xf");
+    test_itoa_radix(buf,  16,     "0b10000",  "020",  "16",  "0x10");
+    test_itoa_radix(buf,  17,     "0b10001",  "021",  "17",  "0x11");
+    test_itoa_radix(buf,  31,     "0b11111",  "037",  "31",  "0x1f");
+    test_itoa_radix(buf,  32,    "0b100000",  "040",  "32",  "0x20");
+    test_itoa_radix(buf,  33,    "0b100001",  "041",  "33",  "0x21");
+    test_itoa_radix(buf,  63,    "0b111111",  "077",  "63",  "0x3f");
+    test_itoa_radix(buf,  64,   "0b1000000", "0100",  "64",  "0x40");
+    test_itoa_radix(buf,  65,   "0b1000001", "0101",  "65",  "0x41");
+    test_itoa_radix(buf, 127,   "0b1111111", "0177", "127",  "0x7f");
+    test_itoa_radix(buf, 128,  "0b10000000", "0200", "128",  "0x80");
+    test_itoa_radix(buf, 129,  "0b10000001", "0201", "129",  "0x81");
+    test_itoa_radix(buf, 255,  "0b11111111", "0377", "255",  "0xff");
+    test_itoa_radix(buf, 256, "0b100000000", "0400", "256", "0x100");
+}
+
+
 TEST(atoi, basic)
 {
     char bufc[100] = {0};
@@ -234,6 +321,11 @@ TEST(to_str, trimmed_fit_double)
     catrs(&str, v);
     EXPECT_EQ(sp, to_csubstr(str)); // ehemm.
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 TEST(cat, vars)
 {
