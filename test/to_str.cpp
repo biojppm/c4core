@@ -185,8 +185,6 @@ TEST(ftoa, basic)
     substr buf(bufc);
     C4_ASSERT(buf.len == sizeof(bufc)-1);
 
-    size_t ret;
-
     float f = 1.1234123f;
     double d = 1.1234123f;
 
@@ -339,6 +337,7 @@ TEST(cat, vars)
     EXPECT_EQ(result, "1 2 3 4");
 }
 
+#ifdef C4_TUPLE_TO_STR
 TEST(cat, tuple)
 {
     char buf[256];
@@ -350,6 +349,7 @@ TEST(cat, tuple)
     result = sp.left_of(sz);
     EXPECT_EQ(result, "1 2 3 4");
 }
+#endif // C4_TUPLE_TO_STR
 
 TEST(uncat, vars)
 {
@@ -365,6 +365,7 @@ TEST(uncat, vars)
     EXPECT_EQ(v4, 4);
 }
 
+#ifdef C4_TUPLE_TO_STR
 TEST(uncat, tuple)
 {
     size_t sz;
@@ -379,6 +380,7 @@ TEST(uncat, tuple)
     EXPECT_EQ(v3, 3);
     EXPECT_EQ(v4, 4);
 }
+#endif // C4_TUPLE_TO_STR
 
 TEST(catsep, vars)
 {
@@ -408,6 +410,7 @@ TEST(catsep, vars)
     EXPECT_EQ(result, "1/2/3/4");
 }
 
+#ifdef C4_TUPLE_TO_STR
 TEST(catsep, tuple)
 {
     char buf[256];
@@ -435,6 +438,7 @@ TEST(catsep, tuple)
     result = sp.left_of(sz);
     EXPECT_EQ(result, "1/2/3/4");
 }
+#endif // C4_TUPLE_TO_STR
 
 TEST(uncatsep, vars)
 {
@@ -450,6 +454,7 @@ TEST(uncatsep, vars)
     EXPECT_EQ(v4, 4);
 }
 
+#ifdef C4_TUPLE_TO_STR
 TEST(uncatsep, tuple)
 {
     size_t sz;
@@ -464,6 +469,7 @@ TEST(uncatsep, tuple)
     EXPECT_EQ(v3, 3);
     EXPECT_EQ(v4, 4);
 }
+#endif // C4_TUPLE_TO_STR
 
 TEST(format, vars)
 {
@@ -503,6 +509,7 @@ TEST(format, vars)
     EXPECT_EQ(result, "{} and {} and {} and {}");
 }
 
+#ifdef C4_TUPLE_TO_STR
 TEST(format, tuple)
 {
     char buf[256];
@@ -540,6 +547,7 @@ TEST(format, tuple)
     result = sp.left_of(sz);
     EXPECT_EQ(result, "{} and {} and {} and {}");
 }
+#endif // C4_TUPLE_TO_STR
 
 TEST(unformat, vars)
 {
@@ -554,6 +562,7 @@ TEST(unformat, vars)
     EXPECT_EQ(v4, 4);
 }
 
+#ifdef C4_TUPLE_TO_STR
 TEST(unformat, tuple)
 {
     size_t sz;
@@ -567,5 +576,7 @@ TEST(unformat, tuple)
     EXPECT_EQ(v3, 3);
     EXPECT_EQ(v4, 4);
 }
+#endif // C4_TUPLE_TO_STR
+
 
 } // namespace c4

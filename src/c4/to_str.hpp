@@ -9,6 +9,12 @@
 
 #include "./substr.hpp"
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable: 4800) //'int': forcing value to bool 'true' or 'false' (performance warning)
+#   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
+#endif
+
 namespace c4 {
 
 typedef enum {
@@ -373,12 +379,6 @@ inline size_t from_str_trim(csubstr buf, ty *v)         \
     return ato##id##_trim(buf, v);                      \
 }
 
-#ifdef _MSC_VER
-#   pragma warning(push)
-#   pragma warning(disable: 4800) //'int': forcing value to bool 'true' or 'false' (performance warning)
-#   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
-#endif
-
 template< class T >
 inline substr to_str_substr(substr buf, T const& v)
 {
@@ -487,10 +487,6 @@ _C4_DEFINE_TO_FROM_STR_TOA(uint64_t, u)
 #undef _C4_DEFINE_TO_FROM_STR_TOA
 
 
-#ifdef _MSC_VER
-#   pragma warning(pop)
-#endif
-
 //-----------------------------------------------------------------------------
 inline size_t to_str(substr buf, bool v)
 {
@@ -502,7 +498,7 @@ inline bool from_str(csubstr buf, bool *v)
 {
     int val;
     bool ret = from_str(buf, &val);
-    *v = (bool)val;
+    *v = val != 0;
     return ret;
 }
 
@@ -510,7 +506,7 @@ inline size_t from_str_trim(csubstr buf, bool *v)
 {
     int val;
     size_t ret = from_str_trim(buf, &val);
-    *v = (bool)val;
+    *v = val != 0;
     return ret;
 }
 
@@ -919,6 +915,7 @@ inline void formatrs(CharOwningContainer *cont, csubstr fmt, Args const& ...args
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+#ifdef C4_TUPLE_TO_STR
 namespace detail {
 
 template< size_t Curr, class... Types >
@@ -1080,7 +1077,12 @@ inline size_t unformat(csubstr buf, csubstr fmt, std::tuple< Types... > & tp)
 {
     return detail::tuple_helper< 0, Types... >::do_unformat(buf, fmt, tp);
 }
+#endif // C4_TUPLE_TO_STR
 
 } // namespace c4
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif
 
 #endif /* _C4_TO_STR_HPP_ */

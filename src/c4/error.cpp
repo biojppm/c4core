@@ -128,7 +128,7 @@ bool is_debugger_attached()
 #if defined(C4_PS4)
     return (sceDbgIsDebuggerAttached() != 0);
 #elif defined(C4_XBOX) || (defined(C4_WIN) && defined(C4_MSVC))
-    return IsDebuggerPresent();
+    return IsDebuggerPresent() != 0;
 #elif defined(C4_UNIX) || defined(C4_LINUX)
     static bool first_call = true;
     static bool first_call_result = false;
