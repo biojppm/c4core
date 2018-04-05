@@ -3,54 +3,25 @@
 
 #include "c4/allocator.hpp"
 #include "c4/test.hpp"
+#include "c4/to_str.hpp"
 
 #include <vector>
-
 #include <string>
-
 #include <map>
 
-template< class T > using stdc4vec = std::vector< T, c4::Allocator<T> >;
+template< class T > using small_adapter = c4::small_allocator< T >;
+template< class T > using small_adapter_mr = c4::small_allocator_mr< T >;
 
-using stdc4string = std::basic_string< char, std::char_traits<char>, c4::Allocator<char> >;
-
-template< class K, class V, class Compare=std::less<K> >
-using stdc4map = std::map< K, V, Compare, c4::Allocator<std::pair<K,V>> >;
 
 C4_BEGIN_NAMESPACE(c4)
 
-TEST(allocator, std_containers)
-{
-    {
-        stdc4vec< int > v(1024);
-    }
-
-    {
-        stdc4vec< std::string > v(1024);
-    }
-
-    {
-        stdc4string v("adskjhsdfkjdflkjsdfkjhsdfkjh");
-    }
-
-    {
-        stdc4vec< stdc4string > v({"foo", "bar", "baz", "bat", "bax"});
-    }
-
-    {
-        stdc4map< stdc4string, int > v({{"foo", 0}, {"bar", 1}, {"baz", 2}, {"bat", 3}});
-    }
-}
-
 //-----------------------------------------------------------------------------
-template< class T >
-void test_traits_compat_construct(T const& val)
+template< class Alloc >
+void test_traits_compat_construct(typename Alloc::value_type const& val, Alloc &a)
 {
-    using atraits = std::allocator_traits< c4::Allocator<T> >;
+    using atraits = std::allocator_traits< Alloc >;
 
-    c4::Allocator<T> a;
-
-    T *mem = a.allocate(1);
+    typename Alloc::value_type *mem = a.allocate(1);
     atraits::construct(a, mem, val);
     EXPECT_EQ(*mem, val);
 
@@ -60,7 +31,195 @@ void test_traits_compat_construct(T const& val)
 
 TEST(allocator, traits_compat_construct)
 {
-    test_traits_compat_construct<int>(1);
+    allocator<int> a;
+    test_traits_compat_construct(1, a);
 }
 
+TEST(small_allocator, traits_compat_construct)
+{
+    small_allocator<int> a;
+    test_traits_compat_construct(1, a);
+}
+
+TEST(allocator_mr_global, traits_compat_construct)
+{
+    allocator_mr<int> a;
+    test_traits_compat_construct(1, a);
+}
+
+TEST(allocator_mr_stack, traits_compat_construct)
+{
+return;
+    MemoryResourceStack mr;
+    allocator_mr<int> a(&mr);
+    test_traits_compat_construct(1, a);
+}
+
+TEST(allocator_mr_linear, traits_compat_construct)
+{
+    MemoryResourceLinear mr(1024);
+    allocator_mr<int> a(&mr);
+    test_traits_compat_construct(1, a);
+}
+
+TEST(small_allocator_mr_global, traits_compat_construct)
+{
+    small_allocator_mr<int> a;
+    test_traits_compat_construct(1, a);
+}
+
+TEST(small_allocator_mr_stack, traits_compat_construct)
+{
+return;
+    MemoryResourceStack mr;
+    small_allocator_mr<int> a(&mr);
+    test_traits_compat_construct(1, a);
+}
+
+TEST(small_allocator_mr_linear, traits_compat_construct)
+{
+    MemoryResourceLinear mr(1024);
+    small_allocator_mr<int> a(&mr);
+    test_traits_compat_construct(1, a);
+}
+
+//-----------------------------------------------------------------------------
+
+template< class Alloc >
+void clear_mr(Alloc a)
+{
+    auto mrl = dynamic_cast<MemoryResourceLinear*>(a.resource());
+    if(mrl)
+    {
+        mrl->clear();
+    }
+}
+
+template< class Alloc >
+void do_std_containers_test(Alloc alloc)
+{
+    using AllocInt = typename Alloc::template rebind<int>::other;
+    using AllocChar = typename Alloc::template rebind<char>::other;
+    using _string = std::basic_string< char, std::char_traits<char>, AllocChar >;
+    using AllocString = typename Alloc::template rebind<_string>::other;
+    using AllocPair = typename Alloc::template rebind<std::pair<_string,int>>::other;
+    using _vector_int = std::vector<int, AllocInt >;
+    using _vector_string = std::vector<_string, AllocString >;
+    using _map_string_int = std::map<_string, int, std::less<_string>, AllocPair >;
+
+    {
+        _string v(alloc.template rebound<char>());
+        v.reserve(256);
+        v = "adskjhsdfkjdflkjsdfkjhsdfkjh";
+        EXPECT_EQ(v, "adskjhsdfkjdflkjsdfkjhsdfkjh");
+    }
+
+    clear_mr(alloc);
+
+    {
+        int arr[128];
+        for(int &i : arr)
+        {
+            i = 42;
+        }
+        _vector_int vi(arr, arr+C4_COUNTOF(arr), alloc.template rebound<int>());
+        for(int i : vi)
+        {
+            EXPECT_EQ(i, 42);
+        }
+    }
+
+    clear_mr(alloc);
+
+    {
+        _vector_string v({"foo", "bar", "baz", "bat", "bax"}, alloc.template rebound<_string>());
+        EXPECT_EQ(v.size(), 5);
+        EXPECT_EQ(v[0], "foo");
+        EXPECT_EQ(v[1], "bar");
+        EXPECT_EQ(v[2], "baz");
+        EXPECT_EQ(v[3], "bat");
+        EXPECT_EQ(v[4], "bax");
+    }
+
+    clear_mr(alloc);
+
+    {
+        _vector_string v(4, alloc.template rebound<_string>());
+        int count = 0;
+        for(auto &s : v)
+        {
+            s = _string(64, (char)('0' + count++));
+        }
+    }
+
+    clear_mr(alloc);
+
+    {
+        _map_string_int v(alloc.template rebound<_map_string_int>());
+        EXPECT_EQ(v.size(), 0);
+        v["foo"] = 0;
+        v["bar"] = 1;
+        v["baz"] = 2;
+        v["bat"] = 3;
+        EXPECT_EQ(v.size(), 4);
+        EXPECT_EQ(v["foo"], 0);
+        EXPECT_EQ(v["bar"], 1);
+        EXPECT_EQ(v["baz"], 2);
+        EXPECT_EQ(v["bat"], 3);
+    }
+}
+
+TEST(allocator_global, std_containers)
+{
+    allocator<int> a;
+    do_std_containers_test(a);
+}
+
+TEST(small_allocator_global, std_containers)
+{
+    small_allocator<int> a;
+    do_std_containers_test(a);
+}
+
+TEST(allocator_mr_global, std_containers)
+{
+    allocator_mr<int> a;
+    do_std_containers_test(a);
+}
+
+TEST(allocator_mr_stack, std_containers)
+{
+return;
+    MemoryResourceStack mr;
+    allocator_mr<int> a(&mr);
+    do_std_containers_test(a);
+}
+
+TEST(allocator_mr_linear, std_containers)
+{
+    MemoryResourceLinear mr(1024);
+    allocator_mr<int> a(&mr);
+    do_std_containers_test(a);
+}
+/*
+TEST(small_allocator_mr_global, std_containers)
+{
+    small_allocator_mr<int> a;
+    do_std_containers_test<small_adapter_mr>(a);
+}
+
+TEST(small_allocator_mr_stack, std_containers)
+{
+    MemoryResourceStack mr;
+    small_allocator_mr<int> a(&mr);
+    do_std_containers_test<small_adapter_mr>(a);
+}
+
+TEST(small_allocator_mr_linear, std_containers)
+{
+    MemoryResourceLinear mr(1024);
+    small_allocator_mr<int> a(&mr);
+    do_std_containers_test<small_adapter_mr>(a);
+}
+*/
 C4_END_NAMESPACE(c4)

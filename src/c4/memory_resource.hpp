@@ -1,8 +1,8 @@
 #ifndef _C4_MEMORY_RESOURCE_HPP_
 #define _C4_MEMORY_RESOURCE_HPP_
 
-/** @file memory_resource.hpp Provides facilities to allocate memory, via
- *  the memory resource model consecrated with C++17. */
+/** @file memory_resource.hpp Provides facilities to allocate typeless
+ *  memory, via the memory resource model consecrated with C++17. */
 
 /** @defgroup raw_memory_alloc Raw memory allocation
  *
@@ -20,7 +20,9 @@ C4_BEGIN_NAMESPACE(c4)
 // need these forward decls here
 struct MemoryResource;
 struct MemoryResourceMalloc;
+struct MemoryResourceStack;
 MemoryResourceMalloc* get_memory_resource_malloc();
+MemoryResourceStack* get_memory_resource_stack();
 namespace detail { MemoryResource*& get_memory_resource(); }
 
 
@@ -165,11 +167,86 @@ C4_ALWAYS_INLINE MemoryResourceMalloc* get_memory_resource_malloc()
 C4_BEGIN_NAMESPACE(detail)
 C4_ALWAYS_INLINE MemoryResource* & get_memory_resource()
 {
-    static MemoryResource* mr = get_memory_resource_malloc();
+    thread_local static MemoryResource* mr = get_memory_resource_malloc();
     return mr;
 }
 C4_END_NAMESPACE(detail)
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+/** Provides an alloca()-based memory resource. The usual alloca() caveats apply.
+ * @ingroup memory_resources */
+struct MemoryResourceStack : public MemoryResource
+{
+
+    MemoryResourceStack() { name = "stack_malloc"; }
+    virtual ~MemoryResourceStack() {}
+
+protected:
+
+    virtual void* do_allocate(size_t sz, size_t alignment) override;
+    virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
+    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
+
+};
+
+/** returns an alloca-based memory resource
+ *  @ingroup memory_resources */
+C4_ALWAYS_INLINE MemoryResourceStack* get_memory_resource_stack()
+{
+    static MemoryResourceStack mr;
+    return &mr;
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+/** provides a linear memory resource. Deallocations happen only when the
+ * resource is cleared or destroyed. The memory used by this object can be owned
+ * or borrowed. */
+struct MemoryResourceLinear : public MemoryResource
+{
+
+    MemoryResourceLinear() { name = "linear_malloc"; }
+
+    C4_NO_COPY_OR_MOVE(MemoryResourceLinear);
+
+public:
+
+    /** initialize with owned memory, allocated from the global memory resource */
+    MemoryResourceLinear(size_t sz) : MemoryResourceLinear() { acquire(sz); }
+    /** initialize with borrowed memory */
+    MemoryResourceLinear(void *mem, size_t sz) : MemoryResourceLinear() { acquire(mem, sz); }
+
+    virtual ~MemoryResourceLinear() { release(); }
+
+public:
+
+    char  *m_mem{nullptr};
+    size_t m_size{0};
+    size_t m_pos{0};
+    bool   m_owner;
+
+public:
+
+    void clear() { m_pos = 0; }
+
+    /** initialize with owned memory, allocated from the global memory resource */
+    void acquire(size_t sz);
+    /** initialize with borrowed memory */
+    void acquire(void *mem, size_t sz);
+    /** release the memory */
+    void release();
+
+protected:
+
+    virtual void* do_allocate(size_t sz, size_t alignment) override;
+    virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
+    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
+};
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

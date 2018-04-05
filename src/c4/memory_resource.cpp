@@ -9,6 +9,15 @@
 #   include <errno.h>
 #endif
 
+#if defined(C4_WIN) || defined(C4_XBOX)
+#   include <malloc.h>
+#   define alloca _alloca
+#else
+#   include <alloca.h>
+#endif
+
+#include <memory>
+
 C4_BEGIN_NAMESPACE(c4)
 
 thread_local AllocationCounts MemoryResourceCounts::s_counts = AllocationCounts();
@@ -208,7 +217,127 @@ void* arealloc(void *ptr, size_t oldsz, size_t newsz, size_t alignment)
     return nptr;
 }
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+void* MemoryResourceStack::do_allocate(size_t sz, size_t alignment)
+{
+    if(sz == 0) return nullptr;
+    size_t space = sz;
+    void *mem = alloca(sz);
+    // make sure that the memory is aligned
+    if( ! std::align(alignment, sz, mem, space))
+    {
+        // it is not aligned; extend by the alignment amount
+        space += alignment - 1;
+        char* more = (char*) alloca(alignment - 1);
+        // make sure the extension starts exactly at the end of the original
+        C4_ASSERT(more == (((char*)mem) + sz));
+        if( ! std::align(alignment, sz, mem, space))
+        {
+            C4_ERROR("could not correctly align memory");
+        }
+    }
+    C4_ASSERT(mem != nullptr);
+    C4_ASSERT(space >= sz);
+    return mem;
+}
+
+void MemoryResourceStack::do_deallocate(void* ptr, size_t sz, size_t alignment)
+{
+    C4_UNUSED(ptr);
+    C4_UNUSED(sz);
+    C4_UNUSED(alignment);
+    // nothing to do!!
+}
+
+void* MemoryResourceStack::do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment)
+{
+    C4_UNUSED(ptr);
+    C4_UNUSED(oldsz);
+    return do_allocate(newsz, alignment);
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+
+void MemoryResourceLinear::release()
+{
+    if(m_mem && m_owner)
+    {
+        get_memory_resource()->deallocate(m_mem, m_size);
+    }
+    m_mem = nullptr;
+    m_size = 0;
+    m_owner = false;
+    m_pos = 0;
+}
+
+void MemoryResourceLinear::acquire(size_t sz)
+{
+    clear();
+    m_owner = true;
+    m_mem = (char*) get_memory_resource()->allocate(sz);
+    m_size = sz;
+    m_pos = 0;
+}
+
+void MemoryResourceLinear::acquire(void *mem, size_t sz)
+{
+    clear();
+    m_owner = false;
+    m_mem = (char*) mem;
+    m_size = sz;
+    m_pos = 0;
+}
+
+void* MemoryResourceLinear::do_allocate(size_t sz, size_t alignment)
+{
+    if(sz == 0) return nullptr;
+    // make sure there's enough room to allocate
+    if(m_pos + sz > m_size)
+    {
+        C4_ERROR("out of memory");
+    }
+    void *mem = m_mem + m_pos;
+    size_t space = sz;
+    if( ! std::align(alignment, sz, mem, space))
+    {
+        // it is not aligned; extend by the alignment amount
+        space += alignment - 1;
+        if( ! std::align(alignment, sz, mem, space))
+        {
+            C4_ERROR("could not correctly align memory");
+        }
+    }
+    m_pos += space;
+    C4_ASSERT(mem != nullptr);
+    C4_ASSERT(space >= sz);
+    return mem;
+}
+
+void MemoryResourceLinear::do_deallocate(void* ptr, size_t sz, size_t alignment)
+{
+    C4_UNUSED(ptr);
+    C4_UNUSED(sz);
+    C4_UNUSED(alignment);
+    // nothing to do!!
+}
+
+void* MemoryResourceLinear::do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment)
+{
+    C4_UNUSED(ptr);
+    C4_UNUSED(oldsz);
+    return do_allocate(newsz, alignment);
+}
+
+
 C4_END_NAMESPACE(c4)
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
