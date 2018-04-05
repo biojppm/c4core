@@ -222,49 +222,6 @@ void* arealloc(void *ptr, size_t oldsz, size_t newsz, size_t alignment)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-void* MemoryResourceStack::do_allocate(size_t sz, size_t alignment)
-{
-    if(sz == 0) return nullptr;
-    size_t space = sz;
-    void *mem = alloca(sz);
-    // make sure that the memory is aligned
-    if( ! std::align(alignment, sz, mem, space))
-    {
-        // it is not aligned; extend by the alignment amount
-        space += alignment - 1;
-        char* more = (char*) alloca(alignment - 1);
-        // make sure the extension starts exactly at the end of the original
-        C4_ASSERT(more == (((char*)mem) + sz));
-        if( ! std::align(alignment, sz, mem, space))
-        {
-            C4_ERROR("could not correctly align memory");
-        }
-    }
-    C4_ASSERT(mem != nullptr);
-    C4_ASSERT(space >= sz);
-    return mem;
-}
-
-void MemoryResourceStack::do_deallocate(void* ptr, size_t sz, size_t alignment)
-{
-    C4_UNUSED(ptr);
-    C4_UNUSED(sz);
-    C4_UNUSED(alignment);
-    // nothing to do!!
-}
-
-void* MemoryResourceStack::do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment)
-{
-    C4_UNUSED(ptr);
-    C4_UNUSED(oldsz);
-    return do_allocate(newsz, alignment);
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-
 void MemoryResourceLinear::release()
 {
     if(m_mem && m_owner)

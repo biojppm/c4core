@@ -157,7 +157,7 @@ protected:
 };
 
 /** returns a malloc-based memory resource
- *  @ingroup memory_resources */
+ * @ingroup memory_resources */
 C4_ALWAYS_INLINE MemoryResourceMalloc* get_memory_resource_malloc()
 {
     static MemoryResourceMalloc mr;
@@ -176,37 +176,11 @@ C4_END_NAMESPACE(detail)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** Provides an alloca()-based memory resource. The usual alloca() caveats apply.
+/** provides a linear malloc-based memory resource. Deallocations happen only
+ * when the resource is cleared or destroyed. The memory used by this object
+ * can be either owned or borrowed. When borrowed, no calls to malloc/free
+ * take place.
  * @ingroup memory_resources */
-struct MemoryResourceStack : public MemoryResource
-{
-
-    MemoryResourceStack() { name = "stack_malloc"; }
-    virtual ~MemoryResourceStack() {}
-
-protected:
-
-    virtual void* do_allocate(size_t sz, size_t alignment) override;
-    virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
-    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
-
-};
-
-/** returns an alloca-based memory resource
- *  @ingroup memory_resources */
-C4_ALWAYS_INLINE MemoryResourceStack* get_memory_resource_stack()
-{
-    static MemoryResourceStack mr;
-    return &mr;
-}
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-/** provides a linear memory resource. Deallocations happen only when the
- * resource is cleared or destroyed. The memory used by this object can be owned
- * or borrowed. */
 struct MemoryResourceLinear : public MemoryResource
 {
 
