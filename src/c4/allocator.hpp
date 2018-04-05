@@ -178,11 +178,16 @@ public:
 public:
 
     template< class U, class MRProv > friend class Allocator;
-    template< class U > struct rebind
+    template< class U >
+    struct rebind
     {
         using other = Allocator< U, MemResProvider >;
     };
-    template< class U > Allocator< U, MemResProvider > rebound() { return Allocator< U, MemResProvider >(*this); }
+    template< class U >
+    typename rebind<U>::other rebound()
+    {
+        return typename rebind<U>::other(*this);
+    }
 
 public:
 
@@ -235,6 +240,7 @@ public:
 template< class T, size_t N=16, size_t Alignment=alignof(T), class MemResProvider=MemResGlobal >
 class SmallAllocator : public detail::_AllocatorUtil< MemResProvider >
 {
+    static_assert(Alignment >= alignof(T), "invalid alignment");
 
     using impl_type = detail::_AllocatorUtil< MemResProvider >;
 
@@ -266,16 +272,23 @@ public:
 public:
 
     template< class U, size_t, size_t, class > friend class SmallAllocator;
-    template< class U > struct rebind
+    template< class U >
+    struct rebind
     {
-        using other = SmallAllocator< U >;
+        using other = SmallAllocator< U, N, alignof(U), MemResProvider >;
     };
-    template< class U > SmallAllocator< U > rebound() { return SmallAllocator< U >(*this); }
+    template< class U >
+    typename rebind<U>::other rebound()
+    {
+        return typename rebind<U>::other(*this);
+    }
 
 public:
 
     using impl_type::impl_type;
-    template< class U > SmallAllocator(SmallAllocator<U> const& that) : impl_type(that.resource()) {}
+
+    template< class U, size_t N2, size_t A2, class MP2 >
+    SmallAllocator(SmallAllocator<U,N2,A2,MP2> const& that) : impl_type(that.resource()) {}
 
     SmallAllocator(SmallAllocator const&) = default;
     SmallAllocator(SmallAllocator     &&) = default;
