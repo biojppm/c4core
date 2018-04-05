@@ -40,10 +40,11 @@ struct with_capacity_t {};
 /** @see with_capacity_t */
 constexpr const with_capacity_t with_capacity{};
 
-/** a tag type which can be used to disambiguate in variadic template overloads */
+/** a tag type for disambiguating in variadic template overloads */
 struct varargs_t {};
-/** a tag variable which can be used to disambiguate in variadic template overloads */
+/** a tag variable for disambiguating in variadic template overloads */
 constexpr const varargs_t varargs{};
+
 
 //--------------------------------------------------
 
