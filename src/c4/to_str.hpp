@@ -36,7 +36,7 @@ typedef enum {
 
 // append chars to the buffer, without overflow. Always counts.
 #define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = (c); } else { ++pos; } }
-#define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (i) + '0'); } else { ++pos; } }
+#define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
 
 template< class T >
 size_t itoa(substr buf, T v)
