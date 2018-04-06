@@ -80,13 +80,13 @@ struct MemoryResource
     const char *name = nullptr;
     virtual ~MemoryResource() {}
 
-    void* allocate(size_t sz, size_t alignment = alignof(max_align_t))
+    void* allocate(size_t sz, size_t alignment=alignof(max_align_t), void *hint=nullptr)
     {
-        void *mem = this->do_allocate(sz, alignment);
+        void *mem = this->do_allocate(sz, alignment, hint);
         C4_CHECK_MSG(mem != nullptr, "could not allocate %lu bytes", sz);
         return mem;
     }
-    void* reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment = alignof(max_align_t))
+    void* reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment=alignof(max_align_t))
     {
         void *mem = this->do_reallocate(ptr, oldsz, newsz, alignment);
         C4_CHECK_MSG(mem != nullptr, "could not reallocate from %lu to %lu bytes", oldsz, newsz);
@@ -99,7 +99,7 @@ struct MemoryResource
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment) = 0;
+    virtual void* do_allocate(size_t sz, size_t alignment, void* hint) = 0;
     virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) = 0;
     virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) = 0;
 
@@ -111,7 +111,6 @@ protected:
  * @ingroup memory_resources */
 C4_ALWAYS_INLINE MemoryResource* get_memory_resource()
 {
-    /* T */
     return detail::get_memory_resource();
 }
 
@@ -133,12 +132,13 @@ struct MemoryResourceMalloc : public MemoryResource
 {
 
     MemoryResourceMalloc() { name = "malloc"; }
-    virtual ~MemoryResourceMalloc() {}
+    virtual ~MemoryResourceMalloc() override {}
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment) override
+    virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override
     {
+        C4_UNUSED(hint);
         return c4::aalloc(sz, alignment);
     }
 
@@ -176,11 +176,11 @@ C4_END_NAMESPACE(detail)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** provides a linear malloc-based memory resource. Deallocations happen only
+/** provides a linear malloc-based memory resource. Allocates incrementally
+ * from a linear buffer, without ever deallocating. Deallocations happen only
  * when the resource is cleared or destroyed. The memory used by this object
  * can be either owned or borrowed. When borrowed, no calls to malloc/free
- * take place.
- * @ingroup memory_resources */
+ * take place.  @ingroup memory_resources */
 struct MemoryResourceLinear : public MemoryResource
 {
 
@@ -195,7 +195,7 @@ public:
     /** initialize with borrowed memory */
     MemoryResourceLinear(void *mem, size_t sz) : MemoryResourceLinear() { acquire(mem, sz); }
 
-    virtual ~MemoryResourceLinear() { release(); }
+    virtual ~MemoryResourceLinear() override { release(); }
 
 public:
 
@@ -206,6 +206,7 @@ public:
 
 public:
 
+    /** set the internal pointer to the beginning of the linear buffer */
     void clear() { m_pos = 0; }
 
     /** initialize with owned memory, allocated from the global memory resource */
@@ -217,7 +218,7 @@ public:
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment) override;
+    virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override;
     virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
     virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
 };
@@ -363,7 +364,7 @@ protected:
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment) override
+    virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override
     {
         void *ptr = m_resource->allocate(sz, alignment);
         m_counts.add_counts(ptr, sz);

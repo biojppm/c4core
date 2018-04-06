@@ -252,8 +252,9 @@ void MemoryResourceLinear::acquire(void *mem, size_t sz)
     m_pos = 0;
 }
 
-void* MemoryResourceLinear::do_allocate(size_t sz, size_t alignment)
+void* MemoryResourceLinear::do_allocate(size_t sz, size_t alignment, void *hint)
 {
+    C4_UNUSED(hint);
     if(sz == 0) return nullptr;
     // make sure there's enough room to allocate
     if(m_pos + sz > m_size)
@@ -289,7 +290,11 @@ void* MemoryResourceLinear::do_reallocate(void* ptr, size_t oldsz, size_t newsz,
 {
     C4_UNUSED(ptr);
     C4_UNUSED(oldsz);
-    return do_allocate(newsz, alignment);
+    if(m_mem + m_pos == (char*)ptr + oldsz)
+    {
+        return ptr;
+    }
+    return do_allocate(newsz, alignment, ptr);
 }
 
 
