@@ -199,6 +199,14 @@ public:
 
 public:
 
+    void const* mem() const { return m_mem; }
+
+    size_t capacity() const { return m_size; }
+    size_t size() const { return m_pos; }
+    size_t slack() const { C4_ASSERT(m_size >= m_pos); return m_size - m_pos; }
+
+public:
+
     char  *m_mem{nullptr};
     size_t m_size{0};
     size_t m_pos{0};
@@ -233,7 +241,7 @@ protected:
 template< size_t N >
 struct MemoryResourceLinearArr : public MemoryResourceLinear
 {
-    char m_arr[N];
+    alignas(alignof(max_align_t)) char m_arr[N];
     MemoryResourceLinearArr() : MemoryResourceLinear(m_arr, N) { name = "linear_arr"; }
 };
 
