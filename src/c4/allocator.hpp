@@ -288,7 +288,9 @@ public:
     using impl_type::impl_type;
 
     template< class U, size_t N2, size_t A2, class MP2 >
-    SmallAllocator(SmallAllocator<U,N2,A2,MP2> const& that) : impl_type(that.resource()) {}
+    SmallAllocator(SmallAllocator<U,N2,A2,MP2> const& that) : impl_type(that.resource())
+    {
+    }
 
     SmallAllocator(SmallAllocator const&) = default;
     SmallAllocator(SmallAllocator     &&) = default;

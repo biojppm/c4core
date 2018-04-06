@@ -64,6 +64,13 @@ TEST(allocator_mr_linear, traits_compat_construct)
     test_traits_compat_construct(1, a);
 }
 
+TEST(allocator_mr_linear_arr, traits_compat_construct)
+{
+    MemoryResourceLinearArr<1024> mr;
+    allocator_mr<int> a(&mr);
+    test_traits_compat_construct(1, a);
+}
+
 TEST(small_allocator_mr_global, traits_compat_construct)
 {
     small_allocator_mr<int> a;
@@ -73,6 +80,13 @@ TEST(small_allocator_mr_global, traits_compat_construct)
 TEST(small_allocator_mr_linear, traits_compat_construct)
 {
     MemoryResourceLinear mr(1024);
+    small_allocator_mr<int> a(&mr);
+    test_traits_compat_construct(1, a);
+}
+
+TEST(small_allocator_mr_linear_arr, traits_compat_construct)
+{
+    MemoryResourceLinearArr<1024> mr;
     small_allocator_mr<int> a(&mr);
     test_traits_compat_construct(1, a);
 }
@@ -95,8 +109,7 @@ void do_std_containers_test(Alloc alloc)
     _c4definealloctypes(Alloc);
 
     {
-        AllocChar a = alloc.template rebound<char>();
-        _string v(a);
+        _string v(alloc);
         v.reserve(256);
         v = "adskjhsdfkjdflkjsdfkjhsdfkjh";
         EXPECT_EQ(v, "adskjhsdfkjdflkjsdfkjhsdfkjh");
@@ -110,7 +123,7 @@ void do_std_containers_test(Alloc alloc)
         {
             i = 42;
         }
-        _vector_int vi(arr, arr+C4_COUNTOF(arr), alloc.template rebound<int>());
+        _vector_int vi(arr, arr+C4_COUNTOF(arr), alloc);
         for(int i : vi)
         {
             EXPECT_EQ(i, 42);
@@ -120,7 +133,7 @@ void do_std_containers_test(Alloc alloc)
     clear_mr(alloc);
 
     {
-        _vector_string v({"foo", "bar", "baz", "bat", "bax"}, alloc.template rebound<_string>());
+        _vector_string v({"foo", "bar", "baz", "bat", "bax"}, alloc);
         EXPECT_EQ(v.size(), 5);
         EXPECT_EQ(v[0], "foo");
         EXPECT_EQ(v[1], "bar");
@@ -132,7 +145,7 @@ void do_std_containers_test(Alloc alloc)
     clear_mr(alloc);
 
     {
-        _vector_string v(4, alloc.template rebound<_string>());
+        _vector_string v(4, alloc);
         int count = 0;
         for(auto &s : v)
         {
@@ -143,8 +156,7 @@ void do_std_containers_test(Alloc alloc)
     clear_mr(alloc);
 
     {
-        AllocPair a = alloc;//alloc.template rebound<_map_string_int>();
-        _map_string_int v(a);
+        _map_string_int v(alloc);
         EXPECT_EQ(v.size(), 0);
         v["foo"] = 0;
         v["bar"] = 1;
@@ -183,6 +195,13 @@ TEST(allocator_mr_linear, std_containers)
     do_std_containers_test(a);
 }
 
+TEST(allocator_mr_linear_arr, std_containers)
+{
+    MemoryResourceLinearArr<1024> mr;
+    allocator_mr<int> a(&mr);
+    do_std_containers_test(a);
+}
+
 TEST(small_allocator_mr_global, std_containers)
 {
     small_allocator_mr<int> a;
@@ -192,6 +211,13 @@ TEST(small_allocator_mr_global, std_containers)
 TEST(small_allocator_mr_linear, std_containers)
 {
     MemoryResourceLinear mr(1024);
+    small_allocator_mr<int> a(&mr);
+    do_std_containers_test(a);
+}
+
+TEST(small_allocator_mr_linear_arr, std_containers)
+{
+    MemoryResourceLinearArr<1024> mr;
     small_allocator_mr<int> a(&mr);
     do_std_containers_test(a);
 }

@@ -222,6 +222,21 @@ protected:
     virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
 };
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+/** provides a linear array-based memory resource.
+ * @see MemoryResourceLinear
+ * @ingroup memory_resources */
+template< size_t N >
+struct MemoryResourceLinearArr : public MemoryResourceLinear
+{
+    char m_arr[N];
+    MemoryResourceLinearArr() : MemoryResourceLinear(m_arr, N) { name = "linear_arr"; }
+};
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
