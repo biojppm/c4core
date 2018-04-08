@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(c4core)
 
-include(./cmake/c4project.cmake)
+include(./cmake/c4Project.cmake)
 
 c4_declare_project(C4CORE)
 
