@@ -292,6 +292,7 @@ public:
     template< class U, size_t N2, size_t A2, class MP2 >
     SmallAllocator(SmallAllocator<U,N2,A2,MP2> const& that) : impl_type(that.resource())
     {
+        C4_ASSERT(that.m_num == 0);
     }
 
     SmallAllocator(SmallAllocator const&) = default;
@@ -304,7 +305,7 @@ public:
      * @see http://en.cppreference.com/w/cpp/memory/polymorphic_allocator/select_on_container_copy_construction      */
     SmallAllocator select_on_container_copy_construct() const { return SmallAllocator(*this); }
 
-    T* allocate(size_t num_objs, size_t alignment = alignof(T))
+    T* allocate(size_t num_objs, size_t alignment=Alignment)
     {
         C4_ASSERT(this->resource() != nullptr);
         C4_ASSERT(alignment >= alignof(T));
@@ -322,7 +323,7 @@ public:
         return mem;
     }
 
-    void deallocate(T * ptr, size_t num_objs, size_t alignment = alignof(T))
+    void deallocate(T * ptr, size_t num_objs, size_t alignment=Alignment)
     {
         C4_ASSERT(m_num >= num_objs);
         m_num -= num_objs;
@@ -335,7 +336,7 @@ public:
         this->resource()->deallocate(ptr, num_objs * sizeof(T), alignment);
     }
 
-    T* reallocate(T * ptr, size_t oldnum, size_t newnum, size_t alignment = alignof(T))
+    T* reallocate(T * ptr, size_t oldnum, size_t newnum, size_t alignment=Alignment)
     {
         C4_ASSERT(this->resource() != nullptr);
         C4_ASSERT(alignment >= alignof(T));

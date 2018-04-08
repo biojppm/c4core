@@ -10,13 +10,6 @@
 #   include <errno.h>
 #endif
 
-#if defined(C4_WIN) || defined(C4_XBOX)
-#   include <malloc.h>
-#   define alloca _alloca
-#else
-#   include <alloca.h>
-#endif
-
 #include <memory>
 
 C4_BEGIN_NAMESPACE(c4)
@@ -164,11 +157,11 @@ void* arealloc(void *ptr, size_t oldsz, size_t newsz, size_t alignment)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-void MemoryResourceLinear::release()
+void detail::_MemoryResourceSingleChunk::release()
 {
     if(m_mem && m_owner)
     {
-        get_memory_resource()->deallocate(m_mem, m_size);
+        impl_type::deallocate(m_mem, m_size);
     }
     m_mem = nullptr;
     m_size = 0;
@@ -176,16 +169,16 @@ void MemoryResourceLinear::release()
     m_pos = 0;
 }
 
-void MemoryResourceLinear::acquire(size_t sz)
+void detail::_MemoryResourceSingleChunk::acquire(size_t sz)
 {
     clear();
     m_owner = true;
-    m_mem = (char*) get_memory_resource()->allocate(sz, alignof(max_align_t));
+    m_mem = (char*) impl_type::allocate(sz, alignof(max_align_t));
     m_size = sz;
     m_pos = 0;
 }
 
-void MemoryResourceLinear::acquire(void *mem, size_t sz)
+void detail::_MemoryResourceSingleChunk::acquire(void *mem, size_t sz)
 {
     clear();
     m_owner = false;
@@ -193,6 +186,10 @@ void MemoryResourceLinear::acquire(void *mem, size_t sz)
     m_size = sz;
     m_pos = 0;
 }
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void* MemoryResourceLinear::do_allocate(size_t sz, size_t alignment, void *hint)
 {

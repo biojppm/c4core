@@ -28,45 +28,82 @@ namespace detail { MemoryResource*& get_memory_resource(); }
 
 // c-style allocation ---------------------------------------------------------
 
-// this API provides unaligned as well as aligned allocation functions.
-// These functions forward the call to a modifiable function.
+// this API provides aligned allocation functions.
+// These functions forward the call to a user-modifiable function.
+
 
 // aligned allocation.
+
+/** Aligned allocation. Merely calls the current get_aalloc() function.
+ * @see get_aalloc()
+ * @ingroup raw_memory_alloc */
 void* aalloc(size_t sz, size_t alignment);
+
+/** Aligned free. Merely calls the current get_afree() function.
+ * @see get_afree()
+ * @ingroup raw_memory_alloc */
 void afree(void* ptr);
+
+/** Aligned reallocation. Merely calls the current get_arealloc() function.
+ * @see get_arealloc()
+ * @ingroup raw_memory_alloc */
 void* arealloc(void* ptr, size_t oldsz, size_t newsz, size_t alignment);
 
-// classic, unaligned allocation.
-void* alloc(size_t sz);
-void free(void* ptr);
-void* realloc(void* ptr, size_t oldsz, size_t newsz);
 
-// allocation setup facilities
-using aalloc_type   = void* (*)(size_t size, size_t alignment);
-using afree_type    = void  (*)(void *ptr);
-using arealloc_type = void* (*)(void *ptr, size_t oldsz, size_t newsz, size_t alignment);
+// allocation setup facilities.
 
-using alloc_type   = void* (*)(size_t size);
-using free_type    = void  (*)(void *ptr);
-using realloc_type = void* (*)(void *ptr, size_t oldsz, size_t newsz);
+/** Function pointer type for aligned allocation
+ * @see set_aalloc()
+ * @ingroup raw_memory_alloc */
+using aalloc_pfn   = void* (*)(size_t size, size_t alignment);
 
-// set the function to be called
-void set_aalloc  (aalloc_type   fn);
-void set_afree   (afree_type    fn);
-void set_arealloc(arealloc_type fn);
+/** Function pointer type for aligned deallocation
+ * @see set_afree()
+ * @ingroup raw_memory_alloc */
+using afree_pfn    = void  (*)(void *ptr);
 
-void set_alloc  (alloc_type   fn);
-void set_free   (free_type    fn);
-void set_realloc(realloc_type fn);
+/** Function pointer type for aligned reallocation
+ * @see set_arealloc()
+ * @ingroup raw_memory_alloc */
+using arealloc_pfn = void* (*)(void *ptr, size_t oldsz, size_t newsz, size_t alignment);
 
-// get the function which will be called
-alloc_type   get_alloc();
-free_type    get_free();
-realloc_type get_realloc();
 
-aalloc_type   get_aalloc();
-free_type     get_afree();
-arealloc_type get_arealloc();
+// allocation function pointer setters/getters
+
+/** Set the global aligned allocation function.
+ * @see aalloc()
+ * @see get_aalloc()
+ * @ingroup raw_memory_alloc */
+void set_aalloc  (aalloc_pfn   fn);
+
+/** Set the global aligned deallocation function.
+ * @see afree()
+ * @see get_afree()
+ * @ingroup raw_memory_alloc */
+void set_afree   (afree_pfn    fn);
+
+/** Set the global aligned reallocation function.
+ * @see arealloc()
+ * @see get_arealloc()
+ * @ingroup raw_memory_alloc */
+void set_arealloc(arealloc_pfn fn);
+
+
+/** Get the global aligned reallocation function.
+ * @see arealloc()
+ * @ingroup raw_memory_alloc */
+aalloc_pfn   get_aalloc();
+
+/** Get the global aligned deallocation function.
+ * @see afree()
+ * @ingroup raw_memory_alloc */
+free_pfn     get_afree();
+
+/** Get the global aligned reallocation function.
+ * @see arealloc()
+ * @ingroup raw_memory_alloc */
+arealloc_pfn get_arealloc();
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -86,12 +123,14 @@ struct MemoryResource
         C4_CHECK_MSG(mem != nullptr, "could not allocate %lu bytes", sz);
         return mem;
     }
+
     void* reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment=alignof(max_align_t))
     {
         void *mem = this->do_reallocate(ptr, oldsz, newsz, alignment);
         C4_CHECK_MSG(mem != nullptr, "could not reallocate from %lu to %lu bytes", oldsz, newsz);
         return mem;
     }
+
     void deallocate(void* ptr, size_t sz, size_t alignment = alignof(max_align_t))
     {
         this->do_deallocate(ptr, sz, alignment);
@@ -122,11 +161,12 @@ C4_ALWAYS_INLINE void set_memory_resource(MemoryResource* mr)
     detail::get_memory_resource() = mr;
 }
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** A c4::aalloc-based memory resource. Thread-safe if the implementation called by
- * c4::aalloc() is safe.
+/** A c4::aalloc-based memory resource. Thread-safe if the implementation
+ * called by c4::aalloc() is safe.
  * @ingroup memory_resources */
 struct MemoryResourceMalloc : public MemoryResource
 {
@@ -176,26 +216,58 @@ C4_END_NAMESPACE(detail)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** provides a linear malloc-based memory resource. Allocates incrementally
- * from a linear buffer, without ever deallocating. Deallocations happen only
- * when the resource is cleared or destroyed. The memory used by this object
- * can be either owned or borrowed. When borrowed, no calls to malloc/free
- * take place.  @ingroup memory_resources */
-struct MemoryResourceLinear : public MemoryResource
+
+namespace detail {
+
+/** Allows a memory resource to obtain its memory from another memory resource.
+ * @ingroup memory_resources */
+struct DerivedMemoryResource : public MemoryResource
+{
+public:
+
+    DerivedMemoryResource(MemoryResource *mr_=nullptr) : m_local(mr_ ? mr_ : get_memory_resource()) {}
+
+private:
+
+    MemoryResource *m_local;
+
+protected:
+
+    virtual void* do_allocate(size_t sz, size_t alignment, void* hint) override
+    {
+        return m_local->allocate(sz, alignment, hint);
+    }
+
+    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override
+    {
+        return m_local->reallocate(ptr, oldsz, newsz, alignment);
+    }
+
+    virtual void do_deallocate(void* ptr, size_t sz, size_t alignment) override
+    {
+        return m_local->deallocate(ptr, sz, alignment);
+    }
+};
+
+/** Provides common facilities for memory resource consisting of a single memory block
+ * @ingroup memory_resources */
+struct _MemoryResourceSingleChunk : public DerivedMemoryResource
 {
 
-    MemoryResourceLinear() { name = "linear_malloc"; }
+    C4_NO_COPY_OR_MOVE(_MemoryResourceSingleChunk);
 
-    C4_NO_COPY_OR_MOVE(MemoryResourceLinear);
+    using impl_type = DerivedMemoryResource;
 
 public:
 
-    /** initialize with owned memory, allocated from the global memory resource */
-    MemoryResourceLinear(size_t sz) : MemoryResourceLinear() { acquire(sz); }
-    /** initialize with borrowed memory */
-    MemoryResourceLinear(void *mem, size_t sz) : MemoryResourceLinear() { acquire(mem, sz); }
+    _MemoryResourceSingleChunk(MemoryResource *impl=nullptr) : DerivedMemoryResource(impl) { name = "linear_malloc"; }
 
-    virtual ~MemoryResourceLinear() override { release(); }
+    /** initialize with owned memory, allocated from the given (or the global) memory resource */
+    _MemoryResourceSingleChunk(size_t sz, MemoryResource *impl=nullptr) : _MemoryResourceSingleChunk(impl) { acquire(sz); }
+    /** initialize with borrowed memory */
+    _MemoryResourceSingleChunk(void *mem, size_t sz) : _MemoryResourceSingleChunk() { acquire(mem, sz); }
+
+    virtual ~_MemoryResourceSingleChunk() override { release(); }
 
 public:
 
@@ -224,6 +296,30 @@ public:
     /** release the memory */
     void release();
 
+};
+
+} // namespace detail
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+/** provides a linear memory resource. Allocates incrementally from a linear
+ * buffer, without ever deallocating. Deallocations are a no-op, and the
+ * memory is freed only when the resource is release()d. The memory used by
+ * this object can be either owned or borrowed. When borrowed, no calls to
+ * malloc/free take place.
+ *
+ * @ingroup memory_resources */
+struct MemoryResourceLinear : public detail::_MemoryResourceSingleChunk
+{
+
+    C4_NO_COPY_OR_MOVE(MemoryResourceLinear);
+
+public:
+
+    using detail::_MemoryResourceSingleChunk::_MemoryResourceSingleChunk;
+
 protected:
 
     virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override;
@@ -231,6 +327,27 @@ protected:
     virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
 };
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+/** provides a stack-type malloc-based memory resource.
+ * @ingroup memory_resources */
+struct MemoryResourceStack : public detail::_MemoryResourceSingleChunk
+{
+
+    C4_NO_COPY_OR_MOVE(MemoryResourceStack);
+
+public:
+
+    using detail::_MemoryResourceSingleChunk::_MemoryResourceSingleChunk;
+
+protected:
+
+    virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override;
+    virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
+    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
+};
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
