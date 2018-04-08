@@ -97,7 +97,7 @@ aalloc_pfn   get_aalloc();
 /** Get the global aligned deallocation function.
  * @see afree()
  * @ingroup raw_memory_alloc */
-free_pfn     get_afree();
+afree_pfn     get_afree();
 
 /** Get the global aligned reallocation function.
  * @see arealloc()

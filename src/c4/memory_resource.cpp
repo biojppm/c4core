@@ -20,9 +20,9 @@ C4_BEGIN_NAMESPACE(detail)
 
 
 #ifdef C4_NO_ALLOC_DEFAULTS
-aalloc_type s_aalloc = nullptr;
-free_type s_afree = nullptr;
-arealloc_type s_arealloc = nullptr;
+aalloc_pfn s_aalloc = nullptr;
+free_pfn s_afree = nullptr;
+arealloc_pfn s_arealloc = nullptr;
 #else
 
 
@@ -92,38 +92,38 @@ void* arealloc_impl(void* ptr, size_t oldsz, size_t newsz, size_t alignment)
     return tmp;
 }
 
-aalloc_type s_aalloc = aalloc_impl;
-free_type s_afree = afree_impl;
-arealloc_type s_arealloc = arealloc_impl;
+aalloc_pfn s_aalloc = aalloc_impl;
+afree_pfn s_afree = afree_impl;
+arealloc_pfn s_arealloc = arealloc_impl;
 
 #endif // C4_NO_ALLOC_DEFAULTS
 
 C4_END_NAMESPACE(detail)
 
 
-aalloc_type get_aalloc()
+aalloc_pfn get_aalloc()
 {
     return detail::s_aalloc;
 }
-void set_aalloc(aalloc_type fn)
+void set_aalloc(aalloc_pfn fn)
 {
     detail::s_aalloc = fn;
 }
 
-free_type get_afree()
+afree_pfn get_afree()
 {
     return detail::s_afree;
 }
-void set_afree(free_type fn)
+void set_afree(afree_pfn fn)
 {
     detail::s_afree = fn;
 }
 
-arealloc_type get_arealloc()
+arealloc_pfn get_arealloc()
 {
     return detail::s_arealloc;
 }
-void set_arealloc(arealloc_type fn)
+void set_arealloc(arealloc_pfn fn)
 {
     detail::s_arealloc = fn;
 }

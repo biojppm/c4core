@@ -62,7 +62,7 @@ TEST(aalloc_impl, error_out_of_mem)
 
 //-----------------------------------------------------------------------------
 
-void do_test_realloc(arealloc_type fn)
+void do_test_realloc(arealloc_pfn fn)
 {
 #define _set(dim) for(size_t i = 0; i < dim; ++i) { mem[i] = i; }
 #define _check(dim) for(size_t i = 0; i < dim; ++i) { EXPECT_EQ(mem[i], i); }
