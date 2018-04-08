@@ -54,8 +54,11 @@ TEST(aalloc_impl, error_bad_align)
 TEST(aalloc_impl, error_out_of_mem)
 {
 #if defined(C4_POSIX)
+    if(sizeof(size_t) != 8) return; // valgrind complains that size is -1
     C4_EXPECT_ERROR_OCCURS(1);
-    auto *mem = detail::aalloc_impl(std::numeric_limits<size_t>::max() / 2);
+    size_t sz = std::numeric_limits<size_t>::max();
+    sz /= 2;
+    auto *mem = detail::aalloc_impl(sz);
     EXPECT_EQ(mem, nullptr);
 #endif
 }
