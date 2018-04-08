@@ -7,7 +7,7 @@
 #include <utility>
 #include <tuple>
 
-#include "./substr.hpp"
+#include "c4/substr.hpp"
 
 #ifdef _MSC_VER
 #   pragma warning(push)

@@ -3,6 +3,14 @@
 
 #include "c4/test.hpp"
 
+#ifdef C4CORE_HEADER_ONLY
+#include "c4core.src.hpp"
+#include "c4core.c4core-libtest.src.hpp"
+#elif defined(C4CORE_SINGLE_HEADER)
+#include "c4core.all.hpp"
+#include "c4core.c4core-libtest.all.hpp"
+#endif
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

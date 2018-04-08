@@ -10,7 +10,7 @@ set(testsrc
     )
 c4_add_library(C4CORE c4core-libtest
     SOURCES ${testsrc}
-    LIBS c4core gtest ${CMAKE_THREAD_LIBS_INIT}
+    LIBS c4core gtest
     INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
     FOLDER c4core-test
     )
