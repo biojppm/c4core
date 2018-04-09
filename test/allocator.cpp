@@ -133,7 +133,8 @@ void do_std_containers_test(Alloc alloc)
     clear_mr(alloc);
 
     {
-        _vector_string v({"foo", "bar", "baz", "bat", "bax"}, alloc);
+        AllocChar a = alloc;
+        _vector_string v({"foo", "bar", "baz", "bat", "bax"}, a);
         EXPECT_EQ(v.size(), 5);
         EXPECT_EQ(v[0], "foo");
         EXPECT_EQ(v[1], "bar");
@@ -145,7 +146,8 @@ void do_std_containers_test(Alloc alloc)
     clear_mr(alloc);
 
     {
-        _vector_string v(4, alloc);
+        AllocChar a = alloc;
+        _vector_string v(4, a);
         int count = 0;
         for(auto &s : v)
         {
@@ -156,7 +158,8 @@ void do_std_containers_test(Alloc alloc)
     clear_mr(alloc);
 
     {
-        _map_string_int v(alloc);
+        AllocPair a = alloc;
+        _map_string_int v(a);
         EXPECT_EQ(v.size(), 0);
         v["foo"] = 0;
         v["bar"] = 1;
