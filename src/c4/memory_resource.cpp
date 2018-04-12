@@ -229,21 +229,48 @@ void MemoryResourceLinear::do_deallocate(void* ptr, size_t sz, size_t alignment)
 void* MemoryResourceLinear::do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment)
 {
     if(newsz == oldsz) return ptr;
+    // is ptr the most recently allocated (MRA) block?
     char *cptr = (char*)ptr;
     bool same_pos = (m_mem + m_pos == cptr + oldsz);
+    // no need to get more memory when shrinking
     if(newsz < oldsz)
     {
-        if(same_pos) m_pos -= oldsz - newsz;
+        // if this is the MRA, we can safely shrink the position
+        if(same_pos)
+        {
+            m_pos -= oldsz - newsz;
+        }
         return ptr;
     }
+    // we're growing the block, and it fits in size
     else if(same_pos && cptr + newsz <= m_mem + m_size)
     {
+        // if this is the MRA, we can safely shrink the position
         m_pos += newsz - oldsz;
         return ptr;
     }
+    // we're growing the block or it doesn't fit -
+    // delegate any of these situations to do_deallocate()
     return do_allocate(newsz, alignment, ptr);
 }
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** @todo add a free list allocator. A good candidate because of its
+ * small size is TLSF.
+ *
+ * @see https://github.com/mattconte/tlsf
+ *
+ * Comparisons:
+ *
+ * @see https://www.researchgate.net/publication/262375150_A_Comparative_Study_on_Memory_Allocators_in_Multicore_and_Multithreaded_Applications_-_SBESC_2011_-_Presentation_Slides
+ * @see http://webkit.sed.hu/blog/20100324/war-allocators-tlsf-action
+ * @see https://github.com/emeryberger/Malloc-Implementations/tree/master/allocators
+ *
+ * */
 
 C4_END_NAMESPACE(c4)
 

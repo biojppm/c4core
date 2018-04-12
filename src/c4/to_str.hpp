@@ -221,7 +221,15 @@ inline size_t atou_trim(csubstr str, T *v)
 
 
 //-----------------------------------------------------------------------------
-
+/** we're depending on snprintf()/sscanf() for converting to/from
+ * floating point numbers. Apparently, this increases the binary size
+ * by a considerable amount. There are some lightweight printf
+ * implementations:
+ *
+ * @see http://www.sparetimelabs.com/tinyprintf/tinyprintf.php (BSD)
+ * @see https://github.com/weiss/c99-snprintf
+ * @see https://github.com/nothings/stb/blob/master/stb_sprintf.h
+ * */
 namespace detail {
 /** @see http://www.exploringbinary.com/ for many good examples on float-str conversion */
 template< size_t N >
