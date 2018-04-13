@@ -803,6 +803,22 @@ TEST(unformat, tuple)
 }
 #endif // C4_TUPLE_TO_STR
 
+
+TEST(printf, basic)
+{
+    char bufc[128];
+    substr buf = bufc;
+    size_t ret;
+
+    memset(buf.str, buf.len, 0);
+    ret = sprintf(buf, "hello world");
+    EXPECT_EQ(buf.first(ret), "hello world");
+
+    memset(buf.str, buf.len, 0);
+    ret = sprintf(buf, "%d %d %d %d", 1, 2, 3, 4);
+    EXPECT_EQ(buf.first(ret), "1 2 3 4");
+}
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

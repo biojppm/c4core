@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <type_traits>
 #include <utility>
+#include <stdarg.h>
 
 #include "c4/substr.hpp"
 
@@ -307,7 +308,7 @@ template< typename T >
 inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 {
     /* snscanf() is absolutely needed here as we must be sure that
-     * str.len is strictly respected, because the span string is
+     * str.len is strictly respected, because substr is
      * generally not null-terminated.
      *
      * Alas, there is no snscanf().
@@ -679,7 +680,7 @@ template<> struct fmt_wrapper<uint64_t&> : public detail::int_formatter<uint64_t
 template< class T, class... Args >
 inline fmt_wrapper<T> fmt(T v, Args && ...args)
 {
-    return fmt_wrapper<T>(std::ref(v), std::forward<Args>(args)...);
+    return fmt_wrapper<T>(v, std::forward<Args>(args)...);
 }
 
 inline size_t to_str(substr buf, fmt_wrapper<   float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
@@ -709,7 +710,7 @@ struct binary_wrapper
 template< class T >
 inline binary_wrapper<T> fmtbin(T &v)
 {
-    return binary_wrapper<T>(std::ref(v));
+    return binary_wrapper<T>(v);
 }
 
 /** write a variable in binary format */
@@ -905,7 +906,18 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & a, Args & ...more)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+/** C-style printing into a buffer */
+size_t sprintf(substr buf, const char *fmt, ...);
+//size_t sscanf(csubstr buf, const char *fmt, ...);
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** a tag type
+ * @see catrs
+ * */
 struct append_t {};
 constexpr const append_t append = {};
 
