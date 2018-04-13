@@ -51,7 +51,10 @@ size_t itoa(substr buf, T v)
             _c4append((v % 10) + '0');
             v /= 10;
         } while(v);
-        buf.reverse_range(1, pos <= buf.len ? pos : buf.len);
+        if(buf.len > 0)
+        {
+            buf.reverse_range(1, pos <= buf.len ? pos : buf.len);
+        }
     }
     else
     {
@@ -94,7 +97,10 @@ size_t itoa(substr buf, T v, T radix)
         _c4appendrdx(v % radix);
         v /= radix;
     } while(v);
-    buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+    if(buf.len)
+    {
+        buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+    }
 
     return pos;
 }
@@ -104,6 +110,7 @@ template< class T >
 size_t utoa(substr buf, T v)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
+    static_assert(std::is_unsigned<T>::value, "must be unsigned type");
     size_t pos = 0;
     do {
         _c4append((char)(v % 10) + '0');
@@ -117,6 +124,7 @@ template< class T >
 size_t utoa(substr buf, T v, T radix)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
+    static_assert(std::is_unsigned<T>::value, "must be unsigned type");
     constexpr static const char hexchars[] = "0123456789abcdef";
     size_t pos = 0;
 
@@ -135,7 +143,10 @@ size_t utoa(substr buf, T v, T radix)
         _c4appendrdx(v % radix);
         v /= radix;
     } while(v);
-    buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+    if(buf.len)
+    {
+        buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+    }
 
     return pos;
 }
@@ -221,15 +232,7 @@ inline size_t atou_trim(csubstr str, T *v)
 
 
 //-----------------------------------------------------------------------------
-/** we're depending on snprintf()/sscanf() for converting to/from
- * floating point numbers. Apparently, this increases the binary size
- * by a considerable amount. There are some lightweight printf
- * implementations:
- *
- * @see http://www.sparetimelabs.com/tinyprintf/tinyprintf.php (BSD)
- * @see https://github.com/weiss/c99-snprintf
- * @see https://github.com/nothings/stb/blob/master/stb_sprintf.h
- * */
+
 namespace detail {
 /** @see http://www.exploringbinary.com/ for many good examples on float-str conversion */
 template< size_t N >
@@ -262,7 +265,15 @@ void get_real_format_str(char (&fmt)[N], int precision, RealFormat_e formatting,
 }
 
 
-
+/** we're depending on snprintf()/sscanf() for converting to/from
+ * floating point numbers. Apparently, this increases the binary size
+ * by a considerable amount. There are some lightweight printf
+ * implementations:
+ *
+ * @see http://www.sparetimelabs.com/tinyprintf/tinyprintf.php (BSD)
+ * @see https://github.com/weiss/c99-snprintf
+ * @see https://github.com/nothings/stb/blob/master/stb_sprintf.h
+ * */
 template< class T >
 size_t print_one(substr str, const char* full_fmt, T v)
 {

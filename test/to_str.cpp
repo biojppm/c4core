@@ -5,25 +5,143 @@
 
 namespace c4 {
 
-void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const char *r10, const char *r16)
+
+template< class ItoaOrUtoa, class ItoaOrUtoaRdx, class I >
+void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I num, const char *r2, const char *r8, const char *r10, const char *r16)
+{
+    char bufc[64];
+    size_t ret;
+    substr emp; // empty
+    substr buf = bufc;
+
+    auto ss2  = to_csubstr(r2);
+    auto ss8  = to_csubstr(r8);
+    auto ss10 = to_csubstr(r10);
+    auto ss16 = to_csubstr(r16);
+
+#define _c4clbuf() \
+    memset(buf.str, 0, buf.len);\
+    buf[0] = 'a';\
+    buf[1] = 'a';\
+    buf[2] = '\0';
+
+    _c4clbuf();
+    ret = rfn(emp, num, 2);
+    EXPECT_EQ(ret, ss2.len) << "num=" << num;
+    EXPECT_EQ(buf.sub(0, 2), "aa");
+    _c4clbuf();
+    ret = rfn(buf, num, 2);
+    EXPECT_EQ(buf.left_of(ret), ss2) << "num=" << num;
+
+    _c4clbuf();
+    ret = rfn(emp, num, 8);
+    EXPECT_EQ(ret, ss8.len) << "num=" << num;
+    EXPECT_EQ(buf.sub(0, 2), "aa");
+    _c4clbuf();
+    ret = rfn(buf, num, 8);
+    EXPECT_EQ(buf.left_of(ret), ss8) << "num=" << num;
+
+    _c4clbuf();
+    ret = rfn(emp, num, 10);
+    EXPECT_EQ(ret, ss10.len) << "num=" << num;
+    EXPECT_EQ(buf.sub(0, 2), "aa");
+    _c4clbuf();
+    ret = rfn(buf, num, 10);
+    EXPECT_EQ(buf.left_of(ret), ss10) << "num=" << num;
+
+    _c4clbuf();
+    ret = fn(emp, num);
+    EXPECT_EQ(ret, ss10.len) << "num=" << num;
+    EXPECT_EQ(buf.sub(0, 2), "aa");
+    _c4clbuf();
+    ret = fn(buf, num);
+    EXPECT_EQ(buf.left_of(ret), ss10) << "num=" << num;
+
+    _c4clbuf();
+    ret = rfn(emp, num, 16);
+    EXPECT_EQ(ret, ss16.len) << "num=" << num;
+    EXPECT_EQ(buf.sub(0, 2), "aa");
+    _c4clbuf();
+    ret = rfn(buf, num, 16);
+    EXPECT_EQ(buf.left_of(ret), ss16) << "num=" << num;
+
+#undef _c4clbuf
+}
+
+size_t call_itoa(substr s, int num)
+{
+    return itoa(s, num);
+}
+size_t call_itoa_radix(substr s, int num, int radix)
+{
+    return itoa(s, num, radix);
+}
+
+size_t call_utoa(substr s, unsigned num)
+{
+    return utoa(s, num);
+}
+size_t call_utoa_radix(substr s, unsigned num, unsigned radix)
+{
+    return utoa(s, num, radix);
+}
+
+TEST(itoa, prefixed_number_on_empty_buffer)
+{
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, 0, "0b0", "00", "0", "0x0");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -10, "-0b1010", "-012", "-10", "-0xa");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  10, "0b1010", "012", "10", "0xa");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -20, "-0b10100",  "-024",  "-20", "-0x14");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  20, "0b10100",  "024",  "20", "0x14");
+}
+
+TEST(utoa, prefixed_number_on_empty_buffer)
+{
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 0, "0b0", "00", "0", "0x0");
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  10, "0b1010", "012", "10", "0xa");
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  20, "0b10100",  "024",  "20", "0x14");
+}
+
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+
+template< class ItoaOrUtoa, class I >
+void test_toa_radix(ItoaOrUtoa fn, substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
     size_t ret;
 
     memset(buf.str, 0, buf.len);
-    ret = itoa(buf, num, 2);
+    ret = fn(buf, num, 2);
     EXPECT_EQ(buf.left_of(ret), to_csubstr(r2)) << "num=" << num;
 
     memset(buf.str, 0, ret);
-    ret = itoa(buf, num, 8);
+    ret = fn(buf, num, 8);
     EXPECT_EQ(buf.left_of(ret), to_csubstr(r8)) << "num=" << num;
 
     memset(buf.str, 0, ret);
-    ret = itoa(buf, num, 10);
+    ret = fn(buf, num, 10);
     EXPECT_EQ(buf.left_of(ret), to_csubstr(r10)) << "num=" << num;
 
     memset(buf.str, 0, ret);
-    ret = itoa(buf, num, 16);
+    ret = fn(buf, num, 16);
     EXPECT_EQ(buf.left_of(ret), to_csubstr(r16)) << "num=" << num;
+}
+
+void test_utoa_radix(substr buf, unsigned num, const char *r2, const char *r8, const char *r10, const char *r16)
+{
+    test_toa_radix(&call_itoa_radix, buf, num, r2, r8, r10, r16);
+}
+
+void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const char *r10, const char *r16)
+{
+    size_t ret;
+
+    ASSERT_GE(num, 0);
+    test_toa_radix(&call_itoa_radix, buf, num, r2, r8, r10, r16);
 
     if(num == 0) return;
     // test negative values
@@ -33,7 +151,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
 
 #define _c4getn(which) nbufc[0] = '-'; memcpy(nbufc+1, which, strlen(which)+1); nbuf.assign(nbufc, 1 + strlen(which));
 
-    memset(buf.str, 0, ret);
+    memset(buf.str, 0, buf.len);
     _c4getn(r2);
     ret = itoa(buf, num, 2);
     EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
@@ -91,6 +209,47 @@ TEST(itoa_radix, basic)
     test_itoa_radix(buf, 256, "0b100000000", "0400", "256", "0x100");
 }
 
+TEST(utoa_radix, basic)
+{
+    char bufc[100] = {0};
+    substr buf(bufc);
+    C4_ASSERT(buf.len == sizeof(bufc)-1);
+
+    test_utoa_radix(buf,   0,         "0b0",   "00",   "0",   "0x0");
+    test_utoa_radix(buf,   1,         "0b1",   "01",   "1",   "0x1");
+    test_utoa_radix(buf,   2,        "0b10",   "02",   "2",   "0x2");
+    test_utoa_radix(buf,   3,        "0b11",   "03",   "3",   "0x3");
+    test_utoa_radix(buf,   4,       "0b100",   "04",   "4",   "0x4");
+    test_utoa_radix(buf,   5,       "0b101",   "05",   "5",   "0x5");
+    test_utoa_radix(buf,   6,       "0b110",   "06",   "6",   "0x6");
+    test_utoa_radix(buf,   7,       "0b111",   "07",   "7",   "0x7");
+    test_utoa_radix(buf,   8,      "0b1000",  "010",   "8",   "0x8");
+    test_utoa_radix(buf,   9,      "0b1001",  "011",   "9",   "0x9");
+    test_utoa_radix(buf,  10,      "0b1010",  "012",  "10",   "0xa");
+    test_utoa_radix(buf,  11,      "0b1011",  "013",  "11",   "0xb");
+    test_utoa_radix(buf,  12,      "0b1100",  "014",  "12",   "0xc");
+    test_utoa_radix(buf,  13,      "0b1101",  "015",  "13",   "0xd");
+    test_utoa_radix(buf,  14,      "0b1110",  "016",  "14",   "0xe");
+    test_utoa_radix(buf,  15,      "0b1111",  "017",  "15",   "0xf");
+    test_utoa_radix(buf,  16,     "0b10000",  "020",  "16",  "0x10");
+    test_utoa_radix(buf,  17,     "0b10001",  "021",  "17",  "0x11");
+    test_utoa_radix(buf,  31,     "0b11111",  "037",  "31",  "0x1f");
+    test_utoa_radix(buf,  32,    "0b100000",  "040",  "32",  "0x20");
+    test_utoa_radix(buf,  33,    "0b100001",  "041",  "33",  "0x21");
+    test_utoa_radix(buf,  63,    "0b111111",  "077",  "63",  "0x3f");
+    test_utoa_radix(buf,  64,   "0b1000000", "0100",  "64",  "0x40");
+    test_utoa_radix(buf,  65,   "0b1000001", "0101",  "65",  "0x41");
+    test_utoa_radix(buf, 127,   "0b1111111", "0177", "127",  "0x7f");
+    test_utoa_radix(buf, 128,  "0b10000000", "0200", "128",  "0x80");
+    test_utoa_radix(buf, 129,  "0b10000001", "0201", "129",  "0x81");
+    test_utoa_radix(buf, 255,  "0b11111111", "0377", "255",  "0xff");
+    test_utoa_radix(buf, 256, "0b100000000", "0400", "256", "0x100");
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 TEST(atoi, basic)
 {
