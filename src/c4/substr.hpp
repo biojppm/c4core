@@ -263,22 +263,6 @@ public:
 
 public:
 
-    /** return [first,first+num[ */
-    basic_substring sub(size_t first, size_t num = npos) const
-    {
-        size_t rnum = num != npos ? num : len - first;
-        C4_ASSERT((first >= 0 && first + rnum <= len) || num == 0);
-        return basic_substring(str + first, rnum);
-    }
-
-    /** return [first,last[ */
-    basic_substring range(size_t first, size_t last=npos) const
-    {
-        last = last != npos ? last : len;
-        C4_ASSERT(first >= 0 && last <= len);
-        return basic_substring(str + first, last - first);
-    }
-
     /** true if *this is a sub of that */
     inline bool is_contained(basic_csubstr const super) const
     {
@@ -293,18 +277,49 @@ public:
 
 public:
 
-    basic_substring right_of(size_t pos, bool include_pos = false) const
+    /** return [first,first+num[ */
+    basic_substring sub(size_t first, size_t num=npos) const
     {
-        if(pos == npos) return sub(0, 0);
-        if( ! include_pos) ++pos;
-        return sub(pos);
+        size_t rnum = num != npos ? num : len - first;
+        C4_ASSERT((first >= 0 && first + rnum <= len) || num == 0);
+        return basic_substring(str + first, rnum);
     }
+
+    /** return [first,last[ */
+    basic_substring range(size_t first, size_t last=npos) const
+    {
+        last = last != npos ? last : len;
+        C4_ASSERT(first >= 0 && last <= len);
+        return basic_substring(str + first, last - first);
+    }
+
+    /** return [0,num[*/
+    basic_substring first(size_t num) const
+    {
+        return sub(0, num);
+    }
+
+    /** return [len-num,len[*/
+    basic_substring last(size_t num) const
+    {
+        C4_ASSERT(num <= len);
+        return sub(len - num);
+    }
+
+public:
 
     basic_substring left_of(size_t pos, bool include_pos = false) const
     {
         if(pos == npos) return *this;
         if( ! include_pos && pos > 0) --pos;
         return sub(0, pos+1/* bump because this arg is a size, not a pos*/);
+    }
+
+    basic_substring right_of(size_t pos, bool include_pos = false) const
+    {
+        if(pos == npos) return sub(0, 0);
+        if( ! include_pos) ++pos;
+        return sub(pos);
     }
 
 public:

@@ -28,7 +28,7 @@ bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb)
 void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times)
 {
     if(C4_UNLIKELY(num_times == 0)) return;
-    C4_ASSERT(!mem_overlaps(dest, pattern, num_times*pattern_size, pattern_size));
+    C4_ASSERT( ! mem_overlaps(dest, pattern, num_times*pattern_size, pattern_size));
     char *begin = (char*)dest;
     char *end   = begin + num_times * pattern_size;
     // copy the pattern once

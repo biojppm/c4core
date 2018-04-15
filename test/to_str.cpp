@@ -28,42 +28,42 @@ void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I nu
     _c4clbuf();
     ret = rfn(emp, num, 2);
     EXPECT_EQ(ret, ss2.len) << "num=" << num;
-    EXPECT_EQ(buf.sub(0, 2), "aa");
+    EXPECT_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 2);
-    EXPECT_EQ(buf.left_of(ret), ss2) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), ss2) << "num=" << num;
 
     _c4clbuf();
     ret = rfn(emp, num, 8);
     EXPECT_EQ(ret, ss8.len) << "num=" << num;
-    EXPECT_EQ(buf.sub(0, 2), "aa");
+    EXPECT_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 8);
-    EXPECT_EQ(buf.left_of(ret), ss8) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), ss8) << "num=" << num;
 
     _c4clbuf();
     ret = rfn(emp, num, 10);
     EXPECT_EQ(ret, ss10.len) << "num=" << num;
-    EXPECT_EQ(buf.sub(0, 2), "aa");
+    EXPECT_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 10);
-    EXPECT_EQ(buf.left_of(ret), ss10) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), ss10) << "num=" << num;
 
     _c4clbuf();
     ret = fn(emp, num);
     EXPECT_EQ(ret, ss10.len) << "num=" << num;
-    EXPECT_EQ(buf.sub(0, 2), "aa");
+    EXPECT_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = fn(buf, num);
-    EXPECT_EQ(buf.left_of(ret), ss10) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), ss10) << "num=" << num;
 
     _c4clbuf();
     ret = rfn(emp, num, 16);
     EXPECT_EQ(ret, ss16.len) << "num=" << num;
-    EXPECT_EQ(buf.sub(0, 2), "aa");
+    EXPECT_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 16);
-    EXPECT_EQ(buf.left_of(ret), ss16) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), ss16) << "num=" << num;
 
 #undef _c4clbuf
 }
@@ -109,31 +109,35 @@ TEST(utoa, prefixed_number_on_empty_buffer)
 //-----------------------------------------------------------------------------
 
 
-template< class ItoaOrUtoa, class I >
-void test_toa_radix(ItoaOrUtoa fn, substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
+template< class ItoaOrUtoa, class ItoaOrUtoaRdx, class I >
+void test_toa_radix(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
     size_t ret;
 
     memset(buf.str, 0, buf.len);
-    ret = fn(buf, num, 2);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(r2)) << "num=" << num;
+    ret = rfn(buf, num, 2);
+    EXPECT_EQ(buf.first(ret), to_csubstr(r2)) << "num=" << num;
 
     memset(buf.str, 0, ret);
-    ret = fn(buf, num, 8);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(r8)) << "num=" << num;
+    ret = rfn(buf, num, 8);
+    EXPECT_EQ(buf.first(ret), to_csubstr(r8)) << "num=" << num;
 
     memset(buf.str, 0, ret);
-    ret = fn(buf, num, 10);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(r10)) << "num=" << num;
+    ret = rfn(buf, num, 10);
+    EXPECT_EQ(buf.first(ret), to_csubstr(r10)) << "num=" << num;
 
     memset(buf.str, 0, ret);
-    ret = fn(buf, num, 16);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(r16)) << "num=" << num;
+    ret = fn(buf, num);
+    EXPECT_EQ(buf.first(ret), to_csubstr(r10)) << "num=" << num;
+
+    memset(buf.str, 0, ret);
+    ret = rfn(buf, num, 16);
+    EXPECT_EQ(buf.first(ret), to_csubstr(r16)) << "num=" << num;
 }
 
 void test_utoa_radix(substr buf, unsigned num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
-    test_toa_radix(&call_itoa_radix, buf, num, r2, r8, r10, r16);
+    test_toa_radix(&call_utoa, &call_utoa_radix, buf, num, r2, r8, r10, r16);
 }
 
 void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const char *r10, const char *r16)
@@ -141,7 +145,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     size_t ret;
 
     ASSERT_GE(num, 0);
-    test_toa_radix(&call_itoa_radix, buf, num, r2, r8, r10, r16);
+    test_toa_radix(&call_itoa, &call_itoa_radix, buf, num, r2, r8, r10, r16);
 
     if(num == 0) return;
     // test negative values
@@ -154,25 +158,31 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     memset(buf.str, 0, buf.len);
     _c4getn(r2);
     ret = itoa(buf, num, 2);
-    EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
 
     memset(buf.str, 0, ret);
     _c4getn(r8);
     ret = itoa(buf, num, 8);
-    EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
 
     memset(buf.str, 0, ret);
     _c4getn(r10);
     ret = itoa(buf, num, 10);
-    EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+
+    memset(buf.str, 0, ret);
+    _c4getn(r10);
+    ret = itoa(buf, num);
+    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
 
     memset(buf.str, 0, ret);
     _c4getn(r16);
     ret = itoa(buf, num, 16);
-    EXPECT_EQ(buf.left_of(ret), nbuf) << "num=" << num;
+    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+#undef _c4getn
 }
 
-TEST(itoa_radix, basic)
+TEST(itoa, radix_basic)
 {
     char bufc[100] = {0};
     substr buf(bufc);
@@ -209,7 +219,7 @@ TEST(itoa_radix, basic)
     test_itoa_radix(buf, 256, "0b100000000", "0400", "256", "0x100");
 }
 
-TEST(utoa_radix, basic)
+TEST(utoa, radix_basic)
 {
     char bufc[100] = {0};
     substr buf(bufc);
@@ -793,6 +803,22 @@ TEST(unformat, tuple)
     EXPECT_EQ(v4, 4);
 }
 #endif // C4_TUPLE_TO_STR
+
+
+TEST(printf, basic)
+{
+    char bufc[128];
+    substr buf = bufc;
+    size_t ret;
+
+    memset(buf.str, buf.len, 0);
+    ret = sprintf(buf, "hello world");
+    EXPECT_EQ(buf.first(ret), "hello world");
+
+    memset(buf.str, buf.len, 0);
+    ret = sprintf(buf, "%d %d %d %d", 1, 2, 3, 4);
+    EXPECT_EQ(buf.first(ret), "1 2 3 4");
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

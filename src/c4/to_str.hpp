@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include <type_traits>
 #include <utility>
-#include <tuple>
+#include <stdarg.h>
 
 #include "c4/substr.hpp"
 
@@ -308,7 +308,7 @@ template< typename T >
 inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 {
     /* snscanf() is absolutely needed here as we must be sure that
-     * str.len is strictly respected, because the span string is
+     * str.len is strictly respected, because substr is
      * generally not null-terminated.
      *
      * Alas, there is no snscanf().
@@ -680,7 +680,7 @@ template<> struct fmt_wrapper<uint64_t&> : public detail::int_formatter<uint64_t
 template< class T, class... Args >
 inline fmt_wrapper<T> fmt(T v, Args && ...args)
 {
-    return fmt_wrapper<T>(std::ref(v), std::forward<Args>(args)...);
+    return fmt_wrapper<T>(v, std::forward<Args>(args)...);
 }
 
 inline size_t to_str(substr buf, fmt_wrapper<   float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
@@ -710,7 +710,7 @@ struct binary_wrapper
 template< class T >
 inline binary_wrapper<T> fmtbin(T &v)
 {
-    return binary_wrapper<T>(std::ref(v));
+    return binary_wrapper<T>(v);
 }
 
 /** write a variable in binary format */
@@ -906,7 +906,18 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & a, Args & ...more)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+/** C-style printing into a buffer */
+size_t sprintf(substr buf, const char *fmt, ...);
+//size_t sscanf(csubstr buf, const char *fmt, ...);
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** a tag type
+ * @see catrs
+ * */
 struct append_t {};
 constexpr const append_t append = {};
 
@@ -1014,175 +1025,6 @@ inline void formatrs(append_t, CharOwningContainer *cont, csubstr fmt, Args cons
         }
     }
 }
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-#ifdef C4_TUPLE_TO_STR
-namespace detail {
-
-template< size_t Curr, class... Types >
-struct tuple_helper
-{
-    static size_t do_cat(substr buf, std::tuple< Types... > const& tp)
-    {
-        size_t num = to_str(buf, std::get<Curr>(tp));
-        buf = buf.len >= num ? buf.sub(num) : substr{};
-        num += tuple_helper< Curr+1, Types... >::do_cat(buf, tp);
-        return num;
-    }
-
-    static size_t do_uncat(csubstr buf, std::tuple< Types... > & tp)
-    {
-        size_t num = from_str_trim(buf, &std::get<Curr>(tp));
-        if(num == csubstr::npos) return csubstr::npos;
-        buf = buf.len >= num ? buf.sub(num) : substr{};
-        num += tuple_helper< Curr+1, Types... >::do_uncat(buf, tp);
-        return num;
-    }
-
-    template< class Sep >
-    static size_t do_catsep_more(substr buf, Sep const& sep, std::tuple< Types... > const& tp)
-    {
-        size_t ret = to_str(buf, sep), num = ret;
-        buf  = buf.len >= ret ? buf.sub(ret) : substr{};
-        ret  = to_str(buf, std::get<Curr>(tp));
-        num += ret;
-        buf  = buf.len >= ret ? buf.sub(ret) : substr{};
-        ret  = tuple_helper< Curr+1, Types... >::do_catsep_more(buf, sep, tp);
-        num += ret;
-        return num;
-    }
-
-    template< class Sep >
-    static size_t do_uncatsep_more(csubstr buf, Sep & sep, std::tuple< Types... > & tp)
-    {
-        size_t ret = from_str_trim(buf, &sep), num = ret;
-        if(ret == csubstr::npos) return csubstr::npos;
-        buf  = buf.len >= ret ? buf.sub(ret) : substr{};
-        ret  = from_str_trim(buf, &std::get<Curr>(tp));
-        if(ret == csubstr::npos) return csubstr::npos;
-        num += ret;
-        buf  = buf.len >= ret ? buf.sub(ret) : substr{};
-        ret  = tuple_helper< Curr+1, Types... >::do_uncatsep_more(buf, sep, tp);
-        if(ret == csubstr::npos) return csubstr::npos;
-        num += ret;
-        return num;
-    }
-
-    static size_t do_format(substr buf, csubstr fmt, std::tuple< Types... > const& tp)
-    {
-        auto pos = fmt.find("{}");
-        if(pos != csubstr::npos)
-        {
-            size_t num = to_str(buf, fmt.sub(0, pos));
-            size_t out = num;
-            buf  = buf.len >= num ? buf.sub(num) : substr{};
-            num  = to_str(buf, std::get<Curr>(tp));
-            out += num;
-            buf  = buf.len >= num ? buf.sub(num) : substr{};
-            num  = tuple_helper< Curr+1, Types... >::do_format(buf, fmt.sub(pos + 2), tp);
-            out += num;
-            return out;
-        }
-        else
-        {
-            return format(buf, fmt);
-        }
-    }
-
-    static size_t do_unformat(csubstr buf, csubstr fmt, std::tuple< Types... > & tp)
-    {
-        auto pos = fmt.find("{}");
-        if(pos != csubstr::npos)
-        {
-            size_t num = pos;
-            size_t out = num;
-            buf  = buf.len >= num ? buf.sub(num) : substr{};
-            num  = from_str_trim(buf, &std::get<Curr>(tp));
-            out += num;
-            buf  = buf.len >= num ? buf.sub(num) : substr{};
-            num  = tuple_helper< Curr+1, Types... >::do_unformat(buf, fmt.sub(pos + 2), tp);
-            out += num;
-            return out;
-        }
-        else
-        {
-            return tuple_helper< sizeof...(Types), Types... >::do_unformat(buf, fmt, tp);
-        }
-    }
-
-};
-
-/** @todo VS compilation fails for this class */
-template< class... Types >
-struct tuple_helper< sizeof...(Types), Types... >
-{
-    static size_t do_cat(substr /*buf*/, std::tuple<Types...> const& /*tp*/) { return 0; }
-    static size_t do_uncat(csubstr /*buf*/, std::tuple<Types...> & /*tp*/) { return 0; }
-
-    template< class Sep > static size_t do_catsep_more(substr /*buf*/, Sep const& /*sep*/, std::tuple<Types...> const& /*tp*/) { return 0; }
-    template< class Sep > static size_t do_uncatsep_more(csubstr /*buf*/, Sep & /*sep*/, std::tuple<Types...> & /*tp*/) { return 0; }
-
-    static size_t do_format(substr buf, csubstr fmt, std::tuple<Types...> const& /*tp*/)
-    {
-        return to_str(buf, fmt);
-    }
-
-    static size_t do_unformat(csubstr buf, csubstr fmt, std::tuple<Types...> const& /*tp*/)
-    {
-        return 0;
-    }
-};
-
-} // namespace detail
-
-template< class... Types >
-inline size_t cat(substr buf, std::tuple< Types... > const& tp)
-{
-    return detail::tuple_helper< 0, Types... >::do_cat(buf, tp);
-}
-
-template< class... Types >
-inline size_t uncat(csubstr buf, std::tuple< Types... > & tp)
-{
-    return detail::tuple_helper< 0, Types... >::do_uncat(buf, tp);
-}
-
-template< class Sep, class... Types >
-inline size_t catsep(substr buf, Sep const& sep, std::tuple< Types... > const& tp)
-{
-    size_t num = to_str(buf, std::cref(std::get<0>(tp)));
-    buf  = buf.len >= num ? buf.sub(num) : substr{};
-    num += detail::tuple_helper< 1, Types... >::do_catsep_more(buf, sep, tp);
-    return num;
-}
-
-template< class Sep, class... Types >
-inline size_t uncatsep(csubstr buf, Sep & sep, std::tuple< Types... > & tp)
-{
-    size_t ret = from_str_trim(buf, &std::get<0>(tp)), num = ret;
-    if(ret == csubstr::npos) return csubstr::npos;
-    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
-    ret  = detail::tuple_helper< 1, Types... >::do_uncatsep_more(buf, sep, tp);
-    if(ret == csubstr::npos) return csubstr::npos;
-    num += ret;
-    return num;
-}
-
-template< class... Types >
-inline size_t format(substr buf, csubstr fmt, std::tuple< Types... > const& tp)
-{
-    return detail::tuple_helper< 0, Types... >::do_format(buf, fmt, tp);
-}
-
-template< class... Types >
-inline size_t unformat(csubstr buf, csubstr fmt, std::tuple< Types... > & tp)
-{
-    return detail::tuple_helper< 0, Types... >::do_unformat(buf, fmt, tp);
-}
-#endif // C4_TUPLE_TO_STR
 
 } // namespace c4
 

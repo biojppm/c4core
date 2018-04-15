@@ -1,8 +1,11 @@
 #ifndef _C4_STD_STD_HPP_
 #define _C4_STD_STD_HPP_
 
-#include "./string.hpp"
-#include "./vector.hpp"
+/** @file std.hpp includes all c4-std interop files */
+
+#include "c4/std/string.hpp"
+#include "c4/std/vector.hpp"
+#include "c4/std/tuple.hpp"
 
 namespace std {
 
