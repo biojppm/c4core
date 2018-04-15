@@ -19,6 +19,7 @@ set(src
     c4/platform.hpp
     c4/preprocessor.hpp
     c4/span.hpp
+    c4/substr.hpp
     c4/szconv.hpp
     c4/time.hpp
     c4/time.cpp
