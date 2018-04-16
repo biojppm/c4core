@@ -147,7 +147,8 @@ void do_std_containers_test(Alloc alloc)
 
     {
         AllocString a = alloc;
-        _vector_string v(4, a);
+        _vector_string v(a);
+        v.resize(4);
         int count = 0;
         for(auto &s : v)
         {
