@@ -82,7 +82,10 @@ sudo -E apt-get install -y --force-yes \
 
 if [ "$BT" == "Coverage" -a "${TRAVIS_OS_NAME}" == "linux" ]; then
     export PATH=~/.local/bin:${PATH};
+    sudo -E apt-get install libffi-dev libssl-dev
     pip install --user --upgrade pip;
+    # https://stackoverflow.com/questions/29134512/insecureplatformwarning-a-true-sslcontext-object-is-not-available-this-prevent
+    pip install --user requests[security] pyopenssl ndg-httpsclient pyasn1
     pip install --user cpp-coveralls;
 fi
 
