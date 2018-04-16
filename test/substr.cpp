@@ -205,6 +205,27 @@ TEST(substr, compare)
     EXPECT_TRUE((c1 > c2) != (c1 < c2));
 }
 
+TEST(substr, compare_vs_char)
+{
+    EXPECT_NE(csubstr("---"), '-');
+    EXPECT_NE(csubstr("---"), "-");
+
+    EXPECT_NE(csubstr("aaa"), 'a');
+    EXPECT_NE(csubstr("aaa"), "a");
+
+    EXPECT_NE(csubstr("aaa"), 'b');
+    EXPECT_NE(csubstr("aaa"), "b");
+
+    EXPECT_LT(csubstr("aaa"), 'b');
+    EXPECT_LT(csubstr("aaa"), "b");
+
+    EXPECT_NE(csubstr("bbb"), 'a');
+    EXPECT_NE(csubstr("bbb"), "a");
+
+    EXPECT_GT(csubstr("bbb"), 'a');
+    EXPECT_GT(csubstr("bbb"), "a");
+}
+
 TEST(substr, eqne)
 {
     char buf[128];

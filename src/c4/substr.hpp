@@ -245,13 +245,7 @@ public:
 
     int compare(C const c) const
     {
-        if(len == 0) return -1;
-        else
-        {
-            if(*str == c) return 0;
-            else if(*str < c) return -1;
-            else if(*str > c) return  1;
-        }
+        return compare(basic_csubstr(&c, 1));
     }
 
     inline bool operator== (basic_csubstr const that) const { return this->compare(that) == 0; }
