@@ -146,7 +146,7 @@ void do_std_containers_test(Alloc alloc)
     clear_mr(alloc);
 
     {
-        AllocChar a = alloc;
+        AllocString a = alloc;
         _vector_string v(4, a);
         int count = 0;
         for(auto &s : v)
