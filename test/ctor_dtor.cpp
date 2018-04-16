@@ -71,7 +71,7 @@ void create_make_room_buffer(std::vector<T> &orig)
     C4_STATIC_ASSERT(std::is_integral< T >::value);
     for(T i = 0, e = (T)orig.size(); i < e; ++i)
     {
-        orig[i] = 33 + i % (122 - 33);
+        orig[i] = (T)(33 + i % (122 - 33));
     }
 }
 template<>

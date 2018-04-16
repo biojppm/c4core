@@ -229,7 +229,7 @@ TEST(substr, compare_vs_char)
 TEST(substr, eqne)
 {
     char buf[128];
-    for(size_t i = 0; i < 5; ++i) buf[i] = '0' + i;
+    for(size_t i = 0; i < 5; ++i) buf[i] = (char)('0' + i);
     csubstr cmp(buf, 5);
 
     EXPECT_EQ(csubstr("01234"), cmp);

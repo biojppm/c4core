@@ -511,12 +511,26 @@ void test_to_str_fmt_basic(T f, int precision, const char* flt, T fltv, const ch
     r = to_str_sub(buf, fmt(f, precision));
     EXPECT_EQ(r, to_csubstr(flt)) << "num=" << f;
     from_str(r, &copy);
-    EXPECT_FLOAT_EQ(fltv, copy);
+    if(sizeof(T) == sizeof(float))
+    {
+        EXPECT_FLOAT_EQ((float)fltv, (float)copy);
+    }
+    else
+    {
+        EXPECT_DOUBLE_EQ(fltv, copy);
+    }
 
     r = to_str_sub(buf, fmt(f, precision, FTOA_SCIENT));
     EXPECT_EQ(r, to_csubstr(scient)) << "num=" << f;
     from_str(r, &copy);
-    EXPECT_FLOAT_EQ(scientv, copy);
+    if(sizeof(T) == sizeof(float))
+    {
+        EXPECT_FLOAT_EQ((float)scientv, (float)copy);
+    }
+    else
+    {
+        EXPECT_DOUBLE_EQ(scientv, copy);
+    }
 }
 
 TEST(to_str, fmt_basic)
@@ -529,20 +543,20 @@ TEST(to_str, fmt_basic)
     EXPECT_EQ(to_str_sub(buf, fmt(uint8_t(0xff), 16)), "0xff");
 
     float f = 256.064f;
-    test_to_str_fmt_basic(f, 0, "256", 256.f, "3e+02", 300.f);
-    test_to_str_fmt_basic(f, 1, "256.1", 256.1f, "2.6e+02", 260.f);
-    test_to_str_fmt_basic(f, 2, "256.06", 256.06f, "2.56e+02", 256.f);
-    test_to_str_fmt_basic(f, 3, "256.064", 256.064f, "2.561e+02", 256.1f);
-    test_to_str_fmt_basic(f, 4, "256.0640", 256.0640f, "2.5606e+02", 256.06f);
-    test_to_str_fmt_basic(f, 5, "256.06400", 256.06400f, "2.56064e+02", 256.064f);
+    test_to_str_fmt_basic<float>(f, 0, "256", 256.f, "3e+02", 300.f);
+    test_to_str_fmt_basic<float>(f, 1, "256.1", 256.1f, "2.6e+02", 260.f);
+    test_to_str_fmt_basic<float>(f, 2, "256.06", 256.06f, "2.56e+02", 256.f);
+    test_to_str_fmt_basic<float>(f, 3, "256.064", 256.064f, "2.561e+02", 256.1f);
+    test_to_str_fmt_basic<float>(f, 4, "256.0640", 256.0640f, "2.5606e+02", 256.06f);
+    test_to_str_fmt_basic<float>(f, 5, "256.06400", 256.06400f, "2.56064e+02", 256.064f);
 
     double d = 256.064;
-    test_to_str_fmt_basic(d, 0, "256", 256., "3e+02", 300.);
-    test_to_str_fmt_basic(d, 1, "256.1", 256.1, "2.6e+02", 260.);
-    test_to_str_fmt_basic(d, 2, "256.06", 256.06, "2.56e+02", 256.);
-    test_to_str_fmt_basic(d, 3, "256.064", 256.064, "2.561e+02", 256.1);
-    test_to_str_fmt_basic(d, 4, "256.0640", 256.0640, "2.5606e+02", 256.06);
-    test_to_str_fmt_basic(d, 5, "256.06400", 256.06400, "2.56064e+02", 256.064);
+    test_to_str_fmt_basic<double>(d, 0, "256", 256., "3e+02", 300.);
+    test_to_str_fmt_basic<double>(d, 1, "256.1", 256.1, "2.6e+02", 260.);
+    test_to_str_fmt_basic<double>(d, 2, "256.06", 256.06, "2.56e+02", 256.);
+    test_to_str_fmt_basic<double>(d, 3, "256.064", 256.064, "2.561e+02", 256.1);
+    test_to_str_fmt_basic<double>(d, 4, "256.0640", 256.0640, "2.5606e+02", 256.06);
+    test_to_str_fmt_basic<double>(d, 5, "256.06400", 256.06400, "2.56064e+02", 256.064);
 }
 
 
