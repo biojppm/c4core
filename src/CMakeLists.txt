@@ -23,6 +23,7 @@ set(src
     c4/std/string.hpp
     c4/std/tuple.hpp
     c4/std/vector.hpp
+    c4/substr.hpp
     c4/szconv.hpp
     c4/time.hpp
     c4/time.cpp

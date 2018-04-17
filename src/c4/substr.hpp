@@ -63,7 +63,7 @@ struct _basic_substring_crtp< const C, Impl >
 
 //-----------------------------------------------------------------------------
 /** since there's a specialization for const C, here we can provide methods
- * which modify the string, provided they don't expand it. */
+ * which modify the contents of the string, provided they don't expand it. */
 template< class C, class Impl >
 struct _basic_substring_crtp
 {

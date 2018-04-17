@@ -71,13 +71,13 @@ void create_make_room_buffer(std::vector<T> &orig)
     C4_STATIC_ASSERT(std::is_integral< T >::value);
     for(T i = 0, e = (T)orig.size(); i < e; ++i)
     {
-        orig[i] = 33 + i % (122 - 33);
+        orig[i] = (T)(T(33) + i % (T(122) - T(33))); // assign characters
     }
 }
 template<>
 void create_make_room_buffer< std::string >(std::vector<std::string> &orig)
 {
-    for(size_t i = 0, e = orig.size(); i < e; ++i)
+    for(int i = 0, e = (int)orig.size(); i < e; ++i)
     {
         char c = (char)(33 + i % (122 - 33));
         orig[i].assign(10, c);

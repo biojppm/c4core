@@ -208,7 +208,7 @@ inline bool atou(csubstr str, T *v)
     C4_ASSERT(str.len > 0);
     C4_ASSERT(!str.begins_with(' '));
     C4_ASSERT(!str.ends_with(' '));
-    C4_ASSERT_MSG(str.str[0] == '-', "must be positive");
+    C4_ASSERT_MSG(str.str[0] != '-', "must be positive");
     T n = 0;
     for(size_t i = 0; i < str.len; ++i)
     {

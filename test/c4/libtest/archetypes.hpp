@@ -42,7 +42,7 @@ inline void check_archetype(uint32_t a, uint32_t ref) { EXPECT_EQ(a, ref); }
 inline void check_archetype(int64_t  a, int64_t  ref) { EXPECT_EQ(a, ref); }
 inline void check_archetype(uint64_t a, uint64_t ref) { EXPECT_EQ(a, ref); }
 inline void check_archetype(float    a, float    ref) { EXPECT_FLOAT_EQ(a, ref); }
-inline void check_archetype(double   a, double   ref) { EXPECT_FLOAT_EQ(a, ref); }
+inline void check_archetype(double   a, double   ref) { EXPECT_DOUBLE_EQ(a, ref); }
 
 
 //-----------------------------------------------------------------------------
