@@ -31,17 +31,18 @@ bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb);
 
 void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times);
 
-//-----------------------------------------------------------------------------
-// least significant bit
 
-/** least significant bit; this function is constexpr-14 because of the local
+//-----------------------------------------------------------------------------
+// most significant bit
+
+/** most significant bit; this function is constexpr-14 because of the local
  * variable */
 template< class I >
-C4_CONSTEXPR14 I lsb(I v)
+C4_CONSTEXPR14 I msb(I v)
 {
     if(!v) return 0;
     I b = 0;
-    while(!(v & 1))
+    while(v)
     {
         v >>= 1;
         ++b;
@@ -49,29 +50,35 @@ C4_CONSTEXPR14 I lsb(I v)
     return b;
 }
 
-C4_BEGIN_NAMESPACE(detail)
-template< size_t num_, size_t v_, bool bit1 > struct _lsb;
-template< size_t num_, size_t v_ >
-struct _lsb< num_, v_, true >
-{
-    enum : size_t { num = num_ };
-};
-template< size_t num_, size_t v_ >
-struct _lsb< num_, v_, false >
-{
-    enum : size_t { num = _lsb< num_+1, (v_>>1), ((v_>>1)&1) >::num };
-};
-C4_END_NAMESPACE(detail)
+namespace detail {
 
-/** TMP version of lsb(); this needs to be implemented with template
+template< class I, I val, I num_bits, bool finished >
+struct _msb11;
+
+template< class I, I val, I num_bits >
+struct _msb11< I, val, num_bits, false >
+{
+    enum : I { num = _msb11< I, (val>>1), num_bits+I(1), ((val>>1)==I(0)) >::num };
+};
+
+template< class I, I val, I num_bits >
+struct _msb11< I, val, num_bits, true >
+{
+    static_assert(val == 0, "bad implementation");
+    enum : I { num = num_bits };
+};
+
+} // namespace detail
+
+
+/** TMP version of msb(); this needs to be implemented with template
  * meta-programming because C++11 cannot use a constexpr function with
  * local variables
- * @see lsb */
-template< class I, size_t v >
-struct lsb11
+ * @see msb */
+template< class I, I number >
+struct msb11
 {
-    C4_STATIC_ASSERT(v != 0);
-    enum : I { value = (I)detail::_lsb< 0, v, (v&1) >::num };
+    enum : I { value = detail::_msb11< I, number, 0, (number==I(0)) >::num };
 };
 
 C4_END_NAMESPACE(c4)

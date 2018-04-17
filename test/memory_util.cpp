@@ -83,4 +83,49 @@ TEST(mem_repeatT, basic)
     EXPECT_EQ(buf[18], '\0');
 }
 
+
+//-----------------------------------------------------------------------------
+
+TEST(msb, basic)
+{
+    EXPECT_EQ(msb( 0), 0);
+    EXPECT_EQ(msb( 1), 1);
+    EXPECT_EQ(msb( 2), 2);
+    EXPECT_EQ(msb( 3), 2);
+    EXPECT_EQ(msb( 4), 3);
+    EXPECT_EQ(msb( 5), 3);
+    EXPECT_EQ(msb( 6), 3);
+    EXPECT_EQ(msb( 7), 3);
+    EXPECT_EQ(msb( 8), 4);
+    EXPECT_EQ(msb( 9), 4);
+    EXPECT_EQ(msb(10), 4);
+    EXPECT_EQ(msb(11), 4);
+    EXPECT_EQ(msb(12), 4);
+    EXPECT_EQ(msb(13), 4);
+    EXPECT_EQ(msb(14), 4);
+    EXPECT_EQ(msb(15), 4);
+    EXPECT_EQ(msb(16), 5);
+}
+
+TEST(msb11, basic)
+{
+    EXPECT_EQ((msb11<int, 0>::value), 0);
+    EXPECT_EQ((msb11<int, 1>::value), 1);
+    EXPECT_EQ((msb11<int, 2>::value), 2);
+    EXPECT_EQ((msb11<int, 3>::value), 2);
+    EXPECT_EQ((msb11<int, 4>::value), 3);
+    EXPECT_EQ((msb11<int, 5>::value), 3);
+    EXPECT_EQ((msb11<int, 6>::value), 3);
+    EXPECT_EQ((msb11<int, 7>::value), 3);
+    EXPECT_EQ((msb11<int, 8>::value), 4);
+    EXPECT_EQ((msb11<int, 9>::value), 4);
+    EXPECT_EQ((msb11<int,10>::value), 4);
+    EXPECT_EQ((msb11<int,11>::value), 4);
+    EXPECT_EQ((msb11<int,12>::value), 4);
+    EXPECT_EQ((msb11<int,13>::value), 4);
+    EXPECT_EQ((msb11<int,14>::value), 4);
+    EXPECT_EQ((msb11<int,15>::value), 4);
+    EXPECT_EQ((msb11<int,16>::value), 5);
+}
+
 C4_END_NAMESPACE(c4)
