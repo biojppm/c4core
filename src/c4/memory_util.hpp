@@ -89,7 +89,19 @@ struct msb11
 //-----------------------------------------------------------------------------
 /** use Empty Base Class Optimization to reduce the size of a pair of
  * potentially empty types*/
+
+C4_BEGIN_NAMESPACE(detail)
+typedef enum { tpc_same_non_empty_type, tpc_same_empty_type, tpc_general } TightPairCase_e;
 template< class First, class Second >
+constexpr TightPairCase_e tpc_which_case()
+{
+    return (std::is_same< First, Second >::value) ?
+        (std::is_empty< First >::value) ? tpc_same_empty_type : tpc_same_non_empty_type
+        :
+        tpc_general;
+}
+
+template< class First, class Second, TightPairCase_e Case >
 struct tight_pair : public First, public Second
 {
     using first_type = First;
@@ -103,6 +115,45 @@ struct tight_pair : public First, public Second
     C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return static_cast< Second      & >(*this); }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return static_cast< Second const& >(*this); }
 };
+
+template< class First, class Second >
+struct tight_pair< First, Second, tpc_same_empty_type > : public First
+{
+    static_assert(std::is_same<First,Second>::value, "bad implementation");
+
+    using first_type = First;
+    using second_type = Second;
+
+    tight_pair() : First() {}
+    tight_pair(First const& f, Second const& s) : First(f) {}
+
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return static_cast< First      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return static_cast< First const& >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & second()       { return static_cast< First      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& second() const { return static_cast< First const& >(*this); }
+};
+
+template< class First, class Second >
+struct tight_pair< First, Second, tpc_same_non_empty_type > : public First
+{
+    Second m_second;
+
+    using first_type = First;
+    using second_type = Second;
+
+    tight_pair() : First() {}
+    tight_pair(First const& f, Second const& s) : First(f), Second(s) {}
+
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return static_cast< First      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return static_cast< First const& >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & second()       { return m_second; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& second() const { return m_second; }
+};
+
+C4_END_NAMESPACE(detail)
+
+template< class First, class Second >
+using tight_pair = detail::tight_pair<First, Second, detail::tpc_which_case<First,Second>()>;
 
 C4_END_NAMESPACE(c4)
 

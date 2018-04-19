@@ -128,4 +128,40 @@ TEST(msb11, basic)
     EXPECT_EQ((msb11<int,16>::value), 5);
 }
 
+//-----------------------------------------------------------------------------
+
+template< size_t N > struct sz    { char buf[N]; };
+template<          > struct sz<0> {              };
+template< size_t F, size_t S > void check_tp()
+{
+    size_t expected;
+    if(F == 0 && S == 0) expected = 1;
+    else if(F == 0) expected = S;
+    else if(S == 0) expected = F;
+    else expected = F+S;
+
+    EXPECT_EQ(sizeof(tight_pair<sz<F>, sz<S>>), expected) << "F=" << F << "  S=" << S;
+}
+
+TEST(tight_pair, basic)
+{
+    check_tp<0,0>();
+    check_tp<0,1>();
+    check_tp<0,2>();
+    check_tp<0,3>();
+    check_tp<0,4>();
+
+    check_tp<0,0>();
+    check_tp<1,0>();
+    check_tp<2,0>();
+    check_tp<3,0>();
+    check_tp<4,0>();
+
+    check_tp<0,0>();
+    check_tp<1,1>();
+    check_tp<2,2>();
+    check_tp<3,3>();
+    check_tp<4,4>();
+}
+
 C4_END_NAMESPACE(c4)
