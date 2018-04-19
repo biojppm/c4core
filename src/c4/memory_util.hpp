@@ -31,13 +31,16 @@ bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb);
 
 void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times);
 
-//-----------------------------------------------------------------------------
-// least significant bit
 
-/** least significant bit; this function is constexpr-14 because of the local
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// most significant bit
+
+/** most significant bit; this function is constexpr-14 because of the local
  * variable */
 template< class I >
-C4_CONSTEXPR14 I lsb(I v)
+C4_CONSTEXPR14 I msb(I v)
 {
     if(!v) return 0;
     I b = 0;
@@ -49,29 +52,54 @@ C4_CONSTEXPR14 I lsb(I v)
     return b;
 }
 
-C4_BEGIN_NAMESPACE(detail)
-template< size_t num_, size_t v_, bool bit1 > struct _lsb;
-template< size_t num_, size_t v_ >
-struct _lsb< num_, v_, true >
-{
-    enum : size_t { num = num_ };
-};
-template< size_t num_, size_t v_ >
-struct _lsb< num_, v_, false >
-{
-    enum : size_t { num = _lsb< num_+1, (v_>>1), ((v_>>1)&1) >::num };
-};
-C4_END_NAMESPACE(detail)
+namespace detail {
 
-/** TMP version of lsb(); this needs to be implemented with template
+template< class I, I num_, I v_, bool last_bit > struct _msb11;
+
+template< class I, I num_, I v_ >
+struct _msb11< I, num_, v_, true >
+{
+    enum : I { num = num_ };
+};
+
+template< class I, I num_, I v_ >
+struct _msb11< I, num_, v_, false >
+{
+    enum : I { num = _msb11< I, num_+I(1), (v_>>1), (((v_>>1)&I(1))==0) >::num };
+};
+
+} // namespace detail
+
+/** TMP version of msb(); this needs to be implemented with template
  * meta-programming because C++11 cannot use a constexpr function with
  * local variables
- * @see lsb */
-template< class I, size_t v >
-struct lsb11
+ * @see msb */
+template< class I, I v >
+struct msb11
 {
-    C4_STATIC_ASSERT(v != 0);
-    enum : I { value = (I)detail::_lsb< 0, v, (v&1) >::num };
+    static_assert(v != 0, "v != 0");
+    enum : I { value = detail::_msb11< I, 0, v, (v&1) >::num };
+};
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+/** use Empty Base Class Optimization to reduce the size of a pair of
+ * potentially empty types*/
+template< class First, class Second >
+struct tight_pair : public First, public Second
+{
+    using first_type = First;
+    using second_type = Second;
+
+    tight_pair() : First(), Second() {}
+    tight_pair(First const& f, Second const& s) : First(f), Second(s) {}
+
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First       & first ()       { return static_cast< First       & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First  const& first () const { return static_cast< First  const& >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return static_cast< Second      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return static_cast< Second const& >(*this); }
 };
 
 C4_END_NAMESPACE(c4)
