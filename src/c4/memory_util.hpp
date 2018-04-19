@@ -44,7 +44,7 @@ C4_CONSTEXPR14 I msb(I v)
 {
     if(!v) return 0;
     I b = 0;
-    while(!(v & 1))
+    while(v != 0)
     {
         v >>= 1;
         ++b;
