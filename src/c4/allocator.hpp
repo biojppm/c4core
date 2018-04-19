@@ -18,8 +18,8 @@
 C4_BEGIN_NAMESPACE(c4)
 
 C4_BEGIN_NAMESPACE(detail)
-template< class T > size_t size_for      (size_t num_objs) noexcept { return num_objs * sizeof(T); }
-template<         > size_t size_for<void>(size_t num_objs) noexcept { return num_objs;             }
+template< class T > inline size_t size_for      (size_t num_objs) noexcept { return num_objs * sizeof(T); }
+template<         > inline size_t size_for<void>(size_t num_objs) noexcept { return num_objs;             }
 C4_END_NAMESPACE(detail)
 
 
