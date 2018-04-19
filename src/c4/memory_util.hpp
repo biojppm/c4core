@@ -54,31 +54,33 @@ C4_CONSTEXPR14 I msb(I v)
 
 namespace detail {
 
-template< class I, I num_, I v_, bool last_bit > struct _msb11;
+template< class I, I val, I num_bits, bool finished >
+struct _msb11;
 
-template< class I, I num_, I v_ >
-struct _msb11< I, num_, v_, true >
+template< class I, I val, I num_bits >
+struct _msb11< I, val, num_bits, false >
 {
-    enum : I { num = num_ };
+    enum : I { num = _msb11< I, (val>>1), num_bits+I(1), ((val>>1)==I(0)) >::num };
 };
 
-template< class I, I num_, I v_ >
-struct _msb11< I, num_, v_, false >
+template< class I, I val, I num_bits >
+struct _msb11< I, val, num_bits, true >
 {
-    enum : I { num = _msb11< I, num_+I(1), (v_>>1), (((v_>>1)&I(1))==0) >::num };
+    static_assert(val == 0, "bad implementation");
+    enum : I { num = num_bits };
 };
 
 } // namespace detail
+
 
 /** TMP version of msb(); this needs to be implemented with template
  * meta-programming because C++11 cannot use a constexpr function with
  * local variables
  * @see msb */
-template< class I, I v >
+template< class I, I number >
 struct msb11
 {
-    static_assert(v != 0, "v != 0");
-    enum : I { value = detail::_msb11< I, 0, v, (v&1) >::num };
+    enum : I { value = detail::_msb11< I, number, 0, (number==I(0)) >::num };
 };
 
 
