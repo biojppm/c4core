@@ -3,6 +3,7 @@
 
 #include "c4/memory_resource.hpp"
 #include "c4/ctor_dtor.hpp"
+
 #include <memory> // std::allocator_traits
 
 /** @file allocator.hpp Contains classes to make typeful allocations (note
@@ -16,6 +17,15 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
+C4_BEGIN_NAMESPACE(detail)
+template< class T > size_t size_for      (size_t num_objs) noexcept { return num_objs * sizeof(T); }
+template<         > size_t size_for<void>(size_t num_objs) noexcept { return num_objs;             }
+C4_END_NAMESPACE(detail)
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 /** provides a per-allocator memory resource
  * @ingroup mem_res_providers */
@@ -206,27 +216,27 @@ public:
      * @see http://en.cppreference.com/w/cpp/memory/polymorphic_allocator/select_on_container_copy_construction      */
     Allocator select_on_container_copy_construct() const { return Allocator(*this); }
 
-    T* allocate(size_t num_objs, size_t alignment = alignof(T))
+    T* allocate(size_t num_objs, size_t alignment=alignof(T))
     {
         C4_ASSERT(this->resource() != nullptr);
         C4_ASSERT(alignment >= alignof(T));
-        void* vmem = this->resource()->allocate(num_objs * sizeof(T), alignment);
+        void* vmem = this->resource()->allocate(detail::size_for<T>(num_objs), alignment);
         T* mem = static_cast< T* >(vmem);
         return mem;
     }
 
-    void deallocate(T * ptr, size_t num_objs, size_t alignment = alignof(T))
+    void deallocate(T * ptr, size_t num_objs, size_t alignment=alignof(T))
     {
         C4_ASSERT(this->resource() != nullptr);
         C4_ASSERT(alignment >= alignof(T));
-        this->resource()->deallocate(ptr, num_objs * sizeof(T), alignment);
+        this->resource()->deallocate(ptr, detail::size_for<T>(num_objs), alignment);
     }
 
-    T* reallocate(T* ptr, size_t oldnum, size_t newnum, size_t alignment = alignof(T))
+    T* reallocate(T* ptr, size_t oldnum, size_t newnum, size_t alignment=alignof(T))
     {
         C4_ASSERT(this->resource() != nullptr);
         C4_ASSERT(alignment >= alignof(T));
-        void* vmem = this->resource()->reallocate(ptr, oldnum * sizeof(T), newnum * sizeof(T), alignment);
+        void* vmem = this->resource()->reallocate(ptr, detail::size_for<T>(oldnum), detail::size_for<T>(newnum), alignment);
         T* mem = static_cast< T* >(vmem);
         return mem;
     }
@@ -368,6 +378,11 @@ public:
 template< class T > using allocator = Allocator< T, MemResGlobal >;
 /** @ingroup allocators */
 template< class T > using allocator_mr = Allocator< T, MemRes >;
+
+/** @ingroup allocators */
+using raw_allocator    = allocator< void >;
+/** @ingroup allocators */
+using raw_allocator_mr = allocator_mr< void >;
 
 /** @ingroup allocators */
 template< class T, size_t N=16, size_t Alignment=alignof(T) > using small_allocator = SmallAllocator< T, N, Alignment, MemResGlobal >;
