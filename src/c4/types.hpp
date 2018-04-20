@@ -201,40 +201,6 @@ public:                                                         \
 }
 
 //-----------------------------------------------------------------------------
-/** declare a traits class telling whether a type provides a method */
-#define C4_DEFINE_HAS_METHOD(ret_type, method_name, const_qualifier, ...) \
-template< typename T >                                                  \
-struct has_##method_name##_method                                       \
-{                                                                       \
-private:                                                                \
-                                                                        \
-    typedef char                      &yes;                             \
-    typedef struct { char array[2]; } &no;                              \
-                                                                        \
-    template< typename C >                                              \
-    static yes _test                                                    \
-    (                                                                   \
-        C const_qualifier* v,                                           \
-        typename std::enable_if                                         \
-        <                                                               \
-            std::is_same< decltype(v->method_name(__VA_ARGS__)), ret_type >::value \
-            ,                                                           \
-            void /* this is defined only if the bool above is true. */  \
-                 /* so when it fails, SFINAE is triggered */            \
-        >                                                               \
-        ::type*                                                         \
-    );                                                                  \
-                                                                        \
-    template< typename C >                                              \
-    static no _test(...);                                               \
-                                                                        \
-public:                                                                 \
-                                                                        \
-    enum { value = (sizeof(_test< T >((typename std::remove_reference< T >::type*)0, 0)) == sizeof(yes)) }; \
-                                                                        \
-};
-
-//-----------------------------------------------------------------------------
 #define _c4_DEFINE_ARRAY_TYPES_WITHOUT_ITERATOR(T, I)       \
                                                             \
     using size_type = I;                                    \
@@ -292,7 +258,7 @@ template< template < typename... > class X, typename... Y > struct is_instance_o
 // This implementation was copied over from clang.
 // see http://llvm.org/viewvc/llvm-project/libcxx/trunk/include/utility?revision=211563&view=markup#l687
 
-#if __cplusplus != 201103L
+#if __cplusplus >= 201103L
 using std::integer_sequence;
 using std::index_sequence;
 using std::make_integer_sequence;
@@ -377,30 +343,6 @@ template<size_t _Np>
 template<class... _Tp>
     using index_sequence_for = make_index_sequence<sizeof...(_Tp)>;
 #endif
-
-//-----------------------------------------------------------------------------
-// A template parameter pack is mass-forwardable if
-// all of its types are mass-forwardable...
-template< class T, class ...Args >
-struct is_mass_forwardable : public std::conditional<
-    is_mass_forwardable< T >::value && is_mass_forwardable< Args... >::value,
-    std::true_type, std::false_type
-    >::type
-{};
-// ... and a type is mass-forwardable if:
-template< class T >
-struct is_mass_forwardable<T> : public std::conditional<
-    (
-        !std::is_rvalue_reference<T>::value ||
-        (
-            std::is_trivially_move_constructible<typename std::remove_reference<T>::type>::value &&
-            std::is_trivially_move_assignable<typename std::remove_reference<T>::type>::value
-        )
-    ),
-    std::true_type,
-    std::false_type
-    >::type
-{};
 
 //-----------------------------------------------------------------------------
 
