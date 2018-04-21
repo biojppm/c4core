@@ -129,8 +129,8 @@ struct tight_pair< First, Second, tpc_same_empty_type > : public First
 
     C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return static_cast< First      & >(*this); }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return static_cast< First const& >(*this); }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & second()       { return static_cast< First      & >(*this); }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& second() const { return static_cast< First const& >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return static_cast< Second      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return static_cast< Second const& >(*this); }
 };
 
 template< class First, class Second >
@@ -146,8 +146,8 @@ struct tight_pair< First, Second, tpc_same_non_empty_type > : public First
 
     C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return static_cast< First      & >(*this); }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return static_cast< First const& >(*this); }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & second()       { return m_second; }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& second() const { return m_second; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return m_second; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return m_second; }
 };
 
 C4_END_NAMESPACE(detail)
