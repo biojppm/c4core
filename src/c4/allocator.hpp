@@ -380,9 +380,9 @@ template< class T > using allocator = Allocator< T, MemResGlobal >;
 template< class T > using allocator_mr = Allocator< T, MemRes >;
 
 /** @ingroup allocators */
-using raw_allocator    = allocator< void >;
+using raw_allocator    = allocator< char >;
 /** @ingroup allocators */
-using raw_allocator_mr = allocator_mr< void >;
+using raw_allocator_mr = allocator_mr< char >;
 
 /** @ingroup allocators */
 template< class T, size_t N=16, size_t Alignment=alignof(T) > using small_allocator = SmallAllocator< T, N, Alignment, MemResGlobal >;
