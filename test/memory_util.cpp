@@ -86,6 +86,51 @@ TEST(mem_repeatT, basic)
 
 //-----------------------------------------------------------------------------
 
+TEST(lsb, basic)
+{
+    EXPECT_EQ(lsb( 0), 0);
+    EXPECT_EQ(lsb( 1), 0);
+    EXPECT_EQ(lsb( 2), 1);
+    EXPECT_EQ(lsb( 3), 0);
+    EXPECT_EQ(lsb( 4), 2);
+    EXPECT_EQ(lsb( 5), 0);
+    EXPECT_EQ(lsb( 6), 1);
+    EXPECT_EQ(lsb( 7), 0);
+    EXPECT_EQ(lsb( 8), 3);
+    EXPECT_EQ(lsb( 9), 0);
+    EXPECT_EQ(lsb(10), 1);
+    EXPECT_EQ(lsb(11), 0);
+    EXPECT_EQ(lsb(12), 2);
+    EXPECT_EQ(lsb(13), 0);
+    EXPECT_EQ(lsb(14), 1);
+    EXPECT_EQ(lsb(15), 0);
+    EXPECT_EQ(lsb(16), 4);
+}
+
+TEST(lsb11, basic)
+{
+    //EXPECT_EQ((lsb11<int, 0>::value), 0);
+    EXPECT_EQ((lsb11<int, 1>::value), 0);
+    EXPECT_EQ((lsb11<int, 2>::value), 1);
+    EXPECT_EQ((lsb11<int, 3>::value), 0);
+    EXPECT_EQ((lsb11<int, 4>::value), 2);
+    EXPECT_EQ((lsb11<int, 5>::value), 0);
+    EXPECT_EQ((lsb11<int, 6>::value), 1);
+    EXPECT_EQ((lsb11<int, 7>::value), 0);
+    EXPECT_EQ((lsb11<int, 8>::value), 3);
+    EXPECT_EQ((lsb11<int, 9>::value), 0);
+    EXPECT_EQ((lsb11<int,10>::value), 1);
+    EXPECT_EQ((lsb11<int,11>::value), 0);
+    EXPECT_EQ((lsb11<int,12>::value), 2);
+    EXPECT_EQ((lsb11<int,13>::value), 0);
+    EXPECT_EQ((lsb11<int,14>::value), 1);
+    EXPECT_EQ((lsb11<int,15>::value), 0);
+    EXPECT_EQ((lsb11<int,16>::value), 4);
+}
+
+
+//-----------------------------------------------------------------------------
+
 TEST(msb, basic)
 {
     EXPECT_EQ(msb( 0), 0);
