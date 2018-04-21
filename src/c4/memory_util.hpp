@@ -35,6 +35,58 @@ void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+// least significant bit
+
+/** least significant bit; this function is constexpr-14 because of the local
+ * variable */
+template< class I >
+C4_CONSTEXPR14 I lsb(I v)
+{
+    if(!v) return 0;
+    I b = 0;
+    while((v & I(1)) == I(0))
+    {
+        v >>= 1;
+        ++b;
+    }
+    return b;
+}
+
+namespace detail {
+
+template< class I, I val, I num_bits, bool finished >
+struct _lsb11;
+
+template< class I, I val, I num_bits >
+struct _lsb11< I, val, num_bits, false >
+{
+    enum : I { num = _lsb11< I, (val>>1), num_bits+I(1), (((val>>1)&I(1))!=I(0)) >::num };
+};
+
+template< class I, I val, I num_bits >
+struct _lsb11< I, val, num_bits, true >
+{
+    enum : I { num = num_bits };
+};
+
+} // namespace detail
+
+
+/** TMP version of lsb(); this needs to be implemented with template
+ * meta-programming because C++11 cannot use a constexpr function with
+ * local variables
+ * @see lsb */
+template< class I, I number >
+struct lsb11
+{
+    static_assert(number != 0, "lsb: number must be nonzero");
+    enum : I { value = detail::_lsb11< I, number, 0, ((number&I(1))!=I(0)) >::num};
+};
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // most significant bit
 
 /** most significant bit; this function is constexpr-14 because of the local
