@@ -143,33 +143,61 @@ struct msb11
  * potentially empty types*/
 
 C4_BEGIN_NAMESPACE(detail)
-typedef enum { tpc_same_non_empty_type, tpc_same_empty_type, tpc_general } TightPairCase_e;
+typedef enum {
+    tpc_same,
+    tpc_same_empty,
+    tpc_both_empty,
+    tpc_first_empty,
+    tpc_second_empty,
+    tpc_general
+} TightPairCase_e;
+
 template< class First, class Second >
 constexpr TightPairCase_e tpc_which_case()
 {
-    return (std::is_same< First, Second >::value) ?
-        (std::is_empty< First >::value) ? tpc_same_empty_type : tpc_same_non_empty_type
-        :
-        tpc_general;
+    return std::is_same< First, Second >::value ?
+               std::is_empty< First >::value ?
+                   tpc_same_empty
+                   :
+                   tpc_same
+               :
+               std::is_empty< First >::value && std::is_empty< Second >::value ?
+                   tpc_both_empty
+                   :
+                   std::is_empty< First >::value ?
+                       tpc_first_empty
+                       :
+                       std::is_empty< Second >::value ?
+                           tpc_second_empty
+                           :
+                           tpc_general
+           ;
 }
 
 template< class First, class Second, TightPairCase_e Case >
-struct tight_pair : public First, public Second
+struct tight_pair
 {
+private:
+
+    First m_first;
+    Second m_second;
+
+public:
+
     using first_type = First;
     using second_type = Second;
 
-    tight_pair() : First(), Second() {}
-    tight_pair(First const& f, Second const& s) : First(f), Second(s) {}
+    tight_pair() : m_first(), m_second() {}
+    tight_pair(First const& f, Second const& s) : m_first(f), m_second(s) {}
 
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 First       & first ()       { return static_cast< First       & >(*this); }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 First  const& first () const { return static_cast< First  const& >(*this); }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return static_cast< Second      & >(*this); }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return static_cast< Second const& >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First       & first ()       { return first; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First  const& first () const { return first; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return second; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return second; }
 };
 
 template< class First, class Second >
-struct tight_pair< First, Second, tpc_same_empty_type > : public First
+struct tight_pair< First, Second, tpc_same_empty > : public First
 {
     static_assert(std::is_same<First,Second>::value, "bad implementation");
 
@@ -181,12 +209,27 @@ struct tight_pair< First, Second, tpc_same_empty_type > : public First
 
     C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return static_cast< First      & >(*this); }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return static_cast< First const& >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return reinterpret_cast< Second      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return reinterpret_cast< Second const& >(*this); }
+};
+
+template< class First, class Second >
+struct tight_pair< First, Second, tpc_both_empty > : public First, public Second
+{
+    using first_type = First;
+    using second_type = Second;
+
+    tight_pair() : First(), Second() {}
+    tight_pair(First const& f, Second const& s) : First(f), Second(s) {}
+
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return static_cast< First      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return static_cast< First const& >(*this); }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return static_cast< Second      & >(*this); }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return static_cast< Second const& >(*this); }
 };
 
 template< class First, class Second >
-struct tight_pair< First, Second, tpc_same_non_empty_type > : public First
+struct tight_pair< First, Second, tpc_same > : public First
 {
     Second m_second;
 
@@ -194,12 +237,46 @@ struct tight_pair< First, Second, tpc_same_non_empty_type > : public First
     using second_type = Second;
 
     tight_pair() : First() {}
-    tight_pair(First const& f, Second const& s) : First(f), Second(s) {}
+    tight_pair(First const& f, Second const& s) : First(f), m_second(s) {}
 
     C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return static_cast< First      & >(*this); }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return static_cast< First const& >(*this); }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return m_second; }
     C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return m_second; }
+};
+
+template< class First, class Second >
+struct tight_pair< First, Second, tpc_first_empty > : public First
+{
+    Second m_second;
+
+    using first_type = First;
+    using second_type = Second;
+
+    tight_pair() : First(), m_second() {}
+    tight_pair(First const& f, Second const& s) : First(f), m_second(s) {}
+
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return static_cast< First      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return static_cast< First const& >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return m_second; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return m_second; }
+};
+
+template< class First, class Second >
+struct tight_pair< First, Second, tpc_second_empty > : public Second
+{
+    First m_first;
+
+    using first_type = First;
+    using second_type = Second;
+
+    tight_pair() : Second(), m_first() {}
+    tight_pair(First const& f, Second const& s) : Second(s), m_first(f) {}
+
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First      & first ()       { return m_first; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First const& first () const { return m_first; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return static_cast< Second      & >(*this); }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return static_cast< Second const& >(*this); }
 };
 
 C4_END_NAMESPACE(detail)
