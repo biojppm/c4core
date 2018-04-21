@@ -258,7 +258,7 @@ template< template < typename... > class X, typename... Y > struct is_instance_o
 // This implementation was copied over from clang.
 // see http://llvm.org/viewvc/llvm-project/libcxx/trunk/include/utility?revision=211563&view=markup#l687
 
-#if __cplusplus >= 201103L
+#if __cplusplus > 201103L
 using std::integer_sequence;
 using std::index_sequence;
 using std::make_integer_sequence;
