@@ -190,10 +190,10 @@ public:
     tight_pair() : m_first(), m_second() {}
     tight_pair(First const& f, Second const& s) : m_first(f), m_second(s) {}
 
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 First       & first ()       { return first; }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 First  const& first () const { return first; }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return second; }
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return second; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First       & first ()       { return m_first; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 First  const& first () const { return m_first; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second      & second()       { return m_second; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return m_second; }
 };
 
 template< class First, class Second >
