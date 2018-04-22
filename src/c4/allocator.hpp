@@ -154,7 +154,9 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** A polymorphic allocator, acting as a proxy to a memory resource
+/** An allocator is simply a proxy to a memory resource.
+ * @param T
+ * @param MemResProvider
  * @ingroup allocators */
 template< class T, class MemResProvider=MemResGlobal >
 class Allocator : public detail::_AllocatorUtil< MemResProvider >
@@ -374,15 +376,12 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** @ingroup allocators */
+/** An allocator making use of the global memory resource.
+ * @ingroup allocators */
 template< class T > using allocator = Allocator< T, MemResGlobal >;
-/** @ingroup allocators */
+/** An allocator with a per-instance memory resource
+ * @ingroup allocators */
 template< class T > using allocator_mr = Allocator< T, MemRes >;
-
-/** @ingroup allocators */
-using raw_allocator    = allocator< char >;
-/** @ingroup allocators */
-using raw_allocator_mr = allocator_mr< char >;
 
 /** @ingroup allocators */
 template< class T, size_t N=16, size_t Alignment=alignof(T) > using small_allocator = SmallAllocator< T, N, Alignment, MemResGlobal >;
