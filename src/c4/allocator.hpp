@@ -34,7 +34,7 @@ class MemRes
 public:
 
     MemRes() : m_resource(get_memory_resource()) {}
-    MemRes(MemoryResource* r) noexcept : m_resource(r) {}
+    MemRes(MemoryResource* r) noexcept : m_resource(r ? r : get_memory_resource()) {}
 
     inline MemoryResource* resource() const { return m_resource; }
 
