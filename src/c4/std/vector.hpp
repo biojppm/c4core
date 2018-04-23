@@ -1,9 +1,11 @@
 #ifndef _C4_STD_VECTOR_HPP_
 #define _C4_STD_VECTOR_HPP_
 
+/** @file vector.hpp provides conversion and comparison facilities
+ * from/between std::vector to c4::substr and c4::csubstr. */
 
-#include "../substr.hpp"
-#include "../to_str.hpp"
+#include "c4/substr.hpp"
+#include "c4/to_str.hpp"
 
 #include <vector>
 
