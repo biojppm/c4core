@@ -11,6 +11,17 @@ See also:
 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
+  <Type Name="c4::basic_substring&lt;*&gt;">
+    <DisplayString>{str,[len]} (sz={len})</DisplayString>
+    <Expand>
+      <Item Name="[size]">len</Item>
+      <ArrayItems>
+        <Size>len</Size>
+        <ValuePointer>str</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
   <Type Name="c4::span&lt;*&gt;">
     <DisplayString>{m_ptr,[m_size]} (sz={m_size})</DisplayString>
     <Expand>
