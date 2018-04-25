@@ -13,6 +13,7 @@ See also:
 
   <Type Name="c4::basic_substring&lt;*&gt;">
     <DisplayString>{str,[len]} (sz={len})</DisplayString>
+    <StringView>str,[len]</StringView>
     <Expand>
       <Item Name="[size]">len</Item>
       <ArrayItems>
