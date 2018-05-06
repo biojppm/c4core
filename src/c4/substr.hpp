@@ -424,29 +424,29 @@ public:
     first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1) const
     {
         basic_csubstr spans[2] = {s0, s1};
-        return first_of_any(&spans[0], &spans[0] + 2);
+        return first_of_any_iter(&spans[0], &spans[0] + 2);
     }
 
     first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2) const
     {
         basic_csubstr spans[3] = {s0, s1, s2};
-        return first_of_any(&spans[0], &spans[0] + 3);
+        return first_of_any_iter(&spans[0], &spans[0] + 3);
     }
 
     first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2, basic_csubstr s3) const
     {
         basic_csubstr spans[4] = {s0, s1, s2, s3};
-        return first_of_any(&spans[0], &spans[0] + 4);
+        return first_of_any_iter(&spans[0], &spans[0] + 4);
     }
 
     first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2, basic_csubstr s3, basic_csubstr s4) const
     {
-        basic_csubstr spans[4] = {s0, s1, s2, s3, s4};
-        return first_of_any(&spans[0], &spans[0] + 5);
+        basic_csubstr spans[5] = {s0, s1, s2, s3, s4};
+        return first_of_any_iter(&spans[0], &spans[0] + 5);
     }
 
     template< class It >
-    first_of_any_result first_of_any(It first_span, It last_span) const
+    first_of_any_result first_of_any_iter(It first_span, It last_span) const
     {
         for(size_t i = 0; i < len; ++i)
         {
