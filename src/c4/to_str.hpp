@@ -167,9 +167,17 @@ inline bool atoi(csubstr str, T *v)
     C4_ASSERT(!str.begins_with(' '));
     C4_ASSERT(!str.ends_with(' '));
     T n = 0;
-    if(str[0] != '-')
+    T sign = 1;
+    size_t start = 0;
+    if(str[0] == '-')
     {
-        for(size_t i = 0; i < str.len; ++i)
+        ++start;
+        sign = -1;
+    }
+
+    if(str.str[start] != '0')
+    {
+        for(size_t i = start; i < str.len; ++i)
         {
             char c = str.str[i];
             if(c < '0' || c > '9') return false;
@@ -178,15 +186,38 @@ inline bool atoi(csubstr str, T *v)
     }
     else
     {
-        for(size_t i = 1; i < str.len; ++i)
+        if(str.len == start+1)
         {
-            char c = str.str[i];
-            if(c < '0' || c > '9') return false;
-            n = n*10 + (c-'0');
+            *v = 0;
+            return true;
         }
-        n = -n;
+        else if(str.str[start+1] == 'x' || str.str[start+1] == 'X') // hexadecimal
+        {
+            C4_ASSERT(str.len > 2);
+            start += 2;
+            for(size_t i = start; i < str.len; ++i)
+            {
+                char c = str.str[i];
+                T cv;
+                if(c >= '0' && c <= '9') cv = (T)(c-'0');
+                else if(c >= 'a' && c <= 'f') cv = T(10) + (T)(c-'a');
+                else if(c >= 'A' && c <= 'F') cv = T(10) + (T)(c-'A');
+                else return false;
+                n = n*16 + cv;
+            }
+        }
+        else // octal
+        {
+            C4_ASSERT(str.len > 1);
+            for(size_t i = start; i < str.len; ++i)
+            {
+                char c = str.str[i];
+                if(c < '0' || c > '7') return false;
+                n = n*8 + (c-'0');
+            }
+        }
     }
-    *v = n;
+    *v = sign * n;
     return true;
 }
 
@@ -209,12 +240,49 @@ inline bool atou(csubstr str, T *v)
     C4_ASSERT(!str.begins_with(' '));
     C4_ASSERT(!str.ends_with(' '));
     C4_ASSERT_MSG(str.str[0] != '-', "must be positive");
+
     T n = 0;
-    for(size_t i = 0; i < str.len; ++i)
+
+    if(str.str[0] != '0')
     {
-        char c = str.str[i];
-        if(c < '0' || c > '9') return false;
-        n = n*10 + (c-'0');
+        for(size_t i = 0; i < str.len; ++i)
+        {
+            char c = str.str[i];
+            if(c < '0' || c > '9') return false;
+            n = n*10 + (c-'0');
+        }
+    }
+    else
+    {
+        if(str.len == 1)
+        {
+            *v = 0;
+            return true;
+        }
+        else if(str.str[1] == 'x' || str.str[1] == 'X') // hexadecimal
+        {
+            C4_ASSERT(str.len > 2);
+            for(size_t i = 2; i < str.len; ++i)
+            {
+                char c = str.str[i];
+                T cv;
+                if(c >= '0' && c <= '9') cv = (T)(c-'0');
+                else if(c >= 'a' && c <= 'f') cv = T(10) + (T)(c-'a');
+                else if(c >= 'A' && c <= 'F') cv = T(10) + (T)(c-'A');
+                else return false;
+                n = n*16 + cv;
+            }
+        }
+        else // octal
+        {
+            C4_ASSERT(str.len > 1);
+            for(size_t i = 1; i < str.len; ++i)
+            {
+                char c = str.str[i];
+                if(c < '0' || c > '7') return false;
+                n = n*8 + (c-'0');
+            }
+        }
     }
     *v = n;
     return true;
