@@ -69,7 +69,6 @@ TEST(str2bm, simple_bitmask)
     EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("0x1|0x2|0x4"));
     EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("0x7"));
     EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("7"));
-
 }
 
 TEST(str2bm, scoped_bitmask)
@@ -78,12 +77,12 @@ TEST(str2bm, scoped_bitmask)
     std::vector<char> str;
     using bmt = MyBitmaskClass;
 
-    EXPECT_EQ(bmt::BM_NONE,        (bmt)str2bm<bmt>("bmt::BM_NONE"));
-    EXPECT_EQ(bmt::BM_FOO,         (bmt)str2bm<bmt>("bmt::BM_FOO"));
-    EXPECT_EQ(bmt::BM_BAR,         (bmt)str2bm<bmt>("bmt::BM_BAR"));
-    EXPECT_EQ(bmt::BM_BAZ,         (bmt)str2bm<bmt>("bmt::BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("bmt::BM_FOO_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("bmt::BM_FOO_BAR_BAZ"));
+    EXPECT_EQ(bmt::BM_NONE,        (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE"));
+    EXPECT_EQ(bmt::BM_FOO,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO"));
+    EXPECT_EQ(bmt::BM_BAR,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAR"));
+    EXPECT_EQ(bmt::BM_BAZ,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR_BAZ"));
     EXPECT_EQ(bmt::BM_NONE,        (bmt)str2bm<bmt>("BM_NONE"));
     EXPECT_EQ(bmt::BM_FOO,         (bmt)str2bm<bmt>("BM_FOO"));
     EXPECT_EQ(bmt::BM_BAR,         (bmt)str2bm<bmt>("BM_BAR"));
@@ -96,7 +95,73 @@ TEST(str2bm, scoped_bitmask)
     EXPECT_EQ(bmt::BM_BAZ,         (bmt)str2bm<bmt>("BAZ"));
     EXPECT_EQ(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("FOO_BAR"));
     EXPECT_EQ(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("FOO_BAR_BAZ"));
+
+    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("NONE"));
+    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("BM_NONE"));
+    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE"));
+    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("0"));
+    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("0x0"));
+    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("FOO"));
+    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("BM_FOO"));
+    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO"));
+    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("1"));
+    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("0x1"));
+    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("NONE|0x1"));
+    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("BM_NONE|0x1"));
+    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE|0x1"));
+    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("BAR"));
+    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("BM_BAR"));
+    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAR"));
+    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("2"));
+    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("0x2"));
+    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("BAZ"));
+    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("BM_BAZ"));
+    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAZ"));
+    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("BM_NONE|0x2"));
+    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE|0x2"));
+    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("4"));
+    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("0x4"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO|BM_BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO|BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|BM_BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO_BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO_BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|BAR"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("0x1|0x2"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("1|2"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("0x3"));
+    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("3"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BM_BAR|BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR|MyBitmaskClass::BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BM_BAR|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BAR|BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BAR|MyBitmaskClass::BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BM_BAR|BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR|MyBitmaskClass::BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BM_BAR|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|MyBitmaskClass::BM_BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO_BAR|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x1|BAR|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|0x2|BAZ"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|0x4"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x1|0x2|0x4"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x7"));
+    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x7"));
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 template< class Enum >
 const char* do_bm2str(Enum e, std::vector<char> *s, c4::EnumOffsetType which)
