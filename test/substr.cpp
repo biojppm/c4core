@@ -287,4 +287,21 @@ TEST(substr, first_non_empty_span)
     EXPECT_EQ(csubstr(",\n   \r  \t  foo\n\r\t bar").first_non_empty_span(), ",");
 }
 
+TEST(substr, first_uint_span)
+{
+    EXPECT_EQ(csubstr("1234").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("1234 abc").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("0x1234 abc").first_uint_span(), "0x1234");
+}
+
+TEST(substr, first_int_span)
+{
+    EXPECT_EQ(csubstr("1234").first_int_span(), "1234");
+    EXPECT_EQ(csubstr("-1234").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("1234 abc").first_int_span(), "1234");
+    EXPECT_EQ(csubstr("-1234 abc").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("0x1234 abc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("-0x1234 abc").first_int_span(), "-0x1234");
+}
+
 } // namespace c4

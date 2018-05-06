@@ -649,12 +649,29 @@ public:
     basic_substring first_uint_span() const
     {
         basic_substring ne = first_non_empty_span();
-        for(size_t i = 0; i < ne.len; ++i)
+        if(ne.first_of_any("0x", "0X"))
         {
-            char c = ne.str[i];
-            if(c < '0' || c > '9')
+            if(ne.len == 2) return basic_substring();
+            for(size_t i = 2; i < ne.len; ++i)
             {
-                return ne.sub(0, i);
+                char c = ne.str[i];
+                if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+                    continue;
+                else
+                {
+                    return ne.sub(0, i);
+                }
+            }
+        }
+        else
+        {
+            for(size_t i = 0; i < ne.len; ++i)
+            {
+                char c = ne.str[i];
+                if(c < '0' || c > '9')
+                {
+                    return ne.sub(0, i);
+                }
             }
         }
         return ne;
@@ -664,16 +681,36 @@ public:
     basic_substring first_int_span() const
     {
         basic_substring ne = first_non_empty_span();
-        for(size_t i = 0; i < ne.len; ++i)
+        if(ne.first_of_any("-0x", "-0X", "0x", "0X"))
         {
-            char c = ne.str[i];
-            if(c == '-' && i != 0)
+            if(ne.len == 2) return basic_substring();
+            for(size_t i = (2 + (ne[0] == '-')); i < ne.len; ++i)
             {
-                return ne.sub(0, i);
+                char c = ne.str[i];
+                if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+                    continue;
+                else
+                {
+                    return ne.sub(0, i);
+                }
             }
-            else if(c < '0' || c > '9')
+        }
+        else
+        {
+            for(size_t i = 0; i < ne.len; ++i)
             {
-                return ne.sub(0, i);
+                char c = ne.str[i];
+                if(c == '-')
+                {
+                    if(i != 0)
+                    {
+                        return ne.sub(0, i);
+                    }
+                }
+                else if(c < '0' || c > '9')
+                {
+                    return ne.sub(0, i);
+                }
             }
         }
         return ne;
