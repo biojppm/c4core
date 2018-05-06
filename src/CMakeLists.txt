@@ -1,5 +1,6 @@
 set(src
     c4/allocator.hpp
+    c4/bitmask.hpp
     c4/char_traits.cpp
     c4/char_traits.hpp
     c4/common.hpp
@@ -7,6 +8,7 @@ set(src
     c4/config.hpp
     c4/cpu.hpp
     c4/ctor_dtor.hpp
+    c4/enum.hpp
     c4/error.cpp
     c4/error.hpp
     c4/hash.hpp
