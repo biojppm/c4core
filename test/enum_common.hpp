@@ -13,11 +13,13 @@ namespace c4 {
 template<>
 inline const EnumSymbols<MyEnum> esyms<MyEnum>()
 {
-    static const EnumSymbols< MyEnum > r({
+    static const EnumSymbols<MyEnum>::Sym rs[] =
+    {
         {FOO, "FOO"},
         {BAR, "BAR"},
         {BAZ, "BAZ"},
-    });
+    };
+    EnumSymbols<MyEnum> r(rs);
     return r;
 }
 } // namespace c4
@@ -35,18 +37,20 @@ enum class MyEnumClass {
 
 namespace c4 {
 template<>
-inline const EnumSymbols< MyEnumClass > esyms< MyEnumClass >()
+inline const EnumSymbols<MyEnumClass> esyms<MyEnumClass>()
 {
-    static const EnumSymbols< MyEnumClass > r({
+    static const EnumSymbols<MyEnumClass>::Sym rs[] =
+    {
         {MyEnumClass::FOO, "MyEnumClass::FOO"},
         {MyEnumClass::BAR, "MyEnumClass::BAR"},
         {MyEnumClass::BAZ, "MyEnumClass::BAZ"},
-    });
+    };
+    EnumSymbols<MyEnumClass> r(rs);
     return r;
 }
 
 template<>
-inline size_t eoffs_cls< MyEnumClass >()
+inline size_t eoffs_cls<MyEnumClass>()
 {
     return 13; // same as strlen("MyEnumClass::")
 }
@@ -69,21 +73,23 @@ typedef enum {
 namespace c4 {
 
 template<>
-inline const EnumSymbols< MyBitmask > esyms< MyBitmask >()
+inline const EnumSymbols<MyBitmask> esyms<MyBitmask>()
 {
-    static const EnumSymbols< MyBitmask > r({
-        {BM_NONE, "BM_NONE"},
-        {BM_FOO, "BM_FOO"},
-        {BM_BAR, "BM_BAR"},
-        {BM_BAZ, "BM_BAZ"},
-        {BM_FOO_BAR, "BM_FOO_BAR"},
-        {BM_FOO_BAR_BAZ, "BM_FOO_BAR_BAZ"},
-    });
+    static const EnumSymbols<MyBitmask>::Sym rs[] =
+    {
+            {BM_NONE, "BM_NONE"},
+            {BM_FOO, "BM_FOO"},
+            {BM_BAR, "BM_BAR"},
+            {BM_BAZ, "BM_BAZ"},
+            {BM_FOO_BAR, "BM_FOO_BAR"},
+            {BM_FOO_BAR_BAZ, "BM_FOO_BAR_BAZ"},
+    };
+    EnumSymbols<MyBitmask> r(rs);
     return r;
 }
 
 template<>
-inline size_t eoffs_pfx< MyBitmask >()
+inline size_t eoffs_pfx<MyBitmask>()
 {
     return 3; // same as strlen("BM_")
 }
@@ -107,16 +113,18 @@ enum class MyBitmaskClass {
 namespace c4 {
 
 template<>
-inline const EnumSymbols< MyBitmaskClass > esyms< MyBitmaskClass >()
+inline const EnumSymbols<MyBitmaskClass> esyms<MyBitmaskClass>()
 {
-    static const EnumSymbols< MyBitmaskClass > r({
+    static const EnumSymbols<MyBitmaskClass>::Sym rs[] =
+    {
         {MyBitmaskClass::BM_NONE,        "MyBitmaskClass::BM_NONE"},
         {MyBitmaskClass::BM_FOO,         "MyBitmaskClass::BM_FOO"},
         {MyBitmaskClass::BM_BAR,         "MyBitmaskClass::BM_BAR"},
         {MyBitmaskClass::BM_BAZ,         "MyBitmaskClass::BM_BAZ"},
         {MyBitmaskClass::BM_FOO_BAR,     "MyBitmaskClass::BM_FOO_BAR"},
         {MyBitmaskClass::BM_FOO_BAR_BAZ, "MyBitmaskClass::BM_FOO_BAR_BAZ"},
-    });
+    };
+    EnumSymbols<MyBitmaskClass> r(rs);
     return r;
 }
 
@@ -130,7 +138,6 @@ template<> inline size_t eoffs_pfx< MyBitmaskClass >()
 }
 
 } // namespace c4
-
 
 
 #endif /* _C4_ENUM_COMMON_HPP_ */
