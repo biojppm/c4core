@@ -18,6 +18,7 @@ set(src
     c4/memory_resource.hpp
     c4/memory_util.cpp
     c4/memory_util.hpp
+    c4/opt.hpp
     c4/platform.hpp
     c4/preprocessor.hpp
     c4/span.hpp
