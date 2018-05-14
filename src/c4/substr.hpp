@@ -531,26 +531,31 @@ public:
 
 public:
 
-    inline size_t first_of(const C c) const
+    size_t first_of(const C c, size_t start=0) const
     {
-        for(size_t i = 0; i < len; ++i)
-        {
-            if(str[i] == c) return i;
-        }
-        return npos;
-    }
-    inline size_t last_of(const C c) const
-    {
-        for(size_t i = len-1; i != size_t(-1); --i)
+        C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
+        for(size_t i = start; i < len; ++i)
         {
             if(str[i] == c) return i;
         }
         return npos;
     }
 
-    inline size_t first_of(basic_csubstr chars) const
+    size_t last_of(const C c, size_t start=npos) const
     {
-        for(size_t i = 0; i < len; ++i)
+        C4_ASSERT(start == npos || (start >= 0 && start <= len));
+        if(start == npos) start = len;
+        for(size_t i = start-1; i != size_t(-1); --i)
+        {
+            if(str[i] == c) return i;
+        }
+        return npos;
+    }
+
+    size_t first_of(basic_csubstr chars, size_t start=0) const
+    {
+        C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
+        for(size_t i = start; i < len; ++i)
         {
             for(size_t j = 0; j < chars.len; ++j)
             {
@@ -559,9 +564,12 @@ public:
         }
         return npos;
     }
-    inline size_t last_of(basic_csubstr chars) const
+
+    size_t last_of(basic_csubstr chars, size_t start=npos) const
     {
-        for(size_t i = len-1; i != size_t(-1); --i)
+        C4_ASSERT(start == npos || (start >= 0 && start <= len));
+        if(start == npos) start = len;
+        for(size_t i = start-1; i != size_t(-1); --i)
         {
             for(size_t j = 0; j < chars.len; ++j)
             {
@@ -573,26 +581,31 @@ public:
 
 public:
 
-    inline size_t first_not_of(const C c) const
+    size_t first_not_of(const C c, size_t start=0) const
     {
-        for(size_t i = 0; i < len; ++i)
-        {
-            if(str[i] != c) return i;
-        }
-        return npos;
-    }
-    inline size_t last_not_of(const C c) const
-    {
-        for(size_t i = len-1; i != size_t(-1); --i)
+        C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
+        for(size_t i = start; i < len; ++i)
         {
             if(str[i] != c) return i;
         }
         return npos;
     }
 
-    inline size_t first_not_of(basic_csubstr chars) const
+    size_t last_not_of(const C c, size_t start=npos) const
     {
-        for(size_t i = 0; i < len; ++i)
+        C4_ASSERT(start == npos || (start >= 0 && start <= len));
+        if(start == npos) start = len;
+        for(size_t i = start-1; i != size_t(-1); --i)
+        {
+            if(str[i] != c) return i;
+        }
+        return npos;
+    }
+
+    size_t first_not_of(basic_csubstr chars, size_t start=0) const
+    {
+        C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
+        for(size_t i = start; i < len; ++i)
         {
             bool gotit = true;
             for(size_t j = 0; j < chars.len; ++j)
@@ -611,8 +624,10 @@ public:
         return npos;
     }
 
-    inline size_t last_not_of(basic_csubstr chars) const
+    size_t last_not_of(basic_csubstr chars, size_t start=npos) const
     {
+        C4_ASSERT(start == npos || (start >= 0 && start <= len));
+        if(start == npos) start = len;
         for(size_t i = len-1; i != size_t(-1); --i)
         {
             bool gotit = true;
@@ -750,7 +765,263 @@ public:
         return ne;
     }
 
-}; // template class basic_substr
+public:
+
+    /** returns true if the string has not been exhausted yet, meaning
+     * it's ok to call next_split() again. When no instance of sep
+     * exists in the string, returns the full string. When the input
+     * is an empty string, the output string is the empty string. */
+    bool next_split(C sep, size_t *C4_RESTRICT start_pos, basic_substring *C4_RESTRICT out)
+    {
+        if(C4_LIKELY(*start_pos < len))
+        {
+            for(size_t i = *start_pos, e = len; i < e; i++)
+            {
+                if(str[i] == sep)
+                {
+                    out->assign(str + *start_pos, i - *start_pos);
+                    *start_pos = i+1;
+                    return true;
+                }
+            }
+            out->assign(str + *start_pos, len - *start_pos);
+            *start_pos = len + 1;
+            return true;
+        }
+        else
+        {
+            bool valid = len > 0 && (*start_pos == len);
+            if(valid && !empty() && str[len-1] == sep)
+            {
+                out->assign(str + len, 0);
+            }
+            else
+            {
+                out->assign(str + len + 1, 0);
+            }
+            *start_pos = len + 1;
+            return valid;
+        }
+    }
+
+private:
+
+    struct split_proxy_impl
+    {
+        struct split_iterator_impl
+        {
+            split_proxy_impl const* m_proxy;
+            basic_substring m_str;
+            size_t m_pos;
+            C m_sep;
+
+            split_iterator_impl(split_proxy_impl const* proxy, size_t pos, C sep)
+                : m_proxy(proxy), m_pos(pos), m_sep(sep)
+            {
+                _tick();
+            }
+
+            void _tick()
+            {
+                m_proxy->m_str.next_split(m_sep, &m_pos, &m_str);
+            }
+
+            split_iterator_impl& operator++ () { _tick(); return *this; }
+            split_iterator_impl  operator++ (int) { split_iterator_impl it = *this; _tick(); return it; }
+
+            basic_substring& operator*  () { return  m_str; }
+            basic_substring* operator-> () { return &m_str; }
+
+            bool operator!= (split_iterator_impl const& that) const
+            {
+                return !(this->operator==(that));
+            }
+            bool operator== (split_iterator_impl const& that) const
+            {
+                C4_XASSERT((m_sep == that.m_sep) && "cannot compare split iterators with different separators");
+                if(m_str.size() != that.m_str.size()) return false;
+                if(m_str.data() != that.m_str.data()) return false;
+                return m_pos == that.m_pos;
+            }
+        };
+
+        basic_substring m_str;
+        size_t m_start_pos;
+        C m_sep;
+
+        split_proxy_impl(basic_substring str, size_t start_pos, C sep)
+            : m_str(str), m_start_pos(start_pos), m_sep(sep)
+        {
+        }
+
+        split_iterator_impl begin() const
+        {
+            auto it = split_iterator_impl(this, m_start_pos, m_sep);
+            return it;
+        }
+        split_iterator_impl end() const
+        {
+            size_t pos = m_str.size() + 1;
+            auto it = split_iterator_impl(this, pos, m_sep);
+            return it;
+        }
+    };
+
+public:
+
+    using split_proxy = split_proxy_impl;
+
+    split_proxy split(C sep, size_t start_pos=0) const
+    {
+        C4_XASSERT((start_pos >= 0 && start_pos < len) || empty());
+        auto ss = sub(0, len);
+        auto it = split_proxy(ss, start_pos, sep);
+        return it;
+    }
+
+public:
+
+    basic_substring basename(C sep=C('/')) const
+    {
+        auto ss = pop_right(sep, /*skip_empty*/true);
+        ss = ss.trimr(sep);
+        return ss;
+    }
+
+    basic_substring dirname(C sep=C('/')) const
+    {
+        auto ss = basename(sep);
+        ss = left_of(ss);
+        return ss;
+    }
+
+public:
+
+    /** pop right: return the first split from the right. Use
+     * gpop_left() to get the reciprocal part. */
+    basic_substring pop_right(C sep=C('/'), bool skip_empty=false) const
+    {
+        if(C4_LIKELY(len > 1))
+        {
+            auto pos = last_of(sep);
+            if(pos != npos)
+            {
+                if(pos + 1 < len) // does not end with sep
+                {
+                    return sub(pos + 1); // return from sep to end
+                }
+                else // the string ends with sep
+                {
+                    if( ! skip_empty)
+                    {
+                        return sub(pos + 1, 0);
+                    }
+                    auto ppos = last_not_of(sep); // skip repeated seps
+                    if(ppos == npos) // the string is all made of seps
+                    {
+                        return sub(0, 0);
+                    }
+                    // find the previous sep
+                    auto pos0 = last_of(sep, ppos);
+                    if(pos0 == npos) // only the last sep exists
+                    {
+                        return sub(0); // return the full string (because skip_empty is true)
+                    }
+                    ++pos0;
+                    return sub(pos0);
+                }
+            }
+            else // no sep was found, return the full string
+            {
+                return *this;
+            }
+        }
+        else if(len == 1)
+        {
+            if(begins_with(sep))
+            {
+                return sub(0, 0);
+            }
+            return *this;
+        }
+        else // an empty string
+        {
+            return basic_substring();
+        }
+    }
+
+    /** return the first split from the left. Use gpop_right() to get
+     * the reciprocal part. */
+    basic_substring pop_left(C sep = C('/'), bool skip_empty=false) const
+    {
+        if(C4_LIKELY(len > 1))
+        {
+            auto pos = first_of(sep);
+            if(pos != npos)
+            {
+                if(pos > 0)  // does not start with sep
+                {
+                    return sub(0, pos); //  return everything up to it
+                }
+                else  // the string starts with sep
+                {
+                    if( ! skip_empty)
+                    {
+                        return sub(0, 0);
+                    }
+                    auto ppos = first_not_of(sep); // skip repeated seps
+                    if(ppos == npos) // the string is all made of seps
+                    {
+                        return sub(0, 0);
+                    }
+                    // find the next sep
+                    auto pos0 = first_of(sep, ppos);
+                    if(pos0 == npos) // only the first sep exists
+                    {
+                        return sub(0); // return the full string (because skip_empty is true)
+                    }
+                    C4_XASSERT(pos0 > 0);
+                    // return everything up to the second sep
+                    return sub(0, pos0);
+                }
+            }
+            else // no sep was found, return the full string
+            {
+                return sub(0);
+            }
+        }
+        else if(len == 1)
+        {
+            if(begins_with(sep))
+            {
+                return sub(0, 0);
+            }
+            return sub(0);
+        }
+        else // an empty string
+        {
+            return basic_substring();
+        }
+    }
+
+public:
+
+    basic_substring gpop_left(C sep = C('/'), bool skip_empty=false) const
+    {
+        auto ss = pop_right(sep, skip_empty);
+        ss = left_of(ss);
+        return ss;
+    }
+
+    basic_substring gpop_right(C sep = C('/'), bool skip_empty=false) const
+    {
+        auto ss = pop_left(sep, skip_empty);
+        ss = right_of(ss);
+        return ss;
+    }
+
+}; // template class basic_substring
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -788,10 +1059,10 @@ template< typename C > inline bool operator>= (C const c, basic_substring<const 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** Because of a C++ limitation, spans cannot provide simultaneous
+/** Because of a C++ limitation, substr cannot provide simultaneous
  * overloads for constructing from a char[N] and a char*; the latter
  * will always be chosen by the compiler. So this specialization is
- * provided to simplify obtaining a span from a char*. Being a
+ * provided to simplify obtaining a substr from a char*. Being a
  * function has the advantage of making evident the strlen() cost.
  *
  * @see For a more detailed explanation on why the overloads cannot
@@ -801,10 +1072,10 @@ inline substr to_substr(char *s)
     return substr(s, s ? strlen(s) : 0);
 }
 
-/** Because of a C++ limitation, spans cannot provide simultaneous
+/** Because of a C++ limitation, substr cannot provide simultaneous
  * overloads for constructing from a char[N] and a char*; the latter
  * will always be chosen by the compiler. So this specialization is
- * provided to simplify obtaining a span from a char*. Being a
+ * provided to simplify obtaining a substr from a char*. Being a
  * function has the advantage of making evident the strlen() cost.
  *
  * @see For a more detailed explanation on why the overloads cannot
@@ -814,10 +1085,10 @@ inline csubstr to_csubstr(char *s)
     return csubstr(s, s ? strlen(s) : 0);
 }
 
-/** Because of a C++ limitation, spans cannot provide simultaneous
+/** Because of a C++ limitation, substr cannot provide simultaneous
  * overloads for constructing from a const char[N] and a const char*;
  * the latter will always be chosen by the compiler. So this
- * specialization is provided to simplify obtaining a span from a
+ * specialization is provided to simplify obtaining a substr from a
  * char*. Being a function has the advantage of making evident the
  * strlen() cost.
  *

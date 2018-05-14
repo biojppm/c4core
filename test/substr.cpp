@@ -17,7 +17,7 @@ TEST(csubstr, ctor_from_char)
 {
     char buf1[] = "{foo: 1}";
     char buf2[] = "{foo: 2}";
-    substr s(buf1);
+    csubstr s(buf1);
     EXPECT_EQ(s, "{foo: 1}");
     s = buf2;
     EXPECT_EQ(s, "{foo: 2}");
@@ -303,5 +303,232 @@ TEST(substr, first_int_span)
     EXPECT_EQ(csubstr("0x1234 abc").first_int_span(), "0x1234");
     EXPECT_EQ(csubstr("-0x1234 abc").first_int_span(), "-0x1234");
 }
+
+TEST(substr, pop_right)
+{
+    using S = csubstr;
+
+    EXPECT_EQ(S("0/1/2"    ).pop_right('/'      ), "2");
+    EXPECT_EQ(S("0/1/2"    ).pop_right('/', true), "2");
+    EXPECT_EQ(S("0/1/2/"   ).pop_right('/'      ), "");
+    EXPECT_EQ(S("0/1/2/"   ).pop_right('/', true), "2/");
+    EXPECT_EQ(S("0/1/2///" ).pop_right('/'      ), "");
+    EXPECT_EQ(S("0/1/2///" ).pop_right('/', true), "2///");
+
+    EXPECT_EQ(S("0/1//2"    ).pop_right('/'      ), "2");
+    EXPECT_EQ(S("0/1//2"    ).pop_right('/', true), "2");
+    EXPECT_EQ(S("0/1//2/"   ).pop_right('/'      ), "");
+    EXPECT_EQ(S("0/1//2/"   ).pop_right('/', true), "2/");
+    EXPECT_EQ(S("0/1//2///" ).pop_right('/'      ), "");
+    EXPECT_EQ(S("0/1//2///" ).pop_right('/', true), "2///");
+
+    EXPECT_EQ(S("0/1///2"    ).pop_right('/'      ), "2");
+    EXPECT_EQ(S("0/1///2"    ).pop_right('/', true), "2");
+    EXPECT_EQ(S("0/1///2/"   ).pop_right('/'      ), "");
+    EXPECT_EQ(S("0/1///2/"   ).pop_right('/', true), "2/");
+    EXPECT_EQ(S("0/1///2///" ).pop_right('/'      ), "");
+    EXPECT_EQ(S("0/1///2///" ).pop_right('/', true), "2///");
+
+    EXPECT_EQ(S("/0/1/2"   ).pop_right('/'      ), "2");
+    EXPECT_EQ(S("/0/1/2"   ).pop_right('/', true), "2");
+    EXPECT_EQ(S("/0/1/2/"  ).pop_right('/'      ), "");
+    EXPECT_EQ(S("/0/1/2/"  ).pop_right('/', true), "2/");
+    EXPECT_EQ(S("/0/1/2///").pop_right('/'      ), "");
+    EXPECT_EQ(S("/0/1/2///").pop_right('/', true), "2///");
+
+    EXPECT_EQ(S("0"        ).pop_right('/'      ), "0");
+    EXPECT_EQ(S("0"        ).pop_right('/', true), "0");
+    EXPECT_EQ(S("0/"       ).pop_right('/'      ), "");
+    EXPECT_EQ(S("0/"       ).pop_right('/', true), "0/");
+    EXPECT_EQ(S("0///"     ).pop_right('/'      ), "");
+    EXPECT_EQ(S("0///"     ).pop_right('/', true), "0///");
+
+    EXPECT_EQ(S("/0"       ).pop_right('/'      ), "0");
+    EXPECT_EQ(S("/0"       ).pop_right('/', true), "0");
+    EXPECT_EQ(S("/0/"      ).pop_right('/'      ), "");
+    EXPECT_EQ(S("/0/"      ).pop_right('/', true), "0/");
+    EXPECT_EQ(S("/0///"    ).pop_right('/'      ), "");
+    EXPECT_EQ(S("/0///"    ).pop_right('/', true), "0///");
+
+    EXPECT_EQ(S("/"        ).pop_right('/'      ), "");
+    EXPECT_EQ(S("/"        ).pop_right('/', true), "");
+    EXPECT_EQ(S("///"      ).pop_right('/'      ), "");
+    EXPECT_EQ(S("///"      ).pop_right('/', true), "");
+
+    EXPECT_EQ(S(""         ).pop_right('/'      ), "");
+    EXPECT_EQ(S(""         ).pop_right('/', true), "");
+
+    EXPECT_EQ(S("0-1-2"    ).pop_right('-'      ), "2");
+    EXPECT_EQ(S("0-1-2"    ).pop_right('-', true), "2");
+    EXPECT_EQ(S("0-1-2-"   ).pop_right('-'      ), "");
+    EXPECT_EQ(S("0-1-2-"   ).pop_right('-', true), "2-");
+    EXPECT_EQ(S("0-1-2---" ).pop_right('-'      ), "");
+    EXPECT_EQ(S("0-1-2---" ).pop_right('-', true), "2---");
+
+    EXPECT_EQ(S("0-1--2"    ).pop_right('-'      ), "2");
+    EXPECT_EQ(S("0-1--2"    ).pop_right('-', true), "2");
+    EXPECT_EQ(S("0-1--2-"   ).pop_right('-'      ), "");
+    EXPECT_EQ(S("0-1--2-"   ).pop_right('-', true), "2-");
+    EXPECT_EQ(S("0-1--2---" ).pop_right('-'      ), "");
+    EXPECT_EQ(S("0-1--2---" ).pop_right('-', true), "2---");
+
+    EXPECT_EQ(S("0-1---2"    ).pop_right('-'      ), "2");
+    EXPECT_EQ(S("0-1---2"    ).pop_right('-', true), "2");
+    EXPECT_EQ(S("0-1---2-"   ).pop_right('-'      ), "");
+    EXPECT_EQ(S("0-1---2-"   ).pop_right('-', true), "2-");
+    EXPECT_EQ(S("0-1---2---" ).pop_right('-'      ), "");
+    EXPECT_EQ(S("0-1---2---" ).pop_right('-', true), "2---");
+
+    EXPECT_EQ(S("-0-1-2"   ).pop_right('-'      ), "2");
+    EXPECT_EQ(S("-0-1-2"   ).pop_right('-', true), "2");
+    EXPECT_EQ(S("-0-1-2-"  ).pop_right('-'      ), "");
+    EXPECT_EQ(S("-0-1-2-"  ).pop_right('-', true), "2-");
+    EXPECT_EQ(S("-0-1-2---").pop_right('-'      ), "");
+    EXPECT_EQ(S("-0-1-2---").pop_right('-', true), "2---");
+
+    EXPECT_EQ(S("0"        ).pop_right('-'      ), "0");
+    EXPECT_EQ(S("0"        ).pop_right('-', true), "0");
+    EXPECT_EQ(S("0-"       ).pop_right('-'      ), "");
+    EXPECT_EQ(S("0-"       ).pop_right('-', true), "0-");
+    EXPECT_EQ(S("0---"     ).pop_right('-'      ), "");
+    EXPECT_EQ(S("0---"     ).pop_right('-', true), "0---");
+
+    EXPECT_EQ(S("-0"       ).pop_right('-'      ), "0");
+    EXPECT_EQ(S("-0"       ).pop_right('-', true), "0");
+    EXPECT_EQ(S("-0-"      ).pop_right('-'      ), "");
+    EXPECT_EQ(S("-0-"      ).pop_right('-', true), "0-");
+    EXPECT_EQ(S("-0---"    ).pop_right('-'      ), "");
+    EXPECT_EQ(S("-0---"    ).pop_right('-', true), "0---");
+
+    EXPECT_EQ(S("-"        ).pop_right('-'      ), "");
+    EXPECT_EQ(S("-"        ).pop_right('-', true), "");
+    EXPECT_EQ(S("---"      ).pop_right('-'      ), "");
+    EXPECT_EQ(S("---"      ).pop_right('-', true), "");
+
+    EXPECT_EQ(S(""         ).pop_right('-'      ), "");
+    EXPECT_EQ(S(""         ).pop_right('-', true), "");
+}
+
+TEST(substr, pop_left)
+{
+    using S = csubstr;
+
+    EXPECT_EQ(S("0/1/2"    ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0/1/2"    ).pop_left('/', true), "0");
+    EXPECT_EQ(S("0/1/2/"   ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0/1/2/"   ).pop_left('/', true), "0");
+    EXPECT_EQ(S("0/1/2///" ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0/1/2///" ).pop_left('/', true), "0");
+
+    EXPECT_EQ(S("0//1/2"    ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0//1/2"    ).pop_left('/', true), "0");
+    EXPECT_EQ(S("0//1/2/"   ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0//1/2/"   ).pop_left('/', true), "0");
+    EXPECT_EQ(S("0//1/2///" ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0//1/2///" ).pop_left('/', true), "0");
+
+    EXPECT_EQ(S("0///1/2"    ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0///1/2"    ).pop_left('/', true), "0");
+    EXPECT_EQ(S("0///1/2/"   ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0///1/2/"   ).pop_left('/', true), "0");
+    EXPECT_EQ(S("0///1/2///" ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0///1/2///" ).pop_left('/', true), "0");
+
+    EXPECT_EQ(S("/0/1/2"   ).pop_left('/'      ), "");
+    EXPECT_EQ(S("/0/1/2"   ).pop_left('/', true), "/0");
+    EXPECT_EQ(S("/0/1/2/"  ).pop_left('/'      ), "");
+    EXPECT_EQ(S("/0/1/2/"  ).pop_left('/', true), "/0");
+    EXPECT_EQ(S("/0/1/2///").pop_left('/'      ), "");
+    EXPECT_EQ(S("/0/1/2///").pop_left('/', true), "/0");
+    EXPECT_EQ(S("///0/1/2" ).pop_left('/'      ), "");
+    EXPECT_EQ(S("///0/1/2" ).pop_left('/', true), "///0");
+    EXPECT_EQ(S("///0/1/2/").pop_left('/'      ), "");
+    EXPECT_EQ(S("///0/1/2/").pop_left('/', true), "///0");
+    EXPECT_EQ(S("///0/1/2/").pop_left('/'      ), "");
+    EXPECT_EQ(S("///0/1/2/").pop_left('/', true), "///0");
+
+    EXPECT_EQ(S("0"        ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0"        ).pop_left('/', true), "0");
+    EXPECT_EQ(S("0/"       ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0/"       ).pop_left('/', true), "0");
+    EXPECT_EQ(S("0///"     ).pop_left('/'      ), "0");
+    EXPECT_EQ(S("0///"     ).pop_left('/', true), "0");
+
+    EXPECT_EQ(S("/0"       ).pop_left('/'      ), "");
+    EXPECT_EQ(S("/0"       ).pop_left('/', true), "/0");
+    EXPECT_EQ(S("/0/"      ).pop_left('/'      ), "");
+    EXPECT_EQ(S("/0/"      ).pop_left('/', true), "/0");
+    EXPECT_EQ(S("/0///"    ).pop_left('/'      ), "");
+    EXPECT_EQ(S("/0///"    ).pop_left('/', true), "/0");
+    EXPECT_EQ(S("///0///"  ).pop_left('/'      ), "");
+    EXPECT_EQ(S("///0///"  ).pop_left('/', true), "///0");
+
+    EXPECT_EQ(S("/"        ).pop_left('/'      ), "");
+    EXPECT_EQ(S("/"        ).pop_left('/', true), "");
+    EXPECT_EQ(S("///"      ).pop_left('/'      ), "");
+    EXPECT_EQ(S("///"      ).pop_left('/', true), "");
+
+    EXPECT_EQ(S(""         ).pop_left('/'      ), "");
+    EXPECT_EQ(S(""         ).pop_left('/', true), "");
+
+    EXPECT_EQ(S("0-1-2"    ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0-1-2"    ).pop_left('-', true), "0");
+    EXPECT_EQ(S("0-1-2-"   ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0-1-2-"   ).pop_left('-', true), "0");
+    EXPECT_EQ(S("0-1-2---" ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0-1-2---" ).pop_left('-', true), "0");
+
+    EXPECT_EQ(S("0--1-2"    ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0--1-2"    ).pop_left('-', true), "0");
+    EXPECT_EQ(S("0--1-2-"   ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0--1-2-"   ).pop_left('-', true), "0");
+    EXPECT_EQ(S("0--1-2---" ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0--1-2---" ).pop_left('-', true), "0");
+
+    EXPECT_EQ(S("0---1-2"    ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0---1-2"    ).pop_left('-', true), "0");
+    EXPECT_EQ(S("0---1-2-"   ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0---1-2-"   ).pop_left('-', true), "0");
+    EXPECT_EQ(S("0---1-2---" ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0---1-2---" ).pop_left('-', true), "0");
+
+    EXPECT_EQ(S("-0-1-2"   ).pop_left('-'      ), "");
+    EXPECT_EQ(S("-0-1-2"   ).pop_left('-', true), "-0");
+    EXPECT_EQ(S("-0-1-2-"  ).pop_left('-'      ), "");
+    EXPECT_EQ(S("-0-1-2-"  ).pop_left('-', true), "-0");
+    EXPECT_EQ(S("-0-1-2---").pop_left('-'      ), "");
+    EXPECT_EQ(S("-0-1-2---").pop_left('-', true), "-0");
+    EXPECT_EQ(S("---0-1-2" ).pop_left('-'      ), "");
+    EXPECT_EQ(S("---0-1-2" ).pop_left('-', true), "---0");
+    EXPECT_EQ(S("---0-1-2-").pop_left('-'      ), "");
+    EXPECT_EQ(S("---0-1-2-").pop_left('-', true), "---0");
+    EXPECT_EQ(S("---0-1-2-").pop_left('-'      ), "");
+    EXPECT_EQ(S("---0-1-2-").pop_left('-', true), "---0");
+
+    EXPECT_EQ(S("0"        ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0"        ).pop_left('-', true), "0");
+    EXPECT_EQ(S("0-"       ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0-"       ).pop_left('-', true), "0");
+    EXPECT_EQ(S("0---"     ).pop_left('-'      ), "0");
+    EXPECT_EQ(S("0---"     ).pop_left('-', true), "0");
+
+    EXPECT_EQ(S("-0"       ).pop_left('-'      ), "");
+    EXPECT_EQ(S("-0"       ).pop_left('-', true), "-0");
+    EXPECT_EQ(S("-0-"      ).pop_left('-'      ), "");
+    EXPECT_EQ(S("-0-"      ).pop_left('-', true), "-0");
+    EXPECT_EQ(S("-0---"    ).pop_left('-'      ), "");
+    EXPECT_EQ(S("-0---"    ).pop_left('-', true), "-0");
+    EXPECT_EQ(S("---0---"  ).pop_left('-'      ), "");
+    EXPECT_EQ(S("---0---"  ).pop_left('-', true), "---0");
+
+    EXPECT_EQ(S("-"        ).pop_left('-'      ), "");
+    EXPECT_EQ(S("-"        ).pop_left('-', true), "");
+    EXPECT_EQ(S("---"      ).pop_left('-'      ), "");
+    EXPECT_EQ(S("---"      ).pop_left('-', true), "");
+
+    EXPECT_EQ(S(""         ).pop_left('-'      ), "");
+    EXPECT_EQ(S(""         ).pop_left('-', true), "");
+}
+
 
 } // namespace c4
