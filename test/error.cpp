@@ -12,10 +12,10 @@ void error_callback(const char *msg, size_t msg_sz)
     EXPECT_EQ(msg_sz, 7);
     got_an_error = true;
 }
-inline ScopedErrorSettings tmp_err()
+inline c4::ScopedErrorSettings tmp_err()
 {
     got_an_error = false;
-    return ScopedErrorSettings(c4::ON_ERROR_CALLBACK, error_callback);
+    return c4::ScopedErrorSettings(c4::ON_ERROR_CALLBACK, error_callback);
 }
 C4_END_HIDDEN_NAMESPACE
 
