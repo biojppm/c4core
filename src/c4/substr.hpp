@@ -156,6 +156,7 @@ public:
     using basic_ncsubstr = basic_substring< NCC >;
 
     using char_type = C;
+    using size_type = size_t;
 
     using iterator = C*;
     using const_iterator = CC*;
@@ -353,23 +354,43 @@ public:
     /** trim left */
     basic_substring triml(const C c) const
     {
-        return right_of(first_not_of(c), /*include_pos*/true);
+        //return right_of(first_not_of(c), /*include_pos*/true);
+        return triml({&c, 1});
     }
     /** trim left ANY of the characters */
     basic_substring triml(basic_csubstr chars) const
     {
-        return right_of(first_not_of(chars), /*include_pos*/true);
+        //return right_of(first_not_of(chars), /*include_pos*/true);
+        if( ! empty())
+        {
+            size_t pos = first_not_of(chars, 0);
+            if(pos != npos)
+            {
+                return sub(pos);
+            }
+        }
+        return sub(0, 0);
     }
 
     /** trim right */
     basic_substring trimr(const C c) const
     {
-        return left_of(last_not_of(c), /*include_pos*/true);
+        //return left_of(last_not_of(c), /*include_pos*/true);
+        return trimr({&c, 1});
     }
     /** trim right ANY of the characters */
     basic_substring trimr(basic_csubstr chars) const
     {
-        return left_of(last_not_of(chars), /*include_pos*/true);
+        //return left_of(last_not_of(chars), /*include_pos*/true);
+        if( ! empty())
+        {
+            size_t pos = last_not_of(chars, npos);
+            if(pos != npos)
+            {
+                return sub(0, pos+1);
+            }
+        }
+        return sub(0, 0);
     }
 
     /** trim left and right */
@@ -771,7 +792,7 @@ public:
      * it's ok to call next_split() again. When no instance of sep
      * exists in the string, returns the full string. When the input
      * is an empty string, the output string is the empty string. */
-    bool next_split(C sep, size_t *C4_RESTRICT start_pos, basic_substring *C4_RESTRICT out)
+    bool next_split(C sep, size_t *C4_RESTRICT start_pos, basic_substring *C4_RESTRICT out) const
     {
         if(C4_LIKELY(*start_pos < len))
         {
@@ -793,11 +814,11 @@ public:
             bool valid = len > 0 && (*start_pos == len);
             if(valid && !empty() && str[len-1] == sep)
             {
-                out->assign(str + len, 0);
+                out->assign(str + len, (size_t)0); // the cast is needed to prevent overload ambiguity
             }
             else
             {
-                out->assign(str + len + 1, 0);
+                out->assign(str + len + 1, (size_t)0); // the cast is needed to prevent overload ambiguity
             }
             *start_pos = len + 1;
             return valid;
@@ -813,7 +834,7 @@ private:
             split_proxy_impl const* m_proxy;
             basic_substring m_str;
             size_t m_pos;
-            C m_sep;
+            NCC m_sep;
 
             split_iterator_impl(split_proxy_impl const* proxy, size_t pos, C sep)
                 : m_proxy(proxy), m_pos(pos), m_sep(sep)
@@ -891,7 +912,7 @@ public:
     basic_substring dirname(C sep=C('/')) const
     {
         auto ss = basename(sep);
-        ss = left_of(ss);
+        ss = ss.empty() ? *this : left_of(ss);
         return ss;
     }
 
@@ -1010,6 +1031,20 @@ public:
     {
         auto ss = pop_right(sep, skip_empty);
         ss = left_of(ss);
+        if(ss.find(sep) != npos)
+        {
+            if(ss.ends_with(sep))
+            {
+                if(skip_empty)
+                {
+                    ss = ss.trimr(sep);
+                }
+                else
+                {
+                    ss = ss.sub(0, ss.len-1); // safe to subtract because ends_with(sep) is true
+                }
+            }
+        }
         return ss;
     }
 
@@ -1017,6 +1052,20 @@ public:
     {
         auto ss = pop_left(sep, skip_empty);
         ss = right_of(ss);
+        if(ss.find(sep) != npos)
+        {
+            if(ss.begins_with(sep))
+            {
+                if(skip_empty)
+                {
+                    ss = ss.triml(sep);
+                }
+                else
+                {
+                    ss = ss.sub(1);
+                }
+            }
+        }
         return ss;
     }
 

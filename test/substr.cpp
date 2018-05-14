@@ -304,6 +304,134 @@ TEST(substr, first_int_span)
     EXPECT_EQ(csubstr("-0x1234 abc").first_int_span(), "-0x1234");
 }
 
+
+TEST(substr, triml)
+{
+    using S = csubstr;
+
+    EXPECT_EQ(S("aaabbb"   ).triml('a' ), "bbb");
+    EXPECT_EQ(S("aaabbb"   ).triml('b' ), "aaabbb");
+    EXPECT_EQ(S("aaabbb"   ).triml('c' ), "aaabbb");
+    EXPECT_EQ(S("aaabbb"   ).triml("ab"), "");
+    EXPECT_EQ(S("aaabbb"   ).triml("ba"), "");
+    EXPECT_EQ(S("aaabbb"   ).triml("cd"), "aaabbb");
+    EXPECT_EQ(S("aaa...bbb").triml('a' ), "...bbb");
+    EXPECT_EQ(S("aaa...bbb").triml('b' ), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").triml('c' ), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").triml("ab"), "...bbb");
+    EXPECT_EQ(S("aaa...bbb").triml("ba"), "...bbb");
+    EXPECT_EQ(S("aaa...bbb").triml("ab."), "");
+    EXPECT_EQ(S("aaa...bbb").triml("a."), "bbb");
+    EXPECT_EQ(S("aaa...bbb").triml(".a"), "bbb");
+    EXPECT_EQ(S("aaa...bbb").triml("b."), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").triml(".b"), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").triml("cd"), "aaa...bbb");
+
+    EXPECT_EQ(S("ab"   ).triml('a' ), "b");
+    EXPECT_EQ(S("ab"   ).triml('b' ), "ab");
+    EXPECT_EQ(S("ab"   ).triml('c' ), "ab");
+    EXPECT_EQ(S("ab"   ).triml("ab"), "");
+    EXPECT_EQ(S("ab"   ).triml("ba"), "");
+    EXPECT_EQ(S("ab"   ).triml("cd"), "ab");
+    EXPECT_EQ(S("a...b").triml('a' ), "...b");
+    EXPECT_EQ(S("a...b").triml('b' ), "a...b");
+    EXPECT_EQ(S("a...b").triml('c' ), "a...b");
+    EXPECT_EQ(S("a...b").triml("ab"), "...b");
+    EXPECT_EQ(S("a...b").triml("ba"), "...b");
+    EXPECT_EQ(S("a...b").triml("ab."), "");
+    EXPECT_EQ(S("a...b").triml("a."), "b");
+    EXPECT_EQ(S("a...b").triml(".a"), "b");
+    EXPECT_EQ(S("a...b").triml("b."), "a...b");
+    EXPECT_EQ(S("a...b").triml(".b"), "a...b");
+    EXPECT_EQ(S("a...b").triml("cd"), "a...b");
+}
+
+TEST(substr, trimr)
+{
+    using S = csubstr;
+
+    EXPECT_EQ(S("aaabbb"   ).trimr('a' ), "aaabbb");
+    EXPECT_EQ(S("aaabbb"   ).trimr('b' ), "aaa");
+    EXPECT_EQ(S("aaabbb"   ).trimr('c' ), "aaabbb");
+    EXPECT_EQ(S("aaabbb"   ).trimr("ab"), "");
+    EXPECT_EQ(S("aaabbb"   ).trimr("ba"), "");
+    EXPECT_EQ(S("aaabbb"   ).trimr("cd"), "aaabbb");
+    EXPECT_EQ(S("aaa...bbb").trimr('a' ), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").trimr('b' ), "aaa...");
+    EXPECT_EQ(S("aaa...bbb").trimr('c' ), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").trimr("ab"), "aaa...");
+    EXPECT_EQ(S("aaa...bbb").trimr("ba"), "aaa...");
+    EXPECT_EQ(S("aaa...bbb").trimr("ab."), "");
+    EXPECT_EQ(S("aaa...bbb").trimr("a."), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").trimr(".a"), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").trimr("b."), "aaa");
+    EXPECT_EQ(S("aaa...bbb").trimr(".b"), "aaa");
+    EXPECT_EQ(S("aaa...bbb").trimr("cd"), "aaa...bbb");
+
+    EXPECT_EQ(S("ab"   ).trimr('a' ), "ab");
+    EXPECT_EQ(S("ab"   ).trimr('b' ), "a");
+    EXPECT_EQ(S("ab"   ).trimr('c' ), "ab");
+    EXPECT_EQ(S("ab"   ).trimr("ab"), "");
+    EXPECT_EQ(S("ab"   ).trimr("ba"), "");
+    EXPECT_EQ(S("ab"   ).trimr("cd"), "ab");
+    EXPECT_EQ(S("a...b").trimr('a' ), "a...b");
+    EXPECT_EQ(S("a...b").trimr('b' ), "a...");
+    EXPECT_EQ(S("a...b").trimr('c' ), "a...b");
+    EXPECT_EQ(S("a...b").trimr("ab"), "a...");
+    EXPECT_EQ(S("a...b").trimr("ba"), "a...");
+    EXPECT_EQ(S("a...b").trimr("ab."), "");
+    EXPECT_EQ(S("a...b").trimr("a."), "a...b");
+    EXPECT_EQ(S("a...b").trimr(".a"), "a...b");
+    EXPECT_EQ(S("a...b").trimr("b."), "a");
+    EXPECT_EQ(S("a...b").trimr(".b"), "a");
+    EXPECT_EQ(S("a...b").trimr("cd"), "a...b");
+}
+
+TEST(substr, trim)
+{
+    using S = csubstr;
+
+    EXPECT_EQ(S("aaabbb"   ).trim('a' ), "bbb");
+    EXPECT_EQ(S("aaabbb"   ).trim('b' ), "aaa");
+    EXPECT_EQ(S("aaabbb"   ).trim('c' ), "aaabbb");
+    EXPECT_EQ(S("aaabbb"   ).trim("ab"), "");
+    EXPECT_EQ(S("aaabbb"   ).trim("ba"), "");
+    EXPECT_EQ(S("aaabbb"   ).trim("cd"), "aaabbb");
+    EXPECT_EQ(S("aaa...bbb").trim('a' ), "...bbb");
+    EXPECT_EQ(S("aaa...bbb").trim('b' ), "aaa...");
+    EXPECT_EQ(S("aaa...bbb").trim('c' ), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").trim("ab"), "...");
+    EXPECT_EQ(S("aaa...bbb").trim("ba"), "...");
+    EXPECT_EQ(S("aaa...bbb").trim('c' ), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").trim("ab."), "");
+    EXPECT_EQ(S("aaa...bbb").trim("." ), "aaa...bbb");
+    EXPECT_EQ(S("aaa...bbb").trim("a."), "bbb");
+    EXPECT_EQ(S("aaa...bbb").trim(".a"), "bbb");
+    EXPECT_EQ(S("aaa...bbb").trim("b."), "aaa");
+    EXPECT_EQ(S("aaa...bbb").trim(".b"), "aaa");
+    EXPECT_EQ(S("aaa...bbb").trim("cd"), "aaa...bbb");
+
+    EXPECT_EQ(S("ab"   ).trim('a' ), "b");
+    EXPECT_EQ(S("ab"   ).trim('b' ), "a");
+    EXPECT_EQ(S("ab"   ).trim('c' ), "ab");
+    EXPECT_EQ(S("ab"   ).trim("ab"), "");
+    EXPECT_EQ(S("ab"   ).trim("ba"), "");
+    EXPECT_EQ(S("ab"   ).trim("cd"), "ab");
+    EXPECT_EQ(S("a...b").trim('a' ), "...b");
+    EXPECT_EQ(S("a...b").trim('b' ), "a...");
+    EXPECT_EQ(S("a...b").trim('c' ), "a...b");
+    EXPECT_EQ(S("a...b").trim("ab"), "...");
+    EXPECT_EQ(S("a...b").trim("ba"), "...");
+    EXPECT_EQ(S("a...b").trim('c' ), "a...b");
+    EXPECT_EQ(S("a...b").trim("ab."), "");
+    EXPECT_EQ(S("a...b").trim("." ), "a...b");
+    EXPECT_EQ(S("a...b").trim("a."), "b");
+    EXPECT_EQ(S("a...b").trim(".a"), "b");
+    EXPECT_EQ(S("a...b").trim("b."), "a");
+    EXPECT_EQ(S("a...b").trim(".b"), "a");
+    EXPECT_EQ(S("a...b").trim("cd"), "a...b");
+}
+
 TEST(substr, pop_right)
 {
     using S = csubstr;
@@ -530,5 +658,1297 @@ TEST(substr, pop_left)
     EXPECT_EQ(S(""         ).pop_left('-', true), "");
 }
 
+TEST(substr, gpop_left)
+{
+    using S = csubstr;
+
+    EXPECT_EQ(S("0/1/2"      ).gpop_left('/'      ), "0/1");
+    EXPECT_EQ(S("0/1/2"      ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1/2/"     ).gpop_left('/'      ), "0/1/2");
+    EXPECT_EQ(S("0/1/2/"     ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1/2//"    ).gpop_left('/'      ), "0/1/2/");
+    EXPECT_EQ(S("0/1/2//"    ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1/2///"   ).gpop_left('/'      ), "0/1/2//");
+    EXPECT_EQ(S("0/1/2///"   ).gpop_left('/', true), "0/1");
+
+    EXPECT_EQ(S("0/1//2"     ).gpop_left('/'      ), "0/1/");
+    EXPECT_EQ(S("0/1//2"     ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1//2/"    ).gpop_left('/'      ), "0/1//2");
+    EXPECT_EQ(S("0/1//2/"    ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1//2//"   ).gpop_left('/'      ), "0/1//2/");
+    EXPECT_EQ(S("0/1//2//"   ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1//2///"  ).gpop_left('/'      ), "0/1//2//");
+    EXPECT_EQ(S("0/1//2///"  ).gpop_left('/', true), "0/1");
+
+    EXPECT_EQ(S("0/1///2"    ).gpop_left('/'      ), "0/1//");
+    EXPECT_EQ(S("0/1///2"    ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1///2/"   ).gpop_left('/'      ), "0/1///2");
+    EXPECT_EQ(S("0/1///2/"   ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1///2//"  ).gpop_left('/'      ), "0/1///2/");
+    EXPECT_EQ(S("0/1///2//"  ).gpop_left('/', true), "0/1");
+    EXPECT_EQ(S("0/1///2///" ).gpop_left('/'      ), "0/1///2//");
+    EXPECT_EQ(S("0/1///2///" ).gpop_left('/', true), "0/1");
+
+    EXPECT_EQ(S("/0/1/2"     ).gpop_left('/'      ), "/0/1");
+    EXPECT_EQ(S("/0/1/2"     ).gpop_left('/', true), "/0/1");
+    EXPECT_EQ(S("/0/1/2/"    ).gpop_left('/'      ), "/0/1/2");
+    EXPECT_EQ(S("/0/1/2/"    ).gpop_left('/', true), "/0/1");
+    EXPECT_EQ(S("/0/1/2//"   ).gpop_left('/'      ), "/0/1/2/");
+    EXPECT_EQ(S("/0/1/2//"   ).gpop_left('/', true), "/0/1");
+    EXPECT_EQ(S("/0/1/2///"  ).gpop_left('/'      ), "/0/1/2//");
+    EXPECT_EQ(S("/0/1/2///"  ).gpop_left('/', true), "/0/1");
+
+    EXPECT_EQ(S("//0/1/2"    ).gpop_left('/'      ), "//0/1");
+    EXPECT_EQ(S("//0/1/2"    ).gpop_left('/', true), "//0/1");
+    EXPECT_EQ(S("//0/1/2/"   ).gpop_left('/'      ), "//0/1/2");
+    EXPECT_EQ(S("//0/1/2/"   ).gpop_left('/', true), "//0/1");
+    EXPECT_EQ(S("//0/1/2//"  ).gpop_left('/'      ), "//0/1/2/");
+    EXPECT_EQ(S("//0/1/2//"  ).gpop_left('/', true), "//0/1");
+    EXPECT_EQ(S("//0/1/2///" ).gpop_left('/'      ), "//0/1/2//");
+    EXPECT_EQ(S("//0/1/2///" ).gpop_left('/', true), "//0/1");
+
+    EXPECT_EQ(S("///0/1/2"   ).gpop_left('/'      ), "///0/1");
+    EXPECT_EQ(S("///0/1/2"   ).gpop_left('/', true), "///0/1");
+    EXPECT_EQ(S("///0/1/2/"  ).gpop_left('/'      ), "///0/1/2");
+    EXPECT_EQ(S("///0/1/2/"  ).gpop_left('/', true), "///0/1");
+    EXPECT_EQ(S("///0/1/2//" ).gpop_left('/'      ), "///0/1/2/");
+    EXPECT_EQ(S("///0/1/2//" ).gpop_left('/', true), "///0/1");
+    EXPECT_EQ(S("///0/1/2///").gpop_left('/'      ), "///0/1/2//");
+    EXPECT_EQ(S("///0/1/2///").gpop_left('/', true), "///0/1");
+
+
+    EXPECT_EQ(S("0/1"      ).gpop_left('/'      ), "0");
+    EXPECT_EQ(S("0/1"      ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0/1/"     ).gpop_left('/'      ), "0/1");
+    EXPECT_EQ(S("0/1/"     ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0/1//"    ).gpop_left('/'      ), "0/1/");
+    EXPECT_EQ(S("0/1//"    ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0/1///"   ).gpop_left('/'      ), "0/1//");
+    EXPECT_EQ(S("0/1///"   ).gpop_left('/', true), "0");
+
+    EXPECT_EQ(S("0//1"     ).gpop_left('/'      ), "0/");
+    EXPECT_EQ(S("0//1"     ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0//1/"    ).gpop_left('/'      ), "0//1");
+    EXPECT_EQ(S("0//1/"    ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0//1//"   ).gpop_left('/'      ), "0//1/");
+    EXPECT_EQ(S("0//1//"   ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0//1///"  ).gpop_left('/'      ), "0//1//");
+    EXPECT_EQ(S("0//1///"  ).gpop_left('/', true), "0");
+
+    EXPECT_EQ(S("0///1"    ).gpop_left('/'      ), "0//");
+    EXPECT_EQ(S("0///1"    ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0///1/"   ).gpop_left('/'      ), "0///1");
+    EXPECT_EQ(S("0///1/"   ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0///1//"  ).gpop_left('/'      ), "0///1/");
+    EXPECT_EQ(S("0///1//"  ).gpop_left('/', true), "0");
+    EXPECT_EQ(S("0///1///" ).gpop_left('/'      ), "0///1//");
+    EXPECT_EQ(S("0///1///" ).gpop_left('/', true), "0");
+
+    EXPECT_EQ(S("/0/1"      ).gpop_left('/'      ), "/0");
+    EXPECT_EQ(S("/0/1"      ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0/1/"     ).gpop_left('/'      ), "/0/1");
+    EXPECT_EQ(S("/0/1/"     ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0/1//"    ).gpop_left('/'      ), "/0/1/");
+    EXPECT_EQ(S("/0/1//"    ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0/1///"   ).gpop_left('/'      ), "/0/1//");
+    EXPECT_EQ(S("/0/1///"   ).gpop_left('/', true), "/0");
+
+    EXPECT_EQ(S("/0//1"     ).gpop_left('/'      ), "/0/");
+    EXPECT_EQ(S("/0//1"     ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0//1/"    ).gpop_left('/'      ), "/0//1");
+    EXPECT_EQ(S("/0//1/"    ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0//1//"   ).gpop_left('/'      ), "/0//1/");
+    EXPECT_EQ(S("/0//1//"   ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0//1///"  ).gpop_left('/'      ), "/0//1//");
+    EXPECT_EQ(S("/0//1///"  ).gpop_left('/', true), "/0");
+
+    EXPECT_EQ(S("/0///1"    ).gpop_left('/'      ), "/0//");
+    EXPECT_EQ(S("/0///1"    ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0///1/"   ).gpop_left('/'      ), "/0///1");
+    EXPECT_EQ(S("/0///1/"   ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0///1//"  ).gpop_left('/'      ), "/0///1/");
+    EXPECT_EQ(S("/0///1//"  ).gpop_left('/', true), "/0");
+    EXPECT_EQ(S("/0///1///" ).gpop_left('/'      ), "/0///1//");
+    EXPECT_EQ(S("/0///1///" ).gpop_left('/', true), "/0");
+
+    EXPECT_EQ(S("//0/1"      ).gpop_left('/'      ), "//0");
+    EXPECT_EQ(S("//0/1"      ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0/1/"     ).gpop_left('/'      ), "//0/1");
+    EXPECT_EQ(S("//0/1/"     ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0/1//"    ).gpop_left('/'      ), "//0/1/");
+    EXPECT_EQ(S("//0/1//"    ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0/1///"   ).gpop_left('/'      ), "//0/1//");
+    EXPECT_EQ(S("//0/1///"   ).gpop_left('/', true), "//0");
+
+    EXPECT_EQ(S("//0//1"     ).gpop_left('/'      ), "//0/");
+    EXPECT_EQ(S("//0//1"     ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0//1/"    ).gpop_left('/'      ), "//0//1");
+    EXPECT_EQ(S("//0//1/"    ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0//1//"   ).gpop_left('/'      ), "//0//1/");
+    EXPECT_EQ(S("//0//1//"   ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0//1///"  ).gpop_left('/'      ), "//0//1//");
+    EXPECT_EQ(S("//0//1///"  ).gpop_left('/', true), "//0");
+
+    EXPECT_EQ(S("//0///1"    ).gpop_left('/'      ), "//0//");
+    EXPECT_EQ(S("//0///1"    ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0///1/"   ).gpop_left('/'      ), "//0///1");
+    EXPECT_EQ(S("//0///1/"   ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0///1//"  ).gpop_left('/'      ), "//0///1/");
+    EXPECT_EQ(S("//0///1//"  ).gpop_left('/', true), "//0");
+    EXPECT_EQ(S("//0///1///" ).gpop_left('/'      ), "//0///1//");
+    EXPECT_EQ(S("//0///1///" ).gpop_left('/', true), "//0");
+
+    EXPECT_EQ(S("0"      ).gpop_left('/'      ), "");
+    EXPECT_EQ(S("0"      ).gpop_left('/', true), "");
+    EXPECT_EQ(S("0/"     ).gpop_left('/'      ), "0");
+    EXPECT_EQ(S("0/"     ).gpop_left('/', true), "");
+    EXPECT_EQ(S("0//"    ).gpop_left('/'      ), "0/");
+    EXPECT_EQ(S("0//"    ).gpop_left('/', true), "");
+    EXPECT_EQ(S("0///"   ).gpop_left('/'      ), "0//");
+    EXPECT_EQ(S("0///"   ).gpop_left('/', true), "");
+
+    EXPECT_EQ(S("/0"      ).gpop_left('/'      ), "");
+    EXPECT_EQ(S("/0"      ).gpop_left('/', true), "");
+    EXPECT_EQ(S("/0/"     ).gpop_left('/'      ), "/0");
+    EXPECT_EQ(S("/0/"     ).gpop_left('/', true), "");
+    EXPECT_EQ(S("/0//"    ).gpop_left('/'      ), "/0/");
+    EXPECT_EQ(S("/0//"    ).gpop_left('/', true), "");
+    EXPECT_EQ(S("/0///"   ).gpop_left('/'      ), "/0//");
+    EXPECT_EQ(S("/0///"   ).gpop_left('/', true), "");
+
+    EXPECT_EQ(S("//0"      ).gpop_left('/'      ), "/");
+    EXPECT_EQ(S("//0"      ).gpop_left('/', true), "");
+    EXPECT_EQ(S("//0/"     ).gpop_left('/'      ), "//0");
+    EXPECT_EQ(S("//0/"     ).gpop_left('/', true), "");
+    EXPECT_EQ(S("//0//"    ).gpop_left('/'      ), "//0/");
+    EXPECT_EQ(S("//0//"    ).gpop_left('/', true), "");
+    EXPECT_EQ(S("//0///"   ).gpop_left('/'      ), "//0//");
+    EXPECT_EQ(S("//0///"   ).gpop_left('/', true), "");
+
+    EXPECT_EQ(S("///0"      ).gpop_left('/'      ), "//");
+    EXPECT_EQ(S("///0"      ).gpop_left('/', true), "");
+    EXPECT_EQ(S("///0/"     ).gpop_left('/'      ), "///0");
+    EXPECT_EQ(S("///0/"     ).gpop_left('/', true), "");
+    EXPECT_EQ(S("///0//"    ).gpop_left('/'      ), "///0/");
+    EXPECT_EQ(S("///0//"    ).gpop_left('/', true), "");
+    EXPECT_EQ(S("///0///"   ).gpop_left('/'      ), "///0//");
+    EXPECT_EQ(S("///0///"   ).gpop_left('/', true), "");
+
+    EXPECT_EQ(S("/"        ).gpop_left('/'      ), "");
+    EXPECT_EQ(S("/"        ).gpop_left('/', true), "");
+    EXPECT_EQ(S("//"       ).gpop_left('/'      ), "/");
+    EXPECT_EQ(S("//"       ).gpop_left('/', true), "");
+    EXPECT_EQ(S("///"      ).gpop_left('/'      ), "//");
+    EXPECT_EQ(S("///"      ).gpop_left('/', true), "");
+
+    EXPECT_EQ(S(""         ).gpop_left('/'      ), "");
+    EXPECT_EQ(S(""         ).gpop_left('/', true), "");
+}
+
+TEST(substr, gpop_right)
+{
+    using S = csubstr;
+
+    EXPECT_EQ(S("0/1/2"      ).gpop_right('/'      ), "1/2");
+    EXPECT_EQ(S("0/1/2"      ).gpop_right('/', true), "1/2");
+    EXPECT_EQ(S("0/1/2/"     ).gpop_right('/'      ), "1/2/");
+    EXPECT_EQ(S("0/1/2/"     ).gpop_right('/', true), "1/2/");
+    EXPECT_EQ(S("0/1/2//"    ).gpop_right('/'      ), "1/2//");
+    EXPECT_EQ(S("0/1/2//"    ).gpop_right('/', true), "1/2//");
+    EXPECT_EQ(S("0/1/2///"   ).gpop_right('/'      ), "1/2///");
+    EXPECT_EQ(S("0/1/2///"   ).gpop_right('/', true), "1/2///");
+
+    EXPECT_EQ(S("0//1/2"     ).gpop_right('/'      ), "/1/2");
+    EXPECT_EQ(S("0//1/2"     ).gpop_right('/', true),  "1/2");
+    EXPECT_EQ(S("0//1/2/"    ).gpop_right('/'      ), "/1/2/");
+    EXPECT_EQ(S("0//1/2/"    ).gpop_right('/', true),  "1/2/");
+    EXPECT_EQ(S("0//1/2//"   ).gpop_right('/'      ), "/1/2//");
+    EXPECT_EQ(S("0//1/2//"   ).gpop_right('/', true),  "1/2//");
+    EXPECT_EQ(S("0//1/2///"  ).gpop_right('/'      ), "/1/2///");
+    EXPECT_EQ(S("0//1/2///"  ).gpop_right('/', true),  "1/2///");
+
+    EXPECT_EQ(S("0///1/2"     ).gpop_right('/'      ), "//1/2");
+    EXPECT_EQ(S("0///1/2"     ).gpop_right('/', true),   "1/2");
+    EXPECT_EQ(S("0///1/2/"    ).gpop_right('/'      ), "//1/2/");
+    EXPECT_EQ(S("0///1/2/"    ).gpop_right('/', true),   "1/2/");
+    EXPECT_EQ(S("0///1/2//"   ).gpop_right('/'      ), "//1/2//");
+    EXPECT_EQ(S("0///1/2//"   ).gpop_right('/', true),   "1/2//");
+    EXPECT_EQ(S("0///1/2///"  ).gpop_right('/'      ), "//1/2///");
+    EXPECT_EQ(S("0///1/2///"  ).gpop_right('/', true),   "1/2///");
+
+
+    EXPECT_EQ(S("/0/1/2"      ).gpop_right('/'      ), "0/1/2");
+    EXPECT_EQ(S("/0/1/2"      ).gpop_right('/', true),   "1/2");
+    EXPECT_EQ(S("/0/1/2/"     ).gpop_right('/'      ), "0/1/2/");
+    EXPECT_EQ(S("/0/1/2/"     ).gpop_right('/', true),   "1/2/");
+    EXPECT_EQ(S("/0/1/2//"    ).gpop_right('/'      ), "0/1/2//");
+    EXPECT_EQ(S("/0/1/2//"    ).gpop_right('/', true),   "1/2//");
+    EXPECT_EQ(S("/0/1/2///"   ).gpop_right('/'      ), "0/1/2///");
+    EXPECT_EQ(S("/0/1/2///"   ).gpop_right('/', true),   "1/2///");
+
+    EXPECT_EQ(S("/0//1/2"     ).gpop_right('/'      ), "0//1/2");
+    EXPECT_EQ(S("/0//1/2"     ).gpop_right('/', true),    "1/2");
+    EXPECT_EQ(S("/0//1/2/"    ).gpop_right('/'      ), "0//1/2/");
+    EXPECT_EQ(S("/0//1/2/"    ).gpop_right('/', true),    "1/2/");
+    EXPECT_EQ(S("/0//1/2//"   ).gpop_right('/'      ), "0//1/2//");
+    EXPECT_EQ(S("/0//1/2//"   ).gpop_right('/', true),    "1/2//");
+    EXPECT_EQ(S("/0//1/2///"  ).gpop_right('/'      ), "0//1/2///");
+    EXPECT_EQ(S("/0//1/2///"  ).gpop_right('/', true),    "1/2///");
+
+    EXPECT_EQ(S("/0///1/2"     ).gpop_right('/'      ), "0///1/2");
+    EXPECT_EQ(S("/0///1/2"     ).gpop_right('/', true),     "1/2");
+    EXPECT_EQ(S("/0///1/2/"    ).gpop_right('/'      ), "0///1/2/");
+    EXPECT_EQ(S("/0///1/2/"    ).gpop_right('/', true),     "1/2/");
+    EXPECT_EQ(S("/0///1/2//"   ).gpop_right('/'      ), "0///1/2//");
+    EXPECT_EQ(S("/0///1/2//"   ).gpop_right('/', true),     "1/2//");
+    EXPECT_EQ(S("/0///1/2///"  ).gpop_right('/'      ), "0///1/2///");
+    EXPECT_EQ(S("/0///1/2///"  ).gpop_right('/', true),     "1/2///");
+
+
+    EXPECT_EQ(S("//0/1/2"      ).gpop_right('/'      ), "/0/1/2");
+    EXPECT_EQ(S("//0/1/2"      ).gpop_right('/', true),    "1/2");
+    EXPECT_EQ(S("//0/1/2/"     ).gpop_right('/'      ), "/0/1/2/");
+    EXPECT_EQ(S("//0/1/2/"     ).gpop_right('/', true),    "1/2/");
+    EXPECT_EQ(S("//0/1/2//"    ).gpop_right('/'      ), "/0/1/2//");
+    EXPECT_EQ(S("//0/1/2//"    ).gpop_right('/', true),    "1/2//");
+    EXPECT_EQ(S("//0/1/2///"   ).gpop_right('/'      ), "/0/1/2///");
+    EXPECT_EQ(S("//0/1/2///"   ).gpop_right('/', true),    "1/2///");
+
+    EXPECT_EQ(S("//0//1/2"     ).gpop_right('/'      ), "/0//1/2");
+    EXPECT_EQ(S("//0//1/2"     ).gpop_right('/', true),     "1/2");
+    EXPECT_EQ(S("//0//1/2/"    ).gpop_right('/'      ), "/0//1/2/");
+    EXPECT_EQ(S("//0//1/2/"    ).gpop_right('/', true),     "1/2/");
+    EXPECT_EQ(S("//0//1/2//"   ).gpop_right('/'      ), "/0//1/2//");
+    EXPECT_EQ(S("//0//1/2//"   ).gpop_right('/', true),     "1/2//");
+    EXPECT_EQ(S("//0//1/2///"  ).gpop_right('/'      ), "/0//1/2///");
+    EXPECT_EQ(S("//0//1/2///"  ).gpop_right('/', true),     "1/2///");
+
+    EXPECT_EQ(S("//0///1/2"     ).gpop_right('/'      ), "/0///1/2");
+    EXPECT_EQ(S("//0///1/2"     ).gpop_right('/', true),     "1/2");
+    EXPECT_EQ(S("//0///1/2/"    ).gpop_right('/'      ), "/0///1/2/");
+    EXPECT_EQ(S("//0///1/2/"    ).gpop_right('/', true),     "1/2/");
+    EXPECT_EQ(S("//0///1/2//"   ).gpop_right('/'      ), "/0///1/2//");
+    EXPECT_EQ(S("//0///1/2//"   ).gpop_right('/', true),     "1/2//");
+    EXPECT_EQ(S("//0///1/2///"  ).gpop_right('/'      ), "/0///1/2///");
+    EXPECT_EQ(S("//0///1/2///"  ).gpop_right('/', true),      "1/2///");
+
+
+    EXPECT_EQ(S("0/1"      ).gpop_right('/'      ), "1");
+    EXPECT_EQ(S("0/1"      ).gpop_right('/', true), "1");
+    EXPECT_EQ(S("0/1/"     ).gpop_right('/'      ), "1/");
+    EXPECT_EQ(S("0/1/"     ).gpop_right('/', true), "1/");
+    EXPECT_EQ(S("0/1//"    ).gpop_right('/'      ), "1//");
+    EXPECT_EQ(S("0/1//"    ).gpop_right('/', true), "1//");
+    EXPECT_EQ(S("0/1///"   ).gpop_right('/'      ), "1///");
+    EXPECT_EQ(S("0/1///"   ).gpop_right('/', true), "1///");
+
+    EXPECT_EQ(S("0//1"     ).gpop_right('/'      ), "/1");
+    EXPECT_EQ(S("0//1"     ).gpop_right('/', true),  "1");
+    EXPECT_EQ(S("0//1/"    ).gpop_right('/'      ), "/1/");
+    EXPECT_EQ(S("0//1/"    ).gpop_right('/', true),  "1/");
+    EXPECT_EQ(S("0//1//"   ).gpop_right('/'      ), "/1//");
+    EXPECT_EQ(S("0//1//"   ).gpop_right('/', true),  "1//");
+    EXPECT_EQ(S("0//1///"  ).gpop_right('/'      ), "/1///");
+    EXPECT_EQ(S("0//1///"  ).gpop_right('/', true),  "1///");
+
+    EXPECT_EQ(S("0///1"    ).gpop_right('/'      ), "//1");
+    EXPECT_EQ(S("0///1"    ).gpop_right('/', true),   "1");
+    EXPECT_EQ(S("0///1/"   ).gpop_right('/'      ), "//1/");
+    EXPECT_EQ(S("0///1/"   ).gpop_right('/', true),   "1/");
+    EXPECT_EQ(S("0///1//"  ).gpop_right('/'      ), "//1//");
+    EXPECT_EQ(S("0///1//"  ).gpop_right('/', true),   "1//");
+    EXPECT_EQ(S("0///1///" ).gpop_right('/'      ), "//1///");
+    EXPECT_EQ(S("0///1///" ).gpop_right('/', true),   "1///");
+
+
+    EXPECT_EQ(S("/0/1"      ).gpop_right('/'      ), "0/1");
+    EXPECT_EQ(S("/0/1"      ).gpop_right('/', true),   "1");
+    EXPECT_EQ(S("/0/1/"     ).gpop_right('/'      ), "0/1/");
+    EXPECT_EQ(S("/0/1/"     ).gpop_right('/', true),   "1/");
+    EXPECT_EQ(S("/0/1//"    ).gpop_right('/'      ), "0/1//");
+    EXPECT_EQ(S("/0/1//"    ).gpop_right('/', true),   "1//");
+    EXPECT_EQ(S("/0/1///"   ).gpop_right('/'      ), "0/1///");
+    EXPECT_EQ(S("/0/1///"   ).gpop_right('/', true),   "1///");
+
+    EXPECT_EQ(S("/0//1"     ).gpop_right('/'      ), "0//1");
+    EXPECT_EQ(S("/0//1"     ).gpop_right('/', true),    "1");
+    EXPECT_EQ(S("/0//1/"    ).gpop_right('/'      ), "0//1/");
+    EXPECT_EQ(S("/0//1/"    ).gpop_right('/', true),    "1/");
+    EXPECT_EQ(S("/0//1//"   ).gpop_right('/'      ), "0//1//");
+    EXPECT_EQ(S("/0//1//"   ).gpop_right('/', true),    "1//");
+    EXPECT_EQ(S("/0//1///"  ).gpop_right('/'      ), "0//1///");
+    EXPECT_EQ(S("/0//1///"  ).gpop_right('/', true),    "1///");
+
+    EXPECT_EQ(S("/0///1"    ).gpop_right('/'      ), "0///1");
+    EXPECT_EQ(S("/0///1"    ).gpop_right('/', true),     "1");
+    EXPECT_EQ(S("/0///1/"   ).gpop_right('/'      ), "0///1/");
+    EXPECT_EQ(S("/0///1/"   ).gpop_right('/', true),     "1/");
+    EXPECT_EQ(S("/0///1//"  ).gpop_right('/'      ), "0///1//");
+    EXPECT_EQ(S("/0///1//"  ).gpop_right('/', true),     "1//");
+    EXPECT_EQ(S("/0///1///" ).gpop_right('/'      ), "0///1///");
+    EXPECT_EQ(S("/0///1///" ).gpop_right('/', true),     "1///");
+
+
+    EXPECT_EQ(S("//0/1"      ).gpop_right('/'      ), "/0/1");
+    EXPECT_EQ(S("//0/1"      ).gpop_right('/', true),    "1");
+    EXPECT_EQ(S("//0/1/"     ).gpop_right('/'      ), "/0/1/");
+    EXPECT_EQ(S("//0/1/"     ).gpop_right('/', true),    "1/");
+    EXPECT_EQ(S("//0/1//"    ).gpop_right('/'      ), "/0/1//");
+    EXPECT_EQ(S("//0/1//"    ).gpop_right('/', true),    "1//");
+    EXPECT_EQ(S("//0/1///"   ).gpop_right('/'      ), "/0/1///");
+    EXPECT_EQ(S("//0/1///"   ).gpop_right('/', true),    "1///");
+
+    EXPECT_EQ(S("//0//1"     ).gpop_right('/'      ), "/0//1");
+    EXPECT_EQ(S("//0//1"     ).gpop_right('/', true),     "1");
+    EXPECT_EQ(S("//0//1/"    ).gpop_right('/'      ), "/0//1/");
+    EXPECT_EQ(S("//0//1/"    ).gpop_right('/', true),     "1/");
+    EXPECT_EQ(S("//0//1//"   ).gpop_right('/'      ), "/0//1//");
+    EXPECT_EQ(S("//0//1//"   ).gpop_right('/', true),     "1//");
+    EXPECT_EQ(S("//0//1///"  ).gpop_right('/'      ), "/0//1///");
+    EXPECT_EQ(S("//0//1///"  ).gpop_right('/', true),     "1///");
+
+    EXPECT_EQ(S("//0///1"    ).gpop_right('/'      ), "/0///1");
+    EXPECT_EQ(S("//0///1"    ).gpop_right('/', true),      "1");
+    EXPECT_EQ(S("//0///1/"   ).gpop_right('/'      ), "/0///1/");
+    EXPECT_EQ(S("//0///1/"   ).gpop_right('/', true),      "1/");
+    EXPECT_EQ(S("//0///1//"  ).gpop_right('/'      ), "/0///1//");
+    EXPECT_EQ(S("//0///1//"  ).gpop_right('/', true),      "1//");
+    EXPECT_EQ(S("//0///1///" ).gpop_right('/'      ), "/0///1///");
+    EXPECT_EQ(S("//0///1///" ).gpop_right('/', true),      "1///");
+
+
+    EXPECT_EQ(S("0"      ).gpop_right('/'      ), "");
+    EXPECT_EQ(S("0"      ).gpop_right('/', true), "");
+    EXPECT_EQ(S("0/"     ).gpop_right('/'      ), "");
+    EXPECT_EQ(S("0/"     ).gpop_right('/', true), "");
+    EXPECT_EQ(S("0//"    ).gpop_right('/'      ), "/");
+    EXPECT_EQ(S("0//"    ).gpop_right('/', true), "");
+    EXPECT_EQ(S("0///"   ).gpop_right('/'      ), "//");
+    EXPECT_EQ(S("0///"   ).gpop_right('/', true), "");
+
+    EXPECT_EQ(S("/0"      ).gpop_right('/'      ), "0");
+    EXPECT_EQ(S("/0"      ).gpop_right('/', true), "");
+    EXPECT_EQ(S("/0/"     ).gpop_right('/'      ), "0/");
+    EXPECT_EQ(S("/0/"     ).gpop_right('/', true), "");
+    EXPECT_EQ(S("/0//"    ).gpop_right('/'      ), "0//");
+    EXPECT_EQ(S("/0//"    ).gpop_right('/', true), "");
+    EXPECT_EQ(S("/0///"   ).gpop_right('/'      ), "0///");
+    EXPECT_EQ(S("/0///"   ).gpop_right('/', true), "");
+
+    EXPECT_EQ(S("//0"      ).gpop_right('/'      ), "/0");
+    EXPECT_EQ(S("//0"      ).gpop_right('/', true), "");
+    EXPECT_EQ(S("//0/"     ).gpop_right('/'      ), "/0/");
+    EXPECT_EQ(S("//0/"     ).gpop_right('/', true), "");
+    EXPECT_EQ(S("//0//"    ).gpop_right('/'      ), "/0//");
+    EXPECT_EQ(S("//0//"    ).gpop_right('/', true), "");
+    EXPECT_EQ(S("//0///"   ).gpop_right('/'      ), "/0///");
+    EXPECT_EQ(S("//0///"   ).gpop_right('/', true), "");
+
+    EXPECT_EQ(S("///0"      ).gpop_right('/'      ), "//0");
+    EXPECT_EQ(S("///0"      ).gpop_right('/', true), "");
+    EXPECT_EQ(S("///0/"     ).gpop_right('/'      ), "//0/");
+    EXPECT_EQ(S("///0/"     ).gpop_right('/', true), "");
+    EXPECT_EQ(S("///0//"    ).gpop_right('/'      ), "//0//");
+    EXPECT_EQ(S("///0//"    ).gpop_right('/', true), "");
+    EXPECT_EQ(S("///0///"   ).gpop_right('/'      ), "//0///");
+    EXPECT_EQ(S("///0///"   ).gpop_right('/', true), "");
+
+    EXPECT_EQ(S("/"        ).gpop_right('/'      ), "");
+    EXPECT_EQ(S("/"        ).gpop_right('/', true), "");
+    EXPECT_EQ(S("//"       ).gpop_right('/'      ), "/");
+    EXPECT_EQ(S("//"       ).gpop_right('/', true), "");
+    EXPECT_EQ(S("///"      ).gpop_right('/'      ), "//");
+    EXPECT_EQ(S("///"      ).gpop_right('/', true), "");
+
+    EXPECT_EQ(S(""         ).gpop_right('/'      ), "");
+    EXPECT_EQ(S(""         ).gpop_right('/', true), "");
+}
+
+TEST(substr, basename)
+{
+    using S = csubstr;
+    EXPECT_EQ(S("0/1/2").basename(), "2");
+    EXPECT_EQ(S("0/1/2/").basename(), "2");
+    EXPECT_EQ(S("0/1/2///").basename(), "2");
+    EXPECT_EQ(S("/0/1/2").basename(), "2");
+    EXPECT_EQ(S("/0/1/2/").basename(), "2");
+    EXPECT_EQ(S("/0/1/2///").basename(), "2");
+    EXPECT_EQ(S("///0/1/2").basename(), "2");
+    EXPECT_EQ(S("///0/1/2/").basename(), "2");
+    EXPECT_EQ(S("///0/1/2///").basename(), "2");
+    EXPECT_EQ(S("/").basename(), "");
+    EXPECT_EQ(S("//").basename(), "");
+    EXPECT_EQ(S("///").basename(), "");
+    EXPECT_EQ(S("////").basename(), "");
+    EXPECT_EQ(S("").basename(), "");
+}
+
+TEST(substr, dirname)
+{
+    using S = csubstr;
+    EXPECT_EQ(S("0/1/2").dirname(), "0/1/");
+    EXPECT_EQ(S("0/1/2/").dirname(), "0/1/");
+    EXPECT_EQ(S("/0/1/2").dirname(), "/0/1/");
+    EXPECT_EQ(S("/0/1/2/").dirname(), "/0/1/");
+    EXPECT_EQ(S("///0/1/2").dirname(), "///0/1/");
+    EXPECT_EQ(S("///0/1/2/").dirname(), "///0/1/");
+    EXPECT_EQ(S("/0").dirname(), "/");
+    EXPECT_EQ(S("/").dirname(), "/");
+    EXPECT_EQ(S("//").dirname(), "//");
+    EXPECT_EQ(S("///").dirname(), "///");
+    EXPECT_EQ(S("////").dirname(), "////");
+    EXPECT_EQ(S("").dirname(), "");
+}
+
+TEST(substr, next_split)
+{
+    using S = csubstr;
+
+    {
+        S const n;
+        typename S::size_type pos = 0;
+        S ss;
+        EXPECT_EQ(n.next_split(':', &pos, &ss), false);
+        EXPECT_EQ(ss.empty(), true);
+        EXPECT_EQ(n.next_split(':', &pos, &ss), false);
+        EXPECT_EQ(ss.empty(), true);
+        pos = 0;
+        EXPECT_EQ(n.next_split(',', &pos, &ss), false);
+        EXPECT_EQ(ss.empty(), true);
+        EXPECT_EQ(n.next_split(',', &pos, &ss), false);
+        EXPECT_EQ(ss.empty(), true);
+    }
+
+    {
+        S const n("0");
+        typename S::size_type pos = 0;
+        S ss;
+        EXPECT_EQ(n.next_split(':', &pos, &ss), true);
+        EXPECT_EQ(ss.empty(), false);
+        EXPECT_EQ(n.next_split(':', &pos, &ss), false);
+        EXPECT_EQ(ss.empty(), true);
+        EXPECT_EQ(n.next_split(':', &pos, &ss), false);
+        EXPECT_EQ(ss.empty(), true);
+        pos = 0;
+        EXPECT_EQ(n.next_split(',', &pos, &ss), true);
+        EXPECT_EQ(ss.empty(), false);
+        EXPECT_EQ(n.next_split(',', &pos, &ss), false);
+        EXPECT_EQ(ss.empty(), true);
+        EXPECT_EQ(n.next_split(',', &pos, &ss), false);
+        EXPECT_EQ(ss.empty(), true);
+    }
+
+    {
+        S const n;
+        typename S::size_type pos = 0;
+        typename S::size_type count = 0;
+        S ss;
+        while(n.next_split(':', &pos, &ss))
+        {
+            ++count;
+        }
+        EXPECT_EQ(count, 0);
+    }
+
+    {
+        S const n("0123456");
+        typename S::size_type pos = 0;
+        typename S::size_type count = 0;
+        S ss;
+        while(n.next_split(':', &pos, &ss))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), n.size());
+                EXPECT_EQ(ss.empty(), false);
+                break;
+            default:
+                GTEST_FAIL();
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 1);
+    }
+
+    {
+        S const n("0123456:");
+        typename S::size_type pos = 0;
+        typename S::size_type count = 0;
+        S ss;
+        while(n.next_split(':', &pos, &ss))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), n.size()-1);
+                EXPECT_EQ(ss.empty(), false);
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            default:
+                GTEST_FAIL();
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 2);
+    }
+
+    {
+        S const n(":0123456:");
+        typename S::size_type pos = 0;
+        typename S::size_type count = 0;
+        S ss;
+        while(n.next_split(':', &pos, &ss))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), n.size()-2);
+                EXPECT_EQ(ss.empty(), false);
+                break;
+            case 2:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            default:
+                GTEST_FAIL();
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 3);
+    }
+
+    {
+        S const n(":");
+        typename S::size_type pos = 0;
+        typename S::size_type count = 0;
+        S ss;
+        while(n.next_split(':', &pos, &ss))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            default:
+                GTEST_FAIL();
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 2);
+    }
+
+    {
+        S const n("01:23:45:67");
+        typename S::size_type pos = 0;
+        typename S::size_type count = 0;
+        S ss;
+        while(n.next_split(':', &pos, &ss))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "01");
+                EXPECT_NE(ss, "01:");
+                EXPECT_NE(ss, ":01:");
+                EXPECT_NE(ss, ":01");
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "23");
+                EXPECT_NE(ss, "23:");
+                EXPECT_NE(ss, ":23:");
+                EXPECT_NE(ss, ":23");
+                break;
+            case 2:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "45");
+                EXPECT_NE(ss, "45:");
+                EXPECT_NE(ss, ":45:");
+                EXPECT_NE(ss, ":45");
+                break;
+            case 3:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "67");
+                EXPECT_NE(ss, "67:");
+                EXPECT_NE(ss, ":67:");
+                EXPECT_NE(ss, ":67");
+                break;
+            default:
+                GTEST_FAIL();
+                break;
+            }
+            count++;
+        }
+        EXPECT_EQ(count, 4);
+    }
+
+    {
+        const S n(":01:23:45:67:");
+        typename S::size_type pos = 0;
+        typename S::size_type count = 0;
+        S ss;
+        while(n.next_split(':', &pos, &ss))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "01");
+                EXPECT_NE(ss, "01:");
+                EXPECT_NE(ss, ":01:");
+                EXPECT_NE(ss, ":01");
+                break;
+            case 2:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "23");
+                EXPECT_NE(ss, "23:");
+                EXPECT_NE(ss, ":23:");
+                EXPECT_NE(ss, ":23");
+                break;
+            case 3:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "45");
+                EXPECT_NE(ss, "45:");
+                EXPECT_NE(ss, ":45:");
+                EXPECT_NE(ss, ":45");
+                break;
+            case 4:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "67");
+                EXPECT_NE(ss, "67:");
+                EXPECT_NE(ss, ":67:");
+                EXPECT_NE(ss, ":67");
+                break;
+            case 5:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            default:
+                GTEST_FAIL();
+                break;
+            }
+            count++;
+        }
+        EXPECT_EQ(count, 6);
+    }
+
+    {
+        const S n("::::01:23:45:67::::");
+        typename S::size_type pos = 0;
+        typename S::size_type count = 0;
+        S ss;
+        while(n.next_split(':', &pos, &ss))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 2:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 3:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 4:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "01");
+                EXPECT_NE(ss, "01:");
+                EXPECT_NE(ss, ":01:");
+                EXPECT_NE(ss, ":01");
+                break;
+            case 5:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "23");
+                EXPECT_NE(ss, "23:");
+                EXPECT_NE(ss, ":23:");
+                EXPECT_NE(ss, ":23");
+                break;
+            case 6:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "45");
+                EXPECT_NE(ss, "45:");
+                EXPECT_NE(ss, ":45:");
+                EXPECT_NE(ss, ":45");
+                break;
+            case 7:
+                EXPECT_EQ(ss.size(), 2);
+                EXPECT_EQ(ss, "67");
+                EXPECT_NE(ss, "67:");
+                EXPECT_NE(ss, ":67:");
+                EXPECT_NE(ss, ":67");
+                break;
+            case 8:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 9:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 10:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 11:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            default:
+                GTEST_FAIL();
+                break;
+            }
+            count++;
+        }
+        EXPECT_EQ(count, 12);
+    }
+}
+
+TEST(substr, split)
+{
+    using S = csubstr;
+
+    {
+        S const n;
+        {
+            auto spl = n.split(':');
+            auto beg = spl.begin();
+            auto end = spl.end();
+            EXPECT_EQ(beg, end);
+        }
+    }
+
+    {
+        S const n("foo:bar:baz");
+        auto spl = n.split(':');
+        auto beg = spl.begin();
+        auto end = spl.end();
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(end->size(), 0);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        auto it = beg;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "foo");
+        EXPECT_NE(it, end);
+        EXPECT_EQ(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        ++it;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "bar");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        ++it;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "baz");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        ++it;
+        EXPECT_EQ(it->size(), 0);
+        EXPECT_EQ(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        it = beg;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "foo");
+        EXPECT_NE(it, end);
+        EXPECT_EQ(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        it++;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "bar");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        it++;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "baz");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        it++;
+        EXPECT_EQ(it->size(), 0);
+        EXPECT_EQ(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+    }
+
+    {
+        S const n("foo:bar:baz:");
+        auto spl = n.split(':');
+        auto beg = spl.begin();
+        auto end = spl.end();
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(end->size(), 0);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        auto it = beg;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "foo");
+        EXPECT_NE(it, end);
+        EXPECT_EQ(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        ++it;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "bar");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        ++it;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "baz");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        ++it;
+        EXPECT_EQ(it->size(), 0);
+        EXPECT_EQ(*it, "");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        ++it;
+        EXPECT_EQ(it->size(), 0);
+        EXPECT_EQ(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        //--------------------------
+        it = beg;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "foo");
+        EXPECT_NE(it, end);
+        EXPECT_EQ(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        it++;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "bar");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        it++;
+        EXPECT_EQ(it->size(), 3);
+        EXPECT_EQ(*it, "baz");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        it++;
+        EXPECT_EQ(it->size(), 0);
+        EXPECT_EQ(*it, "");
+        EXPECT_NE(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+        it++;
+        EXPECT_EQ(it->size(), 0);
+        EXPECT_EQ(it, end);
+        EXPECT_NE(it, beg);
+        EXPECT_EQ(beg->size(), 3);
+        EXPECT_EQ(*beg, "foo");
+        EXPECT_NE(beg, end);
+    }
+
+    {
+        S const n;
+        auto s = n.split(':');
+        // check that multiple calls to begin() always yield the same result
+        EXPECT_EQ(*s.begin(), "");
+        EXPECT_EQ(*s.begin(), "");
+        EXPECT_EQ(*s.begin(), "");
+        // check that multiple calls to end() always yield the same result
+        auto e = s.end();
+        EXPECT_EQ(s.end(), e);
+        EXPECT_EQ(s.end(), e);
+        //
+        auto it = s.begin();
+        EXPECT_EQ(*it, "");
+        EXPECT_EQ(it->empty(), true);
+        EXPECT_EQ(it->size(), 0);
+        ++it;
+        EXPECT_EQ(it, e);
+    }
+
+    {
+        S const n("01:23:45:67");
+        auto s = n.split(':');
+        // check that multiple calls to begin() always yield the same result
+        EXPECT_EQ(*s.begin(), "01");
+        EXPECT_EQ(*s.begin(), "01");
+        EXPECT_EQ(*s.begin(), "01");
+        // check that multiple calls to end() always yield the same result
+        auto e = s.end();
+        EXPECT_EQ(s.end(), e);
+        EXPECT_EQ(s.end(), e);
+        EXPECT_EQ(s.end(), e);
+        //
+        auto it = s.begin();
+        EXPECT_EQ(*it, "01");
+        EXPECT_EQ(it->size(), 2);
+        ++it;
+        EXPECT_EQ(*it, "23");
+        EXPECT_EQ(it->size(), 2);
+        ++it;
+        EXPECT_EQ(*it, "45");
+        EXPECT_EQ(it->size(), 2);
+        ++it;
+        EXPECT_EQ(*it, "67");
+        EXPECT_EQ(it->size(), 2);
+        ++it;
+        EXPECT_EQ(it, s.end());
+    }
+
+    {
+        S const n;
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            ++count;
+        }
+        EXPECT_EQ(count, 0);
+    }
+
+    {
+        S const n("0123456");
+        {
+            auto spl = n.split(':');
+            auto beg = spl.begin();
+            auto end = spl.end();
+            EXPECT_EQ(beg->size(), n.size());
+            EXPECT_EQ(end->size(), 0);
+        }
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), n.size());
+                EXPECT_EQ(ss.empty(), false);
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 1);
+    }
+
+    {
+        S const n("foo:bar");
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 3);
+                EXPECT_EQ(ss.empty(), false);
+                EXPECT_EQ(ss, "foo");
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 3);
+                EXPECT_EQ(ss.empty(), false);
+                EXPECT_EQ(ss, "bar");
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 2);
+    }
+
+    {
+        S const n("0123456:");
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), n.size()-1);
+                EXPECT_EQ(ss.empty(), false);
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 2);
+    }
+
+    {
+        S const n(":0123456:");
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), n.size()-2);
+                EXPECT_EQ(ss.empty(), false);
+                break;
+            case 2:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 3);
+    }
+
+    {
+        S const n(":");
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            }
+            ++count;
+        }
+        EXPECT_EQ(count, 2);
+    }
+
+    {
+        S const n("01:23:45:67");
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss, "01");
+                EXPECT_NE(ss, "01:");
+                EXPECT_NE(ss, ":01:");
+                EXPECT_NE(ss, ":01");
+                break;
+            case 1:
+                EXPECT_EQ(ss, "23");
+                EXPECT_NE(ss, "23:");
+                EXPECT_NE(ss, ":23:");
+                EXPECT_NE(ss, ":23");
+                break;
+            case 2:
+                EXPECT_EQ(ss, "45");
+                EXPECT_NE(ss, "45:");
+                EXPECT_NE(ss, ":45:");
+                EXPECT_NE(ss, ":45");
+                break;
+            case 3:
+                EXPECT_EQ(ss, "67");
+                EXPECT_NE(ss, "67:");
+                EXPECT_NE(ss, ":67:");
+                EXPECT_NE(ss, ":67");
+                break;
+            }
+            count++;
+        }
+        EXPECT_EQ(count, 4);
+    }
+
+    {
+        const S n(":01:23:45:67:");
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            case 1:
+                EXPECT_EQ(ss, "01");
+                EXPECT_NE(ss, "01:");
+                EXPECT_NE(ss, ":01:");
+                EXPECT_NE(ss, ":01");
+                break;
+            case 2:
+                EXPECT_EQ(ss, "23");
+                EXPECT_NE(ss, "23:");
+                EXPECT_NE(ss, ":23:");
+                EXPECT_NE(ss, ":23");
+                break;
+            case 3:
+                EXPECT_EQ(ss, "45");
+                EXPECT_NE(ss, "45:");
+                EXPECT_NE(ss, ":45:");
+                EXPECT_NE(ss, ":45");
+                break;
+            case 4:
+                EXPECT_EQ(ss, "67");
+                EXPECT_NE(ss, "67:");
+                EXPECT_NE(ss, ":67:");
+                EXPECT_NE(ss, ":67");
+                break;
+            case 5:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                break;
+            }
+            count++;
+        }
+        EXPECT_EQ(count, 6);
+    }
+
+    {
+        const S n("::::01:23:45:67::::");
+        typename S::size_type count = 0;
+        for(auto &ss : n.split(':'))
+        {
+            switch(count)
+            {
+            case 0:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 1:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 2:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 3:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 4:
+                EXPECT_EQ(ss, "01");
+                EXPECT_NE(ss, "01:");
+                EXPECT_NE(ss, ":01:");
+                EXPECT_NE(ss, ":01");
+                break;
+            case 5:
+                EXPECT_EQ(ss, "23");
+                EXPECT_NE(ss, "23:");
+                EXPECT_NE(ss, ":23:");
+                EXPECT_NE(ss, ":23");
+                break;
+            case 6:
+                EXPECT_EQ(ss, "45");
+                EXPECT_NE(ss, "45:");
+                EXPECT_NE(ss, ":45:");
+                EXPECT_NE(ss, ":45");
+                break;
+            case 7:
+                EXPECT_EQ(ss, "67");
+                EXPECT_NE(ss, "67:");
+                EXPECT_NE(ss, ":67:");
+                EXPECT_NE(ss, ":67");
+                break;
+            case 8:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 9:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 10:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            case 11:
+                EXPECT_EQ(ss.size(), 0);
+                EXPECT_EQ(ss.empty(), true);
+                EXPECT_NE(ss, "::");
+                break;
+            }
+            count++;
+        }
+        EXPECT_EQ(count, 12);
+    }
+}
 
 } // namespace c4
