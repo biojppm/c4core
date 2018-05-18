@@ -406,14 +406,14 @@ public:
 
 public:
 
-    inline size_t find(const C c) const
+    inline size_t find(const C c, size_t start_pos=0) const
     {
-        return first_of(c);
+        return first_of(c, start_pos);
     }
-    inline size_t find(basic_csubstr chars) const
+    inline size_t find(basic_csubstr chars, size_t start_pos=0) const
     {
         if(len < chars.len) return npos;
-        for(size_t i = 0, e = len - chars.len + 1; i < e; ++i)
+        for(size_t i = start_pos, e = len - chars.len + 1; i < e; ++i)
         {
             bool gotit = true;
             for(size_t j = 0; j < chars.len; ++j)
