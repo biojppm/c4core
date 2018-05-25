@@ -218,7 +218,7 @@ C4_END_NAMESPACE(c4)
 #endif
 
 /** @def C4_VA_LIST_REUSE_MUST_COPY
- * @todo I strongly suspect that this is actually only in UNIX platforms. revisit this. */
+ * @todo <jpmag> I strongly suspect that this is actually only in UNIX platforms. revisit this. */
 #ifdef __GNUC__
 #   define C4_VA_LIST_REUSE_MUST_COPY
 #endif

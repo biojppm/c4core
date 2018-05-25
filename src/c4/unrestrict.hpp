@@ -1,5 +1,4 @@
-#ifndef _C4_UNRESTRICT_HPP_
-#define _C4_UNRESTRICT_HPP_
+#ifdef _C4_RESTRICT_HPP_ // must match the include guard from restrict.hpp
 
 /** @file unrestrict.hpp cleans up restrict macros  */
 
@@ -14,4 +13,6 @@
 #undef  c$
 #undef c$$
 
-#endif /* _C4_UNRESTRICT_HPP_ */
+#undef _C4_RESTRICT_HPP_
+
+#endif /* _C4_RESTRICT_HPP_ */

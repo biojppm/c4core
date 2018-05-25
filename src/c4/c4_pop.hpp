@@ -1,5 +1,4 @@
-#ifndef _C4_POP_HPP_
-#define _C4_POP_HPP_
+#ifdef _C4_PUSH_HPP_ // this must match the include guard from c4_push
 
 #include "c4/unrestrict.hpp"
 
@@ -7,4 +6,6 @@
 #   pragma warning(pop)
 #endif
 
-#endif /* _C4_POP_HPP_ */
+#undef _C4_PUSH_HPP_
+
+#endif /* _C4_PUSH_HPP_ */
