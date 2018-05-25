@@ -1,6 +1,8 @@
 set(src
     c4/allocator.hpp
     c4/bitmask.hpp
+    c4/c4_pop.hpp
+    c4/c4_push.hpp
     c4/char_traits.cpp
     c4/char_traits.hpp
     c4/common.hpp
@@ -20,6 +22,7 @@ set(src
     c4/memory_util.hpp
     c4/platform.hpp
     c4/preprocessor.hpp
+    c4/restrict.hpp
     c4/span.hpp
     c4/std/std.hpp
     c4/std/string.hpp
@@ -33,6 +36,7 @@ set(src
     c4/to_str.cpp
     c4/type_name.hpp
     c4/types.hpp
+    c4/unrestrict.hpp
     c4/windows.hpp
     c4/c4core.natvis
 )
