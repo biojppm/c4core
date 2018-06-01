@@ -128,6 +128,19 @@ public:
         return erase(sub.str - _c4cthis->str, sub.len);
     }
 
+public:
+
+    bool replace_all(C value, C repl, size_t pos=Impl::npos)
+    {
+        bool did_it = false;
+        while((pos = Impl::find(value, pos)) != Impl::npos)
+        {
+            _c4this->str[pos++] = repl;
+            did_it = true;
+        }
+        return did_it;
+    }
+
 #undef _c4this
 #undef _c4cthis
 };
