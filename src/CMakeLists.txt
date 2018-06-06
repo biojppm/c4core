@@ -38,6 +38,8 @@ set(src
     c4/types.hpp
     c4/unrestrict.hpp
     c4/windows.hpp
+    c4/windows_pop.hpp
+    c4/windows_push.hpp
     c4/c4core.natvis
 )
 

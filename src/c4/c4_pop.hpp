@@ -2,6 +2,10 @@
 
 #include "c4/unrestrict.hpp"
 
+#ifdef C4_WIN
+#   include "c4/windows_pop.hpp"
+#endif
+
 #ifdef _MSC_VER
 #   pragma warning(pop)
 #endif
