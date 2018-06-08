@@ -7,7 +7,6 @@
 #include "c4/platform.hpp"
 #include "c4/cpu.hpp"
 #include "c4/compiler.hpp"
-#include "c4/windows.hpp"
 #include "c4/language.hpp"
 #include "c4/error.hpp"
 #include "c4/time.hpp"
