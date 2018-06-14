@@ -932,7 +932,12 @@ public:
 public:
 
     /** pop right: return the first split from the right. Use
-     * gpop_left() to get the reciprocal part. */
+     * gpop_left() to get the reciprocal part.
+     * pop_right() can be used to retrieve the extension of a filename:
+     * @begincode
+     *   auto ext = s.pop_right('.');
+     * @endcode
+     */
     basic_substring pop_right(C sep=C('/'), bool skip_empty=false) const
     {
         if(C4_LIKELY(len > 1))
