@@ -14,9 +14,9 @@
 #   endif
 #endif
 
-#define   $      * __restrict__ ///< a restricted pointer
-#define  $$      & __restrict__ ///< a restricted reference
-#define  c$ const* __restrict__ ///< a restricted pointer to const data
-#define c$$ const& __restrict__ ///< a restricted reference to const data
+#define   $      * __restrict__ //!< a restricted pointer
+#define  $$      & __restrict__ //!< a restricted reference
+#define  c$ const* __restrict__ //!< a restricted pointer to const data
+#define c$$ const& __restrict__ //!< a restricted reference to const data
 
 #endif /* _C4_RESTRICT_HPP_ */
