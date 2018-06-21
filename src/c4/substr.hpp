@@ -425,6 +425,7 @@ public:
     }
     inline size_t find(basic_csubstr chars, size_t start_pos=0) const
     {
+        C4_ASSERT(start_pos == npos || (start_pos >= 0 && start_pos <= len));
         if(len < chars.len) return npos;
         for(size_t i = start_pos, e = len - chars.len + 1; i < e; ++i)
         {
@@ -567,7 +568,7 @@ public:
 
     size_t first_of(const C c, size_t start=0) const
     {
-        C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
+        C4_ASSERT(start == npos || (start >= 0 && start <= len));
         for(size_t i = start; i < len; ++i)
         {
             if(str[i] == c) return i;
@@ -588,7 +589,7 @@ public:
 
     size_t first_of(basic_csubstr chars, size_t start=0) const
     {
-        C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
+        C4_ASSERT(start == npos || (start >= 0 && start <= len));
         for(size_t i = start; i < len; ++i)
         {
             for(size_t j = 0; j < chars.len; ++j)
@@ -679,6 +680,69 @@ public:
             }
         }
         return npos;
+    }
+
+public:
+
+    /** get the range delimited by a single open-close character (eg, quotes).
+     * The open-close character can be escaped. */
+    basic_substring pair_range_esc(CC open_close, CC escape=CC('\\'))
+    {
+        size_t b = find(open_close);
+        if(b == npos) return basic_substring();
+        size_t nest_level = 0;
+        for(size_t i = b+1; i < len; ++i)
+        {
+            CC c = str[i];
+            if(c == open_close)
+            {
+                if(str[i-1] != escape)
+                {
+                    return range(b, i+1);
+                }
+            }
+        }
+        return basic_substring();
+    }
+
+    /** get the range delimited by an open-close pair of characters.
+     * There must be no nested pairs.
+     * No checks for escapes are performed. */
+    basic_substring pair_range(CC open, CC close) const
+    {
+        size_t b = find(open);
+        if(b == npos) return basic_substring();
+        size_t e = find(close, b+1);
+        if(e == npos) return basic_substring();
+        basic_substring ret = range(b, e+1);
+        C4_ASSERT(ret.sub(1).find(open) == npos);
+        return ret;
+    }
+
+    /** get the range delimited by an open-close pair of characters,
+     * with possibly nested occurrences. No checks for escapes are
+     * performed. */
+    basic_substring pair_range_nested(CC open, CC close) const
+    {
+        size_t b = find(open);
+        if(b == npos) return basic_substring();
+        size_t e, curr = b+1, count = 0;
+        const char both[] = {open, close, '\0'};
+        while((e = first_of(both, curr)) != npos)
+        {
+            if(str[e] == open)
+            {
+                ++count;
+                curr = e+1;
+            }
+            else if(str[e] == close)
+            {
+                if(count == 0) return range(b, e+1);
+                --count;
+                curr = e+1;
+            }
+        }
+        return basic_substring();
     }
 
 public:

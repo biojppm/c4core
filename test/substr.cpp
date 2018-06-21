@@ -277,6 +277,48 @@ TEST(substr, first_of_any)
     EXPECT_EQ(csubstr("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% elif bar %}" , "{% else %}"     , "{% endif %}", "{% if "      ).which, 3u);
 }
 
+
+TEST(substr, pair_range_esc)
+{
+    const char q = '\'';
+    EXPECT_EQ(csubstr("").pair_range_esc(q), "");
+    EXPECT_EQ(csubstr("'").pair_range_esc(q), "");
+    EXPECT_EQ(csubstr("''").pair_range_esc(q), "''");
+    EXPECT_EQ(csubstr("'\\'\\''").pair_range_esc(q), "'\\'\\''");
+    EXPECT_EQ(csubstr("asdasdasd''asdasd").pair_range_esc(q), "''");
+    EXPECT_EQ(csubstr("asdasdasd'abc'asdasda").pair_range_esc(q), "'abc'");
+}
+
+TEST(substr, pair_range)
+{
+    EXPECT_EQ(csubstr("").pair_range('{', '}'), "");
+    EXPECT_EQ(csubstr("{").pair_range('{', '}'), "");
+    EXPECT_EQ(csubstr("}").pair_range('{', '}'), "");
+    EXPECT_EQ(csubstr("{}").pair_range('{', '}'), "{}");
+    EXPECT_EQ(csubstr("{abc}").pair_range('{', '}'), "{abc}");
+    EXPECT_EQ(csubstr("123{abc}456").pair_range('{', '}'), "{abc}");
+}
+
+TEST(substr, pair_range_nested)
+{
+    EXPECT_EQ(csubstr("").pair_range_nested('{', '}'), "");
+    EXPECT_EQ(csubstr("{").pair_range_nested('{', '}'), "");
+    EXPECT_EQ(csubstr("}").pair_range_nested('{', '}'), "");
+    EXPECT_EQ(csubstr("{}").pair_range_nested('{', '}'), "{}");
+    EXPECT_EQ(csubstr("{abc}").pair_range_nested('{', '}'), "{abc}");
+    EXPECT_EQ(csubstr("123{abc}456").pair_range_nested('{', '}'), "{abc}");
+    EXPECT_EQ(csubstr("123{abc}456{def}").pair_range_nested('{', '}'), "{abc}");
+    EXPECT_EQ(csubstr(   "{{}}").pair_range_nested('{', '}'), "{{}}");
+    EXPECT_EQ(csubstr("123{{}}456").pair_range_nested('{', '}'), "{{}}");
+    EXPECT_EQ(csubstr(   "{a{}b{}c}").pair_range_nested('{', '}'), "{a{}b{}c}");
+    EXPECT_EQ(csubstr("123{a{}b{}c}456").pair_range_nested('{', '}'), "{a{}b{}c}");
+    EXPECT_EQ(csubstr(    "{a{{}}b{{}}c}").pair_range_nested('{', '}'), "{a{{}}b{{}}c}");
+    EXPECT_EQ(csubstr("123{a{{}}b{{}}c}456").pair_range_nested('{', '}'), "{a{{}}b{{}}c}");
+    EXPECT_EQ(csubstr(   "{{{}}a{{}}b{{}}c{{}}}").pair_range_nested('{', '}'), "{{{}}a{{}}b{{}}c{{}}}");
+    EXPECT_EQ(csubstr("123{{{}}a{{}}b{{}}c{{}}}456").pair_range_nested('{', '}'), "{{{}}a{{}}b{{}}c{{}}}");
+}
+
+
 TEST(substr, first_non_empty_span)
 {
     EXPECT_EQ(csubstr("foo bar").first_non_empty_span(), "foo");
