@@ -151,7 +151,7 @@ size_t utoa(substr buf, T v, T radix)
     return pos;
 }
 
-#undef _c4getrdxchar
+#undef _c4appendrdx
 #undef _c4append
 
 
