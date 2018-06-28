@@ -17,6 +17,51 @@
 
 namespace c4 {
 
+/** @defgroup lowlevel_tofrom_string
+ * Functions providing type-specific low-level conversion of values to and from string.
+ */
+
+/** @defgroup generic_tofrom_string
+ * Lightweight generic wrappers for converting individual values to/from strings.
+ * These functions generally just dispatch sto the proper low-level conversion function.
+ *
+ * These are the main functions:
+ *
+ * @code{.cpp}
+ *
+ * // Convert the given value, writing into the string.
+ * // The resulting string will NOT be null-terminated.
+ * // Return the number of characters needed.
+ * // This function is safe to call when the string is too small -
+ * // no writes will occur beyond the string's last character.
+ * template <class T> size_t to_str(substr buf, T const& val);
+ *
+ *
+ * // Convert the given value to a string using to_str(), and
+ * // return the resulting string, up and including to the last
+ * // written character.
+ * template <class T> substr to_str_sub(substr buf, T const& val);
+ *
+ *
+ * // read a value from the string, which must be
+ * // trimmed to the value (ie, no leading/trailing whitespace).
+ * // return true if the conversion succeeded
+ * template <class T> bool from_str(csubstr buf, T *val);
+ *
+ *
+ * // read the first valid sequence of characters from the string
+ * // and convert it using from_str().
+ * // Return the number of characters read for converting.
+ * template <class T> size_t from_str_trim(csubstr buf, T *val);
+ * @endcode
+ */
+
+/** @defgroup formatting_functions
+ * Convert a sequence of values to/from a string.
+ */
+
+
+/** @ingroup lowlevel_tofrom_string */
 typedef enum {
     /** print the real number in floating point format (like %f) */
     FTOA_FLOAT,
@@ -34,14 +79,20 @@ typedef enum {
 
 // Helper macros, undefined below
 
-// append chars to the buffer, without overflow. Always counts.
 #define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = (c); } else { ++pos; } }
 #define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
 
-template< class T >
+
+/** convert an integral signed decimal to a string.
+ * The resulting string is NOT zero-terminated.
+ * Writing stops at the buffer's end.
+ * @return the number of characters needed for the result, even if the buffer size is insufficient
+ * @ingroup lowlevel_tofrom_string */
+template <class T>
 size_t itoa(substr buf, T v)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
+    static_assert(std::is_signed<T>::value, "must be signed type");
     size_t pos = 0;
     if(v < 0)
     {
@@ -68,10 +119,16 @@ size_t itoa(substr buf, T v)
 }
 
 
-template< class T >
+/** convert an integral signed integer to a string, using a specific radix. The radix must be 2, 8, 10 or 16.
+ * The resulting string is NOT zero-terminated.
+ * Writing stops at the buffer's end.
+ * @return the number of characters needed for the result, even if the buffer size is insufficient
+ * @ingroup lowlevel_tofrom_string */
+template <class T>
 size_t itoa(substr buf, T v, T radix)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
+    static_assert(std::is_signed<T>::value, "must be signed type");
     constexpr static const char hexchars[] = "0123456789abcdef";
     size_t pos = 0;
 
@@ -106,6 +163,12 @@ size_t itoa(substr buf, T v, T radix)
 }
 
 //-----------------------------------------------------------------------------
+
+/** convert an integral unsigned decimal to a string.
+ * The resulting string is NOT zero-terminated.
+ * Writing stops at the buffer's end.
+ * @return the number of characters needed for the result, even if the buffer size is insufficient
+ * @ingroup lowlevel_tofrom_string */
 template< class T >
 size_t utoa(substr buf, T v)
 {
@@ -120,6 +183,12 @@ size_t utoa(substr buf, T v)
     return pos;
 }
 
+
+/** convert an integral unsigned integer to a string, using a specific radix. The radix must be 2, 8, 10 or 16.
+ * The resulting string is NOT zero-terminated.
+ * Writing stops at the buffer's end.
+ * @return the number of characters needed for the result, even if the buffer size is insufficient
+ * @ingroup lowlevel_tofrom_string */
 template< class T >
 size_t utoa(substr buf, T v, T radix)
 {
@@ -158,14 +227,25 @@ size_t utoa(substr buf, T v, T radix)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** @see atou */
-template< class T >
-inline bool atoi(csubstr str, T *v)
+
+
+/** Convert a trimmed string to a signed integral value. The value can be
+ * formatted as decimal, binary (prefix 0b), octal (prefix 0)
+ * or hexadecimal (prefix 0x). Every character in the input string is read 
+ * for the conversion; it must not contain any leading or trailing whitespace.
+ * @return true if the conversion was successful.
+ * @see atoi_trim() if the string is not trimmed to the value to read.
+ * @ingroup lowlevel_tofrom_string
+ */
+template <class T>
+bool atoi(csubstr str, T *v)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
+    static_assert(std::is_signed<T>::value, "must be signed type");
+
     C4_ASSERT(str.len > 0);
-    C4_ASSERT(!str.begins_with(' '));
-    C4_ASSERT(!str.ends_with(' '));
+    C4_ASSERT(str == str.first_int_span());
+
     T n = 0;
     T sign = 1;
     size_t start = 0;
@@ -188,7 +268,7 @@ inline bool atoi(csubstr str, T *v)
     {
         if(str.len == start+1)
         {
-            *v = 0;
+            *v = 0; // because the first character is 0
             return true;
         }
         else if(str.str[start+1] == 'x' || str.str[start+1] == 'X') // hexadecimal
@@ -221,7 +301,16 @@ inline bool atoi(csubstr str, T *v)
     return true;
 }
 
-template< class T >
+
+/** Select the next range of characters in the string that can be parsed
+ * as a signed integral value, and convert it using atoi(). Leading
+ * whitespace (space, newline, tabs) is skipped.
+ * @return the number of characters read for conversion, or csubstr::npos if the conversion failed
+ * @see atoi() if the string is already trimmed to the value to read.
+ * @see csubstr::first_int_span()
+ * @ingroup lowlevel_tofrom_string
+ */
+template <class T>
 inline size_t atoi_trim(csubstr str, T *v)
 {
     csubstr trimmed = str.first_int_span();
@@ -230,16 +319,24 @@ inline size_t atoi_trim(csubstr str, T *v)
     return csubstr::npos;
 }
 
+
 //-----------------------------------------------------------------------------
-/** @see atou */
+
+/** Convert a trimmed string to an unsigned integral value. The value can be
+ * formatted as decimal, binary (prefix 0b), octal (prefix 0)
+ * or hexadecimal (prefix 0x). Every character in the input string is read 
+ * for the conversion; it must not contain any leading or trailing whitespace.
+ * @return true if the conversion was successful.
+ * @see atou_trim() if the string is not trimmed to the value to read.
+ * @ingroup lowlevel_tofrom_string
+ */
 template< class T >
-inline bool atou(csubstr str, T *v)
+bool atou(csubstr str, T *v)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
     C4_ASSERT(str.len > 0);
-    C4_ASSERT(!str.begins_with(' '));
-    C4_ASSERT(!str.ends_with(' '));
     C4_ASSERT_MSG(str.str[0] != '-', "must be positive");
+    C4_ASSERT(str == str.first_uint_span());
 
     T n = 0;
 
@@ -256,7 +353,7 @@ inline bool atou(csubstr str, T *v)
     {
         if(str.len == 1)
         {
-            *v = 0;
+            *v = 0; // because the first character is 0
             return true;
         }
         else if(str.str[1] == 'x' || str.str[1] == 'X') // hexadecimal
@@ -289,6 +386,14 @@ inline bool atou(csubstr str, T *v)
 }
 
 
+/** Select the next range of characters in the string that can be parsed
+ * as an unsigned integral value, and convert it using atou(). Leading
+ * whitespace (space, newline, tabs) is skipped.
+ * @return the number of characters read for conversion, or csubstr::npos if the conversion faileds
+ * @see atou() if the string is already trimmed to the value to read.
+ * @see csubstr::first_uint_span()
+ * @ingroup lowlevel_tofrom_string
+ */
 template< class T >
 inline size_t atou_trim(csubstr str, T *v)
 {
@@ -302,8 +407,9 @@ inline size_t atou_trim(csubstr str, T *v)
 //-----------------------------------------------------------------------------
 
 namespace detail {
+
 /** @see http://www.exploringbinary.com/ for many good examples on float-str conversion */
-template< size_t N >
+template <size_t N>
 void get_real_format_str(char (&fmt)[N], int precision, RealFormat_e formatting, const char* length_modifier="")
 {
     char c;
@@ -341,8 +447,8 @@ void get_real_format_str(char (&fmt)[N], int precision, RealFormat_e formatting,
  * @see http://www.sparetimelabs.com/tinyprintf/tinyprintf.php (BSD)
  * @see https://github.com/weiss/c99-snprintf
  * @see https://github.com/nothings/stb/blob/master/stb_sprintf.h
- * */
-template< class T >
+ */
+template <class T>
 size_t print_one(substr str, const char* full_fmt, T v)
 {
 #ifdef _MSC_VER
@@ -372,7 +478,11 @@ size_t print_one(substr str, const char* full_fmt, T v)
 #endif
 }
 
-template< typename T >
+/** scans a string using the given type format, while at the same time
+ * allowing non-null-terminated strings AND guaranteeing that the given
+ * string length is strictly respected, so that no buffer overflows
+ * might occur. */
+template <typename T>
 inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 {
     /* snscanf() is absolutely needed here as we must be sure that
@@ -407,9 +517,12 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 
 } // namespace detail
 
-/**
- * For FTOA_FLEX, precision is the number of significand digits. Otherwise
- * precision is the number of decimals.
+
+/** Convert a single precision real number to string.
+ * The string will in general be NOT null-terminated.
+ * For FTOA_FLEX, \p precision is the number of significand digits. Otherwise
+ * \p precision is the number of decimals.
+ * @ingroup lowlevel_tofrom_string
  */
 inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
@@ -418,9 +531,13 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
     return detail::print_one(str, fmt, v);
 }
 
-/**
- * For FTOA_FLEX, precision is the number of significand digits. Otherwise
- * precision is the number of decimals.
+
+/** Convert a double precision real number to string.
+ * The string will in general be NOT null-terminated.
+ * For FTOA_FLEX, \p precision is the number of significand digits. Otherwise
+ * \p precision is the number of decimals.
+ * @return the number of characters written.
+ * @ingroup lowlevel_tofrom_string
  */
 inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
@@ -429,16 +546,40 @@ inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatti
     return detail::print_one(str, fmt, v);
 }
 
-inline size_t atof(csubstr str, float *v)
+
+/** Convert a string to a single precision real number.
+ * The input string must be trimmed to the value.
+ * @return true iff the conversion succeeded
+ * @ingroup lowlevel_tofrom_string
+ * @see atof_trim() if the string is not trimmed
+ */
+inline bool atof(csubstr str, float *v)
 {
-    return detail::scan_one(str, "g", v);
+    C4_ASSERT(str == str.first_real_span());
+    size_t ret = detail::scan_one(str, "g", v);
+    return ret != csubstr::npos;
 }
 
-inline size_t atod(csubstr str, double *v)
+
+/** Convert a string to a double precision real number.
+ * The input string must be trimmed to the value.
+ * @return true iff the conversion succeeded
+ * @ingroup lowlevel_tofrom_string
+ * @see atod_trim() if the string is not trimmed
+ */
+inline bool atod(csubstr str, double *v)
 {
-    return detail::scan_one(str, "lg", v);
+    C4_ASSERT(str == str.first_real_span());
+    size_t ret = detail::scan_one(str, "lg", v);
+    return ret != csubstr::npos;
 }
 
+
+/** Convert a string to a single precision real number.
+ * Leading whitespace is skipped until valid characters are found.
+ * @return true iff the conversion succeeded
+ * @ingroup lowlevel_tofrom_string
+ */
 inline size_t atof_trim(csubstr str, float *v)
 {
     csubstr trimmed = str.first_real_span();
@@ -447,6 +588,12 @@ inline size_t atof_trim(csubstr str, float *v)
     return csubstr::npos;
 }
 
+
+/** Convert a string to a double precision real number.
+ * Leading whitespace is skipped until valid characters are found.
+ * @return true iff the conversion succeeded
+ * @ingroup lowlevel_tofrom_string
+ */
 inline size_t atod_trim(csubstr str, double *v)
 {
     csubstr trimmed = str.first_real_span();
@@ -459,32 +606,38 @@ inline size_t atod_trim(csubstr str, double *v)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** @ingroup generic_tofrom_string */
 template< class T >
-inline substr to_str_sub(substr buf, T const& v)
+inline substr to_str_sub(substr buf, T const& C4_RESTRICT v)
 {
     size_t sz = to_str(buf, v);
     return buf.left_of(sz <= buf.len ? sz : buf.len);
 }
 
+//-----------------------------------------------------------------------------
 #define _C4_DEFINE_TO_FROM_STR_TOA(ty, id)              \
                                                         \
+/** @ingroup generic_tofrom_string */                   \
 inline size_t to_str(substr buf, ty v)                  \
 {                                                       \
     return id##toa(buf, v);                             \
 }                                                       \
                                                         \
-inline bool from_str(csubstr buf, ty *v)                \
+/** @ingroup generic_tofrom_string */                   \
+inline bool from_str(csubstr buf, ty *C4_RESTRICT v)    \
 {                                                       \
     return ato##id(buf, v);                             \
 }                                                       \
                                                         \
-inline size_t from_str_trim(csubstr buf, ty *v)         \
+/** @ingroup generic_tofrom_string */                   \
+inline size_t from_str_trim(csubstr buf, ty *C4_RESTRICT v) \
 {                                                       \
     return ato##id##_trim(buf, v);                      \
 }
 
 #ifdef _MSC_VER
 #define _C4_DEFINE_TO_STR(ty, pri_fmt)                                  \
+/** @ingroup generic_tofrom_string */                                   \
 inline size_t to_str(substr buf, ty v)                                  \
 {                                                                       \
     /** use _snprintf() to prevent early termination of the output      \
@@ -503,7 +656,8 @@ inline size_t to_str(substr buf, ty v)                                  \
     return ret;                                                         \
 }
 #else
-#define _C4_DEFINE_TO_STR(ty, pri_fmt)\
+#define _C4_DEFINE_TO_STR(ty, pri_fmt)                                  \
+/** @ingroup generic_tofrom_string */                                   \
 inline size_t to_str(substr buf, ty v)                                  \
 {                                                                       \
     int iret = snprintf(buf.str, buf.len, "%" pri_fmt, v);              \
@@ -522,6 +676,7 @@ inline size_t to_str(substr buf, ty v)                                  \
                                                                         \
 _C4_DEFINE_TO_STR(ty, pri_fmt)                                          \
                                                                         \
+/** @ingroup generic_tofrom_string */                                   \
 inline size_t from_str_trim(csubstr buf, ty *v)                         \
 {                                                                       \
     /* snscanf() is absolutely needed here as we must be sure that      \
@@ -551,6 +706,7 @@ inline size_t from_str_trim(csubstr buf, ty *v)                         \
     return (size_t)(num_chars);                                         \
 }                                                                       \
                                                                         \
+/** @ingroup generic_tofrom_string */                                   \
 inline bool from_str(csubstr buf, ty *v)                                \
 {                                                                       \
     size_t num = from_str_trim(buf, v);                                 \
@@ -585,12 +741,16 @@ _C4_DEFINE_TO_FROM_STR_TOA(uint64_t, u)
 
 
 //-----------------------------------------------------------------------------
+// bool implementation
+
+/** @ingroup generic_tofrom_string */
 inline size_t to_str(substr buf, bool v)
 {
     int val = v;
     return to_str(buf, val);
 }
 
+/** @ingroup generic_tofrom_string */
 inline bool from_str(csubstr buf, bool *v)
 {
     int val;
@@ -599,21 +759,27 @@ inline bool from_str(csubstr buf, bool *v)
     return ret;
 }
 
+/** @ingroup generic_tofrom_string */
 inline size_t from_str_trim(csubstr buf, bool *v)
 {
     int val;
     size_t ret = from_str_trim(buf, &val);
-    *v = val != 0;
+    *v = (val != 0);
     return ret;
 }
 
+
 //-----------------------------------------------------------------------------
+// single-char implementation
+
+/** @ingroup generic_tofrom_string */
 inline size_t to_str(substr buf, char v)
 {
     if(buf.len > 0) buf[0] = v;
     return 1;
 }
 
+/** @ingroup generic_tofrom_string */
 inline bool from_str(csubstr buf, char *v)
 {
     if(buf.len != 1) return false;
@@ -621,6 +787,7 @@ inline bool from_str(csubstr buf, char *v)
     return true;
 }
 
+/** @ingroup generic_tofrom_string */
 inline size_t from_str_trim(csubstr buf, char *v)
 {
     if(buf.len < 1) return csubstr::npos;
@@ -629,6 +796,9 @@ inline size_t from_str_trim(csubstr buf, char *v)
 }
 
 //-----------------------------------------------------------------------------
+// csubstr implementation
+
+/** @ingroup generic_tofrom_string */
 inline size_t to_str(substr buf, csubstr v)
 {
     size_t len = buf.len < v.len ? buf.len : v.len;
@@ -636,12 +806,14 @@ inline size_t to_str(substr buf, csubstr v)
     return v.len;
 }
 
+/** @ingroup generic_tofrom_string */
 inline bool from_str(csubstr buf, csubstr *v)
 {
     *v = buf;
     return true;
 }
 
+/** @ingroup generic_tofrom_string */
 inline size_t from_str_trim(substr buf, csubstr *v)
 {
     csubstr trimmed = buf.first_non_empty_span();
@@ -650,14 +822,19 @@ inline size_t from_str_trim(substr buf, csubstr *v)
     return trimmed.end() - buf.begin();
 }
 
+
 //-----------------------------------------------------------------------------
-inline size_t to_str(substr buf, substr const& v)
+// substr
+
+/** @ingroup generic_tofrom_string */
+inline size_t to_str(substr buf, substr v)
 {
     size_t len = buf.len < v.len ? buf.len : v.len;
     memcpy(buf.str, v.str, len);
     return v.len;
 }
 
+/** @ingroup generic_tofrom_string */
 inline bool from_str(csubstr buf, substr *v)
 {
     size_t len = buf.len > v->len ? v->len : buf.len;
@@ -665,6 +842,7 @@ inline bool from_str(csubstr buf, substr *v)
     return buf.len <= v->len;
 }
 
+/** @ingroup generic_tofrom_string */
 inline size_t from_str_trim(csubstr buf, substr *v)
 {
     csubstr trimmed = buf.first_non_empty_span();
@@ -677,6 +855,7 @@ inline size_t from_str_trim(csubstr buf, substr *v)
 
 //-----------------------------------------------------------------------------
 
+/** @ingroup generic_tofrom_string */
 template< size_t N >
 inline size_t to_str(substr buf, const char (&v)[N])
 {
@@ -684,6 +863,7 @@ inline size_t to_str(substr buf, const char (&v)[N])
     return to_str(buf, sp);
 }
 
+/** @ingroup generic_tofrom_string */
 inline size_t to_str(substr buf, const char *v)
 {
     return to_str(buf, to_csubstr(v));
@@ -693,7 +873,7 @@ inline size_t to_str(substr buf, const char *v)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
+// formatting floats and ints
 
 namespace detail {
 template< class T >
@@ -709,88 +889,83 @@ template< class T >
 struct int_formatter
 {
     T val;
-    uint8_t radix;
+    T radix;
     int_formatter(T val_, uint8_t radix_=10) : val(val_), radix(radix_) {}
 };
 } // namespace detail
 
-template< class T >
+/** @ingroup generic_tofrom_string */
+template <class T>
 struct fmt_wrapper;
 
 // define format settings for intrinsic types.
-// The references are needed for reading, in case a format_wrapper
-// is used to read
 
 template<> struct fmt_wrapper<   float > : public detail::float_formatter< float > { using detail::float_formatter< float >::float_formatter; };
-template<> struct fmt_wrapper<   float&> : public detail::float_formatter< float&> { using detail::float_formatter< float&>::float_formatter; };
 template<> struct fmt_wrapper<  double > : public detail::float_formatter<double > { using detail::float_formatter<double >::float_formatter; };
-template<> struct fmt_wrapper<  double&> : public detail::float_formatter<double&> { using detail::float_formatter<double&>::float_formatter; };
 template<> struct fmt_wrapper<  int8_t > : public detail::int_formatter<  int8_t > { using detail::int_formatter<  int8_t >::int_formatter; };
-template<> struct fmt_wrapper<  int8_t&> : public detail::int_formatter<  int8_t&> { using detail::int_formatter<  int8_t&>::int_formatter; };
 template<> struct fmt_wrapper< uint8_t > : public detail::int_formatter< uint8_t > { using detail::int_formatter< uint8_t >::int_formatter; };
-template<> struct fmt_wrapper< uint8_t&> : public detail::int_formatter< uint8_t&> { using detail::int_formatter< uint8_t&>::int_formatter; };
 template<> struct fmt_wrapper< int16_t > : public detail::int_formatter< int16_t > { using detail::int_formatter< int16_t >::int_formatter; };
-template<> struct fmt_wrapper< int16_t&> : public detail::int_formatter< int16_t&> { using detail::int_formatter< int16_t&>::int_formatter; };
 template<> struct fmt_wrapper<uint16_t > : public detail::int_formatter<uint16_t > { using detail::int_formatter<uint16_t >::int_formatter; };
-template<> struct fmt_wrapper<uint16_t&> : public detail::int_formatter<uint16_t&> { using detail::int_formatter<uint16_t&>::int_formatter; };
 template<> struct fmt_wrapper< int32_t > : public detail::int_formatter< int32_t > { using detail::int_formatter< int32_t >::int_formatter; };
-template<> struct fmt_wrapper< int32_t&> : public detail::int_formatter< int32_t&> { using detail::int_formatter< int32_t&>::int_formatter; };
 template<> struct fmt_wrapper<uint32_t > : public detail::int_formatter<uint32_t > { using detail::int_formatter<uint32_t >::int_formatter; };
-template<> struct fmt_wrapper<uint32_t&> : public detail::int_formatter<uint32_t&> { using detail::int_formatter<uint32_t&>::int_formatter; };
 template<> struct fmt_wrapper< int64_t > : public detail::int_formatter< int64_t > { using detail::int_formatter< int64_t >::int_formatter; };
-template<> struct fmt_wrapper< int64_t&> : public detail::int_formatter< int64_t&> { using detail::int_formatter< int64_t&>::int_formatter; };
 template<> struct fmt_wrapper<uint64_t > : public detail::int_formatter<uint64_t > { using detail::int_formatter<uint64_t >::int_formatter; };
-template<> struct fmt_wrapper<uint64_t&> : public detail::int_formatter<uint64_t&> { using detail::int_formatter<uint64_t&>::int_formatter; };
 
 
 
-/** mark a variable to be written in custom format */
+/** mark a variable to be written in custom format
+ * @ingroup generic_tofrom_string */
 template< class T, class... Args >
 inline fmt_wrapper<T> fmt(T v, Args && ...args)
 {
     return fmt_wrapper<T>(v, std::forward<Args>(args)...);
 }
 
-inline size_t to_str(substr buf, fmt_wrapper<   float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
-inline size_t to_str(substr buf, fmt_wrapper<  double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); }
-inline size_t to_str(substr buf, fmt_wrapper<  int8_t> fmt) { return itoa(buf, fmt.val, (  int8_t)fmt.radix); }
-inline size_t to_str(substr buf, fmt_wrapper< uint8_t> fmt) { return utoa(buf, fmt.val, ( uint8_t)fmt.radix); }
-inline size_t to_str(substr buf, fmt_wrapper< int16_t> fmt) { return itoa(buf, fmt.val, ( int16_t)fmt.radix); }
-inline size_t to_str(substr buf, fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, (uint16_t)fmt.radix); }
-inline size_t to_str(substr buf, fmt_wrapper< int32_t> fmt) { return itoa(buf, fmt.val, ( int32_t)fmt.radix); }
-inline size_t to_str(substr buf, fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, (uint32_t)fmt.radix); }
-inline size_t to_str(substr buf, fmt_wrapper< int64_t> fmt) { return itoa(buf, fmt.val, ( int64_t)fmt.radix); }
-inline size_t to_str(substr buf, fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, (uint64_t)fmt.radix); }
+inline size_t to_str(substr buf, fmt_wrapper<   float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper<  double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper<  int8_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper< uint8_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper< int16_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper< int32_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper< int64_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup generic_tofrom_string
+inline size_t to_str(substr buf, fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup generic_tofrom_string
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+// writing binary values
 
-/** @todo add custom alignment */
-template< class T >
+/** @todo add custom alignment
+ * @ingroup generic_tofrom_string */
+template <class T>
 struct binary_wrapper
 {
     T& val;
     binary_wrapper(T& v) : val(v) {}
 };
 
-/** mark a variable to be written in binary format */
+/** mark a variable to be written in binary format
+ * @ingroup generic_tofrom_string  */
 template< class T >
 inline binary_wrapper<T> fmtbin(T &v)
 {
     return binary_wrapper<T>(v);
 }
 
-/** write a variable in binary format */
+/** write a variable in binary format
+ * @ingroup generic_tofrom_string */
 template< class T >
 inline size_t to_str(substr buf, binary_wrapper<T> b)
 {
-    if(sizeof(T) > buf.len) return buf.len;
-    memcpy(buf.str, &b.val, sizeof(T));
+    if(sizeof(T) <= buf.len) memcpy(buf.str, &b.val, sizeof(T));
     return sizeof(T);
 }
 
-/** read a variable in binary format */
+/** read a variable in binary format
+ * @ingroup generic_tofrom_string */
 template< class T >
 inline size_t from_str(csubstr buf, binary_wrapper<T> *b)
 {
@@ -804,13 +979,21 @@ inline size_t from_str(csubstr buf, binary_wrapper<T> *b)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** terminates the variadic recursion
+ * @ingroup formatting_functions */
 inline size_t cat(substr /*buf*/)
 {
     return 0;
 }
 
-/** serialize the arguments to the given span.
- * @return the number of characters written to the buffer. */
+/** serialize the arguments, concatenating them to the given fixed-size buffer.
+ * The buffer size is strictly respected: no writes will occur beyond its end.
+ * @return the number of characters needed to write all the arguments into the buffer.
+ * @see catrs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see uncat() for the inverse function
+ * @see catsep() if a separator between each argument is to be used
+ * @see format() if a format string is desired
+ * @ingroup formatting_functions */
 template< class Arg, class... Args >
 size_t cat(substr buf, Arg const& a, Args const& ...more)
 {
@@ -820,15 +1003,22 @@ size_t cat(substr buf, Arg const& a, Args const& ...more)
     return num;
 }
 
+
+//-----------------------------------------------------------------------------
+
+/** terminates the variadic recursion
+ * @ingroup formatting_functions */
 inline size_t uncat(csubstr /*buf*/)
 {
     return 0;
 }
 
-/** deserialize the arguments from the given span.
+/** deserialize the arguments from the given buffer.
  *
- * @return the number of characters read from the buffer. If a
- * conversion was not successful, return npos. */
+ * @return the number of characters read from the buffer, or csubstr::npos
+ *   if a conversion was not successful
+ * @see cat(). uncat() is the inverse of cat().
+ * @ingroup formatting_functions */
 template< class Arg, class... Args >
 size_t uncat(csubstr buf, Arg & a, Args & ...more)
 {
@@ -890,6 +1080,15 @@ size_t uncatsep_more(csubstr buf, Sep & sep, Arg & a, Args & ...more)
 } // namespace detail
 
 
+/** serialize the arguments, concatenating them to the given fixed-size
+ * buffer, using a separator between each argument.
+ * The buffer size is strictly respected: no writes will occur beyond its end.
+ * @return the number of characters needed to write all the arguments into the buffer.
+ * @see catseprs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see uncatsep() for the inverse function
+ * @see cat() if no separator is needed
+ * @see format() if a format string is desired
+ * @ingroup formatting_functions */
 template< class Sep, class Arg, class... Args >
 size_t catsep(substr buf, Sep const& sep, Arg const& a, Args const& ...more)
 {
@@ -899,6 +1098,12 @@ size_t catsep(substr buf, Sep const& sep, Arg const& a, Args const& ...more)
     return num;
 }
 
+/** deserialize the arguments from the given buffer, using a separator.
+ *
+ * @return the number of characters read from the buffer, or csubstr::npos
+ *   if a conversion was not successful
+ * @see catsep(). uncatsep() is the inverse of catsep().
+ * @ingroup formatting_functions */
 template< class Sep, class Arg, class... Args >
 size_t uncatsep(csubstr buf, Sep & sep, Arg & a, Args & ...more)
 {
@@ -916,11 +1121,29 @@ size_t uncatsep(csubstr buf, Sep & sep, Arg & a, Args & ...more)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** terminates the variadic recursion
+ * @ingroup formatting_functions */
 inline size_t format(substr buf, csubstr fmt)
 {
     return to_str(buf, fmt);
 }
 
+/** using a format string, serialize the arguments into the given
+ * fixed-size buffer.
+ * The buffer size is strictly respected: no writes will occur beyond its end.
+ * In the format string, each argument is marked with a compact
+ * curly-bracket pair: {}. Arguments beyond the last curly bracket pair
+ * are silently ignored. For example:
+ * @code{.cpp}
+ * c4::format(buf, "the {} drank {} {}", "partier", 5, "beers"); // the partier drank 5 beers
+ * c4::format(buf, "the {} drank {} {}", "programmer", 6, "coffees"); // the programmer drank 6 coffees
+ * @endcode
+ * @return the number of characters needed to write into the buffer.
+ * @see formatrs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see unformat() for the inverse function
+ * @see cat() if no format or separator is needed
+ * @see catsep() if no format is needed, but a separator must be used
+ * @ingroup formatting_functions */
 template< class Arg, class... Args >
 size_t format(substr buf, csubstr fmt, Arg const& a, Args const& ...more)
 {
@@ -943,11 +1166,21 @@ size_t format(substr buf, csubstr fmt, Arg const& a, Args const& ...more)
     }
 }
 
+
+//-----------------------------------------------------------------------------
+
+/** terminates the variadic recursion
+ * @ingroup formatting_functions */
 inline size_t unformat(csubstr buf, csubstr fmt)
 {
     return 0;
 }
 
+/** using a format string, deserialize the arguments from the given
+ * buffer.
+ * @return the number of characters read from the buffer, or npos if a conversion failed.
+ * @see format() this is the inverse function to format().
+ * @ingroup formatting_functions */
 template< class Arg, class... Args >
 size_t unformat(csubstr buf, csubstr fmt, Arg & a, Args & ...more)
 {
@@ -974,7 +1207,8 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & a, Args & ...more)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** C-style printing into a buffer */
+/** C-style printing into a buffer
+ * @ingroup formatting_functions */
 size_t sprintf(substr buf, const char *fmt, ...);
 //size_t sscanf(csubstr buf, const char *fmt, ...);
 
@@ -985,11 +1219,22 @@ size_t sprintf(substr buf, const char *fmt, ...);
 
 /** a tag type
  * @see catrs
+ * @ingroup formatting_functions
  * */
 struct append_t {};
+
+/** a tag variable
+ * @see catrs
+ * @ingroup formatting_functions
+ * */
 constexpr const append_t append = {};
 
-template< class CharOwningContainer, class... Args >
+
+/** like cat(), but receives a container, and resizes it as needed to contain the result.
+ * The container is overwritten. To append to it, use the append overload.
+ * @see cat()
+ * @ingroup formatting_functions */
+template <class CharOwningContainer, class... Args>
 inline void catrs(CharOwningContainer *cont, Args const& ...args)
 {
     substr buf = to_substr(*cont);
@@ -1006,7 +1251,12 @@ inline void catrs(CharOwningContainer *cont, Args const& ...args)
     }
 }
 
-template< class CharOwningContainer, class... Args >
+/** like cat(), but receives a container, and appends to it instead of overwriting it. The
+ * container is resized as needed to contain the result.
+ * @see cat()
+ * @see catrs()
+ * @ingroup formatting_functions */
+template <class CharOwningContainer, class... Args>
 inline void catrs(append_t, CharOwningContainer *cont, Args const& ...args)
 {
     size_t pos = cont->size();
@@ -1024,7 +1274,11 @@ inline void catrs(append_t, CharOwningContainer *cont, Args const& ...args)
     }
 }
 
-template< class CharOwningContainer, class Sep, class... Args >
+/** like catsep(), but receives a container, and resizes it as needed to contain the result.
+ * The container is overwritten. To append to the container use the append overload.
+ * @see catsep()
+ * @ingroup formatting_functions */
+template <class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer *cont, Sep const& sep, Args const& ...args)
 {
     substr buf = to_substr(*cont);
@@ -1041,7 +1295,10 @@ inline void catseprs(CharOwningContainer *cont, Sep const& sep, Args const& ...a
     }
 }
 
-template< class CharOwningContainer, class Sep, class... Args >
+/** like catsep(), but receives a container, and appends the arguments, resizing the
+ * container as needed to contain the result. The buffer is appended to.
+ * @ingroup formatting_functions */
+template <class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(append_t, CharOwningContainer *cont, Sep const& sep, Args const& ...args)
 {
     size_t pos = cont->size();
@@ -1059,6 +1316,10 @@ inline void catseprs(append_t, CharOwningContainer *cont, Sep const& sep, Args c
     }
 }
 
+/** like format(), but receives a container, and resizes it as needed to contain the result.
+ * The container is overwritten. To append to the container use the append overload.
+ * @see format()
+ * @ingroup formatting_functions */
 template< class CharOwningContainer, class... Args >
 inline void formatrs(CharOwningContainer *cont, csubstr fmt, Args const& ...args)
 {
@@ -1076,6 +1337,9 @@ inline void formatrs(CharOwningContainer *cont, csubstr fmt, Args const& ...args
     }
 }
 
+/** like format(), but receives a container, and appends the arguments, resizing the
+ * container as needed to contain the result. The buffer is appended to.
+ * @ingroup formatting_functions */
 template< class CharOwningContainer, class... Args >
 inline void formatrs(append_t, CharOwningContainer *cont, csubstr fmt, Args const& ...args)
 {
