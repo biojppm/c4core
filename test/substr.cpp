@@ -254,6 +254,11 @@ TEST(substr, substr2csubstr)
 
 }
 
+TEST(substr, sub)
+{
+    EXPECT_EQ(csubstr("10]").sub(0, 2), "10");
+}
+
 TEST(substr, first_of_any)
 {
     EXPECT_EQ(csubstr("baz{% endif %}").first_of_any("{% endif %}", "{% if "         , "{% elif bar %}" , "{% else %}" ).which, 0u);
@@ -275,6 +280,10 @@ TEST(substr, first_of_any)
     EXPECT_EQ(csubstr("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% elif bar %}" , "{% if "         , "{% else %}" , "{% endif %}" ).which, 1u);
     EXPECT_EQ(csubstr("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% elif bar %}" , "{% else %}"     , "{% if "     , "{% endif %}" ).which, 2u);
     EXPECT_EQ(csubstr("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% elif bar %}" , "{% else %}"     , "{% endif %}", "{% if "      ).which, 3u);
+
+    // bugs
+    EXPECT_FALSE(csubstr("10]").first_of_any("0x", "0X", "-0x", "-0X"));
+    EXPECT_FALSE(csubstr("10]").sub(0, 2).first_of_any("0x", "0X", "-0x", "-0X"));
 }
 
 
@@ -344,6 +353,9 @@ TEST(substr, first_int_span)
     EXPECT_EQ(csubstr("-1234 abc").first_int_span(), "-1234");
     EXPECT_EQ(csubstr("0x1234 abc").first_int_span(), "0x1234");
     EXPECT_EQ(csubstr("-0x1234 abc").first_int_span(), "-0x1234");
+
+    // bugs
+    EXPECT_EQ(csubstr("10]").first_int_span(), "10");
 }
 
 
