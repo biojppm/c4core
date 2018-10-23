@@ -489,9 +489,11 @@ public:
             for(It it = first_span; it != last_span; ++curr, ++it)
             {
                 auto const& chars = *it;
+                if((i + chars.len) > len) continue;
                 bool gotit = true;
-                for(size_t j = 0; (j < chars.len) && (i+j < len); ++j)
+                for(size_t j = 0; j < chars.len; ++j)
                 {
+                    C4_ASSERT(i + j < len);
                     if(str[i + j] != chars[j])
                     {
                         gotit = false;

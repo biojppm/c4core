@@ -259,31 +259,84 @@ TEST(substr, sub)
     EXPECT_EQ(csubstr("10]").sub(0, 2), "10");
 }
 
+template <class ...Args>
+void test_first_of_any(csubstr input, bool true_or_false, size_t which, size_t pos, Args... args)
+{
+    csubstr::first_of_any_result r = input.first_of_any(to_csubstr(args)...);
+    std::cout << input << ": " << (bool(r) ? "true" : "false") << "/which:" << r.which << "/pos:" << r.pos << "\n";
+    EXPECT_EQ(r, true_or_false);
+    if(true_or_false)
+    {
+        EXPECT_TRUE(r);
+    }
+    else
+    {
+        EXPECT_TRUE(r);
+    }
+    EXPECT_EQ(r.which, which);
+    EXPECT_EQ(r.pos, pos);
+}
+
 TEST(substr, first_of_any)
 {
-    EXPECT_EQ(csubstr("baz{% endif %}").first_of_any("{% endif %}", "{% if "         , "{% elif bar %}" , "{% else %}" ).which, 0u);
-    EXPECT_EQ(csubstr("baz{% endif %}").first_of_any("{% if "     , "{% endif %}"    , "{% elif bar %}" , "{% else %}" ).which, 1u);
-    EXPECT_EQ(csubstr("baz{% endif %}").first_of_any("{% if "     , "{% elif bar %}" , "{% endif %}"    , "{% else %}" ).which, 2u);
-    EXPECT_EQ(csubstr("baz{% endif %}").first_of_any("{% if "     , "{% elif bar %}" , "{% else %}"     , "{% endif %}").which, 3u);
-
-    EXPECT_EQ(csubstr("bar{% else %}baz{% endif %}").first_of_any("{% else %}" , "{% if "         , "{% elif bar %}" , "{% endif %}").which, 0u);
-    EXPECT_EQ(csubstr("bar{% else %}baz{% endif %}").first_of_any("{% if "     , "{% else %}"     , "{% elif bar %}" , "{% endif %}").which, 1u);
-    EXPECT_EQ(csubstr("bar{% else %}baz{% endif %}").first_of_any("{% if "     , "{% elif bar %}" , "{% else %}"     , "{% endif %}").which, 2u);
-    EXPECT_EQ(csubstr("bar{% else %}baz{% endif %}").first_of_any("{% if "     , "{% elif bar %}" , "{% endif %}"    , "{% else %}" ).which, 3u);
-
-    EXPECT_EQ(csubstr("foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% elif bar %}" , "{% if "         , "{% else %}"     , "{% endif %}"   ).which, 0u);
-    EXPECT_EQ(csubstr("foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% if "         , "{% elif bar %}" , "{% else %}"     , "{% endif %}"   ).which, 1u);
-    EXPECT_EQ(csubstr("foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% if "         , "{% else %}"     , "{% elif bar %}" , "{% endif %}"   ).which, 2u);
-    EXPECT_EQ(csubstr("foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% if "         , "{% else %}"     , "{% endif %}"    , "{% elif bar %}").which, 3u);
-
-    EXPECT_EQ(csubstr("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% if "         , "{% elif bar %}" , "{% else %}" , "{% endif %}" ).which, 0u);
-    EXPECT_EQ(csubstr("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% elif bar %}" , "{% if "         , "{% else %}" , "{% endif %}" ).which, 1u);
-    EXPECT_EQ(csubstr("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% elif bar %}" , "{% else %}"     , "{% if "     , "{% endif %}" ).which, 2u);
-    EXPECT_EQ(csubstr("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}").first_of_any("{% elif bar %}" , "{% else %}"     , "{% endif %}", "{% if "      ).which, 3u);
-
     // bugs
     EXPECT_FALSE(csubstr("10]").first_of_any("0x", "0X", "-0x", "-0X"));
     EXPECT_FALSE(csubstr("10]").sub(0, 2).first_of_any("0x", "0X", "-0x", "-0X"));
+
+    size_t NONE = csubstr::NONE;
+    size_t npos = csubstr::npos;
+
+    test_first_of_any("foobar"               , true , 0u  ,   3u, "bar", "barbell", "bark", "barff");
+    test_first_of_any("foobar"               , false, NONE, npos,        "barbell", "bark", "barff");
+    test_first_of_any("foobart"              , false, NONE, npos,        "barbell", "bark", "barff");
+
+    test_first_of_any("10"                   , false, NONE, npos, "0x", "0X", "-0x", "-0X");
+    test_first_of_any("10]"                  , false, NONE, npos, "0x", "0X", "-0x", "-0X");
+    test_first_of_any(csubstr("10]").first(2), false, NONE, npos, "0x", "0X", "-0x", "-0X");
+
+
+    test_first_of_any("baz{% endif %}", true, 0u, 3u, "{% endif %}", "{% if "         , "{% elif bar %}" , "{% else %}" );
+    test_first_of_any("baz{% endif %}", true, 1u, 3u, "{% if "     , "{% endif %}"    , "{% elif bar %}" , "{% else %}" );
+    test_first_of_any("baz{% endif %}", true, 2u, 3u, "{% if "     , "{% elif bar %}" , "{% endif %}"    , "{% else %}" );
+    test_first_of_any("baz{% endif %}", true, 3u, 3u, "{% if "     , "{% elif bar %}" , "{% else %}"     , "{% endif %}");
+
+    test_first_of_any("baz{% e..if %}", false, NONE, npos, "{% endif %}", "{% if "         , "{% elif bar %}" , "{% else %}" );
+    test_first_of_any("baz{% e..if %}", false, NONE, npos, "{% if "     , "{% endif %}"    , "{% elif bar %}" , "{% else %}" );
+    test_first_of_any("baz{% e..if %}", false, NONE, npos, "{% if "     , "{% elif bar %}" , "{% endif %}"    , "{% else %}" );
+    test_first_of_any("baz{% e..if %}", false, NONE, npos, "{% if "     , "{% elif bar %}" , "{% else %}"     , "{% endif %}");
+
+
+    test_first_of_any("bar{% else %}baz{% endif %}", true, 0u, 3u, "{% else %}" , "{% if "         , "{% elif bar %}" , "{% endif %}");
+    test_first_of_any("bar{% else %}baz{% endif %}", true, 1u, 3u, "{% if "     , "{% else %}"     , "{% elif bar %}" , "{% endif %}");
+    test_first_of_any("bar{% else %}baz{% endif %}", true, 2u, 3u, "{% if "     , "{% elif bar %}" , "{% else %}"     , "{% endif %}");
+    test_first_of_any("bar{% else %}baz{% endif %}", true, 3u, 3u, "{% if "     , "{% elif bar %}" , "{% endif %}"    , "{% else %}" );
+
+    test_first_of_any("bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% else %}" , "{% if "         , "{% elif bar %}" , "{% endif %}");
+    test_first_of_any("bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% if "     , "{% else %}"     , "{% elif bar %}" , "{% endif %}");
+    test_first_of_any("bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% if "     , "{% elif bar %}" , "{% else %}"     , "{% endif %}");
+    test_first_of_any("bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% if "     , "{% elif bar %}" , "{% endif %}"    , "{% else %}" );
+
+
+    test_first_of_any("foo{% elif bar %}bar{% else %}baz{% endif %}", true, 0u, 3u, "{% elif bar %}" , "{% if "         , "{% else %}"     , "{% endif %}"   );
+    test_first_of_any("foo{% elif bar %}bar{% else %}baz{% endif %}", true, 1u, 3u, "{% if "         , "{% elif bar %}" , "{% else %}"     , "{% endif %}"   );
+    test_first_of_any("foo{% elif bar %}bar{% else %}baz{% endif %}", true, 2u, 3u, "{% if "         , "{% else %}"     , "{% elif bar %}" , "{% endif %}"   );
+    test_first_of_any("foo{% elif bar %}bar{% else %}baz{% endif %}", true, 3u, 3u, "{% if "         , "{% else %}"     , "{% endif %}"    , "{% elif bar %}");
+
+    test_first_of_any("foo{% e..f bar %}bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% elif bar %}" , "{% if "         , "{% else %}"     , "{% endif %}"   );
+    test_first_of_any("foo{% e..f bar %}bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% if "         , "{% elif bar %}" , "{% else %}"     , "{% endif %}"   );
+    test_first_of_any("foo{% e..f bar %}bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% if "         , "{% else %}"     , "{% elif bar %}" , "{% endif %}"   );
+    test_first_of_any("foo{% e..f bar %}bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% if "         , "{% else %}"     , "{% endif %}"    , "{% elif bar %}");
+
+
+    test_first_of_any("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}", true, 0u, 0u, "{% if "         , "{% elif bar %}" , "{% else %}" , "{% endif %}" );
+    test_first_of_any("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}", true, 1u, 0u, "{% elif bar %}" , "{% if "         , "{% else %}" , "{% endif %}" );
+    test_first_of_any("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}", true, 2u, 0u, "{% elif bar %}" , "{% else %}"     , "{% if "     , "{% endif %}" );
+    test_first_of_any("{% if foo %}foo{% elif bar %}bar{% else %}baz{% endif %}", true, 3u, 0u, "{% elif bar %}" , "{% else %}"     , "{% endif %}", "{% if "      );
+
+    test_first_of_any("{% .. foo %}foo{% e..f bar %}bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% if "         , "{% elif bar %}" , "{% else %}" , "{% endif %}" );
+    test_first_of_any("{% .. foo %}foo{% e..f bar %}bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% elif bar %}" , "{% if "         , "{% else %}" , "{% endif %}" );
+    test_first_of_any("{% .. foo %}foo{% e..f bar %}bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% elif bar %}" , "{% else %}"     , "{% if "     , "{% endif %}" );
+    test_first_of_any("{% .. foo %}foo{% e..f bar %}bar{% e..e %}baz{% e..if %}", false, NONE, npos, "{% elif bar %}" , "{% else %}"     , "{% endif %}", "{% if "      );
 }
 
 
