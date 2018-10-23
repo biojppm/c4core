@@ -263,7 +263,7 @@ template <class ...Args>
 void test_first_of_any(csubstr input, bool true_or_false, size_t which, size_t pos, Args... args)
 {
     csubstr::first_of_any_result r = input.first_of_any(to_csubstr(args)...);
-    std::cout << input << ": " << (bool(r) ? "true" : "false") << "/which:" << r.which << "/pos:" << r.pos << "\n";
+    //std::cout << input << ": " << (bool(r) ? "true" : "false") << "/which:" << r.which << "/pos:" << r.pos << "\n";
     EXPECT_EQ(r, true_or_false);
     if(true_or_false)
     {
@@ -271,7 +271,7 @@ void test_first_of_any(csubstr input, bool true_or_false, size_t which, size_t p
     }
     else
     {
-        EXPECT_TRUE(r);
+        EXPECT_FALSE(r);
     }
     EXPECT_EQ(r.which, which);
     EXPECT_EQ(r.pos, pos);
@@ -279,10 +279,6 @@ void test_first_of_any(csubstr input, bool true_or_false, size_t which, size_t p
 
 TEST(substr, first_of_any)
 {
-    // bugs
-    EXPECT_FALSE(csubstr("10]").first_of_any("0x", "0X", "-0x", "-0X"));
-    EXPECT_FALSE(csubstr("10]").sub(0, 2).first_of_any("0x", "0X", "-0x", "-0X"));
-
     size_t NONE = csubstr::NONE;
     size_t npos = csubstr::npos;
 
