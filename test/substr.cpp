@@ -254,6 +254,10 @@ TEST(substr, substr2csubstr)
 
 }
 
+TEST(substr, sub)
+{
+    EXPECT_EQ(csubstr("10]").sub(0, 2), "10");
+}
 
 template <class ...Args>
 void test_first_of_any(csubstr input, bool true_or_false, size_t which, size_t pos, Args... args)
@@ -261,6 +265,14 @@ void test_first_of_any(csubstr input, bool true_or_false, size_t which, size_t p
     csubstr::first_of_any_result r = input.first_of_any(to_csubstr(args)...);
     //std::cout << input << ": " << (bool(r) ? "true" : "false") << "/which:" << r.which << "/pos:" << r.pos << "\n";
     EXPECT_EQ(r, true_or_false);
+    if(true_or_false)
+    {
+        EXPECT_TRUE(r);
+    }
+    else
+    {
+        EXPECT_FALSE(r);
+    }
     EXPECT_EQ(r.which, which);
     EXPECT_EQ(r.pos, pos);
 }
@@ -390,6 +402,9 @@ TEST(substr, first_int_span)
     EXPECT_EQ(csubstr("-1234 abc").first_int_span(), "-1234");
     EXPECT_EQ(csubstr("0x1234 abc").first_int_span(), "0x1234");
     EXPECT_EQ(csubstr("-0x1234 abc").first_int_span(), "-0x1234");
+
+    // bugs
+    EXPECT_EQ(csubstr("10]").first_int_span(), "10");
 }
 
 
