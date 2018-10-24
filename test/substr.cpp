@@ -259,7 +259,7 @@ template <class ...Args>
 void test_first_of_any(csubstr input, bool true_or_false, size_t which, size_t pos, Args... args)
 {
     csubstr::first_of_any_result r = input.first_of_any(to_csubstr(args)...);
-    std::cout << input << ": " << (bool(r) ? "true" : "false") << "/which:" << r.which << "/pos:" << r.pos << "\n";
+    //std::cout << input << ": " << (bool(r) ? "true" : "false") << "/which:" << r.which << "/pos:" << r.pos << "\n";
     EXPECT_EQ(r, true_or_false);
     EXPECT_EQ(r.which, which);
     EXPECT_EQ(r.pos, pos);
@@ -2037,6 +2037,141 @@ TEST(substr, split)
         }
         EXPECT_EQ(count, 12);
     }
+}
+
+
+//-----------------------------------------------------------------------------
+TEST(substr, copy_from)
+{
+    char buf[128] = {0};
+    substr s = buf;
+    EXPECT_EQ(s.size(), sizeof(buf)-1);
+    EXPECT_NE(s.first(3), "123");
+    s.copy_from("123");
+    EXPECT_EQ(s.first(3), "123");
+    EXPECT_EQ(s.first(6), "123\0\0\0");
+    s.copy_from("+++", 3);
+    EXPECT_EQ(s.first(6), "123+++");
+    EXPECT_EQ(s.first(9), "123+++\0\0\0");
+    s.copy_from("456", 6);
+    EXPECT_EQ(s.first(9), "123+++456");
+    EXPECT_EQ(s.first(12), "123+++456\0\0\0");
+    s.copy_from("***", 3);
+    EXPECT_EQ(s.first(9), "123***456");
+    EXPECT_EQ(s.first(12), "123***456\0\0\0");
+
+    // make sure that it's safe to pass source strings that don't fit
+    // in the remaining destination space
+    substr ss = s.first(9);
+    ss.copy_from("987654321", 9); // should be a no-op
+    EXPECT_EQ(s.first(12), "123***456\0\0\0");
+    ss.copy_from("987654321", 6);
+    EXPECT_EQ(s.first(12), "123***987\0\0\0");
+    ss.copy_from("987654321", 3);
+    EXPECT_EQ(s.first(12), "123987654\0\0\0");
+    ss.first(3).copy_from("987654321");
+    EXPECT_EQ(s.first(12), "987987654\0\0\0");
+}
+
+
+//-----------------------------------------------------------------------------
+void do_test_reverse(substr s, csubstr orig, csubstr expected)
+{
+    EXPECT_EQ(s, orig);
+    s.reverse();
+    EXPECT_EQ(s, expected);
+    s.reverse();
+    EXPECT_EQ(s, orig);
+}
+
+TEST(substr, reverse)
+{
+    char buf[] = "0123456789";
+    do_test_reverse(buf, "0123456789", "9876543210");
+    do_test_reverse(buf, "0123456789", "9876543210");
+
+    // in the middle
+    substr s = buf;
+    s.sub(2, 2).reverse();
+    EXPECT_EQ(s, "0132456789");
+    s.sub(2, 2).reverse();
+    EXPECT_EQ(s, "0123456789");
+
+    s.sub(4, 2).reverse();
+    EXPECT_EQ(s, "0123546789");
+    s.sub(4, 2).reverse();
+    EXPECT_EQ(s, "0123456789");
+
+    // at the beginning
+    s.first(3).reverse();
+    EXPECT_EQ(s, "2103456789");
+    s.first(3).reverse();
+    EXPECT_EQ(s, "0123456789");
+
+    // at the end
+    s.last(3).reverse();
+    EXPECT_EQ(s, "0123456987");
+    s.last(3).reverse();
+    EXPECT_EQ(s, "0123456789");
+}
+
+
+//-----------------------------------------------------------------------------
+TEST(substr, erase)
+{
+    char buf[] = "0123456789";
+
+    substr s = buf;
+    EXPECT_EQ(s.len, s.size());
+    EXPECT_EQ(s.len, 10);
+    EXPECT_EQ(s, "0123456789");
+
+    substr ss = s.first(6);
+    EXPECT_EQ(ss.len, 6);
+    for(size_t i = 0; i <= ss.len; ++i)
+    {
+        ss.erase(i, 0); // must be a no-op
+        EXPECT_EQ(s, "0123456789");
+        ss.erase_range(i, i); // must be a no-op
+        EXPECT_EQ(s, "0123456789");
+        ss.erase(ss.len-i, i); // must be a no-op
+        EXPECT_EQ(s, "0123456789");
+    }
+
+    substr r;
+    ss = ss.erase(0, 1);
+    EXPECT_EQ(ss.len, 5);
+    EXPECT_EQ(ss, "12345");
+    EXPECT_EQ(s, "1234556789");
+    ss = ss.erase(0, 2);
+    EXPECT_EQ(ss.len, 3);
+    EXPECT_EQ(ss, "345");
+    EXPECT_EQ(s, "3454556789");
+
+    csubstr s55 = s.sub(4, 2);
+    ss = s.erase(s55);
+    EXPECT_EQ(s, "3454678989");
+}
+
+
+//-----------------------------------------------------------------------------
+TEST(substr, replace_all)
+{
+    char buf[] = "0.1.2.3.4.5.6.7.8.9";
+
+    substr s = buf;
+    bool ret;
+
+    ret = s.replace_all('+', '.');
+    EXPECT_FALSE(ret);
+
+    ret = s.replace_all('.', '.');
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(s, "0.1.2.3.4.5.6.7.8.9");
+
+    ret = s.replace_all('.', '+');
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(s, "0+1+2+3+4+5+6+7+8+9");
 }
 
 } // namespace c4
