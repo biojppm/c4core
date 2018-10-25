@@ -334,6 +334,20 @@ public:
 
 public:
 
+    basic_substring stripl(basic_csubstr s) const
+    {
+        if( ! begins_with(s)) return *this;
+        return sub(s.len < len ? s.len : len);
+    }
+
+    basic_substring stripr(basic_csubstr s) const
+    {
+        if( ! ends_with(s)) return *this;
+        return left_of(len - (s.len < len ? s.len : len));
+    }
+
+public:
+
     inline size_t find(const C c, size_t start_pos=0) const
     {
         return first_of(c, start_pos);
