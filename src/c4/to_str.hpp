@@ -1253,12 +1253,14 @@ inline void catrs(CharOwningContainer *cont, Args const& ...args)
 
 /** like cat(), but receives a container, and appends to it instead of overwriting it. The
  * container is resized as needed to contain the result.
+ * @return the region newly appended to the original container
  * @see cat()
  * @see catrs()
  * @ingroup formatting_functions */
 template <class CharOwningContainer, class... Args>
-inline void catrs(append_t, CharOwningContainer *cont, Args const& ...args)
+inline csubstr catrs(append_t, CharOwningContainer *cont, Args const& ...args)
 {
+    size_t first = cont->size();
     size_t pos = cont->size();
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = cat(buf, args...);
@@ -1272,6 +1274,7 @@ inline void catrs(append_t, CharOwningContainer *cont, Args const& ...args)
             cont->resize(pos + ret);
         }
     }
+    return to_csubstr(*cont).range(first, pos);
 }
 
 /** like catsep(), but receives a container, and resizes it as needed to contain the result.
@@ -1339,10 +1342,12 @@ inline void formatrs(CharOwningContainer *cont, csubstr fmt, Args const& ...args
 
 /** like format(), but receives a container, and appends the arguments, resizing the
  * container as needed to contain the result. The buffer is appended to.
+ * @return the region newly appended to the original container
  * @ingroup formatting_functions */
 template< class CharOwningContainer, class... Args >
-inline void formatrs(append_t, CharOwningContainer *cont, csubstr fmt, Args const& ...args)
+inline csubstr formatrs(append_t, CharOwningContainer *cont, csubstr fmt, Args const& ...args)
 {
+    size_t first = cont->size();
     size_t pos = cont->size();
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = format(buf, fmt, args...);
@@ -1356,6 +1361,7 @@ inline void formatrs(append_t, CharOwningContainer *cont, csubstr fmt, Args cons
             cont->resize(pos + ret);
         }
     }
+    return to_csubstr(*cont).range(first, pos);
 }
 
 } // namespace c4
