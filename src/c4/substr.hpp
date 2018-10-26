@@ -212,7 +212,9 @@ public:
     basic_substring range(size_t first, size_t last=npos) const
     {
         last = last != npos ? last : len;
-        C4_ASSERT(first >= 0 && last <= len);
+        C4_ASSERT(first <= last);
+        C4_ASSERT(first >= 0 && first <= len);
+        C4_ASSERT(last  >= 0 && last  <= len);
         return basic_substring(str + first, last - first);
     }
 

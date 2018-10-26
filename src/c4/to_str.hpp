@@ -755,7 +755,7 @@ inline bool from_str(csubstr buf, bool * C4_RESTRICT v)
 {
     int val;
     bool ret = from_str(buf, &val);
-    *v = val != 0;
+    *v = (val != 0);
     return ret;
 }
 
