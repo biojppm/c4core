@@ -1260,8 +1260,7 @@ inline void catrs(CharOwningContainer *cont, Args const& ...args)
 template <class CharOwningContainer, class... Args>
 inline csubstr catrs(append_t, CharOwningContainer *cont, Args const& ...args)
 {
-    size_t first = cont->size();
-    size_t pos = cont->size();
+    const size_t pos = cont->size();
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = cat(buf, args...);
     cont->resize(pos + ret);
@@ -1274,8 +1273,10 @@ inline csubstr catrs(append_t, CharOwningContainer *cont, Args const& ...args)
             cont->resize(pos + ret);
         }
     }
-    return to_csubstr(*cont).range(first, pos);
+    return to_csubstr(*cont).range(pos, cont->size());
 }
+
+//-----------------------------------------------------------------------------
 
 /** like catsep(), but receives a container, and resizes it as needed to contain the result.
  * The container is overwritten. To append to the container use the append overload.
@@ -1304,7 +1305,7 @@ inline void catseprs(CharOwningContainer *cont, Sep const& sep, Args const& ...a
 template <class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(append_t, CharOwningContainer *cont, Sep const& sep, Args const& ...args)
 {
-    size_t pos = cont->size();
+    const size_t pos = cont->size();
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = catsep(buf, sep, args...);
     cont->resize(pos + ret);
@@ -1317,7 +1318,10 @@ inline void catseprs(append_t, CharOwningContainer *cont, Sep const& sep, Args c
             cont->resize(pos + ret);
         }
     }
+    return to_csubstr(*cont).range(pos, cont->size());
 }
+
+//-----------------------------------------------------------------------------
 
 /** like format(), but receives a container, and resizes it as needed to contain the result.
  * The container is overwritten. To append to the container use the append overload.
@@ -1347,8 +1351,7 @@ inline void formatrs(CharOwningContainer *cont, csubstr fmt, Args const& ...args
 template< class CharOwningContainer, class... Args >
 inline csubstr formatrs(append_t, CharOwningContainer *cont, csubstr fmt, Args const& ...args)
 {
-    size_t first = cont->size();
-    size_t pos = cont->size();
+    const size_t pos = cont->size();
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = format(buf, fmt, args...);
     cont->resize(pos + ret);
@@ -1361,7 +1364,7 @@ inline csubstr formatrs(append_t, CharOwningContainer *cont, csubstr fmt, Args c
             cont->resize(pos + ret);
         }
     }
-    return to_csubstr(*cont).range(first, pos);
+    return to_csubstr(*cont).range(pos, cont->size());
 }
 
 } // namespace c4
