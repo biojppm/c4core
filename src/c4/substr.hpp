@@ -99,9 +99,9 @@ public:
     /** the overload for receiving a single C* pointer will always
      * hide the array[N] overload. So it is disabled. If you want to
      * construct a substr from a single pointer containing a C-style string,
-     * you can call c4::yml::to_substr()/c4::yml::to_csubstr().
-     * @see c4::yml::to_substr()
-     * @see c4::yml::to_csubstr() */
+     * you can call c4::to_substr()/c4::to_csubstr().
+     * @see c4::to_substr()
+     * @see c4::to_csubstr() */
     template< size_t N >
     basic_substring(C (&s_)[N]) : str(s_), len(N-1) {}
     basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
@@ -115,9 +115,9 @@ public:
     /** the overload for receiving a single C* pointer will always
      * hide the array[N] overload. So it is disabled. If you want to
      * construct a substr from a single pointer containing a C-style string,
-     * you can call c4::yml::to_substr()/c4::yml::to_csubstr().
-     * @see c4::yml::to_substr()
-     * @see c4::yml::to_csubstr() */
+     * you can call c4::to_substr()/c4::to_csubstr().
+     * @see c4::to_substr()
+     * @see c4::to_csubstr() */
     template< size_t N >
     void assign(C (&s_)[N]) { str = (s_); len = (N-1); }
     void assign(C *s_, size_t len_) { str = s_; len = len_; C4_ASSERT(str || !len_); }

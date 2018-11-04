@@ -911,7 +911,23 @@ template<> struct fmt_wrapper<uint32_t > : public detail::int_formatter<uint32_t
 template<> struct fmt_wrapper< int64_t > : public detail::int_formatter< int64_t > { using detail::int_formatter< int64_t >::int_formatter; };
 template<> struct fmt_wrapper<uint64_t > : public detail::int_formatter<uint64_t > { using detail::int_formatter<uint64_t >::int_formatter; };
 
+template< class T >
+inline fmt_wrapper<T> fmthex(T v)
+{
+    return fmt_wrapper<T>(v, T(16));
+}
 
+template< class T >
+inline fmt_wrapper<T> fmtoct(T v)
+{
+    return fmt_wrapper<T>(v, T(8));
+}
+
+template< class T >
+inline fmt_wrapper<T> fmtbin(T v)
+{
+    return fmt_wrapper<T>(v, T(2));
+}
 
 /** mark a variable to be written in custom format
  * @ingroup generic_tofrom_string */
@@ -950,7 +966,7 @@ struct binary_wrapper
 /** mark a variable to be written in binary format
  * @ingroup generic_tofrom_string  */
 template< class T >
-inline binary_wrapper<T> fmtbin(T &v)
+inline binary_wrapper<T> bin(T &v)
 {
     return binary_wrapper<T>(v);
 }
