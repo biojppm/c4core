@@ -1019,6 +1019,13 @@ size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more
     return num;
 }
 
+/** like cat but return a substr instead of a size */
+template< class... Args >
+substr cat_sub(substr buf, Args && ...args)
+{
+    size_t sz = cat(buf, std::forward<Args>(args)...);
+    return {buf.str, sz <= buf.len ? sz : buf.len};
+}
 
 //-----------------------------------------------------------------------------
 
@@ -1059,7 +1066,7 @@ inline size_t catsep_more(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
 }
 
 template< class Sep, class Arg, class... Args >
-size_t catsep_more(substr buf, Sep const& sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+size_t catsep_more(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
     size_t ret = to_str(buf, sep), num = ret;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
@@ -1112,6 +1119,14 @@ size_t catsep(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, 
     buf  = buf.len >= num ? buf.sub(num) : substr{};
     num += detail::catsep_more(buf, sep, more...);
     return num;
+}
+
+/** like catsep but return a substr instead of a size */
+template< class... Args >
+substr catsep_sub(substr buf, Args && ...args)
+{
+    size_t sz = catsep(buf, std::forward<Args>(args)...);
+    return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 
 /** deserialize the arguments from the given buffer, using a separator.
@@ -1180,6 +1195,14 @@ size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_
     {
         return format(buf, fmt);
     }
+}
+
+/** like format but return a substr instead of a size */
+template< class... Args >
+substr format_sub(substr buf, Args && ...args)
+{
+    size_t sz = c4::format(buf, std::forward<Args>(args)...);
+    return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 
 
