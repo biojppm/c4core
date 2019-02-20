@@ -61,7 +61,7 @@
 
 #include <memory>
 
-#include "c4/language.hpp"                                      \
+#include "c4/language.hpp"
 
 
 //------------------------------------------------------------
