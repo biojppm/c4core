@@ -30,130 +30,32 @@ inline OStream& operator<< (OStream& s, basic_substring< C > sp)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-template< class C, class Impl >
-struct _basic_substring_crtp;
-
-/** specialize for const chars */
-template< class C, class Impl >
-struct _basic_substring_crtp< const C, Impl >
+template <typename C>
+static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 {
-#define _c4this   static_cast<      Impl*>(this)
-#define _c4cthis  static_cast<const Impl*>(this)
-
-    // allow construction and assignments from non-const chars
-    _basic_substring_crtp() {}
-
-    template< size_t N > explicit
-    _basic_substring_crtp(C (&s_)[N]) { _c4this->str = s_; _c4this->len = N-1; }
-    _basic_substring_crtp(C *s_, size_t len_) { _c4this->str = s_; _c4this->len = len_; }
-    _basic_substring_crtp(C *beg_, C *end_) { C4_ASSERT(end_ >= beg_); _c4this->str = beg_; _c4this->len = end_ - beg_;  }
-
-    template< size_t N >
-    void assign(C (&s_)[N]) { _c4this->str = s_; _c4this->len = N-1; }
-    void assign(C *s_, size_t len_) { _c4this->str = s_; _c4this->len = len_; }
-    void assign(C *beg_, C *end_) { C4_ASSERT(end_ >= beg_); _c4this->str = beg_; _c4this->len = end_ - beg_;  }
-
-    template< size_t N >
-    Impl& operator=(C (&s_)[N]) { _c4this->str = s_; _c4this->len = N-1; return *_c4this; }
-
-#undef _c4this
-#undef _c4cthis
-};
-
-
-//-----------------------------------------------------------------------------
-/** since there's a specialization for const C, here we can provide methods
- * which modify the contents of the string, provided they don't expand it. */
-template< class C, class Impl >
-struct _basic_substring_crtp
-{
-#define _c4this   static_cast<      Impl*>(this)
-#define _c4cthis  static_cast<const Impl*>(this)
-public:
-
-    using const_impl_type = _basic_substring_crtp< const C, Impl >;
-
-    void reverse()
+    while(last > first)
     {
-        if(_c4this->len == 0) return;
-        _do_reverse(_c4this->str, _c4this->str + _c4this->len - 1);
+        C tmp = *last;
+        *last-- = *first;
+        *first++ = tmp;
     }
-
-    void reverse_sub(size_t ifirst, size_t num)
-    {
-        C4_ASSERT(ifirst >= 0 && ifirst < _c4cthis->len);
-        C4_ASSERT(ifirst + num >= 0 && ifirst + num <= _c4cthis->len);
-        if(num == 0) return;
-        _do_reverse(_c4this->str + ifirst, ifirst + num - 1);
-    }
-
-    void reverse_range(size_t ifirst, size_t ilast)
-    {
-        C4_ASSERT(ifirst >= 0 && ifirst <= _c4cthis->len);
-        C4_ASSERT(ilast  >= 0 && ilast  <= _c4cthis->len);
-        if(ifirst == ilast) return;
-        _do_reverse(_c4this->str + ifirst, _c4this->str + ilast - 1);
-    }
-
-    inline static void  _do_reverse(char *first, char* last)
-    {
-        while(last > first)
-        {
-            C tmp = *last;
-            *last-- = *first;
-            *first++ = tmp;
-        }
-    }
-
-public:
-
-    Impl erase(size_t pos, size_t num)
-    {
-        C4_ASSERT(pos >= 0 && pos+num <= _c4this->len);
-        size_t num_to_move = _c4this->len - pos - num;
-        memmove(_c4this->str + pos, _c4this->str + pos + num, sizeof(C) * num_to_move);
-        return Impl(_c4this->str, _c4this->len - num);
-    }
-
-    Impl erase_range(size_t first, size_t last)
-    {
-        C4_ASSERT(first <= last);
-        return erase(first, last-first);
-    }
-
-    Impl erase(const_impl_type sub)
-    {
-        C4_ASSERT(_c4cthis->has_sub(sub));
-        C4_ASSERT(sub.str >= _c4cthis->str);
-        return erase(sub.str - _c4cthis->str, sub.len);
-    }
-
-public:
-
-    bool replace_all(C value, C repl, size_t pos=Impl::npos)
-    {
-        bool did_it = false;
-        while((pos = Impl::find(value, pos)) != Impl::npos)
-        {
-            _c4this->str[pos++] = repl;
-            did_it = true;
-        }
-        return did_it;
-    }
-
-#undef _c4this
-#undef _c4cthis
-};
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 /** a span of characters and a length. Works like a writeable string_view. */
 template< class C >
-class basic_substring : public _basic_substring_crtp< C, basic_substring<C> >
+class basic_substring
 {
 
-    using base_crtp = _basic_substring_crtp< C, basic_substring<C> >;
+// https://stackoverflow.com/questions/43051882/how-to-disable-a-class-member-funrtion-for-certain-template-types
+#define C4_DISABLED_FOR_CONST_C(ret_type) \
+    template <typename U=C> \
+    typename std::enable_if<std::is_const<U>::value == false, ret_type>::type
+// non-const-to-const
+#define C4_NC2C(tt) \
+    typename std::enable_if<std::is_const<C>::value && ( ! std::is_const<tt>::value), tt>::type
 
 public:
 
@@ -193,15 +95,13 @@ public:
 
 public:
 
-    using base_crtp::base_crtp;
-
-    //basic_span(C *s_) : str(s_), len(s_ ? strlen(s_) : 0) {}
+    //basic_substring(C *s_) : str(s_), len(s_ ? strlen(s_) : 0) {}
     /** the overload for receiving a single C* pointer will always
      * hide the array[N] overload. So it is disabled. If you want to
-     * construct a span from a single pointer containing a c-style string,
-     * you can call c4::yml::to_span()/c4::yml::to_cspan().
-     * @see c4::yml::to_span()
-     * @see c4::yml::to_cspan() */
+     * construct a substr from a single pointer containing a C-style string,
+     * you can call c4::to_substr()/c4::to_csubstr().
+     * @see c4::to_substr()
+     * @see c4::to_csubstr() */
     template< size_t N >
     basic_substring(C (&s_)[N]) : str(s_), len(N-1) {}
     basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
@@ -214,14 +114,29 @@ public:
     //void assign(C *s_) { str = (s_); len = (s_ ? strlen(s_) : 0); }
     /** the overload for receiving a single C* pointer will always
      * hide the array[N] overload. So it is disabled. If you want to
-     * construct a span from a single pointer containing a c-style string,
-     * you can call c4::yml::to_span()/c4::yml::to_cspan().
-     * @see c4::yml::to_span()
-     * @see c4::yml::to_cspan() */
+     * construct a substr from a single pointer containing a C-style string,
+     * you can call c4::to_substr()/c4::to_csubstr().
+     * @see c4::to_substr()
+     * @see c4::to_csubstr() */
     template< size_t N >
     void assign(C (&s_)[N]) { str = (s_); len = (N-1); }
     void assign(C *s_, size_t len_) { str = s_; len = len_; C4_ASSERT(str || !len_); }
     void assign(C *beg_, C *end_) { C4_ASSERT(end_ >= beg_); str = (beg_); len = (end_ - beg_); }
+
+public:
+
+    // when the char type is const, allow construction and assignment from non-const chars
+
+    template< size_t N, class U=NCC > explicit basic_substring(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
+    template<           class U=NCC >          basic_substring(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
+    template<           class U=NCC >          basic_substring(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
+
+    template< size_t N, class U=NCC > void assign(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
+    template<           class U=NCC > void assign(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
+    template<           class U=NCC > void assign(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
+
+    template< size_t N, class U=NCC >
+    basic_substring& operator=(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; return *this; }
 
 public:
 
@@ -297,7 +212,9 @@ public:
     basic_substring range(size_t first, size_t last=npos) const
     {
         last = last != npos ? last : len;
-        C4_ASSERT(first >= 0 && last <= len);
+        C4_ASSERT(first <= last);
+        C4_ASSERT(first >= 0 && first <= len);
+        C4_ASSERT(last  >= 0 && last  <= len);
         return basic_substring(str + first, last - first);
     }
 
@@ -421,6 +338,20 @@ public:
 
 public:
 
+    basic_substring stripl(basic_csubstr s) const
+    {
+        if( ! begins_with(s)) return *this;
+        return sub(s.len < len ? s.len : len);
+    }
+
+    basic_substring stripr(basic_csubstr s) const
+    {
+        if( ! ends_with(s)) return *this;
+        return left_of(len - (s.len < len ? s.len : len));
+    }
+
+public:
+
     inline size_t find(const C c, size_t start_pos=0) const
     {
         return first_of(c, start_pos);
@@ -460,26 +391,26 @@ public:
 
     first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1) const
     {
-        basic_csubstr spans[2] = {s0, s1};
-        return first_of_any_iter(&spans[0], &spans[0] + 2);
+        basic_csubstr s[2] = {s0, s1};
+        return first_of_any_iter(&s[0], &s[0] + 2);
     }
 
     first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2) const
     {
-        basic_csubstr spans[3] = {s0, s1, s2};
-        return first_of_any_iter(&spans[0], &spans[0] + 3);
+        basic_csubstr s[3] = {s0, s1, s2};
+        return first_of_any_iter(&s[0], &s[0] + 3);
     }
 
     first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2, basic_csubstr s3) const
     {
-        basic_csubstr spans[4] = {s0, s1, s2, s3};
-        return first_of_any_iter(&spans[0], &spans[0] + 4);
+        basic_csubstr s[4] = {s0, s1, s2, s3};
+        return first_of_any_iter(&s[0], &s[0] + 4);
     }
 
     first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2, basic_csubstr s3, basic_csubstr s4) const
     {
-        basic_csubstr spans[5] = {s0, s1, s2, s3, s4};
-        return first_of_any_iter(&spans[0], &spans[0] + 5);
+        basic_csubstr s[5] = {s0, s1, s2, s3, s4};
+        return first_of_any_iter(&s[0], &s[0] + 5);
     }
 
     template< class It >
@@ -1155,6 +1086,78 @@ public:
         return ss;
     }
 
+public:
+
+    C4_DISABLED_FOR_CONST_C(void) copy_from(basic_csubstr that, size_t ifirst=0, size_t num=npos)
+    {
+        C4_ASSERT(ifirst >= 0 && ifirst <= len);
+        num = num != npos ? num : len - ifirst;
+        num = num < that.len ? num : that.len;
+        memcpy(str + sizeof(C) * ifirst, that.str, sizeof(C) * num);
+    }
+
+public:
+
+    C4_DISABLED_FOR_CONST_C(void) reverse()
+    {
+        if(len == 0) return;
+        _do_reverse(str, str + len - 1);
+    }
+
+    C4_DISABLED_FOR_CONST_C(void) reverse_sub(size_t ifirst, size_t num)
+    {
+        C4_ASSERT(ifirst >= 0 && ifirst <= len);
+        C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
+        if(num == 0) return;
+        _do_reverse(str + ifirst, ifirst + num - 1);
+    }
+
+    C4_DISABLED_FOR_CONST_C(void) reverse_range(size_t ifirst, size_t ilast)
+    {
+        C4_ASSERT(ifirst >= 0 && ifirst <= len);
+        C4_ASSERT(ilast  >= 0 && ilast  <= len);
+        if(ifirst == ilast) return;
+        _do_reverse(str + ifirst, str + ilast - 1);
+    }
+
+public:
+
+    C4_DISABLED_FOR_CONST_C(basic_substring) erase(size_t pos, size_t num)
+    {
+        C4_ASSERT(pos >= 0 && pos+num <= len);
+        size_t num_to_move = len - pos - num;
+        memmove(str + pos, str + pos + num, sizeof(C) * num_to_move);
+        return basic_substring{str, len - num};
+    }
+
+    C4_DISABLED_FOR_CONST_C(basic_substring) erase_range(size_t first, size_t last)
+    {
+        C4_ASSERT(first <= last);
+        return erase(first, last-first);
+    }
+
+    C4_DISABLED_FOR_CONST_C(basic_substring) erase(basic_csubstr sub)
+    {
+        C4_ASSERT(contains(sub));
+        C4_ASSERT(sub.str >= str);
+        return erase(sub.str - str, sub.len);
+    }
+
+public:
+
+    C4_DISABLED_FOR_CONST_C(bool) replace_all(C value, C repl, size_t pos=0)
+    {
+        bool did_it = false;
+        while((pos = find(value, pos)) != npos)
+        {
+            str[pos++] = repl;
+            did_it = true;
+        }
+        return did_it;
+    }
+
+#undef C4_DISABLED_FOR_CONST_C
+#undef C4_NC2C
 }; // template class basic_substring
 
 
@@ -1162,19 +1165,19 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template< typename C, size_t N > inline bool operator== (basic_substring<const C> const that, const char (&s)[N]) { return that.compare(s) == 0; }
-template< typename C, size_t N > inline bool operator!= (basic_substring<const C> const that, const char (&s)[N]) { return that.compare(s) != 0; }
-template< typename C, size_t N > inline bool operator<  (basic_substring<const C> const that, const char (&s)[N]) { return that.compare(s) <  0; }
-template< typename C, size_t N > inline bool operator>  (basic_substring<const C> const that, const char (&s)[N]) { return that.compare(s) >  0; }
-template< typename C, size_t N > inline bool operator<= (basic_substring<const C> const that, const char (&s)[N]) { return that.compare(s) <= 0; }
-template< typename C, size_t N > inline bool operator>= (basic_substring<const C> const that, const char (&s)[N]) { return that.compare(s) >= 0; }
+template< typename C, size_t N > inline bool operator== (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) == 0; }
+template< typename C, size_t N > inline bool operator!= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) != 0; }
+template< typename C, size_t N > inline bool operator<  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <  0; }
+template< typename C, size_t N > inline bool operator>  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >  0; }
+template< typename C, size_t N > inline bool operator<= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <= 0; }
+template< typename C, size_t N > inline bool operator>= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >= 0; }
 
-template< typename C, size_t N > inline bool operator== (const char (&s)[N], basic_substring<const C> const that) { return that.compare(s) == 0; }
-template< typename C, size_t N > inline bool operator!= (const char (&s)[N], basic_substring<const C> const that) { return that.compare(s) != 0; }
-template< typename C, size_t N > inline bool operator<  (const char (&s)[N], basic_substring<const C> const that) { return that.compare(s) >  0; }
-template< typename C, size_t N > inline bool operator>  (const char (&s)[N], basic_substring<const C> const that) { return that.compare(s) <  0; }
-template< typename C, size_t N > inline bool operator<= (const char (&s)[N], basic_substring<const C> const that) { return that.compare(s) >= 0; }
-template< typename C, size_t N > inline bool operator>= (const char (&s)[N], basic_substring<const C> const that) { return that.compare(s) <= 0; }
+template< typename C, size_t N > inline bool operator== (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) == 0; }
+template< typename C, size_t N > inline bool operator!= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) != 0; }
+template< typename C, size_t N > inline bool operator<  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >  0; }
+template< typename C, size_t N > inline bool operator>  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <  0; }
+template< typename C, size_t N > inline bool operator<= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >= 0; }
+template< typename C, size_t N > inline bool operator>= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <= 0; }
 
 template< typename C > inline bool operator== (basic_substring<const C> const that, C const c) { return that.compare(c) == 0; }
 template< typename C > inline bool operator!= (basic_substring<const C> const that, C const c) { return that.compare(c) != 0; }
