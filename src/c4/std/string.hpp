@@ -9,8 +9,7 @@
 namespace std {
 
 //-----------------------------------------------------------------------------
-// converting std::string to yml::substr / c4::csubstr
-// This is not required, but is handy.
+// converting std::string to c4::substr / c4::csubstr
 
 inline c4::substr to_substr(std::string &s)
 {

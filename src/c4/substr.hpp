@@ -334,6 +334,7 @@ public:
 
     basic_substring left_of(basic_csubstr const ss) const
     {
+        C4_ASSERT(contains(ss) || ss.empty());
         auto ssb = ss.begin();
         auto b = begin();
         auto e = end();
@@ -349,6 +350,7 @@ public:
 
     basic_substring right_of(basic_csubstr const ss) const
     {
+        C4_ASSERT(contains(ss) || ss.empty());
         auto sse = ss.end();
         auto b = begin();
         auto e = end();
