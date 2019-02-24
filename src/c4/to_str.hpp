@@ -753,7 +753,7 @@ inline size_t to_str(substr buf, bool v)
 /** @ingroup generic_tofrom_string */
 inline bool from_str(csubstr buf, bool * C4_RESTRICT v)
 {
-    int val;
+    int val = 0;
     bool ret = from_str(buf, &val);
     *v = (val != 0);
     return ret;
@@ -762,7 +762,7 @@ inline bool from_str(csubstr buf, bool * C4_RESTRICT v)
 /** @ingroup generic_tofrom_string */
 inline size_t from_str_trim(csubstr buf, bool * C4_RESTRICT v)
 {
-    int val;
+    int val = 0;
     size_t ret = from_str_trim(buf, &val);
     *v = (val != 0);
     return ret;
@@ -794,6 +794,7 @@ inline size_t from_str_trim(csubstr buf, char * C4_RESTRICT v)
     *v = buf[0];
     return 1;
 }
+
 
 //-----------------------------------------------------------------------------
 // csubstr implementation
@@ -1039,10 +1040,10 @@ inline size_t uncat(csubstr /*buf*/)
 /** deserialize the arguments from the given buffer.
  *
  * @return the number of characters read from the buffer, or csubstr::npos
- *   if a conversion was not successful
+ *   if a conversion was not successful.
  * @see cat(). uncat() is the inverse of cat().
  * @ingroup formatting_functions */
-template< class Arg, class... Args >
+template<class Arg, class... Args>
 size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     size_t num = from_str_trim(buf, &a);

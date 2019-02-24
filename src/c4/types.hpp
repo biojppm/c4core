@@ -9,6 +9,9 @@
 #include <utility>  // for integer_sequence and friends
 #endif
 
+#include "c4/preprocessor.hpp"
+#include "c4/language.hpp"
+
 /** @file types.hpp basic types, and utility macros and traits for types.
  * @ingroup basic_headers */
 
@@ -26,7 +29,7 @@ using u64 = uint64_t;
 using f32 = float;
 using f64 = double;
 
-using ssize_t = std::make_signed< size_t >::type;
+using ssize_t = std::make_signed<size_t>::type;
 
 //--------------------------------------------------
 
@@ -53,34 +56,34 @@ constexpr const varargs_t varargs{};
 //--------------------------------------------------
 
 /** whether a value should be used in place of a const-reference in argument passing. */
-template< class T >
+template<class T>
 struct cref_uses_val
 {
     enum { value = (
-    std::is_scalar< T >::value
+    std::is_scalar<T>::value
     ||
-    (std::is_pod< T >::value && sizeof(T) <= sizeof(size_t))) };
+    (std::is_pod<T>::value && sizeof(T) <= sizeof(size_t))) };
 };
 /** utility macro to override the default behaviour for c4::fastcref<T>
  @see fastcref */
 #define C4_CREF_USES_VAL(T) \
 template<>                  \
-struct cref_uses_val< T >   \
+struct cref_uses_val<T>     \
 {                           \
     enum { value = true };  \
 };
 
 /** Whether to use pass-by-value or pass-by-const-reference in a function argument
  * or return type. */
-template< class T >
-using fastcref = typename std::conditional< c4::cref_uses_val< T >::value, T, T const& >::type;
+template<class T>
+using fastcref = typename std::conditional<c4::cref_uses_val<T>::value, T, T const&>::type;
 
 //--------------------------------------------------
 
 /** Just what its name says. Useful sometimes as a default empty policy class. */
 struct EmptyStruct
 {
-    template< class... T > EmptyStruct(T && ...){}
+    template<class... T> EmptyStruct(T && ...){}
 };
 
 /** Just what its name says. Useful sometimes as a default policy class to
@@ -88,12 +91,12 @@ struct EmptyStruct
 struct EmptyStructVirtual
 {
     virtual ~EmptyStructVirtual() = default;
-    template< class... T > EmptyStructVirtual(T && ...){}
+    template<class... T> EmptyStructVirtual(T && ...){}
 };
 
 
 /** */
-template< class T >
+template<class T>
 struct inheritfrom : public T {};
 
 //--------------------------------------------------
@@ -113,11 +116,11 @@ C4_ALWAYS_INLINE constexpr size_t mult_remainder(size_t size, size_t multipleof)
     return (((size % multipleof) != 0) ? (multipleof-(size % multipleof)) : 0);
 }
 
-/** force the following class to be tightly packed.
+/* force the following class to be tightly packed.
  * @see http://stackoverflow.com/questions/21092415/force-c-structure-to-pack-tightly */
 #pragma pack(push, 1)
 /** pad a class with more bytes at the end. */
-template< class T, size_t BytesToPadAtEnd >
+template<class T, size_t BytesToPadAtEnd>
 struct Padded : public T
 {
     using T::T;
@@ -126,29 +129,29 @@ public:
 };
 #pragma pack(pop)
 /** When the padding argument is 0, we cannot declare the char[] array. */
-template< class T >
-struct Padded< T, 0 > : public T
+template<class T>
+struct Padded<T, 0> : public T
 {
     using T::T;
 };
 
 /** make T have a size which is at least Min bytes */
-template< class T, size_t Min >
-using MinSized = Padded< T, min_remainder(sizeof(T), Min) >;
+template<class T, size_t Min>
+using MinSized = Padded<T, min_remainder(sizeof(T), Min)>;
 
 /** make T have a size which is a multiple of Mult bytes */
-template< class T, size_t Mult >
-using MultSized = Padded< T, mult_remainder(sizeof(T), Mult) >;
+template<class T, size_t Mult>
+using MultSized = Padded<T, mult_remainder(sizeof(T), Mult)>;
 
 /** make T have a size which is simultaneously:
  *  -bigger or equal than Min
  *  -a multiple of Mult */
-template< class T, size_t Min, size_t Mult >
-using MinMultSized = MultSized< MinSized< T, Min >, Mult >;
+template<class T, size_t Min, size_t Mult>
+using MinMultSized = MultSized<MinSized<T, Min>, Mult>;
 
 /** make T be suitable for use as a uniform buffer. (at least with DirectX). */
-template< class T >
-using UbufSized = MinMultSized< T, 64, 16 >;
+template<class T>
+using UbufSized = MinMultSized<T, 64, 16>;
 
 //-----------------------------------------------------------------------------
 
@@ -156,11 +159,11 @@ using UbufSized = MinMultSized< T, 64, 16 >;
 based on a compile-time condition.
 @code
 // define an overload for a non-pod type
-template< class T, C4_REQUIRE_T(std::is_pod< T >::value) >
+template<class T, C4_REQUIRE_T(std::is_pod<T>::value)>
 void foo() { std::cout << "pod type\n"; }
 
 // define an overload for a non-pod type
-template< class T, C4_REQUIRE_T(!std::is_pod< T >::value) >
+template<class T, C4_REQUIRE_T(!std::is_pod<T>::value)>
 void foo() { std::cout << "nonpod type\n"; }
 
 struct non_pod
@@ -171,50 +174,50 @@ struct non_pod
 
 int main()
 {
-    foo< float >(); // prints "pod type"
-    foo< non_pod >(); // prints "nonpod type"
+    foo<float>(); // prints "pod type"
+    foo<non_pod>(); // prints "nonpod type"
 }
 @endcode */
-#define C4_REQUIRE_T(cond) typename std::enable_if< cond, bool >::type* = nullptr
+#define C4_REQUIRE_T(cond) typename std::enable_if<cond, bool>::type* = nullptr
 
 /** enable_if for a return type
  * @see C4_REQUIRE_T */
-#define C4_REQUIRE_R(cond, type_) typename std::enable_if< cond, type_ >::type
+#define C4_REQUIRE_R(cond, type_) typename std::enable_if<cond, type_>::type
 
 //-----------------------------------------------------------------------------
 /** declare a traits class telling whether a type provides a member typedef */
-#define C4_DEFINE_HAS_TYPEDEF(member_typedef)                   \
-template< typename T >                                          \
-struct has_##stype                                              \
-{                                                               \
-private:                                                        \
-                                                                \
-    typedef char                      yes;                      \
-    typedef struct { char array[2]; } no;                       \
-                                                                \
-    template< typename C >                                      \
-    static yes _test(typename C::member_typedef*);              \
-                                                                \
-    template< typename C >                                      \
-    static no  _test(...);                                      \
-                                                                \
-public:                                                         \
-                                                                \
-    enum { value = (sizeof(_test< T >(0)) == sizeof(yes)) };    \
-                                                                \
+#define C4_DEFINE_HAS_TYPEDEF(member_typedef)               \
+template<typename T>                                        \
+struct has_##stype                                          \
+{                                                           \
+private:                                                    \
+                                                            \
+    typedef char                      yes;                  \
+    typedef struct { char array[2]; } no;                   \
+                                                            \
+    template<typename C>                                    \
+    static yes _test(typename C::member_typedef*);          \
+                                                            \
+    template<typename C>                                    \
+    static no  _test(...);                                  \
+                                                            \
+public:                                                     \
+                                                            \
+    enum { value = (sizeof(_test<T>(0)) == sizeof(yes)) };  \
+                                                            \
 }
 
 //-----------------------------------------------------------------------------
-#define _c4_DEFINE_ARRAY_TYPES_WITHOUT_ITERATOR(T, I)       \
-                                                            \
-    using size_type = I;                                    \
-    using ssize_type = typename std::make_signed<I>::type;  \
+#define _c4_DEFINE_ARRAY_TYPES_WITHOUT_ITERATOR(T, I)           \
+                                                                \
+    using size_type = I;                                        \
+    using ssize_type = typename std::make_signed<I>::type;      \
     using difference_type = typename std::make_signed<I>::type; \
-                                                            \
-    using value_type = T;                                   \
-    using pointer = T*;                                     \
-    using const_pointer = T const*;                         \
-    using reference = T&;                                   \
+                                                                \
+    using value_type = T;                                       \
+    using pointer = T*;                                         \
+    using const_pointer = T const*;                             \
+    using reference = T&;                                       \
     using const_reference = T const&
 
 #define _c4_DEFINE_TUPLE_ARRAY_TYPES_WITHOUT_ITERATOR(interior_types, I) \
@@ -223,37 +226,37 @@ public:                                                         \
     using ssize_type = typename std::make_signed<I>::type;              \
     using difference_type = typename std::make_signed<I>::type;         \
                                                                         \
-    template< I n > using value_type = typename std::tuple_element< n, std::tuple<interior_types...> >::type; \
-    template< I n > using pointer = value_type<n>*;                     \
-    template< I n > using const_pointer = value_type<n> const*;         \
-    template< I n > using reference = value_type<n>&;                   \
-    template< I n > using const_reference = value_type<n> const&        \
+    template<I n > using value_type = typename std::tuple_element< n, std::tuple<interior_types...>>::type; \
+    template<I n> using pointer = value_type<n>*;                       \
+    template<I n> using const_pointer = value_type<n> const*;           \
+    template<I n> using reference = value_type<n>&;                     \
+    template<I n> using const_reference = value_type<n> const&
 
 
-#define _c4_DEFINE_ARRAY_TYPES(T, I)                                    \
-                                                                        \
-    _c4_DEFINE_ARRAY_TYPES_WITHOUT_ITERATOR(T, I);                      \
-                                                                        \
-    using iterator = T*;                                                \
-    using const_iterator = T const*;                                    \
-    using reverse_iterator = std::reverse_iterator< T* >;               \
-    using const_reverse_iterator = std::reverse_iterator< T const* >
+#define _c4_DEFINE_ARRAY_TYPES(T, I)                                \
+                                                                    \
+    _c4_DEFINE_ARRAY_TYPES_WITHOUT_ITERATOR(T, I);                  \
+                                                                    \
+    using iterator = T*;                                            \
+    using const_iterator = T const*;                                \
+    using reverse_iterator = std::reverse_iterator<T*>;             \
+    using const_reverse_iterator = std::reverse_iterator<T const*>
 
 
 #define _c4_DEFINE_TUPLE_ARRAY_TYPES(interior_types, I)                 \
                                                                         \
     _c4_DEFINE_TUPLE_ARRAY_TYPES_WITHOUT_ITERATOR(interior_types, I);   \
                                                                         \
-    template< I n > using iterator = value_type<n>*;                    \
-    template< I n > using const_iterator = value_type<n> const*;        \
-    template< I n > using reverse_iterator = std::reverse_iterator< value_type<n>* >; \
-    template< I n > using const_reverse_iterator = std::reverse_iterator< value_type<n> const* >
+    template<I n> using iterator = value_type<n>*;                      \
+    template<I n> using const_iterator = value_type<n> const*;          \
+    template<I n > using reverse_iterator = std::reverse_iterator< value_type<n>*>; \
+    template<I n > using const_reverse_iterator = std::reverse_iterator< value_type<n> const*>
 
 
 //-----------------------------------------------------------------------------
 // http://stackoverflow.com/questions/10821380/is-t-an-instance-of-a-template-in-c
-template< template < typename... > class X, typename    T > struct is_instance_of_tpl             : std::false_type {};
-template< template < typename... > class X, typename... Y > struct is_instance_of_tpl<X, X<Y...>> : std::true_type {};
+template<template < typename... > class X, typename    T> struct is_instance_of_tpl             : std::false_type {};
+template<template < typename... > class X, typename... Y> struct is_instance_of_tpl<X, X<Y...>> : std::true_type {};
 
 
 //-----------------------------------------------------------------------------
@@ -332,7 +335,7 @@ template<typename _Tp> struct __convert<_Tp, _Tp> { template<typename _Up> struc
 template<typename _Tp, _Tp _Np> using __make_integer_sequence_unchecked =
   typename __detail::__convert<size_t, _Tp>::template __result<typename __detail::__make<_Np>::type>::type;
 
-template <class _Tp, _Tp _Ep>
+template<class _Tp, _Tp _Ep>
 struct __make_integer_sequence
 {
     static_assert(std::is_integral<_Tp>::value,

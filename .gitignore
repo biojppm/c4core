@@ -7,7 +7,7 @@
 .vs/
 .vscode/
 # QtCreator files
-CMakeLists.txt.user
+CMakeLists.txt.user*
 # Eclipse
 .project
 .cproject

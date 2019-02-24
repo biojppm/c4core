@@ -290,6 +290,7 @@ inline constexpr bool operator>=
     return ! (l < r);
 }
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -336,6 +337,7 @@ public:
     C4_ALWAYS_INLINE void ltrim (I n ) C4_NOEXCEPT_A { C4_ASSERT(n >= 0 && n < m_size); m_size -= n; m_ptr += n; }
 
 };
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -402,6 +404,7 @@ public:
     C4_ALWAYS_INLINE void ltrim (I n ) C4_NOEXCEPT_A { C4_ASSERT(n >= 0 && n < m_size); m_size -= n; m_ptr += n; m_capacity -= n; }
 
 };
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -477,7 +480,7 @@ public:
         return spanrsl(m_ptr - m_offset, m_capacity + m_offset, m_capacity + m_offset, 0);
     }
     /** recover the original span as a different span type. Example: spanrs<...> orig = s.original<spanrs>(); */
-    template<template< class, class > class OtherSpanType>
+    template<template<class, class> class OtherSpanType>
     C4_ALWAYS_INLINE OtherSpanType<T, I> original()
     {
         return OtherSpanType<T, I>(m_ptr - m_offset, m_capacity + m_offset);

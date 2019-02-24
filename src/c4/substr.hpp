@@ -9,18 +9,18 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
-template< class C > class basic_substring;
+template<class C> class basic_substring;
 
 /**
  * @see to_substr
  * @see to_csubstr
  * */
-using substr = basic_substring< char >;
+using substr = basic_substring<char>;
 /** @see to_csubstr */
-using csubstr = basic_substring< const char >;
+using csubstr = basic_substring<const char>;
 
-template< class OStream, class C >
-inline OStream& operator<< (OStream& s, basic_substring< C > sp)
+template<class OStream, class C>
+inline OStream& operator<< (OStream& s, basic_substring<C> sp)
 {
     s.write(sp.str, sp.len);
     return s;
@@ -44,8 +44,20 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** a span of characters and a length. Works like a writeable string_view. */
-template< class C >
+/** a span of characters and a length. Works like a writeable string_view.
+ *
+ * Because of a C++ limitation, substr cannot provide simultaneous
+ * overloads for constructing from a char[N] and a char*; the latter
+ * will always be chosen by the compiler. So this specialization is
+ * provided to simplify obtaining a substr from a char*. Being a
+ * function has the advantage of highlighting the strlen() cost.
+ *
+ * @see For a more detailed explanation on why the overloads cannot
+ * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html
+ * @see to_substr()
+ * @see to_csubstr()
+ */
+template<class C>
 class basic_substring
 {
 
@@ -59,16 +71,16 @@ class basic_substring
 
 public:
 
-    C *str;
-    size_t len;
+    C * C4_RESTRICT str;
+    size_t          len;
 
 public:
 
-    using  CC = typename std::add_const< C >::type;
-    using NCC = typename std::remove_const< C >::type;
+    using  CC = typename std::add_const<C>::type;
+    using NCC = typename std::remove_const<C>::type;
 
-    using basic_csubstr = basic_substring<  CC >;
-    using basic_ncsubstr = basic_substring< NCC >;
+    using basic_csubstr = basic_substring<CC>;
+    using basic_ncsubstr = basic_substring<NCC>;
 
     using char_type = C;
     using size_type = size_t;
@@ -102,13 +114,13 @@ public:
      * you can call c4::to_substr()/c4::to_csubstr().
      * @see c4::to_substr()
      * @see c4::to_csubstr() */
-    template< size_t N >
+    template<size_t N>
     basic_substring(C (&s_)[N]) : str(s_), len(N-1) {}
     basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
     basic_substring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
 
 	//basic_span& operator= (C *s_) { this->assign(s_); return *this; }
-	template< size_t N >
+	template<size_t N>
 	basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
 
     //void assign(C *s_) { str = (s_); len = (s_ ? strlen(s_) : 0); }
@@ -118,7 +130,7 @@ public:
      * you can call c4::to_substr()/c4::to_csubstr().
      * @see c4::to_substr()
      * @see c4::to_csubstr() */
-    template< size_t N >
+    template<size_t N>
     void assign(C (&s_)[N]) { str = (s_); len = (N-1); }
     void assign(C *s_, size_t len_) { str = s_; len = len_; C4_ASSERT(str || !len_); }
     void assign(C *beg_, C *end_) { C4_ASSERT(end_ >= beg_); str = (beg_); len = (end_ - beg_); }
@@ -127,25 +139,32 @@ public:
 
     // when the char type is const, allow construction and assignment from non-const chars
 
-    template< size_t N, class U=NCC > explicit basic_substring(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
-    template<           class U=NCC >          basic_substring(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
-    template<           class U=NCC >          basic_substring(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
+    /** only available when the char type is const */
+    template<size_t N, class U=NCC> explicit basic_substring(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
+    /** only available when the char type is const */
+    template<          class U=NCC>          basic_substring(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
+    /** only available when the char type is const */
+    template<          class U=NCC>          basic_substring(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
 
-    template< size_t N, class U=NCC > void assign(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
-    template<           class U=NCC > void assign(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
-    template<           class U=NCC > void assign(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
+    /** only available when the char type is const */
+    template<size_t N, class U=NCC> void assign(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
+    /** only available when the char type is const */
+    template<          class U=NCC> void assign(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
+    /** only available when the char type is const */
+    template<          class U=NCC> void assign(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
 
-    template< size_t N, class U=NCC >
+    /** only available when the char type is const */
+    template<size_t N, class U=NCC>
     basic_substring& operator=(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; return *this; }
 
 public:
 
     void clear() { str = nullptr; len = 0; }
 
-    bool has_str() const { return ! empty() && str[0] != C(0); }
-    bool empty() const { return (len == 0 || str == nullptr); }
-    bool not_empty() const { return (len != 0 && str != nullptr); }
-    size_t size() const { return len; }
+    bool   has_str()   const { return ! empty() && str[0] != C(0); }
+    bool   empty()     const { return (len == 0 || str == nullptr); }
+    bool   not_empty() const { return (len != 0 && str != nullptr); }
+    size_t size()      const { return len; }
 
     iterator begin() { return str; }
     iterator end  () { return str + len; }
@@ -413,7 +432,7 @@ public:
         return first_of_any_iter(&s[0], &s[0] + 5);
     }
 
-    template< class It >
+    template<class It>
     first_of_any_result first_of_any_iter(It first_span, It last_span) const
     {
         for(size_t i = 0; i < len; ++i)
@@ -1165,33 +1184,34 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template< typename C, size_t N > inline bool operator== (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) == 0; }
-template< typename C, size_t N > inline bool operator!= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) != 0; }
-template< typename C, size_t N > inline bool operator<  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <  0; }
-template< typename C, size_t N > inline bool operator>  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >  0; }
-template< typename C, size_t N > inline bool operator<= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <= 0; }
-template< typename C, size_t N > inline bool operator>= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >= 0; }
+template<typename C, size_t N> inline bool operator== (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) == 0; }
+template<typename C, size_t N> inline bool operator!= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) != 0; }
+template<typename C, size_t N> inline bool operator<  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <  0; }
+template<typename C, size_t N> inline bool operator>  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >  0; }
+template<typename C, size_t N> inline bool operator<= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <= 0; }
+template<typename C, size_t N> inline bool operator>= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >= 0; }
 
-template< typename C, size_t N > inline bool operator== (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) == 0; }
-template< typename C, size_t N > inline bool operator!= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) != 0; }
-template< typename C, size_t N > inline bool operator<  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >  0; }
-template< typename C, size_t N > inline bool operator>  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <  0; }
-template< typename C, size_t N > inline bool operator<= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >= 0; }
-template< typename C, size_t N > inline bool operator>= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <= 0; }
+template<typename C, size_t N> inline bool operator== (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) == 0; }
+template<typename C, size_t N> inline bool operator!= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) != 0; }
+template<typename C, size_t N> inline bool operator<  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >  0; }
+template<typename C, size_t N> inline bool operator>  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <  0; }
+template<typename C, size_t N> inline bool operator<= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >= 0; }
+template<typename C, size_t N> inline bool operator>= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <= 0; }
 
-template< typename C > inline bool operator== (basic_substring<const C> const that, C const c) { return that.compare(c) == 0; }
-template< typename C > inline bool operator!= (basic_substring<const C> const that, C const c) { return that.compare(c) != 0; }
-template< typename C > inline bool operator<  (basic_substring<const C> const that, C const c) { return that.compare(c) <  0; }
-template< typename C > inline bool operator>  (basic_substring<const C> const that, C const c) { return that.compare(c) >  0; }
-template< typename C > inline bool operator<= (basic_substring<const C> const that, C const c) { return that.compare(c) <= 0; }
-template< typename C > inline bool operator>= (basic_substring<const C> const that, C const c) { return that.compare(c) >= 0; }
+template<typename C> inline bool operator== (basic_substring<const C> const that, C const c) { return that.compare(c) == 0; }
+template<typename C> inline bool operator!= (basic_substring<const C> const that, C const c) { return that.compare(c) != 0; }
+template<typename C> inline bool operator<  (basic_substring<const C> const that, C const c) { return that.compare(c) <  0; }
+template<typename C> inline bool operator>  (basic_substring<const C> const that, C const c) { return that.compare(c) >  0; }
+template<typename C> inline bool operator<= (basic_substring<const C> const that, C const c) { return that.compare(c) <= 0; }
+template<typename C> inline bool operator>= (basic_substring<const C> const that, C const c) { return that.compare(c) >= 0; }
 
-template< typename C > inline bool operator== (C const c, basic_substring<const C> const that) { return that.compare(c) == 0; }
-template< typename C > inline bool operator!= (C const c, basic_substring<const C> const that) { return that.compare(c) != 0; }
-template< typename C > inline bool operator<  (C const c, basic_substring<const C> const that) { return that.compare(c) >  0; }
-template< typename C > inline bool operator>  (C const c, basic_substring<const C> const that) { return that.compare(c) <  0; }
-template< typename C > inline bool operator<= (C const c, basic_substring<const C> const that) { return that.compare(c) >= 0; }
-template< typename C > inline bool operator>= (C const c, basic_substring<const C> const that) { return that.compare(c) <= 0; }
+template<typename C> inline bool operator== (C const c, basic_substring<const C> const that) { return that.compare(c) == 0; }
+template<typename C> inline bool operator!= (C const c, basic_substring<const C> const that) { return that.compare(c) != 0; }
+template<typename C> inline bool operator<  (C const c, basic_substring<const C> const that) { return that.compare(c) >  0; }
+template<typename C> inline bool operator>  (C const c, basic_substring<const C> const that) { return that.compare(c) <  0; }
+template<typename C> inline bool operator<= (C const c, basic_substring<const C> const that) { return that.compare(c) >= 0; }
+template<typename C> inline bool operator>= (C const c, basic_substring<const C> const that) { return that.compare(c) <= 0; }
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1201,7 +1221,7 @@ template< typename C > inline bool operator>= (C const c, basic_substring<const 
  * overloads for constructing from a char[N] and a char*; the latter
  * will always be chosen by the compiler. So this specialization is
  * provided to simplify obtaining a substr from a char*. Being a
- * function has the advantage of making evident the strlen() cost.
+ * function has the advantage of highlighting the strlen() cost.
  *
  * @see For a more detailed explanation on why the overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
@@ -1214,7 +1234,7 @@ inline substr to_substr(char *s)
  * overloads for constructing from a char[N] and a char*; the latter
  * will always be chosen by the compiler. So this specialization is
  * provided to simplify obtaining a substr from a char*. Being a
- * function has the advantage of making evident the strlen() cost.
+ * function has the advantage of highlighting the strlen() cost.
  *
  * @see For a more detailed explanation on why the overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
@@ -1227,7 +1247,7 @@ inline csubstr to_csubstr(char *s)
  * overloads for constructing from a const char[N] and a const char*;
  * the latter will always be chosen by the compiler. So this
  * specialization is provided to simplify obtaining a substr from a
- * char*. Being a function has the advantage of making evident the
+ * char*. Being a function has the advantage of highlighting the
  * strlen() cost.
  *
  * @see For a more detailed explanation on why the overloads cannot

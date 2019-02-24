@@ -52,7 +52,7 @@ void set_error_callback(error_callback_type cb)
 
 void handle_error(srcloc where, const char *fmt, ...)
 {
-    char buf[1024]; // FIXME. //sstream< c4::string > ss;
+    char buf[1024];
     size_t msglen = 0;
     if(s_error_flags & (ON_ERROR_LOG|ON_ERROR_CALLBACK))
     {
@@ -105,9 +105,9 @@ void handle_error(srcloc where, const char *fmt, ...)
 void handle_warning(srcloc where, const char *fmt, ...)
 {
     va_list args;
-    va_start(args, fmt);
     char buf[1024]; //sstream<c4::string> ss;
-    vsnprintf(buf, sizeof(buf), fmt, args);//ss.vprintf(fmt, args);
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
     C4_LOGF_WARN("\n");
 #if defined(C4_ERROR_SHOWS_FILELINE) && defined(C4_ERROR_SHOWS_FUNC)

@@ -6,7 +6,7 @@
 namespace c4 {
 
 
-template< class ItoaOrUtoa, class ItoaOrUtoaRdx, class I >
+template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class I>
 void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
     char bufc[64];
@@ -109,7 +109,7 @@ TEST(utoa, prefixed_number_on_empty_buffer)
 //-----------------------------------------------------------------------------
 
 
-template< class ItoaOrUtoa, class ItoaOrUtoaRdx, class I >
+template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class I>
 void test_toa_radix(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
     size_t ret;
@@ -594,7 +594,7 @@ TEST(cat, tuple)
 TEST(uncat, vars)
 {
     size_t sz;
-    int v1, v2, v3, v4;
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
 
     sz = uncat("1 2 3 4", v1, v2, v3, v4);
     EXPECT_NE(sz, csubstr::npos);
@@ -609,7 +609,7 @@ TEST(uncat, vars)
 TEST(uncat, tuple)
 {
     size_t sz;
-    int v1, v2, v3, v4;
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
 
     auto tp = std::forward_as_tuple(v1, v2, v3, v4);
     sz = uncat("1 2 3 4", tp);
@@ -683,7 +683,7 @@ TEST(catsep, tuple)
 TEST(uncatsep, vars)
 {
     size_t sz;
-    int v1, v2, v3, v4;
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
     char sep;
 
     sz = uncatsep("1 2 3 4", sep, v1, v2, v3, v4);
@@ -698,7 +698,7 @@ TEST(uncatsep, vars)
 TEST(uncatsep, tuple)
 {
     size_t sz;
-    int v1, v2, v3, v4;
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
     char sep;
 
     auto tp = std::forward_as_tuple(v1, v2, v3, v4);
@@ -792,7 +792,7 @@ TEST(format, tuple)
 TEST(unformat, vars)
 {
     size_t sz;
-    int v1, v2, v3, v4;
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
 
     sz = unformat("1 and 2 and 3 and 4", "{} and {} and {} and {}", v1, v2, v3, v4);
     EXPECT_EQ(sz, 19);
@@ -806,7 +806,7 @@ TEST(unformat, vars)
 TEST(unformat, tuple)
 {
     size_t sz;
-    int v1, v2, v3, v4;
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
 
     auto tp = std::forward_as_tuple(v1, v2, v3, v4);
     sz = unformat("1 and 2 and 3 and 4", "{} and {} and {} and {}", tp);
