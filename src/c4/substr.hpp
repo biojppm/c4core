@@ -54,8 +54,8 @@ class basic_substring
     template <typename U=C> \
     typename std::enable_if<std::is_const<U>::value == false, ret_type>::type
 // non-const-to-const
-#define C4_NC2C(tt) \
-    typename std::enable_if<std::is_const<C>::value && ( ! std::is_const<tt>::value), tt>::type
+#define C4_NC2C(ty) \
+    typename std::enable_if<std::is_const<C>::value && ( ! std::is_const<ty>::value), ty>::type
 
 public:
 

@@ -8,13 +8,14 @@ struct _c4t
 {
     const char *str;
     size_t sz;
-    template< size_t N > _c4t(const char (&s)[N]) : str(s), sz(N-1) {} // take off the \0
+    template<size_t N>
+    constexpr _c4t(const char (&s)[N]) : str(s), sz(N-1) {} // take off the \0
 };
 // this is a more abbreviated way of getting the type name
 // (if we used span in the return type, the name would involve
 // templates and would create longer type name strings,
 // as well as larger differences between compilers)
-template< class T >
+template<class T>
 C4_CONSTEXPR14 C4_ALWAYS_INLINE
 _c4t _c4tn()
 {
@@ -26,21 +27,20 @@ _c4t _c4tn()
 
 C4_BEGIN_NAMESPACE(c4)
 
-template< class T >
+template<class T>
 C4_CONSTEXPR14 cspan<char> type_name();
 
-template< class T >
-C4_CONSTEXPR14 C4_ALWAYS_INLINE cspan<char> type_name(T const& var)
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE cspan<char> type_name(T const&)
 {
-    C4_UNUSED(var);
-    return type_name< T >();
+    return type_name<T>();
 }
 
 /** adapted from this answer: http://stackoverflow.com/a/20170989/5875572 */
-template< class T >
+template<class T>
 C4_CONSTEXPR14 cspan<char> type_name()
 {
-    const _c4t p = _c4tn< T >();
+    const _c4t p = _c4tn<T>();
 
 #if 0 && defined(_C4_THIS_IS_A_DEBUG_SCAFFOLD)
     for(int index = 0; index < p.sz; ++index)
@@ -82,7 +82,7 @@ C4_CONSTEXPR14 cspan<char> type_name()
     }
 
 #   else
-        C4_NOT_IMPLEMENTED();
+    C4_NOT_IMPLEMENTED();
 #   endif
 
 #elif defined(__ICC)

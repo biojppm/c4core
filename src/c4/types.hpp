@@ -5,6 +5,10 @@
 #include <stddef.h>
 #include <type_traits>
 
+#if __cplusplus > 201103L
+#include <utility>  // for integer_sequence and friends
+#endif
+
 /** @file types.hpp basic types, and utility macros and traits for types.
  * @ingroup basic_headers */
 
@@ -259,12 +263,15 @@ template< template < typename... > class X, typename... Y > struct is_instance_o
 // see http://llvm.org/viewvc/llvm-project/libcxx/trunk/include/utility?revision=211563&view=markup#l687
 
 #if __cplusplus > 201103L
+
 using std::integer_sequence;
 using std::index_sequence;
 using std::make_integer_sequence;
 using std::make_index_sequence;
 using std::index_sequence_for;
+
 #else
+
 template<class _Tp, _Tp... _Ip>
 struct integer_sequence
 {

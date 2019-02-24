@@ -7,7 +7,7 @@
 #include "c4/test.hpp"
 
 #define C4_EXPECT_NARROWER(yes_or_no, ty_out, ty_in) \
-    EXPECT_TRUE( yes_or_no is_narrower_size< ty_out C4_COMMA ty_in >::value);
+    EXPECT_TRUE(( yes_or_no (is_narrower_size< ty_out C4_COMMA ty_in >::value)));
 
 C4_BEGIN_NAMESPACE(c4)
 

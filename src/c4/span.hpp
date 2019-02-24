@@ -21,7 +21,7 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
-template< class StringType > class sstream;
+template<class StringType> class sstream;
 
 /** @defgroup span_classes Span classes
  *
@@ -41,28 +41,28 @@ template< class StringType > class sstream;
  *  - rtrim(num)
 */
 
-template< class T, class I=C4_SIZE_TYPE > class span;
-template< class T, class I=C4_SIZE_TYPE > class spanrs;
-template< class T, class I=C4_SIZE_TYPE > class spanrsl;
+template<class T, class I=C4_SIZE_TYPE> class span;
+template<class T, class I=C4_SIZE_TYPE> class spanrs;
+template<class T, class I=C4_SIZE_TYPE> class spanrsl;
 
 /** @ingroup span_classes
  * @ingroup contiguous_containers
  * @ingroup nonowning_containers */
-template< class T, class I=C4_SIZE_TYPE > using cspan   = span< const T, I >;
+template<class T, class I=C4_SIZE_TYPE> using cspan   = span<const T, I>;
 /** @ingroup span_classes
  * @ingroup contiguous_containers
  * @ingroup nonowning_containers */
-template< class T, class I=C4_SIZE_TYPE > using cspanrs = spanrs< const T, I >;
+template<class T, class I=C4_SIZE_TYPE> using cspanrs = spanrs<const T, I>;
 /** @ingroup span_classes
  * @ingroup contiguous_containers
  * @ingroup nonowning_containers */
-template< class T, class I=C4_SIZE_TYPE > using cspanrsl = spanrsl< const T, I >;
+template<class T, class I=C4_SIZE_TYPE> using cspanrsl = spanrsl<const T, I>;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 /** a crtp base for implementing span */
-template< class T, class I, class SpanImpl >
+template<class T, class I, class SpanImpl>
 class _span_crtp
 {
 // some utility defines, undefined at the end of this class
@@ -207,10 +207,10 @@ public:
     {
         return size() == that.size() && data() == that.data();
     }
-    template< class I2, class Impl2 >
-    C4_ALWAYS_INLINE bool same_span(_span_crtp< T, I2, Impl2 > const& that) const C4_NOEXCEPT_X
+    template<class I2, class Impl2>
+    C4_ALWAYS_INLINE bool same_span(_span_crtp<T, I2, Impl2> const& that) const C4_NOEXCEPT_X
     {
-        I tsz = szconv< I >(that.size()); // x-asserts that the size does not overflow
+        I tsz = szconv<I>(that.size()); // x-asserts that the size does not overflow
         return size() == tsz && data() == that.data();
     }
 
@@ -223,7 +223,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-template <class T, class Il, class Ir, class _Impll, class _Implr>
+template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator==
 (
     _span_crtp<T, Il, _Impll> const& l,
@@ -237,7 +237,7 @@ inline constexpr bool operator==
 #endif
 }
 
-template <class T, class Il, class Ir, class _Impll, class _Implr>
+template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator!=
 (
     _span_crtp<T, Il, _Impll> const& l,
@@ -248,7 +248,7 @@ inline constexpr bool operator!=
 }
 
 //-----------------------------------------------------------------------------
-template <class T, class Il, class Ir, class _Impll, class _Implr>
+template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator<
 (
     _span_crtp<T, Il, _Impll> const& l,
@@ -258,7 +258,7 @@ inline constexpr bool operator<
     return std::lexicographical_compare(l.begin(), l.end(), r.begin(), r.end());
 }
 
-template <class T, class Il, class Ir, class _Impll, class _Implr>
+template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator<=
 (
     _span_crtp<T, Il, _Impll> const& l,
@@ -269,7 +269,7 @@ inline constexpr bool operator<=
 }
 
 //-----------------------------------------------------------------------------
-template <class T, class Il, class Ir, class _Impll, class _Implr>
+template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator>
 (
     _span_crtp<T, Il, _Impll> const& l,
@@ -280,7 +280,7 @@ inline constexpr bool operator>
 }
 
 //-----------------------------------------------------------------------------
-template <class T, class Il, class Ir, class _Impll, class _Implr>
+template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator>=
 (
     _span_crtp<T, Il, _Impll> const& l,
@@ -297,13 +297,13 @@ inline constexpr bool operator>=
  * @ingroup span_classes
  * @ingroup contiguous_containers
  * @ingroup nonowning_containers */
-template< class T, class I >
+template<class T, class I>
 class span : public _span_crtp<T, I, span<T, I>>
 {
     friend class _span_crtp<T, I, span<T, I>>;
 
-    T *m_ptr;
-    I m_size;
+    T * m_ptr;
+    I   m_size;
 
     C4_ALWAYS_INLINE span _select(T *p, I sz) const { return span(p, sz); }
 
@@ -313,13 +313,13 @@ public:
 
 public:
 
-    C4_ALWAYS_INLINE span() noexcept : m_ptr{nullptr}, m_size{0} {}
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 span() noexcept : m_ptr{nullptr}, m_size{0} {}
 
-    C4_ALWAYS_INLINE      span  (T *p, I sz) noexcept : m_ptr{p}, m_size{sz} {}
-    C4_ALWAYS_INLINE void assign(T *p, I sz) noexcept { m_ptr = p; m_size = sz; }
+    C4_ALWAYS_INLINE C4_CONSTEXPR14      span  (T *p, I sz) noexcept : m_ptr{p}, m_size{sz} {}
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 void assign(T *p, I sz) noexcept { m_ptr = p; m_size = sz; }
 
-    template< size_t N > C4_ALWAYS_INLINE      span  (T (&arr)[N]) noexcept : m_ptr{arr}, m_size{N} {}
-    template< size_t N > C4_ALWAYS_INLINE void assign(T (&arr)[N]) noexcept { m_ptr = arr; m_size = N; }
+    template<size_t N> C4_ALWAYS_INLINE C4_CONSTEXPR14      span  (T (&arr)[N]) noexcept : m_ptr{arr}, m_size{N} {}
+    template<size_t N> C4_ALWAYS_INLINE C4_CONSTEXPR14 void assign(T (&arr)[N]) noexcept { m_ptr = arr; m_size = N; }
 
     span(span const&) = default;
     span(span     &&) = default;
@@ -356,14 +356,14 @@ public:
  * @ingroup contiguous_containers
  * @ingroup nonowning_containers
  */
-template< class T, class I >
+template<class T, class I>
 class spanrs : public _span_crtp<T, I, spanrs<T, I>>
 {
     friend class _span_crtp<T, I, spanrs<T, I>>;
 
-    T *m_ptr;
-    I m_size;
-    I m_capacity;
+    T * m_ptr;
+    I   m_size;
+    I   m_capacity;
 
     C4_ALWAYS_INLINE spanrs _select(T *p, I sz) const noexcept { return spanrs(p, sz, m_capacity - (p - m_ptr)); }
 
@@ -371,7 +371,7 @@ public:
 
     _c4_DEFINE_ARRAY_TYPES(T, I);
 
-    C4_ALWAYS_INLINE operator span< T, I > () const noexcept { return span< T, I >(m_ptr, m_size); }
+    C4_ALWAYS_INLINE operator span<T, I > () const noexcept { return span< T, I>(m_ptr, m_size); }
 
 public:
 
@@ -384,8 +384,8 @@ public:
     C4_ALWAYS_INLINE      spanrs(T *p, I sz, I cap) noexcept : m_ptr{p}, m_size{sz}, m_capacity{cap} {}
     C4_ALWAYS_INLINE void assign(T *p, I sz, I cap) noexcept { m_ptr = p; m_size = sz; m_capacity = cap; }
 
-    template< size_t N > C4_ALWAYS_INLINE      spanrs(T (&arr)[N]) noexcept : m_ptr{arr}, m_size{N}, m_capacity{N} {}
-    template< size_t N > C4_ALWAYS_INLINE void assign(T (&arr)[N]) noexcept { m_ptr = arr; m_size = N; m_capacity = N; }
+    template<size_t N> C4_ALWAYS_INLINE      spanrs(T (&arr)[N]) noexcept : m_ptr{arr}, m_size{N}, m_capacity{N} {}
+    template<size_t N> C4_ALWAYS_INLINE void assign(T (&arr)[N]) noexcept { m_ptr = arr; m_size = N; m_capacity = N; }
 
     spanrs(spanrs const&) = default;
     spanrs(spanrs     &&) = default;
@@ -417,15 +417,15 @@ public:
  * @ingroup contiguous_containers
  * @ingroup nonowning_containers
  */
-template< class T, class I >
+template<class T, class I>
 class spanrsl : public _span_crtp<T, I, spanrsl<T, I>>
 {
     friend class _span_crtp<T, I, spanrsl<T, I>>;
 
-    T *m_ptr;     ///< the current ptr. the original ptr is (m_ptr - m_offset).
-    I m_size;     ///< the current size. the original size is unrecoverable.
-    I m_capacity; ///< the current capacity. the original capacity is (m_capacity + m_offset).
-    I m_offset;   ///< the offset of the current m_ptr to the start of the original memory block.
+    T * m_ptr;      ///< the current ptr. the original ptr is (m_ptr - m_offset).
+    I   m_size;     ///< the current size. the original size is unrecoverable.
+    I   m_capacity; ///< the current capacity. the original capacity is (m_capacity + m_offset).
+    I   m_offset;   ///< the offset of the current m_ptr to the start of the original memory block.
 
     C4_ALWAYS_INLINE spanrsl _select(T *p, I sz) const noexcept
     {
@@ -437,8 +437,8 @@ public:
 
     _c4_DEFINE_ARRAY_TYPES(T, I);
 
-    C4_ALWAYS_INLINE operator span< T, I > () const noexcept { return span< T, I >(m_ptr, m_size); }
-    C4_ALWAYS_INLINE operator spanrs< T, I > () const noexcept { return spanrs< T, I >(m_ptr, m_size, m_capacity); }
+    C4_ALWAYS_INLINE operator span<T, I> () const noexcept { return span<T, I>(m_ptr, m_size); }
+    C4_ALWAYS_INLINE operator spanrs<T, I> () const noexcept { return spanrs<T, I>(m_ptr, m_size, m_capacity); }
 
 public:
 
@@ -453,8 +453,8 @@ public:
     C4_ALWAYS_INLINE spanrsl(T *p, I sz, I cap, I offs) noexcept : m_ptr{p}, m_size{sz}, m_capacity{cap}, m_offset{offs} {}
     C4_ALWAYS_INLINE void assign(T *p, I sz, I cap, I offs) noexcept { m_ptr = p; m_size = sz; m_capacity = cap; m_offset = offs; }
 
-    template< size_t N > C4_ALWAYS_INLINE spanrsl(T (&arr)[N]) noexcept : m_ptr{arr}, m_size{N}, m_capacity{N}, m_offset{0} {}
-    template< size_t N > C4_ALWAYS_INLINE void assign(T (&arr)[N]) noexcept { m_ptr = arr; m_size = N; m_capacity = N; m_offset = 0; }
+    template<size_t N> C4_ALWAYS_INLINE spanrsl(T (&arr)[N]) noexcept : m_ptr{arr}, m_size{N}, m_capacity{N}, m_offset{0} {}
+    template<size_t N> C4_ALWAYS_INLINE void assign(T (&arr)[N]) noexcept { m_ptr = arr; m_size = N; m_capacity = N; m_offset = 0; }
 
     spanrsl(spanrsl const&) = default;
     spanrsl(spanrsl     &&) = default;
@@ -476,11 +476,11 @@ public:
     {
         return spanrsl(m_ptr - m_offset, m_capacity + m_offset, m_capacity + m_offset, 0);
     }
-    /** recover the original span as a different span type. Example: spanrs<...> orig = s.original< spanrs >(); */
-    template< template< class, class > class OtherSpanType >
-    C4_ALWAYS_INLINE OtherSpanType< T, I > original()
+    /** recover the original span as a different span type. Example: spanrs<...> orig = s.original<spanrs>(); */
+    template<template< class, class > class OtherSpanType>
+    C4_ALWAYS_INLINE OtherSpanType<T, I> original()
     {
-        return OtherSpanType< T, I >(m_ptr - m_offset, m_capacity + m_offset);
+        return OtherSpanType<T, I>(m_ptr - m_offset, m_capacity + m_offset);
     }
 };
 

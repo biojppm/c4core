@@ -825,11 +825,11 @@ TEST(printf, basic)
     substr buf = bufc;
     size_t ret;
 
-    memset(buf.str, buf.len, 0);
+    memset(buf.str, 0, buf.len);
     ret = sprintf(buf, "hello world");
     EXPECT_EQ(buf.first(ret), "hello world");
 
-    memset(buf.str, buf.len, 0);
+    memset(buf.str, 0, buf.len);
     ret = sprintf(buf, "%d %d %d %d", 1, 2, 3, 4);
     EXPECT_EQ(buf.first(ret), "1 2 3 4");
 }
