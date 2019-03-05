@@ -5,6 +5,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/github/biojppm/c4core?branch=master&svg=true)](https://ci.appveyor.com/project/biojppm/c4core)
 [![Coverage: coveralls](https://coveralls.io/repos/github/biojppm/c4core/badge.svg)](https://coveralls.io/github/biojppm/c4core)
 [![Coverage: codecov](https://codecov.io/gh/biojppm/c4core/branch/master/graph/badge.svg)](https://codecov.io/gh/biojppm/c4core)
-
+[![LGTM alerts](https://img.shields.io/lgtm/alerts/g/biojppm/c4core.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/biojppm/c4core/alerts/)
+[![Language grade: C++](https://img.shields.io/lgtm/grade/python/g/biojppm/c4core.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/biojppm/c4core/context:C++)
 
 ## doc - TODO
