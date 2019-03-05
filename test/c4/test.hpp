@@ -4,8 +4,12 @@
 #include "c4/config.hpp"
 #include "c4/memory_resource.hpp"
 #include "c4/allocator.hpp"
-#include "c4/log.hpp"
 #include "c4/substr.hpp"
+
+// FIXME - these are just dumb placeholders
+#define C4_LOGF_ERR(...) fprintf(stderr, __VA_ARGS__)
+#define C4_LOGF_WARN(...) fprintf(stderr, __VA_ARGS__)
+#define C4_LOGP(msg, ...) printf(msg)
 
 #ifdef __clang__
 #   pragma clang diagnostic push

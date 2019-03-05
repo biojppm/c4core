@@ -4,7 +4,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "c4/log.hpp"
+// FIXME - these are just dumb placeholders
+#define C4_LOGF_ERR(...) fprintf(stderr, __VA_ARGS__)
+#define C4_LOGF_WARN(...) fprintf(stderr, __VA_ARGS__)
+#define C4_LOGP(msg, ...) printf(msg)
 
 #if defined(C4_XBOX) || (defined(C4_WIN) && defined(C4_MSVC))
 #   include "c4/windows.hpp"
