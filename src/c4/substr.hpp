@@ -97,13 +97,13 @@ public:
 
 public:
 
-    basic_substring() : str(nullptr), len(0) {}
+    constexpr basic_substring() : str(nullptr), len(0) {}
 
-    basic_substring(basic_substring const&) = default;
-    basic_substring(basic_substring     &&) = default;
+    constexpr basic_substring(basic_substring const&) = default;
+    constexpr basic_substring(basic_substring     &&) = default;
 
-    basic_substring& operator= (basic_substring const&) = default;
-    basic_substring& operator= (basic_substring     &&) = default;
+    constexpr basic_substring& operator= (basic_substring const&) = default;
+    constexpr basic_substring& operator= (basic_substring     &&) = default;
 
 public:
 
@@ -115,13 +115,13 @@ public:
      * @see c4::to_substr()
      * @see c4::to_csubstr() */
     template<size_t N>
-    basic_substring(C (&s_)[N]) : str(s_), len(N-1) {}
-    basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
-    basic_substring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
+    constexpr basic_substring(C (&s_)[N]) : str(s_), len(N-1) {}
+    constexpr basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
+    constexpr basic_substring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
 
 	//basic_span& operator= (C *s_) { this->assign(s_); return *this; }
 	template<size_t N>
-	basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
+	constexpr basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
 
     //void assign(C *s_) { str = (s_); len = (s_ ? strlen(s_) : 0); }
     /** the overload for receiving a single C* pointer will always
@@ -222,6 +222,7 @@ public:
     /** return [first,first+num[ */
     basic_substring sub(size_t first, size_t num=npos) const
     {
+        C4_ASSERT(first >= 0 && first <= len);
         size_t rnum = num != npos ? num : len - first;
         C4_ASSERT((first >= 0 && first + rnum <= len) || num == 0);
         return basic_substring(str + first, rnum);
@@ -230,9 +231,9 @@ public:
     /** return [first,last[ */
     basic_substring range(size_t first, size_t last=npos) const
     {
+        C4_ASSERT(first >= 0 && first <= len);
         last = last != npos ? last : len;
         C4_ASSERT(first <= last);
-        C4_ASSERT(first >= 0 && first <= len);
         C4_ASSERT(last  >= 0 && last  <= len);
         return basic_substring(str + first, last - first);
     }
