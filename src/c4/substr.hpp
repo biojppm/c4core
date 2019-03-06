@@ -323,7 +323,7 @@ public:
         return sub(0, 0);
     }
 
-    /** trim right */
+    /** trim the character c from the right */
     basic_substring trimr(const C c) const
     {
         //return left_of(last_not_of(c), /*include_pos*/true);
@@ -344,7 +344,7 @@ public:
         return sub(0, 0);
     }
 
-    /** trim left and right */
+    /** trim the character c left and right */
     basic_substring trim(const C c) const
     {
         return triml(c).trimr(c);
@@ -357,16 +357,18 @@ public:
 
 public:
 
-    basic_substring stripl(basic_csubstr s) const
+    /** remove a pattern from the left */
+    basic_substring stripl(basic_csubstr pattern) const
     {
-        if( ! begins_with(s)) return *this;
-        return sub(s.len < len ? s.len : len);
+        if( ! begins_with(pattern)) return *this;
+        return sub(pattern.len < len ? pattern.len : len);
     }
 
-    basic_substring stripr(basic_csubstr s) const
+    /** remove a pattern from the right */
+    basic_substring stripr(basic_csubstr pattern) const
     {
-        if( ! ends_with(s)) return *this;
-        return left_of(len - (s.len < len ? s.len : len));
+        if( ! ends_with(pattern)) return *this;
+        return left_of(len - (pattern.len < len ? pattern.len : len));
     }
 
 public:
@@ -520,6 +522,7 @@ public:
 
 public:
 
+    /** @return the first position where c is found in the string, or npos if none is found */
     size_t first_of(const C c, size_t start=0) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
@@ -530,6 +533,7 @@ public:
         return npos;
     }
 
+    /** @return the last position where c is found in the string, or npos if none is found */
     size_t last_of(const C c, size_t start=npos) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
@@ -541,6 +545,7 @@ public:
         return npos;
     }
 
+    /** @return the first position where ANY of the chars is found in the string, or npos if none is found */
     size_t first_of(basic_csubstr chars, size_t start=0) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
@@ -554,6 +559,7 @@ public:
         return npos;
     }
 
+    /** @return the last position where ANY of the chars is found in the string, or npos if none is found */
     size_t last_of(basic_csubstr chars, size_t start=npos) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
