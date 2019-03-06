@@ -102,8 +102,8 @@ public:
     constexpr basic_substring(basic_substring const&) = default;
     constexpr basic_substring(basic_substring     &&) = default;
 
-    constexpr basic_substring& operator= (basic_substring const&) = default;
-    constexpr basic_substring& operator= (basic_substring     &&) = default;
+    basic_substring& operator= (basic_substring const&) = default;
+    basic_substring& operator= (basic_substring     &&) = default;
 
 public:
 
@@ -115,13 +115,13 @@ public:
      * @see c4::to_substr()
      * @see c4::to_csubstr() */
     template<size_t N>
-    constexpr basic_substring(C (&s_)[N]) : str(s_), len(N-1) {}
-    constexpr basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
-    constexpr basic_substring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
+    constexpr basic_substring(C (&s_)[N]) noexcept : str(s_), len(N-1) {}
+    basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
+    basic_substring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
 
 	//basic_span& operator= (C *s_) { this->assign(s_); return *this; }
 	template<size_t N>
-	constexpr basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
+	basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
 
     //void assign(C *s_) { str = (s_); len = (s_ ? strlen(s_) : 0); }
     /** the overload for receiving a single C* pointer will always
