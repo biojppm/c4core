@@ -285,10 +285,12 @@ struct srcloc
  * @see C4_ASSERT
  * @ingroup error_checking
  */
-#define C4_CHECK(cond)                          \
-    if(C4_UNLIKELY(!(cond)))                    \
-    {                                           \
-        C4_ERROR("check failed: %s", #cond);    \
+#define C4_CHECK(cond)                                  \
+    if(C4_UNLIKELY(!(cond)))                            \
+    {                                                   \
+        /* the lambda is required for allowing use in C++11 constexpr functions \
+         * see: https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/ */\
+        []{ C4_ERROR("check failed: %s", #cond); }();   \
     }
 
 /** like C4_CHECK(), and additionally log a printf-style message.
