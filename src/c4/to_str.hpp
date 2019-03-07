@@ -88,7 +88,7 @@ typedef enum {
  * Writing stops at the buffer's end.
  * @return the number of characters needed for the result, even if the buffer size is insufficient
  * @ingroup lowlevel_tofrom_string */
-template <class T>
+template<class T>
 size_t itoa(substr buf, T v)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
@@ -124,7 +124,7 @@ size_t itoa(substr buf, T v)
  * Writing stops at the buffer's end.
  * @return the number of characters needed for the result, even if the buffer size is insufficient
  * @ingroup lowlevel_tofrom_string */
-template <class T>
+template<class T>
 size_t itoa(substr buf, T v, T radix)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
@@ -169,7 +169,7 @@ size_t itoa(substr buf, T v, T radix)
  * Writing stops at the buffer's end.
  * @return the number of characters needed for the result, even if the buffer size is insufficient
  * @ingroup lowlevel_tofrom_string */
-template< class T >
+template<class T>
 size_t utoa(substr buf, T v)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
@@ -189,7 +189,7 @@ size_t utoa(substr buf, T v)
  * Writing stops at the buffer's end.
  * @return the number of characters needed for the result, even if the buffer size is insufficient
  * @ingroup lowlevel_tofrom_string */
-template< class T >
+template<class T>
 size_t utoa(substr buf, T v, T radix)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
@@ -237,7 +237,7 @@ size_t utoa(substr buf, T v, T radix)
  * @see atoi_trim() if the string is not trimmed to the value to read.
  * @ingroup lowlevel_tofrom_string
  */
-template <class T>
+template<class T>
 bool atoi(csubstr str, T * C4_RESTRICT v)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
@@ -310,7 +310,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
  * @see csubstr::first_int_span()
  * @ingroup lowlevel_tofrom_string
  */
-template <class T>
+template<class T>
 inline size_t atoi_trim(csubstr str, T * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_int_span();
@@ -330,7 +330,7 @@ inline size_t atoi_trim(csubstr str, T * C4_RESTRICT v)
  * @see atou_trim() if the string is not trimmed to the value to read.
  * @ingroup lowlevel_tofrom_string
  */
-template< class T >
+template<class T>
 bool atou(csubstr str, T * C4_RESTRICT v)
 {
     static_assert(std::is_integral<T>::value, "must be integral type");
@@ -394,7 +394,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
  * @see csubstr::first_uint_span()
  * @ingroup lowlevel_tofrom_string
  */
-template< class T >
+template<class T>
 inline size_t atou_trim(csubstr str, T *v)
 {
     csubstr trimmed = str.first_uint_span();
@@ -409,7 +409,7 @@ inline size_t atou_trim(csubstr str, T *v)
 namespace detail {
 
 /** @see http://www.exploringbinary.com/ for many good examples on float-str conversion */
-template <size_t N>
+template<size_t N>
 void get_real_format_str(char (& C4_RESTRICT fmt)[N], int precision, RealFormat_e formatting, const char* length_modifier="")
 {
     char c;
@@ -448,7 +448,7 @@ void get_real_format_str(char (& C4_RESTRICT fmt)[N], int precision, RealFormat_
  * @see https://github.com/weiss/c99-snprintf
  * @see https://github.com/nothings/stb/blob/master/stb_sprintf.h
  */
-template <class T>
+template<class T>
 size_t print_one(substr str, const char* full_fmt, T v)
 {
 #ifdef _MSC_VER
@@ -482,7 +482,7 @@ size_t print_one(substr str, const char* full_fmt, T v)
  * allowing non-null-terminated strings AND guaranteeing that the given
  * string length is strictly respected, so that no buffer overflows
  * might occur. */
-template <typename T>
+template<typename T>
 inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 {
     /* snscanf() is absolutely needed here as we must be sure that
@@ -607,7 +607,7 @@ inline size_t atod_trim(csubstr str, double * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 
 /** @ingroup generic_tofrom_string */
-template< class T >
+template<class T>
 inline substr to_str_sub(substr buf, T const& C4_RESTRICT v)
 {
     size_t sz = to_str(buf, v);
@@ -877,7 +877,7 @@ inline size_t to_str(substr buf, const char * C4_RESTRICT v)
 // formatting floats and ints
 
 namespace detail {
-template< class T >
+template<class T>
 struct float_formatter
 {
     T val;
@@ -886,7 +886,7 @@ struct float_formatter
     float_formatter(T v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
 };
 
-template< class T >
+template<class T>
 struct int_formatter
 {
     T val;
@@ -896,35 +896,35 @@ struct int_formatter
 } // namespace detail
 
 /** @ingroup generic_tofrom_string */
-template <class T>
+template<class T>
 struct fmt_wrapper;
 
 // define format settings for intrinsic types.
 
-template<> struct fmt_wrapper<   float > : public detail::float_formatter< float > { using detail::float_formatter< float >::float_formatter; };
-template<> struct fmt_wrapper<  double > : public detail::float_formatter<double > { using detail::float_formatter<double >::float_formatter; };
-template<> struct fmt_wrapper<  int8_t > : public detail::int_formatter<  int8_t > { using detail::int_formatter<  int8_t >::int_formatter; };
-template<> struct fmt_wrapper< uint8_t > : public detail::int_formatter< uint8_t > { using detail::int_formatter< uint8_t >::int_formatter; };
-template<> struct fmt_wrapper< int16_t > : public detail::int_formatter< int16_t > { using detail::int_formatter< int16_t >::int_formatter; };
-template<> struct fmt_wrapper<uint16_t > : public detail::int_formatter<uint16_t > { using detail::int_formatter<uint16_t >::int_formatter; };
-template<> struct fmt_wrapper< int32_t > : public detail::int_formatter< int32_t > { using detail::int_formatter< int32_t >::int_formatter; };
-template<> struct fmt_wrapper<uint32_t > : public detail::int_formatter<uint32_t > { using detail::int_formatter<uint32_t >::int_formatter; };
-template<> struct fmt_wrapper< int64_t > : public detail::int_formatter< int64_t > { using detail::int_formatter< int64_t >::int_formatter; };
-template<> struct fmt_wrapper<uint64_t > : public detail::int_formatter<uint64_t > { using detail::int_formatter<uint64_t >::int_formatter; };
+template<> struct fmt_wrapper<   float> : public detail::float_formatter< float> { using detail::float_formatter< float>::float_formatter; };
+template<> struct fmt_wrapper<  double> : public detail::float_formatter<double> { using detail::float_formatter<double>::float_formatter; };
+template<> struct fmt_wrapper<  int8_t> : public detail::int_formatter<  int8_t> { using detail::int_formatter<  int8_t>::int_formatter; };
+template<> struct fmt_wrapper< uint8_t> : public detail::int_formatter< uint8_t> { using detail::int_formatter< uint8_t>::int_formatter; };
+template<> struct fmt_wrapper< int16_t> : public detail::int_formatter< int16_t> { using detail::int_formatter< int16_t>::int_formatter; };
+template<> struct fmt_wrapper<uint16_t> : public detail::int_formatter<uint16_t> { using detail::int_formatter<uint16_t>::int_formatter; };
+template<> struct fmt_wrapper< int32_t> : public detail::int_formatter< int32_t> { using detail::int_formatter< int32_t>::int_formatter; };
+template<> struct fmt_wrapper<uint32_t> : public detail::int_formatter<uint32_t> { using detail::int_formatter<uint32_t>::int_formatter; };
+template<> struct fmt_wrapper< int64_t> : public detail::int_formatter< int64_t> { using detail::int_formatter< int64_t>::int_formatter; };
+template<> struct fmt_wrapper<uint64_t> : public detail::int_formatter<uint64_t> { using detail::int_formatter<uint64_t>::int_formatter; };
 
-template< class T >
+template<class T>
 inline fmt_wrapper<T> fmthex(T v)
 {
     return fmt_wrapper<T>(v, T(16));
 }
 
-template< class T >
+template<class T>
 inline fmt_wrapper<T> fmtoct(T v)
 {
     return fmt_wrapper<T>(v, T(8));
 }
 
-template< class T >
+template<class T>
 inline fmt_wrapper<T> fmtbin(T v)
 {
     return fmt_wrapper<T>(v, T(2));
@@ -932,7 +932,7 @@ inline fmt_wrapper<T> fmtbin(T v)
 
 /** mark a variable to be written in custom format
  * @ingroup generic_tofrom_string */
-template< class T, class... Args >
+template<class T, class... Args>
 inline fmt_wrapper<T> fmt(T v, Args && ...args)
 {
     return fmt_wrapper<T>(v, std::forward<Args>(args)...);
@@ -957,7 +957,7 @@ inline size_t to_str(substr buf, fmt_wrapper<uint64_t> fmt) { return utoa(buf, f
 
 /** @todo add custom alignment
  * @ingroup generic_tofrom_string */
-template <class T>
+template<class T>
 struct binary_wrapper
 {
     T& val;
@@ -966,7 +966,7 @@ struct binary_wrapper
 
 /** mark a variable to be written in binary format
  * @ingroup generic_tofrom_string  */
-template< class T >
+template<class T>
 inline binary_wrapper<T> bin(T &v)
 {
     return binary_wrapper<T>(v);
@@ -974,7 +974,7 @@ inline binary_wrapper<T> bin(T &v)
 
 /** write a variable in binary format
  * @ingroup generic_tofrom_string */
-template< class T >
+template<class T>
 inline size_t to_str(substr buf, binary_wrapper<T> b)
 {
     if(sizeof(T) <= buf.len) memcpy(buf.str, &b.val, sizeof(T));
@@ -983,7 +983,7 @@ inline size_t to_str(substr buf, binary_wrapper<T> b)
 
 /** read a variable in binary format
  * @ingroup generic_tofrom_string */
-template< class T >
+template<class T>
 inline size_t from_str(csubstr buf, binary_wrapper<T> *b)
 {
     if(sizeof(T) > buf.len) return csubstr::npos;
@@ -1011,7 +1011,7 @@ inline size_t cat(substr /*buf*/)
  * @see catsep() if a separator between each argument is to be used
  * @see format() if a format string is desired
  * @ingroup formatting_functions */
-template< class Arg, class... Args >
+template<class Arg, class... Args>
 size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
     size_t num = to_str(buf, a);
@@ -1021,7 +1021,7 @@ size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more
 }
 
 /** like cat but return a substr instead of a size */
-template< class... Args >
+template<class... Args>
 substr cat_sub(substr buf, Args && ...args)
 {
     size_t sz = cat(buf, std::forward<Args>(args)...);
@@ -1060,13 +1060,13 @@ size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 
 namespace detail {
 
-template< class Sep >
+template<class Sep>
 inline size_t catsep_more(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
 {
     return 0;
 }
 
-template< class Sep, class Arg, class... Args >
+template<class Sep, class Arg, class... Args>
 size_t catsep_more(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
     size_t ret = to_str(buf, sep), num = ret;
@@ -1079,13 +1079,13 @@ size_t catsep_more(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRIC
     return num;
 }
 
-template< class Sep >
+template<class Sep>
 inline size_t uncatsep_more(csubstr /*buf*/, Sep & /*sep*/)
 {
     return 0;
 }
 
-template< class Sep, class Arg, class... Args >
+template<class Sep, class Arg, class... Args>
 size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     size_t ret = from_str_trim(buf, &sep), num = ret;
@@ -1113,7 +1113,7 @@ size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Ar
  * @see cat() if no separator is needed
  * @see format() if a format string is desired
  * @ingroup formatting_functions */
-template< class Sep, class Arg, class... Args >
+template<class Sep, class Arg, class... Args>
 size_t catsep(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
     size_t num = to_str(buf, a);
@@ -1123,7 +1123,7 @@ size_t catsep(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, 
 }
 
 /** like catsep but return a substr instead of a size */
-template< class... Args >
+template<class... Args>
 substr catsep_sub(substr buf, Args && ...args)
 {
     size_t sz = catsep(buf, std::forward<Args>(args)...);
@@ -1136,7 +1136,7 @@ substr catsep_sub(substr buf, Args && ...args)
  *   if a conversion was not successful
  * @see catsep(). uncatsep() is the inverse of catsep().
  * @ingroup formatting_functions */
-template< class Sep, class Arg, class... Args >
+template<class Sep, class Arg, class... Args>
 size_t uncatsep(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     size_t ret = from_str_trim(buf, &a), num = ret;
@@ -1176,7 +1176,7 @@ inline size_t format(substr buf, csubstr fmt)
  * @see cat() if no format or separator is needed
  * @see catsep() if no format is needed, but a separator must be used
  * @ingroup formatting_functions */
-template< class Arg, class... Args >
+template<class Arg, class... Args>
 size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
     auto pos = fmt.find("{}");
@@ -1199,7 +1199,7 @@ size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_
 }
 
 /** like format but return a substr instead of a size */
-template< class... Args >
+template<class... Args>
 substr format_sub(substr buf, Args && ...args)
 {
     size_t sz = c4::format(buf, std::forward<Args>(args)...);
@@ -1221,7 +1221,7 @@ inline size_t unformat(csubstr buf, csubstr fmt)
  * @return the number of characters read from the buffer, or npos if a conversion failed.
  * @see format() this is the inverse function to format().
  * @ingroup formatting_functions */
-template< class Arg, class... Args >
+template<class Arg, class... Args>
 size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     auto pos = fmt.find("{}");
@@ -1275,7 +1275,7 @@ constexpr const append_t append = {};
  * The container is overwritten. To append to it, use the append overload.
  * @see cat()
  * @ingroup formatting_functions */
-template <class CharOwningContainer, class... Args>
+template<class CharOwningContainer, class... Args>
 inline void catrs(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
     substr buf = to_substr(*cont);
@@ -1298,7 +1298,7 @@ inline void catrs(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRIC
  * @see cat()
  * @see catrs()
  * @ingroup formatting_functions */
-template <class CharOwningContainer, class... Args>
+template<class CharOwningContainer, class... Args>
 inline csubstr catrs(append_t, CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
@@ -1323,7 +1323,7 @@ inline csubstr catrs(append_t, CharOwningContainer * C4_RESTRICT cont, Args cons
  * The container is overwritten. To append to the container use the append overload.
  * @see catsep()
  * @ingroup formatting_functions */
-template <class CharOwningContainer, class Sep, class... Args>
+template<class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
     substr buf = to_substr(*cont);
@@ -1343,7 +1343,7 @@ inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTR
 /** like catsep(), but receives a container, and appends the arguments, resizing the
  * container as needed to contain the result. The buffer is appended to.
  * @ingroup formatting_functions */
-template <class CharOwningContainer, class Sep, class... Args>
+template<class CharOwningContainer, class Sep, class... Args>
 inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
@@ -1368,7 +1368,7 @@ inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep co
  * The container is overwritten. To append to the container use the append overload.
  * @see format()
  * @ingroup formatting_functions */
-template< class CharOwningContainer, class... Args >
+template<class CharOwningContainer, class... Args>
 inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const&  C4_RESTRICT ...args)
 {
     substr buf = to_substr(*cont);
@@ -1389,7 +1389,7 @@ inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args c
  * container as needed to contain the result. The buffer is appended to.
  * @return the region newly appended to the original container
  * @ingroup formatting_functions */
-template< class CharOwningContainer, class... Args >
+template<class CharOwningContainer, class... Args>
 inline csubstr formatrs(append_t, CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
