@@ -847,10 +847,10 @@ inline bool from_str(csubstr buf, substr * C4_RESTRICT v)
 inline size_t from_str_trim(csubstr buf, substr * C4_RESTRICT v)
 {
     csubstr trimmed = buf.first_non_empty_span();
-    if(trimmed.len == 0) return csubstr::npos;
+    if(C4_UNLIKELY(trimmed.len == 0)) return csubstr::npos;
     size_t len = trimmed.len > v->len ? v->len : trimmed.len;
     memcpy(v->str, trimmed.str, len);
-    if(trimmed.len > v->len) return csubstr::npos;
+    if(C4_UNLIKELY(trimmed.len > v->len)) return csubstr::npos;
     return trimmed.end() - buf.begin();
 }
 
@@ -1046,11 +1046,12 @@ inline size_t uncat(csubstr /*buf*/)
 template<class Arg, class... Args>
 size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
-    size_t num = from_str_trim(buf, &a);
-    if(num == csubstr::npos) return csubstr::npos;
-    buf  = buf.len >= num ? buf.sub(num) : substr{};
-    num += uncat(buf, more...);
-    return num;
+    size_t out = from_str_trim(buf, &a);
+    if(C4_UNLIKELY(out == csubstr::npos)) return csubstr::npos;
+    buf  = buf.len >= out ? buf.sub(out) : substr{};
+    size_t num = uncat(buf, more...);
+    if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
+    return out + num;
 }
 
 
@@ -1089,14 +1090,14 @@ template<class Sep, class Arg, class... Args>
 size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     size_t ret = from_str_trim(buf, &sep), num = ret;
-    if(ret == csubstr::npos) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
     ret  = from_str_trim(buf, &a);
-    if(ret == csubstr::npos) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
     num += ret;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
     ret  = uncatsep_more(buf, sep, more...);
-    if(ret == csubstr::npos) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
     num += ret;
     return num;
 }
@@ -1140,10 +1141,10 @@ template<class Sep, class Arg, class... Args>
 size_t uncatsep(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     size_t ret = from_str_trim(buf, &a), num = ret;
-    if(ret == csubstr::npos) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
     ret  = detail::uncatsep_more(buf, sep, more...);
-    if(ret == csubstr::npos) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
     num += ret;
     return num;
 }
@@ -1231,9 +1232,11 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
         size_t out = num;
         buf  = buf.len >= num ? buf.sub(num) : substr{};
         num  = from_str_trim(buf, &a);
+        if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
         out += num;
         buf  = buf.len >= num ? buf.sub(num) : substr{};
         num  = unformat(buf, fmt.sub(pos + 2), more...);
+        if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
         out += num;
         return out;
     }
