@@ -2,7 +2,6 @@
 #define _C4_STD_STRING_HPP_
 
 #include "c4/substr.hpp"
-#include "c4/to_str.hpp"
 
 #include <string>
 
@@ -26,6 +25,32 @@ inline c4::csubstr to_csubstr(std::string const& s)
 
 //-----------------------------------------------------------------------------
 
+inline bool operator== (c4::csubstr ss, std::string const & s) { return ss == to_csubstr(s); }
+inline bool operator>= (c4::csubstr ss, std::string const & s) { return ss >= to_csubstr(s); }
+inline bool operator>  (c4::csubstr ss, std::string const & s) { return ss >  to_csubstr(s); }
+inline bool operator<= (c4::csubstr ss, std::string const & s) { return ss <= to_csubstr(s); }
+inline bool operator<  (c4::csubstr ss, std::string const & s) { return ss <  to_csubstr(s); }
+
+inline bool operator== (std::string const & s, c4::csubstr ss) { return ss == to_csubstr(s); }
+inline bool operator>= (std::string const & s, c4::csubstr ss) { return ss <= to_csubstr(s); }
+inline bool operator>  (std::string const & s, c4::csubstr ss) { return ss <  to_csubstr(s); }
+inline bool operator<= (std::string const & s, c4::csubstr ss) { return ss >= to_csubstr(s); }
+inline bool operator<  (std::string const & s, c4::csubstr ss) { return ss >  to_csubstr(s); }
+
+} // namespace c4
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+// c4::catrs() and friends are from the c4/to_str.hpp, and they require
+// to_csubstr()/to_substr() to be declared prior to the call site.
+
+#include "c4/to_str.hpp"
+
+namespace c4 {
+
 /** copy an std::string to a writeable string view */
 inline size_t to_str(c4::substr buf, std::string const& s)
 {
@@ -39,20 +64,6 @@ inline bool from_str(c4::csubstr buf, std::string * s)
     c4::substr v = to_substr(*s);
     return from_str(buf, &v);
 }
-
-//-----------------------------------------------------------------------------
-
-inline bool operator== (c4::csubstr ss, std::string const & s) { return ss == to_csubstr(s); }
-inline bool operator>= (c4::csubstr ss, std::string const & s) { return ss >= to_csubstr(s); }
-inline bool operator>  (c4::csubstr ss, std::string const & s) { return ss >  to_csubstr(s); }
-inline bool operator<= (c4::csubstr ss, std::string const & s) { return ss <= to_csubstr(s); }
-inline bool operator<  (c4::csubstr ss, std::string const & s) { return ss <  to_csubstr(s); }
-
-inline bool operator== (std::string const & s, c4::csubstr ss) { return ss == to_csubstr(s); }
-inline bool operator>= (std::string const & s, c4::csubstr ss) { return ss <= to_csubstr(s); }
-inline bool operator>  (std::string const & s, c4::csubstr ss) { return ss <  to_csubstr(s); }
-inline bool operator<= (std::string const & s, c4::csubstr ss) { return ss >= to_csubstr(s); }
-inline bool operator<  (std::string const & s, c4::csubstr ss) { return ss >  to_csubstr(s); }
 
 } // namespace c4
 

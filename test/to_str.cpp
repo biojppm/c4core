@@ -1,7 +1,7 @@
 #include "c4/test.hpp"
-#include "c4/to_str.hpp"
 #include "c4/std/string.hpp"
 #include "c4/std/vector.hpp"
+#include "c4/to_str.hpp"
 
 namespace c4 {
 
