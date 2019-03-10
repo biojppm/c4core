@@ -21,8 +21,6 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
-template<class StringType> class sstream;
-
 /** @defgroup span_classes Span classes
  *
  * A span is a non-owning range of elements contiguously stored in memory.
