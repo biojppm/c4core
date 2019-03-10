@@ -23,6 +23,159 @@ TEST(csubstr, ctor_from_char)
     EXPECT_EQ(s, "{foo: 2}");
 }
 
+TEST(substr, select)
+{
+    csubstr buf = "0123456789";
+
+    EXPECT_EQ(buf.select('0'), "0");
+    EXPECT_EQ(buf.select('1'), "1");
+    EXPECT_EQ(buf.select('2'), "2");
+    EXPECT_EQ(buf.select('8'), "8");
+    EXPECT_EQ(buf.select('9'), "9");
+
+    EXPECT_EQ(buf.select('a').str, nullptr);
+    EXPECT_EQ(buf.select('a').len, 0);
+    EXPECT_EQ(buf.select('a'), "");
+
+    EXPECT_EQ(buf.select("a").str, nullptr);
+    EXPECT_EQ(buf.select("a").len, 0);
+    EXPECT_EQ(buf.select("a"), "");
+
+    EXPECT_EQ(buf.select("0"), "0");
+    EXPECT_EQ(buf.select("0").str, buf.str+0);
+    EXPECT_EQ(buf.select("0").len, 1);
+
+    EXPECT_EQ(buf.select("1"), "1");
+    EXPECT_EQ(buf.select("1").str, buf.str+1);
+    EXPECT_EQ(buf.select("1").len, 1);
+
+    EXPECT_EQ(buf.select("2"), "2");
+    EXPECT_EQ(buf.select("2").str, buf.str+2);
+    EXPECT_EQ(buf.select("2").len, 1);
+
+    EXPECT_EQ(buf.select("9"), "9");
+    EXPECT_EQ(buf.select("9").str, buf.str+9);
+    EXPECT_EQ(buf.select("9").len, 1);
+
+    EXPECT_EQ(buf.select("012"), "012");
+    EXPECT_EQ(buf.select("012").str, buf.str+0);
+    EXPECT_EQ(buf.select("012").len, 3);
+
+    EXPECT_EQ(buf.select("345"), "345");
+    EXPECT_EQ(buf.select("345").str, buf.str+3);
+    EXPECT_EQ(buf.select("345").len, 3);
+
+    EXPECT_EQ(buf.select("789"), "789");
+    EXPECT_EQ(buf.select("789").str, buf.str+7);
+    EXPECT_EQ(buf.select("789").len, 3);
+
+    EXPECT_EQ(buf.select("89a"), "");
+    EXPECT_EQ(buf.select("89a").str, nullptr);
+    EXPECT_EQ(buf.select("89a").len, 0);
+}
+
+TEST(substr, contains)
+{
+    csubstr buf = "0123456789";
+
+    // ref
+    csubstr s;
+    csubstr ref = buf.select("345");
+    EXPECT_EQ(ref, "345");
+    EXPECT_TRUE(buf.contains(ref));
+    EXPECT_TRUE(ref.is_contained(buf));
+    EXPECT_FALSE(ref.contains(buf));
+    EXPECT_FALSE(buf.is_contained(ref));
+}
+
+TEST(substr, overlaps)
+{
+    csubstr buf = "0123456789";
+
+    // ref
+    csubstr s;
+    csubstr ref = buf.select("345");
+    EXPECT_EQ(ref, "345");
+
+    // all_left
+    s = buf.sub(0, 2);
+    EXPECT_EQ(s, "01");
+    EXPECT_FALSE(ref.overlaps(s));
+    EXPECT_FALSE(s.overlaps(ref));
+
+    // all_left_tight
+    s = buf.sub(0, 3);
+    EXPECT_EQ(s, "012");
+    EXPECT_FALSE(ref.overlaps(s));
+    EXPECT_FALSE(s.overlaps(ref));
+
+    // overlap_left
+    s = buf.sub(0, 4);
+    EXPECT_EQ(s, "0123");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+
+    // inside_tight_left
+    s = buf.sub(3, 1);
+    EXPECT_EQ(s, "3");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+    s = buf.sub(3, 2);
+    EXPECT_EQ(s, "34");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+
+    // all_inside_tight
+    s = buf.sub(4, 1);
+    EXPECT_EQ(s, "4");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+    s = buf.sub(3, 3);
+    EXPECT_EQ(s, "345");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+
+    // inside_tight_right
+    s = buf.sub(4, 2);
+    EXPECT_EQ(s, "45");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+    s = buf.sub(5, 1);
+    EXPECT_EQ(s, "5");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+
+    // overlap_right
+    s = buf.sub(5, 2);
+    EXPECT_EQ(s, "56");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+    s = buf.sub(5, 3);
+    EXPECT_EQ(s, "567");
+    EXPECT_TRUE(ref.overlaps(s));
+    EXPECT_TRUE(s.overlaps(ref));
+
+    // all_right_tight
+    s = buf.sub(6, 1);
+    EXPECT_EQ(s, "6");
+    EXPECT_FALSE(ref.overlaps(s));
+    EXPECT_FALSE(s.overlaps(ref));
+    s = buf.sub(6, 2);
+    EXPECT_EQ(s, "67");
+    EXPECT_FALSE(ref.overlaps(s));
+    EXPECT_FALSE(s.overlaps(ref));
+
+    // all_right
+    s = buf.sub(7, 1);
+    EXPECT_EQ(s, "7");
+    EXPECT_FALSE(ref.overlaps(s));
+    EXPECT_FALSE(s.overlaps(ref));
+    s = buf.sub(7, 2);
+    EXPECT_EQ(s, "78");
+    EXPECT_FALSE(ref.overlaps(s));
+    EXPECT_FALSE(s.overlaps(ref));
+}
+
 TEST(substr, begins_with)
 {
     EXPECT_TRUE (csubstr(": ").begins_with(":" ));
