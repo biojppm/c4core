@@ -779,7 +779,9 @@ inline size_t to_str(substr buf, char v)
     return 1;
 }
 
-/** @ingroup generic_tofrom_string */
+/** extract a single character from a substring
+ * @note to extract a string instead and not just a single character, use the csubstr overload
+ * @ingroup generic_tofrom_string */
 inline bool from_str(csubstr buf, char * C4_RESTRICT v)
 {
     if(buf.len != 1) return false;
@@ -802,6 +804,7 @@ inline size_t from_str_trim(csubstr buf, char * C4_RESTRICT v)
 /** @ingroup generic_tofrom_string */
 inline size_t to_str(substr buf, csubstr v)
 {
+    C4_ASSERT(!buf.contains(v) && !v.contains(buf));
     size_t len = buf.len < v.len ? buf.len : v.len;
     memcpy(buf.str, v.str, len);
     return v.len;
@@ -830,6 +833,7 @@ inline size_t from_str_trim(substr buf, csubstr * C4_RESTRICT v)
 /** @ingroup generic_tofrom_string */
 inline size_t to_str(substr buf, substr v)
 {
+    C4_ASSERT(!buf.overlaps(v));
     size_t len = buf.len < v.len ? buf.len : v.len;
     memcpy(buf.str, v.str, len);
     return v.len;
@@ -857,7 +861,7 @@ inline size_t from_str_trim(csubstr buf, substr * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 
 /** @ingroup generic_tofrom_string */
-template< size_t N >
+template<size_t N>
 inline size_t to_str(substr buf, const char (& C4_RESTRICT v)[N])
 {
     csubstr sp(v);
@@ -1367,8 +1371,9 @@ inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep co
 
 //-----------------------------------------------------------------------------
 
-/** like format(), but receives a container, and resizes it as needed to contain the result.
- * The container is overwritten. To append to the container use the append overload.
+/** like format(), but receives a container, and resizes it as needed
+ * to contain the result.  The container is overwritten. To append to
+ * the container use the append overload.
  * @see format()
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class... Args>
@@ -1388,8 +1393,9 @@ inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args c
     }
 }
 
-/** like format(), but receives a container, and appends the arguments, resizing the
- * container as needed to contain the result. The buffer is appended to.
+/** like format(), but receives a container, and appends the
+ * arguments, resizing the container as needed to contain the
+ * result. The buffer is appended to.
  * @return the region newly appended to the original container
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class... Args>

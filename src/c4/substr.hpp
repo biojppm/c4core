@@ -205,16 +205,26 @@ public:
 
 public:
 
-    /** true if *this is a sub of that */
-    inline bool is_contained(basic_csubstr const super) const
+    /** true if *this is a substring of that */
+    inline bool is_contained(basic_csubstr const that) const
     {
-        return begin() >= super.begin() && end() <= super.end();
+        return begin() >= that.begin() && end() <= that.end();
     }
 
-    /** true if that is a sub of this */
-    inline bool contains(basic_csubstr const sub) const
+    /** true if that is a substring of this */
+    inline bool contains(basic_csubstr const that) const
     {
-        return sub.begin() >= begin() && sub.end() <= end();
+        return that.begin() >= begin() && that.end() <= end();
+    }
+
+    /** true if theres is overlap of at least one element between that and *this */
+    inline bool overlaps(basic_csubstr const that) const
+    {
+        return (that.begin() <= begin() && that.end() > begin())
+               ||
+               (that.begin() <  end()   && that.end() >= end())
+               ||
+               (that.begin() >= begin() && that.end() <= end());
     }
 
 public:
@@ -400,6 +410,20 @@ public:
             }
         }
         return npos;
+    }
+
+public:
+
+    inline basic_substring select(const C c) const
+    {
+        size_t pos = find(c);
+        return pos != npos ? sub(pos, 1) : basic_substring();
+    }
+
+    inline basic_substring select(basic_csubstr pattern) const
+    {
+        size_t pos = find(pattern);
+        return pos != npos ? sub(pos, pattern.len) : basic_substring();
     }
 
 public:
