@@ -3,12 +3,8 @@
 
 /** @file std.hpp includes all c4-std interop files */
 
-#include "c4/std/string.hpp"
 #include "c4/std/vector.hpp"
+#include "c4/std/string.hpp"
 #include "c4/std/tuple.hpp"
-
-namespace std {
-
-} // namespace std
 
 #endif // _C4_STD_STD_HPP_

@@ -1,6 +1,6 @@
-#include "c4/test.hpp"
 #include "c4/std/string.hpp"
 #include "c4/std/vector.hpp"
+#include "c4/test.hpp"
 #include "c4/to_str.hpp"
 
 namespace c4 {
@@ -425,6 +425,22 @@ TEST(ftoa, basic)
         test_ftoa(buf, f, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
         test_dtoa(buf, d, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
     }
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+
+TEST(to_str, std_string)
+{
+    std::string foo("foo");
+    char buf_[32];
+    substr buf(buf_);
+    size_t result = to_str(buf, foo);
+    EXPECT_EQ(result, 3);
+    EXPECT_EQ(buf.first(3), "foo");
 }
 
 
