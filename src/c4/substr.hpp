@@ -4,8 +4,8 @@
 #include <string.h>
 #include <type_traits>
 
-#include "./config.hpp"
-#include "./error.hpp"
+#include "c4/config.hpp"
+#include "c4/error.hpp"
 
 C4_BEGIN_NAMESPACE(c4)
 

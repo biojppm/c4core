@@ -25,6 +25,8 @@
 #   endif
 #elif defined(__unix) || defined(__linux)
 #   define C4_UNIX
+#elif defined(SWIG)
+#   define C4_SWIG
 #else
 #   error "unknown platform"
 #endif
