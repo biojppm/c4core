@@ -1,4 +1,4 @@
-set(src
+set(C4CORE_SRC
     c4/allocator.hpp
     c4/bitmask.hpp
     c4/c4_pop.hpp
@@ -44,6 +44,8 @@ set(src
 )
 
 c4_add_library(C4CORE c4core
-    SOURCES ${src}
-    INC_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../extern
+    SOURCES ${C4CORE_SRC}
+    INC_DIRS
+      ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_CURRENT_LIST_DIR}/../extern
 )
