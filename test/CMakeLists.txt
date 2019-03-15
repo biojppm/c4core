@@ -1,4 +1,4 @@
-c4_setup_testing(C4CORE ON)
+c4_setup_testing(C4CORE)
 
 set(testsrc
     c4/test.hpp
