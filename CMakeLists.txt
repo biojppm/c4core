@@ -4,9 +4,9 @@ project(c4core)
 include(./cmake/c4Project.cmake)
 
 c4_declare_project(C4CORE
-    DESC "Basic C++ multiplatform utilities"
+    DESC "Multiplatform low-level C++ utilities"
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>"
-    MAJOR 0 MINOR 1 RELEASE 0)
+    MAJOR 0 MINOR 0 RELEASE 1)
 
 set(C4CORE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
