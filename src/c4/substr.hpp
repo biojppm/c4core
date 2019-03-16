@@ -11,14 +11,16 @@ C4_BEGIN_NAMESPACE(c4)
 
 template<class C> class basic_substring;
 
-/**
- * @see to_substr
- * @see to_csubstr
- * */
-using substr = basic_substring<char>;
-/** @see to_csubstr */
+/** ConstantSUBSTRing: a non-owning read-only string view
+ * @see to_csubstr() */
 using csubstr = basic_substring<const char>;
 
+/** SUBSTRing: a non-owning read-write string view
+ * @see to_substr()
+ * @see to_csubstr() */
+using substr = basic_substring<char>;
+
+/** */
 template<class OStream, class C>
 inline OStream& operator<< (OStream& s, basic_substring<C> sp)
 {
@@ -44,13 +46,13 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** a span of characters and a length. Works like a writeable string_view.
+/** a non-owning string-view, consisting of a character pointer
+ * and a length. The pointer is restricted.
  *
- * Because of a C++ limitation, substr cannot provide simultaneous
+ * @note Because of a C++ limitation, there cannot coexist
  * overloads for constructing from a char[N] and a char*; the latter
- * will always be chosen by the compiler. So this specialization is
- * provided to simplify obtaining a substr from a char*. Being a
- * function has the advantage of highlighting the strlen() cost.
+ * will always be chosen by the compiler. To construct an object
+ * of this type, call to_substr() or to_csubstr().
  *
  * @see For a more detailed explanation on why the overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html

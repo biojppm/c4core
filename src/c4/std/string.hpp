@@ -40,7 +40,7 @@ inline bool operator<  (std::string const& s, c4::csubstr ss) { return ss >  to_
 //-----------------------------------------------------------------------------
 
 /** copy an std::string to a writeable string view */
-inline size_t to_str(c4::substr buf, std::string const& s)
+inline size_t to_chars(c4::substr buf, std::string const& s)
 {
     C4_ASSERT(!buf.overlaps(to_csubstr(s)));
     size_t len = buf.len < s.size() ? buf.len : s.size();
@@ -49,7 +49,7 @@ inline size_t to_str(c4::substr buf, std::string const& s)
 }
 
 /** copy a string view to an existing std::string */
-inline bool from_str(c4::csubstr buf, std::string * s)
+inline bool from_chars(c4::csubstr buf, std::string * s)
 {
     s->resize(buf.len);
     memcpy(&(*s)[0], buf.str, buf.len);

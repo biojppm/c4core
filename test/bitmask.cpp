@@ -2,7 +2,6 @@
 #include <vector>
 
 #include <c4/bitmask.hpp>
-#include <c4/to_str.hpp>
 #include <c4/std/vector.hpp>
 
 #include <c4/test.hpp>

@@ -3,7 +3,6 @@
 
 #include "c4/allocator.hpp"
 #include "c4/test.hpp"
-#include "c4/to_str.hpp"
 
 #include <vector>
 #include <string>

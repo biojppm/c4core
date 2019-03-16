@@ -5,7 +5,7 @@
 #include <type_traits>
 
 #include "c4/enum.hpp"
-#include "c4/to_str.hpp"
+#include "c4/format.hpp"
 
 
 namespace c4 {
