@@ -52,6 +52,7 @@ inline size_t to_chars(c4::substr buf, std::string const& s)
 inline bool from_chars(c4::csubstr buf, std::string * s)
 {
     s->resize(buf.len);
+    C4_ASSERT(!buf.overlaps(to_csubstr(*s)));
     memcpy(&(*s)[0], buf.str, buf.len);
     return true;
 }
