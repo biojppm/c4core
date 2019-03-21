@@ -348,6 +348,123 @@ TEST(substr, last_not_of)
     EXPECT_EQ(csubstr("012345").last_not_of("543210"), csubstr::npos);
 }
 
+TEST(substr, left_of)
+{
+    csubstr s = "012345";
+
+
+    EXPECT_EQ(s.left_of(0, /*include_pos*/false), "");
+    EXPECT_EQ(s.left_of(1, /*include_pos*/false), "0");
+    EXPECT_EQ(s.left_of(2, /*include_pos*/false), "01");
+    EXPECT_EQ(s.left_of(3, /*include_pos*/false), "012");
+    EXPECT_EQ(s.left_of(4, /*include_pos*/false), "0123");
+    EXPECT_EQ(s.left_of(5, /*include_pos*/false), "01234");
+    EXPECT_EQ(s.left_of(6, /*include_pos*/false), "012345");
+
+    EXPECT_TRUE(s.contains(s.left_of(0, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.left_of(1, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.left_of(2, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.left_of(3, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.left_of(4, /*include_pos*/false)));
+
+
+    EXPECT_EQ(s.left_of(0, /*include_pos*/true), "0");
+    EXPECT_EQ(s.left_of(1, /*include_pos*/true), "01");
+    EXPECT_EQ(s.left_of(2, /*include_pos*/true), "012");
+    EXPECT_EQ(s.left_of(3, /*include_pos*/true), "0123");
+    EXPECT_EQ(s.left_of(4, /*include_pos*/true), "01234");
+    EXPECT_EQ(s.left_of(5, /*include_pos*/true), "012345");
+
+    EXPECT_TRUE(s.contains(s.left_of(0, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.left_of(1, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.left_of(2, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.left_of(3, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.left_of(4, /*include_pos*/true)));
+
+
+    EXPECT_EQ(s.sub(5), "5");
+    EXPECT_EQ(s.sub(4), "45");
+    EXPECT_EQ(s.sub(3), "345");
+    EXPECT_EQ(s.sub(2), "2345");
+    EXPECT_EQ(s.sub(1), "12345");
+    EXPECT_EQ(s.sub(0), "012345");
+
+    EXPECT_EQ(s.left_of(s.sub(5)), "01234");
+    EXPECT_EQ(s.left_of(s.sub(4)), "0123");
+    EXPECT_EQ(s.left_of(s.sub(3)), "012");
+    EXPECT_EQ(s.left_of(s.sub(2)), "01");
+    EXPECT_EQ(s.left_of(s.sub(1)), "0");
+    EXPECT_EQ(s.left_of(s.sub(0)), "");
+
+    EXPECT_TRUE(s.contains(s.left_of(s.sub(5))));
+    EXPECT_TRUE(s.contains(s.left_of(s.sub(4))));
+    EXPECT_TRUE(s.contains(s.left_of(s.sub(3))));
+    EXPECT_TRUE(s.contains(s.left_of(s.sub(2))));
+    EXPECT_TRUE(s.contains(s.left_of(s.sub(1))));
+    EXPECT_TRUE(s.contains(s.left_of(s.sub(0))));
+}
+
+TEST(substr, right_of)
+{
+    csubstr s = "012345";
+
+    EXPECT_EQ(s.right_of(0, /*include_pos*/false), "12345");
+    EXPECT_EQ(s.right_of(1, /*include_pos*/false), "2345");
+    EXPECT_EQ(s.right_of(2, /*include_pos*/false), "345");
+    EXPECT_EQ(s.right_of(3, /*include_pos*/false), "45");
+    EXPECT_EQ(s.right_of(4, /*include_pos*/false), "5");
+    EXPECT_EQ(s.right_of(5, /*include_pos*/false), "");
+
+    EXPECT_TRUE(s.contains(s.right_of(0, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.right_of(1, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.right_of(2, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.right_of(3, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.right_of(4, /*include_pos*/false)));
+    EXPECT_TRUE(s.contains(s.right_of(5, /*include_pos*/false)));
+
+
+    EXPECT_EQ(s.right_of(0, /*include_pos*/true), "012345");
+    EXPECT_EQ(s.right_of(1, /*include_pos*/true), "12345");
+    EXPECT_EQ(s.right_of(2, /*include_pos*/true), "2345");
+    EXPECT_EQ(s.right_of(3, /*include_pos*/true), "345");
+    EXPECT_EQ(s.right_of(4, /*include_pos*/true), "45");
+    EXPECT_EQ(s.right_of(5, /*include_pos*/true), "5");
+    EXPECT_EQ(s.right_of(6, /*include_pos*/true), "");
+
+    EXPECT_TRUE(s.contains(s.right_of(0, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.right_of(1, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.right_of(2, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.right_of(3, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.right_of(4, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.right_of(5, /*include_pos*/true)));
+    EXPECT_TRUE(s.contains(s.right_of(6, /*include_pos*/true)));
+
+
+    EXPECT_EQ(s.sub(0, 0), "");
+    EXPECT_EQ(s.sub(0, 1), "0");
+    EXPECT_EQ(s.sub(0, 2), "01");
+    EXPECT_EQ(s.sub(0, 3), "012");
+    EXPECT_EQ(s.sub(0, 4), "0123");
+    EXPECT_EQ(s.sub(0, 5), "01234");
+    EXPECT_EQ(s.sub(0, 6), "012345");
+
+    EXPECT_EQ(s.right_of(s.sub(0, 0)), "012345");
+    EXPECT_EQ(s.right_of(s.sub(0, 1)), "12345");
+    EXPECT_EQ(s.right_of(s.sub(0, 2)), "2345");
+    EXPECT_EQ(s.right_of(s.sub(0, 3)), "345");
+    EXPECT_EQ(s.right_of(s.sub(0, 4)), "45");
+    EXPECT_EQ(s.right_of(s.sub(0, 5)), "5");
+    EXPECT_EQ(s.right_of(s.sub(0, 6)), "");
+
+    EXPECT_TRUE(s.contains(s.right_of(s.sub(0, 0))));
+    EXPECT_TRUE(s.contains(s.right_of(s.sub(0, 1))));
+    EXPECT_TRUE(s.contains(s.right_of(s.sub(0, 2))));
+    EXPECT_TRUE(s.contains(s.right_of(s.sub(0, 3))));
+    EXPECT_TRUE(s.contains(s.right_of(s.sub(0, 4))));
+    EXPECT_TRUE(s.contains(s.right_of(s.sub(0, 5))));
+    EXPECT_TRUE(s.contains(s.right_of(s.sub(0, 6))));
+}
+
 TEST(substr, compare)
 {
     const char s1[] = "one empty doc";

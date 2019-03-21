@@ -268,7 +268,8 @@ public:
     basic_substring left_of(size_t pos, bool include_pos = false) const
     {
         if(pos == npos) return *this;
-        if( ! include_pos && pos > 0) --pos;
+        if(pos == 0) return sub(0, include_pos ? 1 : 0);
+        if( ! include_pos) --pos;
         return sub(0, pos+1/* bump because this arg is a size, not a pos*/);
     }
 
