@@ -27,6 +27,7 @@ set(C4CORE_SRC
     c4/error.cpp
     c4/error.hpp
     c4/format.hpp
+    c4/format.cpp
     c4/hash.hpp
     c4/language.hpp
     c4/language.cpp
@@ -47,7 +48,6 @@ set(C4CORE_SRC
     c4/time.hpp
     c4/time.cpp
     c4/to_chars.hpp
-    c4/to_chars.cpp
     c4/type_name.hpp
     c4/types.hpp
     c4/unrestrict.hpp

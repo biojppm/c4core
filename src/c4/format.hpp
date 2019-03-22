@@ -413,7 +413,7 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
 //-----------------------------------------------------------------------------
 /** C-style printing into a buffer
  * @ingroup formatting_functions */
-size_t sprintf(substr buf, const char * C4_RESTRICT fmt, ...);
+size_t sprintf(substr buf, const char * fmt, ...);
 //size_t sscanf(csubstr buf, const char *fmt, ...);
 
 
