@@ -73,7 +73,7 @@ Stream& bm2stream(typename std::underlying_type<Enum>::type bits, Stream &s)
 /** convert a bitmask to string.
  * return the number of characters written. To find the needed size,
  * call first with str=nullptr and sz=0 */
-template< class Enum >
+template<class Enum>
 size_t bm2str
 (
     typename std::underlying_type<Enum>::type bits,
@@ -142,8 +142,8 @@ size_t bm2str
 /** scoped enums do not convert automatically to their underlying type,
  * so this SFINAE overload will accept scoped enum symbols and cast them
  * to the underlying type */
-template< class Enum >
-typename std::enable_if< is_scoped_enum<Enum>::value, size_t >::type
+template<class Enum>
+typename std::enable_if<is_scoped_enum<Enum>::value, size_t>::type
 bm2str
 (
     Enum bits,
