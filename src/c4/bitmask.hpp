@@ -7,12 +7,16 @@
 #include "c4/enum.hpp"
 #include "c4/format.hpp"
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable : 4996) // 'strncpy', fopen, etc: This function or variable may be unsafe
+#endif
 
 namespace c4 {
 
 //-----------------------------------------------------------------------------
 /** write a bitmask to a stream, formatted as a string */
-template< class Enum, class Stream >
+template<class Enum, class Stream>
 Stream& bm2stream(typename std::underlying_type<Enum>::type bits, Stream &s)
 {
     using I = typename std::underlying_type<Enum>::type;
@@ -157,7 +161,7 @@ bm2str
 
 namespace detail {
 
-template< class Enum >
+template<class Enum>
 typename std::underlying_type<Enum>::type str2bm_read_one(const char *str, size_t sz, bool alnum)
 {
     using I = typename std::underlying_type<Enum>::type;
@@ -177,7 +181,7 @@ typename std::underlying_type<Enum>::type str2bm_read_one(const char *str, size_
 } // namespace detail
 
 /** convert a string to a bitmask */
-template< class Enum >
+template<class Enum>
 typename std::underlying_type<Enum>::type str2bm(const char *str, size_t sz)
 {
     using I = typename std::underlying_type<Enum>::type;
@@ -237,13 +241,16 @@ typename std::underlying_type<Enum>::type str2bm(const char *str, size_t sz)
 }
 
 /** convert a string to a bitmask */
-template< class Enum >
+template<class Enum>
 typename std::underlying_type<Enum>::type str2bm(const char *str)
 {
     return str2bm<Enum>(str, strlen(str));
 }
 
-
 } // namespace c4
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif
 
 #endif // _C4_BITMASK_HPP_
