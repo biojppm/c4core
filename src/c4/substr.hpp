@@ -1218,39 +1218,6 @@ public:
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template<typename C, size_t N> inline bool operator== (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) == 0; }
-template<typename C, size_t N> inline bool operator!= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) != 0; }
-template<typename C, size_t N> inline bool operator<  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <  0; }
-template<typename C, size_t N> inline bool operator>  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >  0; }
-template<typename C, size_t N> inline bool operator<= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <= 0; }
-template<typename C, size_t N> inline bool operator>= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >= 0; }
-
-template<typename C, size_t N> inline bool operator== (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) == 0; }
-template<typename C, size_t N> inline bool operator!= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) != 0; }
-template<typename C, size_t N> inline bool operator<  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >  0; }
-template<typename C, size_t N> inline bool operator>  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <  0; }
-template<typename C, size_t N> inline bool operator<= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >= 0; }
-template<typename C, size_t N> inline bool operator>= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <= 0; }
-
-template<typename C> inline bool operator== (basic_substring<const C> const that, C const c) { return that.compare(c) == 0; }
-template<typename C> inline bool operator!= (basic_substring<const C> const that, C const c) { return that.compare(c) != 0; }
-template<typename C> inline bool operator<  (basic_substring<const C> const that, C const c) { return that.compare(c) <  0; }
-template<typename C> inline bool operator>  (basic_substring<const C> const that, C const c) { return that.compare(c) >  0; }
-template<typename C> inline bool operator<= (basic_substring<const C> const that, C const c) { return that.compare(c) <= 0; }
-template<typename C> inline bool operator>= (basic_substring<const C> const that, C const c) { return that.compare(c) >= 0; }
-
-template<typename C> inline bool operator== (C const c, basic_substring<const C> const that) { return that.compare(c) == 0; }
-template<typename C> inline bool operator!= (C const c, basic_substring<const C> const that) { return that.compare(c) != 0; }
-template<typename C> inline bool operator<  (C const c, basic_substring<const C> const that) { return that.compare(c) >  0; }
-template<typename C> inline bool operator>  (C const c, basic_substring<const C> const that) { return that.compare(c) <  0; }
-template<typename C> inline bool operator<= (C const c, basic_substring<const C> const that) { return that.compare(c) >= 0; }
-template<typename C> inline bool operator>= (C const c, basic_substring<const C> const that) { return that.compare(c) <= 0; }
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
 /** Because of a C++ limitation, substr cannot provide simultaneous
  * overloads for constructing from a char[N] and a char*; the latter
  * will always be chosen by the compiler. So this specialization is
@@ -1290,6 +1257,40 @@ inline csubstr to_csubstr(const char *s)
 {
     return csubstr(s, s ? strlen(s) : 0);
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+template<typename C, size_t N> inline bool operator== (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) == 0; }
+template<typename C, size_t N> inline bool operator!= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) != 0; }
+template<typename C, size_t N> inline bool operator<  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <  0; }
+template<typename C, size_t N> inline bool operator>  (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >  0; }
+template<typename C, size_t N> inline bool operator<= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) <= 0; }
+template<typename C, size_t N> inline bool operator>= (basic_substring<const C> const that, const C (&s)[N]) { return that.compare(s) >= 0; }
+
+template<typename C, size_t N> inline bool operator== (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) == 0; }
+template<typename C, size_t N> inline bool operator!= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) != 0; }
+template<typename C, size_t N> inline bool operator<  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >  0; }
+template<typename C, size_t N> inline bool operator>  (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <  0; }
+template<typename C, size_t N> inline bool operator<= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) >= 0; }
+template<typename C, size_t N> inline bool operator>= (const C (&s)[N], basic_substring<const C> const that) { return that.compare(s) <= 0; }
+
+template<typename C> inline bool operator== (basic_substring<const C> const that, C const c) { return that.compare(c) == 0; }
+template<typename C> inline bool operator!= (basic_substring<const C> const that, C const c) { return that.compare(c) != 0; }
+template<typename C> inline bool operator<  (basic_substring<const C> const that, C const c) { return that.compare(c) <  0; }
+template<typename C> inline bool operator>  (basic_substring<const C> const that, C const c) { return that.compare(c) >  0; }
+template<typename C> inline bool operator<= (basic_substring<const C> const that, C const c) { return that.compare(c) <= 0; }
+template<typename C> inline bool operator>= (basic_substring<const C> const that, C const c) { return that.compare(c) >= 0; }
+
+template<typename C> inline bool operator== (C const c, basic_substring<const C> const that) { return that.compare(c) == 0; }
+template<typename C> inline bool operator!= (C const c, basic_substring<const C> const that) { return that.compare(c) != 0; }
+template<typename C> inline bool operator<  (C const c, basic_substring<const C> const that) { return that.compare(c) >  0; }
+template<typename C> inline bool operator>  (C const c, basic_substring<const C> const that) { return that.compare(c) <  0; }
+template<typename C> inline bool operator<= (C const c, basic_substring<const C> const that) { return that.compare(c) >= 0; }
+template<typename C> inline bool operator>= (C const c, basic_substring<const C> const that) { return that.compare(c) <= 0; }
+
 
 C4_END_NAMESPACE(c4)
 
