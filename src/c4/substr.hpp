@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <type_traits>
+#include <iosfwd>
 
 #include "c4/config.hpp"
 #include "c4/error.hpp"
@@ -20,12 +21,24 @@ using csubstr = basic_substring<const char>;
  * @see to_csubstr() */
 using substr = basic_substring<char>;
 
-/** */
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** output the string to a stream */
 template<class OStream, class C>
 inline OStream& operator<< (OStream& s, basic_substring<C> sp)
 {
     s.write(sp.str, sp.len);
     return s;
+}
+
+/** this is used by google test */
+template<class C>
+inline void PrintTo(basic_substring<C> s, std::ostream* os)
+{
+    os->write(s.str, s.len);
 }
 
 
