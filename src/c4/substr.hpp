@@ -3,7 +3,6 @@
 
 #include <string.h>
 #include <type_traits>
-#include <iosfwd>
 
 #include "c4/config.hpp"
 #include "c4/error.hpp"
@@ -25,27 +24,7 @@ using substr = basic_substring<char>;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
-/** output the string to a stream */
-template<class OStream, class C>
-inline OStream& operator<< (OStream& s, basic_substring<C> sp)
-{
-    s.write(sp.str, sp.len);
-    return s;
-}
-
-/** this is used by google test */
-template<class C>
-inline void PrintTo(basic_substring<C> s, std::ostream* os)
-{
-    os->write(s.str, s.len);
-}
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-template <typename C>
+template<typename C>
 static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 {
     while(last > first)
@@ -55,6 +34,7 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
         *first++ = tmp;
     }
 }
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -91,11 +71,11 @@ public:
 
 public:
 
-    using  CC = typename std::add_const<C>::type;
-    using NCC = typename std::remove_const<C>::type;
+    using  CC = typename std::add_const<C>::type;    //!< CC=const char
+    using NCC = typename std::remove_const<C>::type; //!< NCC=non const char
 
-    using basic_csubstr = basic_substring<CC>;
-    using basic_ncsubstr = basic_substring<NCC>;
+    using ro_substr = basic_substring<CC>;
+    using rw_substr = basic_substring<NCC>;
 
     using char_type = C;
     using size_type = size_t;
@@ -108,7 +88,7 @@ public:
 public:
 
     /// convert automatically to substring of const C
-    operator basic_csubstr () const { basic_csubstr s(str, len); return s; }
+    operator ro_substr () const { ro_substr s(str, len); return s; }
 
 public:
 
@@ -195,7 +175,7 @@ public:
 
 public:
 
-    int compare(basic_csubstr const that) const
+    int compare(ro_substr const that) const
     {
         size_t n = len < that.len ? len : that.len;
         int ret = strncmp(str, that.str, n);
@@ -208,32 +188,32 @@ public:
 
     int compare(C const c) const
     {
-        return compare(basic_csubstr(&c, 1));
+        return compare(ro_substr(&c, 1));
     }
 
-    inline bool operator== (basic_csubstr const that) const { return this->compare(that) == 0; }
-    inline bool operator!= (basic_csubstr const that) const { return this->compare(that) != 0; }
-    inline bool operator<  (basic_csubstr const that) const { return this->compare(that) <  0; }
-    inline bool operator>  (basic_csubstr const that) const { return this->compare(that) >  0; }
-    inline bool operator<= (basic_csubstr const that) const { return this->compare(that) <= 0; }
-    inline bool operator>= (basic_csubstr const that) const { return this->compare(that) >= 0; }
+    inline bool operator== (ro_substr const that) const { return this->compare(that) == 0; }
+    inline bool operator!= (ro_substr const that) const { return this->compare(that) != 0; }
+    inline bool operator<  (ro_substr const that) const { return this->compare(that) <  0; }
+    inline bool operator>  (ro_substr const that) const { return this->compare(that) >  0; }
+    inline bool operator<= (ro_substr const that) const { return this->compare(that) <= 0; }
+    inline bool operator>= (ro_substr const that) const { return this->compare(that) >= 0; }
 
 public:
 
     /** true if *this is a substring of that */
-    inline bool is_contained(basic_csubstr const that) const
+    inline bool is_contained(ro_substr const that) const
     {
         return begin() >= that.begin() && end() <= that.end();
     }
 
     /** true if that is a substring of this */
-    inline bool contains(basic_csubstr const that) const
+    inline bool contains(ro_substr const that) const
     {
         return that.begin() >= begin() && that.end() <= end();
     }
 
     /** true if theres is overlap of at least one element between that and *this */
-    inline bool overlaps(basic_csubstr const that) const
+    inline bool overlaps(ro_substr const that) const
     {
         return (that.begin() <= begin() && that.end() > begin())
                ||
@@ -295,7 +275,7 @@ public:
 
 public:
 
-    basic_substring left_of(basic_csubstr const ss) const
+    basic_substring left_of(ro_substr const ss) const
     {
         C4_ASSERT(contains(ss) || ss.empty());
         auto ssb = ss.begin();
@@ -311,7 +291,7 @@ public:
         }
     }
 
-    basic_substring right_of(basic_csubstr const ss) const
+    basic_substring right_of(ro_substr const ss) const
     {
         C4_ASSERT(contains(ss) || ss.empty());
         auto sse = ss.end();
@@ -336,7 +316,7 @@ public:
         return triml({&c, 1});
     }
     /** trim left ANY of the characters */
-    basic_substring triml(basic_csubstr chars) const
+    basic_substring triml(ro_substr chars) const
     {
         //return right_of(first_not_of(chars), /*include_pos*/true);
         if( ! empty())
@@ -357,7 +337,7 @@ public:
         return trimr({&c, 1});
     }
     /** trim right ANY of the characters */
-    basic_substring trimr(basic_csubstr chars) const
+    basic_substring trimr(ro_substr chars) const
     {
         //return left_of(last_not_of(chars), /*include_pos*/true);
         if( ! empty())
@@ -377,7 +357,7 @@ public:
         return triml(c).trimr(c);
     }
     /** trim left and right ANY of the characters */
-    basic_substring trim(basic_csubstr const chars) const
+    basic_substring trim(ro_substr const chars) const
     {
         return triml(chars).trimr(chars);
     }
@@ -385,14 +365,14 @@ public:
 public:
 
     /** remove a pattern from the left */
-    basic_substring stripl(basic_csubstr pattern) const
+    basic_substring stripl(ro_substr pattern) const
     {
         if( ! begins_with(pattern)) return *this;
         return sub(pattern.len < len ? pattern.len : len);
     }
 
     /** remove a pattern from the right */
-    basic_substring stripr(basic_csubstr pattern) const
+    basic_substring stripr(ro_substr pattern) const
     {
         if( ! ends_with(pattern)) return *this;
         return left_of(len - (pattern.len < len ? pattern.len : len));
@@ -404,7 +384,7 @@ public:
     {
         return first_of(c, start_pos);
     }
-    inline size_t find(basic_csubstr chars, size_t start_pos=0) const
+    inline size_t find(ro_substr chars, size_t start_pos=0) const
     {
         C4_ASSERT(start_pos == npos || (start_pos >= 0 && start_pos <= len));
         if(len < chars.len) return npos;
@@ -436,7 +416,7 @@ public:
         return pos != npos ? sub(pos, 1) : basic_substring();
     }
 
-    inline basic_substring select(basic_csubstr pattern) const
+    inline basic_substring select(ro_substr pattern) const
     {
         size_t pos = find(pattern);
         return pos != npos ? sub(pos, pattern.len) : basic_substring();
@@ -451,27 +431,27 @@ public:
         inline operator bool() const { return which != NONE && pos != npos; }
     };
 
-    first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1) const
+    first_of_any_result first_of_any(ro_substr s0, ro_substr s1) const
     {
-        basic_csubstr s[2] = {s0, s1};
+        ro_substr s[2] = {s0, s1};
         return first_of_any_iter(&s[0], &s[0] + 2);
     }
 
-    first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2) const
+    first_of_any_result first_of_any(ro_substr s0, ro_substr s1, ro_substr s2) const
     {
-        basic_csubstr s[3] = {s0, s1, s2};
+        ro_substr s[3] = {s0, s1, s2};
         return first_of_any_iter(&s[0], &s[0] + 3);
     }
 
-    first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2, basic_csubstr s3) const
+    first_of_any_result first_of_any(ro_substr s0, ro_substr s1, ro_substr s2, ro_substr s3) const
     {
-        basic_csubstr s[4] = {s0, s1, s2, s3};
+        ro_substr s[4] = {s0, s1, s2, s3};
         return first_of_any_iter(&s[0], &s[0] + 4);
     }
 
-    first_of_any_result first_of_any(basic_csubstr s0, basic_csubstr s1, basic_csubstr s2, basic_csubstr s3, basic_csubstr s4) const
+    first_of_any_result first_of_any(ro_substr s0, ro_substr s1, ro_substr s2, ro_substr s3, ro_substr s4) const
     {
-        basic_csubstr s[5] = {s0, s1, s2, s3, s4};
+        ro_substr s[5] = {s0, s1, s2, s3, s4};
         return first_of_any_iter(&s[0], &s[0] + 5);
     }
 
@@ -519,7 +499,7 @@ public:
         }
         return true;
     }
-    inline bool begins_with(basic_csubstr pattern) const
+    inline bool begins_with(ro_substr pattern) const
     {
         if(len < pattern.len) return false;
         for(size_t i = 0; i < pattern.len; ++i)
@@ -528,7 +508,7 @@ public:
         }
         return true;
     }
-    inline bool begins_with_any(basic_csubstr pattern) const
+    inline bool begins_with_any(ro_substr pattern) const
     {
         return first_of(pattern) == 0;
     }
@@ -546,7 +526,7 @@ public:
         }
         return true;
     }
-    inline bool ends_with(basic_csubstr pattern) const
+    inline bool ends_with(ro_substr pattern) const
     {
         if(len < pattern.len) return false;
         for(size_t i = 0, s = len-pattern.len; i < pattern.len; ++i)
@@ -555,7 +535,7 @@ public:
         }
         return true;
     }
-    inline bool ends_with_any(basic_csubstr chars) const
+    inline bool ends_with_any(ro_substr chars) const
     {
         if(len == 0) return false;
         return last_of(chars) == len - 1;
@@ -587,7 +567,7 @@ public:
     }
 
     /** @return the first position where ANY of the chars is found in the string, or npos if none is found */
-    size_t first_of(basic_csubstr chars, size_t start=0) const
+    size_t first_of(ro_substr chars, size_t start=0) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
         for(size_t i = start; i < len; ++i)
@@ -601,7 +581,7 @@ public:
     }
 
     /** @return the last position where ANY of the chars is found in the string, or npos if none is found */
-    size_t last_of(basic_csubstr chars, size_t start=npos) const
+    size_t last_of(ro_substr chars, size_t start=npos) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
         if(start == npos) start = len;
@@ -638,7 +618,7 @@ public:
         return npos;
     }
 
-    size_t first_not_of(basic_csubstr chars, size_t start=0) const
+    size_t first_not_of(ro_substr chars, size_t start=0) const
     {
         C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
         for(size_t i = start; i < len; ++i)
@@ -660,7 +640,7 @@ public:
         return npos;
     }
 
-    size_t last_not_of(basic_csubstr chars, size_t start=npos) const
+    size_t last_not_of(ro_substr chars, size_t start=npos) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
         if(start == npos) start = len;
@@ -751,7 +731,7 @@ public:
     /** get the first span consisting exclusively of non-empty characters */
     basic_substring first_non_empty_span() const
     {
-        basic_csubstr empty_chars(" \n\r\t");
+        ro_substr empty_chars(" \n\r\t");
         size_t pos = first_not_of(empty_chars);
         if(pos == npos) return sub(0, 0);
         auto ret = sub(pos);
@@ -1154,7 +1134,7 @@ public:
 
 public:
 
-    C4_DISABLED_FOR_CONST_C(void) copy_from(basic_csubstr that, size_t ifirst=0, size_t num=npos)
+    C4_DISABLED_FOR_CONST_C(void) copy_from(ro_substr that, size_t ifirst=0, size_t num=npos)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         num = num != npos ? num : len - ifirst;
@@ -1202,7 +1182,7 @@ public:
         return erase(first, last-first);
     }
 
-    C4_DISABLED_FOR_CONST_C(basic_substring) erase(basic_csubstr sub)
+    C4_DISABLED_FOR_CONST_C(basic_substring) erase(ro_substr sub)
     {
         C4_ASSERT(contains(sub));
         C4_ASSERT(sub.str >= str);
@@ -1304,6 +1284,26 @@ template<typename C> inline bool operator>  (C const c, basic_substring<const C>
 template<typename C> inline bool operator<= (C const c, basic_substring<const C> const that) { return that.compare(c) >= 0; }
 template<typename C> inline bool operator>= (C const c, basic_substring<const C> const that) { return that.compare(c) <= 0; }
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** output the string to a stream */
+template<class OStream, class C>
+inline OStream& operator<< (OStream& os, basic_substring<C> s)
+{
+    os.write(s.str, s.len);
+    return os;
+}
+
+// this causes ambiguity
+///** this is used by google test */
+//template<class OStream, class C>
+//inline void PrintTo(basic_substring<C> s, OStream* os)
+//{
+//    os->write(s.str, s.len);
+//}
 
 C4_END_NAMESPACE(c4)
 
