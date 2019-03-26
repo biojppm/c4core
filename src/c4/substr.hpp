@@ -200,13 +200,13 @@ public:
 
 public:
 
-    /** true if *this is a substring of that */
+    /** true if *this is a substring of that (ie, from the same buffer) */
     inline bool is_contained(ro_substr const that) const
     {
         return begin() >= that.begin() && end() <= that.end();
     }
 
-    /** true if that is a substring of this */
+    /** true if that is a substring of *this (ie, from the same buffer) */
     inline bool contains(ro_substr const that) const
     {
         return that.begin() >= begin() && that.end() <= end();
@@ -215,11 +215,13 @@ public:
     /** true if theres is overlap of at least one element between that and *this */
     inline bool overlaps(ro_substr const that) const
     {
-        return (that.begin() <= begin() && that.end() > begin())
+        CC * b =      begin(), * e =      end(),
+           *tb = that.begin(), *te = that.end();
+        return (tb <= b && te >  b)
                ||
-               (that.begin() <  end()   && that.end() >= end())
+               (tb <  e && te >= e)
                ||
-               (that.begin() >= begin() && that.end() <= end());
+               (tb >= b && te <= e);
     }
 
 public:
@@ -256,9 +258,18 @@ public:
         return sub(len - num);
     }
 
+    /** return [left,len-right[ */
+    basic_substring offs(size_t left, size_t right) const
+    {
+        C4_ASSERT(left  >= 0 && left  <= len);
+        C4_ASSERT(right >= 0 && right <= len);
+        C4_ASSERT(left  <= len - right + 1);
+        return basic_substring(str + left, len - right - left);
+    }
+
 public:
 
-    basic_substring left_of(size_t pos, bool include_pos = false) const
+    basic_substring left_of(size_t pos, bool include_pos=false) const
     {
         if(pos == npos) return *this;
         if(pos == 0) return sub(0, include_pos ? 1 : 0);
@@ -266,7 +277,7 @@ public:
         return sub(0, pos+1/* bump because this arg is a size, not a pos*/);
     }
 
-    basic_substring right_of(size_t pos, bool include_pos = false) const
+    basic_substring right_of(size_t pos, bool include_pos=false) const
     {
         if(pos == npos) return sub(0, 0);
         if( ! include_pos) ++pos;

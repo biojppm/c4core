@@ -23,57 +23,6 @@ TEST(csubstr, ctor_from_char)
     EXPECT_EQ(s, "{foo: 2}");
 }
 
-TEST(substr, select)
-{
-    csubstr buf = "0123456789";
-
-    EXPECT_EQ(buf.select('0'), "0");
-    EXPECT_EQ(buf.select('1'), "1");
-    EXPECT_EQ(buf.select('2'), "2");
-    EXPECT_EQ(buf.select('8'), "8");
-    EXPECT_EQ(buf.select('9'), "9");
-
-    EXPECT_EQ(buf.select('a').str, nullptr);
-    EXPECT_EQ(buf.select('a').len, 0);
-    EXPECT_EQ(buf.select('a'), "");
-
-    EXPECT_EQ(buf.select("a").str, nullptr);
-    EXPECT_EQ(buf.select("a").len, 0);
-    EXPECT_EQ(buf.select("a"), "");
-
-    EXPECT_EQ(buf.select("0"), "0");
-    EXPECT_EQ(buf.select("0").str, buf.str+0);
-    EXPECT_EQ(buf.select("0").len, 1);
-
-    EXPECT_EQ(buf.select("1"), "1");
-    EXPECT_EQ(buf.select("1").str, buf.str+1);
-    EXPECT_EQ(buf.select("1").len, 1);
-
-    EXPECT_EQ(buf.select("2"), "2");
-    EXPECT_EQ(buf.select("2").str, buf.str+2);
-    EXPECT_EQ(buf.select("2").len, 1);
-
-    EXPECT_EQ(buf.select("9"), "9");
-    EXPECT_EQ(buf.select("9").str, buf.str+9);
-    EXPECT_EQ(buf.select("9").len, 1);
-
-    EXPECT_EQ(buf.select("012"), "012");
-    EXPECT_EQ(buf.select("012").str, buf.str+0);
-    EXPECT_EQ(buf.select("012").len, 3);
-
-    EXPECT_EQ(buf.select("345"), "345");
-    EXPECT_EQ(buf.select("345").str, buf.str+3);
-    EXPECT_EQ(buf.select("345").len, 3);
-
-    EXPECT_EQ(buf.select("789"), "789");
-    EXPECT_EQ(buf.select("789").str, buf.str+7);
-    EXPECT_EQ(buf.select("789").len, 3);
-
-    EXPECT_EQ(buf.select("89a"), "");
-    EXPECT_EQ(buf.select("89a").str, nullptr);
-    EXPECT_EQ(buf.select("89a").len, 0);
-}
-
 TEST(substr, contains)
 {
     csubstr buf = "0123456789";
@@ -174,6 +123,191 @@ TEST(substr, overlaps)
     EXPECT_EQ(s, "78");
     EXPECT_FALSE(ref.overlaps(s));
     EXPECT_FALSE(s.overlaps(ref));
+}
+
+TEST(substr, sub)
+{
+    EXPECT_EQ(csubstr("10]").sub(0, 2), "10");
+}
+
+TEST(substr, range)
+{
+    csubstr s = "0123456789";
+    size_t l = s.len;
+
+    EXPECT_EQ(s.range(0, 10), "0123456789");
+    EXPECT_EQ(s.range(0    ), "0123456789");
+    EXPECT_EQ(s.range(1, 10), "123456789");
+    EXPECT_EQ(s.range(1    ), "123456789");
+    EXPECT_EQ(s.range(2, 10), "23456789");
+    EXPECT_EQ(s.range(2    ), "23456789");
+    EXPECT_EQ(s.range(3, 10), "3456789");
+    EXPECT_EQ(s.range(3    ), "3456789");
+    EXPECT_EQ(s.range(4, 10), "456789");
+    EXPECT_EQ(s.range(4    ), "456789");
+    EXPECT_EQ(s.range(5, 10), "56789");
+    EXPECT_EQ(s.range(5    ), "56789");
+    EXPECT_EQ(s.range(6, 10), "6789");
+    EXPECT_EQ(s.range(6    ), "6789");
+    EXPECT_EQ(s.range(7, 10), "789");
+    EXPECT_EQ(s.range(7    ), "789");
+    EXPECT_EQ(s.range(8, 10), "89");
+    EXPECT_EQ(s.range(8    ), "89");
+    EXPECT_EQ(s.range(9, 10), "9");
+    EXPECT_EQ(s.range(9    ), "9");
+    EXPECT_EQ(s.range(10, 10), "");
+    EXPECT_EQ(s.range(10    ), "");
+
+    EXPECT_EQ(s.range(0 , 9), "012345678");
+    EXPECT_EQ(s.range(1 , 9), "12345678");
+    EXPECT_EQ(s.range(2 , 9), "2345678");
+    EXPECT_EQ(s.range(3 , 9), "345678");
+    EXPECT_EQ(s.range(4 , 9), "45678");
+    EXPECT_EQ(s.range(5 , 9), "5678");
+    EXPECT_EQ(s.range(6 , 9), "678");
+    EXPECT_EQ(s.range(7 , 9), "78");
+    EXPECT_EQ(s.range(8 , 9), "8");
+    EXPECT_EQ(s.range(9 , 9), "");
+
+    EXPECT_EQ(s.range(0 , 7), "0123456");
+    EXPECT_EQ(s.range(1 , 7), "123456");
+    EXPECT_EQ(s.range(2 , 7), "23456");
+    EXPECT_EQ(s.range(3 , 7), "3456");
+    EXPECT_EQ(s.range(4 , 7), "456");
+    EXPECT_EQ(s.range(5 , 7), "56");
+    EXPECT_EQ(s.range(6 , 7), "6");
+    EXPECT_EQ(s.range(7 , 7), "");
+
+    EXPECT_EQ(s.range(0 , 5), "01234");
+    EXPECT_EQ(s.range(1 , 5), "1234");
+    EXPECT_EQ(s.range(2 , 5), "234");
+    EXPECT_EQ(s.range(3 , 5), "34");
+    EXPECT_EQ(s.range(4 , 5), "4");
+    EXPECT_EQ(s.range(5 , 5), "");
+
+    EXPECT_EQ(s.range(0 , 3), "012");
+    EXPECT_EQ(s.range(1 , 3), "12");
+    EXPECT_EQ(s.range(2 , 3), "2");
+    EXPECT_EQ(s.range(3 , 3), "");
+
+    EXPECT_EQ(s.range(0 , 2), "01");
+    EXPECT_EQ(s.range(1 , 2), "1");
+    EXPECT_EQ(s.range(2 , 2), "");
+
+    EXPECT_EQ(s.range(0 , 1), "0");
+    EXPECT_EQ(s.range(1 , 1), "");
+}
+
+TEST(substr, first)
+{
+    csubstr s = "0123456789";
+
+    EXPECT_EQ(s.first(10), "0123456789");
+    EXPECT_EQ(s.first(9), "012345678");
+    EXPECT_EQ(s.first(8), "01234567");
+    EXPECT_EQ(s.first(7), "0123456");
+    EXPECT_EQ(s.first(6), "012345");
+    EXPECT_EQ(s.first(5), "01234");
+    EXPECT_EQ(s.first(4), "0123");
+    EXPECT_EQ(s.first(3), "012");
+    EXPECT_EQ(s.first(2), "01");
+    EXPECT_EQ(s.first(1), "0");
+    EXPECT_EQ(s.first(0), "");
+}
+
+TEST(substr, last)
+{
+    csubstr s = "0123456789";
+
+    EXPECT_EQ(s.last(10), "0123456789");
+    EXPECT_EQ(s.last(9), "123456789");
+    EXPECT_EQ(s.last(8), "23456789");
+    EXPECT_EQ(s.last(7), "3456789");
+    EXPECT_EQ(s.last(6), "456789");
+    EXPECT_EQ(s.last(5), "56789");
+    EXPECT_EQ(s.last(4), "6789");
+    EXPECT_EQ(s.last(3), "789");
+    EXPECT_EQ(s.last(2), "89");
+    EXPECT_EQ(s.last(1), "9");
+    EXPECT_EQ(s.last(0), "");
+}
+
+TEST(substr, offs)
+{
+    csubstr s = "0123456789";
+
+    EXPECT_EQ(s.offs(0, 0), s);
+
+    EXPECT_EQ(s.offs(1, 0), "123456789");
+    EXPECT_EQ(s.offs(0, 1), "012345678");
+    EXPECT_EQ(s.offs(1, 1), "12345678");
+
+    EXPECT_EQ(s.offs(1, 2), "1234567");
+    EXPECT_EQ(s.offs(2, 1), "2345678");
+    EXPECT_EQ(s.offs(2, 2), "234567");
+
+    EXPECT_EQ(s.offs(2, 3), "23456");
+    EXPECT_EQ(s.offs(3, 2), "34567");
+    EXPECT_EQ(s.offs(3, 3), "3456");
+
+    EXPECT_EQ(s.offs(3, 4), "345");
+    EXPECT_EQ(s.offs(4, 3), "456");
+    EXPECT_EQ(s.offs(4, 4), "45");
+
+    EXPECT_EQ(s.offs(4, 5), "4");
+    EXPECT_EQ(s.offs(5, 4), "5");
+    EXPECT_EQ(s.offs(5, 5), "");
+}
+
+TEST(substr, select)
+{
+    csubstr buf = "0123456789";
+
+    EXPECT_EQ(buf.select('0'), "0");
+    EXPECT_EQ(buf.select('1'), "1");
+    EXPECT_EQ(buf.select('2'), "2");
+    EXPECT_EQ(buf.select('8'), "8");
+    EXPECT_EQ(buf.select('9'), "9");
+
+    EXPECT_EQ(buf.select('a').str, nullptr);
+    EXPECT_EQ(buf.select('a').len, 0);
+    EXPECT_EQ(buf.select('a'), "");
+
+    EXPECT_EQ(buf.select("a").str, nullptr);
+    EXPECT_EQ(buf.select("a").len, 0);
+    EXPECT_EQ(buf.select("a"), "");
+
+    EXPECT_EQ(buf.select("0"), "0");
+    EXPECT_EQ(buf.select("0").str, buf.str+0);
+    EXPECT_EQ(buf.select("0").len, 1);
+
+    EXPECT_EQ(buf.select("1"), "1");
+    EXPECT_EQ(buf.select("1").str, buf.str+1);
+    EXPECT_EQ(buf.select("1").len, 1);
+
+    EXPECT_EQ(buf.select("2"), "2");
+    EXPECT_EQ(buf.select("2").str, buf.str+2);
+    EXPECT_EQ(buf.select("2").len, 1);
+
+    EXPECT_EQ(buf.select("9"), "9");
+    EXPECT_EQ(buf.select("9").str, buf.str+9);
+    EXPECT_EQ(buf.select("9").len, 1);
+
+    EXPECT_EQ(buf.select("012"), "012");
+    EXPECT_EQ(buf.select("012").str, buf.str+0);
+    EXPECT_EQ(buf.select("012").len, 3);
+
+    EXPECT_EQ(buf.select("345"), "345");
+    EXPECT_EQ(buf.select("345").str, buf.str+3);
+    EXPECT_EQ(buf.select("345").len, 3);
+
+    EXPECT_EQ(buf.select("789"), "789");
+    EXPECT_EQ(buf.select("789").str, buf.str+7);
+    EXPECT_EQ(buf.select("789").len, 3);
+
+    EXPECT_EQ(buf.select("89a"), "");
+    EXPECT_EQ(buf.select("89a").str, nullptr);
+    EXPECT_EQ(buf.select("89a").len, 0);
 }
 
 TEST(substr, begins_with)
@@ -522,11 +656,6 @@ TEST(substr, substr2csubstr)
     const substr cs(b);
     const csubstr csc(b);
 
-}
-
-TEST(substr, sub)
-{
-    EXPECT_EQ(csubstr("10]").sub(0, 2), "10");
 }
 
 template <class ...Args>
