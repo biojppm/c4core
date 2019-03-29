@@ -67,8 +67,8 @@ TEST(aalloc_impl, error_out_of_mem)
 
 void do_test_realloc(arealloc_pfn fn)
 {
-#define _set(dim) for(size_t i = 0; i < dim; ++i) { mem[i] = i; }
-#define _check(dim) for(size_t i = 0; i < dim; ++i) { EXPECT_EQ(mem[i], i); }
+#define _set(dim) for(char i = 0; i < dim; ++i) { mem[i] = size_t(i); }
+#define _check(dim) for(char i = 0; i < dim; ++i) { EXPECT_EQ(mem[i], i); }
 
     char *mem = (char*) aalloc(16, alignof(max_align_t));
     _set(16);
@@ -78,6 +78,9 @@ void do_test_realloc(arealloc_pfn fn)
     mem = (char*) fn(mem, 8, 20, alignof(max_align_t));
     _check(8);
     afree(mem);
+
+#undef _set
+#undef _check
 }
 
 TEST(realloc_impl, basic)
