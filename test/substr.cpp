@@ -1602,6 +1602,28 @@ TEST(substr, dirname)
     EXPECT_EQ(S("").dirname(), "");
 }
 
+TEST(substr, extshort)
+{
+    using S = csubstr;
+    EXPECT_EQ(S("filename.with.ext").extshort(), "ext");
+    EXPECT_EQ(S("filename.with.ext.").extshort(), "");
+    EXPECT_EQ(S(".a.b").extshort(), "b");
+    EXPECT_EQ(S(".a.b.").extshort(), "");
+    EXPECT_EQ(S(".b..").extshort(), "");
+    EXPECT_EQ(S("..b.").extshort(), "");
+}
+
+TEST(substr, extlong)
+{
+    using S = csubstr;
+    EXPECT_EQ(S("filename.with.ext").extlong(), "with.ext");
+    EXPECT_EQ(S("filename.with.ext.").extlong(), "with.ext.");
+    EXPECT_EQ(S(".a.b").extlong(), "a.b");
+    EXPECT_EQ(S(".a.b.").extlong(), "a.b.");
+    EXPECT_EQ(S(".b..").extlong(), "b..");
+    EXPECT_EQ(S("..b.").extlong(), ".b.");
+}
+
 TEST(substr, next_split)
 {
     using S = csubstr;

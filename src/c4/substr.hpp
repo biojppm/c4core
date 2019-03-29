@@ -9,7 +9,7 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
-template<class C> class basic_substring;
+template<class C> struct basic_substring;
 
 /** ConstantSUBSTRing: a non-owning read-only string view
  * @see to_csubstr() */
@@ -39,6 +39,16 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
+// utility macros to deuglify SFINAE code; undefined after the class.
+// https://stackoverflow.com/questions/43051882/how-to-disable-a-class-member-funrtion-for-certain-template-types
+#define C4_REQUIRE_RW(ret_type) \
+    template <typename U=C> \
+    typename std::enable_if< ! std::is_const<U>::value, ret_type>::type
+// non-const-to-const
+#define C4_NC2C(ty) \
+    typename std::enable_if<std::is_const<C>::value && ( ! std::is_const<ty>::value), ty>::type
+
 /** a non-owning string-view, consisting of a character pointer
  * and a length. The pointer is restricted.
  *
@@ -53,17 +63,8 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
  * @see to_csubstr()
  */
 template<class C>
-class basic_substring
+struct basic_substring
 {
-
-// https://stackoverflow.com/questions/43051882/how-to-disable-a-class-member-funrtion-for-certain-template-types
-#define C4_DISABLED_FOR_CONST_C(ret_type) \
-    template <typename U=C> \
-    typename std::enable_if<std::is_const<U>::value == false, ret_type>::type
-// non-const-to-const
-#define C4_NC2C(ty) \
-    typename std::enable_if<std::is_const<C>::value && ( ! std::is_const<ty>::value), ty>::type
-
 public:
 
     C * C4_RESTRICT str;
@@ -114,7 +115,7 @@ public:
     basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
     basic_substring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
 
-	//basic_span& operator= (C *s_) { this->assign(s_); return *this; }
+	//basic_substring& operator= (C *s_) { this->assign(s_); return *this; }
 	template<size_t N>
 	basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
 
@@ -985,14 +986,20 @@ public:
         return ss;
     }
 
+    C4_ALWAYS_INLINE basic_substring extshort() const
+    {
+        return pop_right('.');
+    }
+
+    C4_ALWAYS_INLINE basic_substring extlong() const
+    {
+        return gpop_right('.');
+    }
+
 public:
 
     /** pop right: return the first split from the right. Use
      * gpop_left() to get the reciprocal part.
-     * pop_right() can be used to retrieve the extension of a filename:
-     * @begincode
-     *   auto ext = s.pop_right('.');
-     * @endcode
      */
     basic_substring pop_right(C sep=C('/'), bool skip_empty=false) const
     {
@@ -1101,6 +1108,7 @@ public:
 
 public:
 
+    /** greedy pop left */
     basic_substring gpop_left(C sep = C('/'), bool skip_empty=false) const
     {
         auto ss = pop_right(sep, skip_empty);
@@ -1122,6 +1130,7 @@ public:
         return ss;
     }
 
+    /** greedy pop right */
     basic_substring gpop_right(C sep = C('/'), bool skip_empty=false) const
     {
         auto ss = pop_left(sep, skip_empty);
@@ -1145,23 +1154,27 @@ public:
 
 public:
 
-    C4_DISABLED_FOR_CONST_C(void) copy_from(ro_substr that, size_t ifirst=0, size_t num=npos)
+    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) copy_from(ro_substr that, size_t ifirst=0, size_t num=npos)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         num = num != npos ? num : len - ifirst;
         num = num < that.len ? num : that.len;
+        C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
         memcpy(str + sizeof(C) * ifirst, that.str, sizeof(C) * num);
     }
 
 public:
 
-    C4_DISABLED_FOR_CONST_C(void) reverse()
+    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) reverse()
     {
         if(len == 0) return;
         _do_reverse(str, str + len - 1);
     }
 
-    C4_DISABLED_FOR_CONST_C(void) reverse_sub(size_t ifirst, size_t num)
+    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) reverse_sub(size_t ifirst, size_t num)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
@@ -1169,7 +1182,8 @@ public:
         _do_reverse(str + ifirst, ifirst + num - 1);
     }
 
-    C4_DISABLED_FOR_CONST_C(void) reverse_range(size_t ifirst, size_t ilast)
+    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) reverse_range(size_t ifirst, size_t ilast)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         C4_ASSERT(ilast  >= 0 && ilast  <= len);
@@ -1179,7 +1193,8 @@ public:
 
 public:
 
-    C4_DISABLED_FOR_CONST_C(basic_substring) erase(size_t pos, size_t num)
+    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(basic_substring) erase(size_t pos, size_t num)
     {
         C4_ASSERT(pos >= 0 && pos+num <= len);
         size_t num_to_move = len - pos - num;
@@ -1187,13 +1202,15 @@ public:
         return basic_substring{str, len - num};
     }
 
-    C4_DISABLED_FOR_CONST_C(basic_substring) erase_range(size_t first, size_t last)
+    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(basic_substring) erase_range(size_t first, size_t last)
     {
         C4_ASSERT(first <= last);
         return erase(first, last-first);
     }
 
-    C4_DISABLED_FOR_CONST_C(basic_substring) erase(ro_substr sub)
+    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(basic_substring) erase(ro_substr sub)
     {
         C4_ASSERT(contains(sub));
         C4_ASSERT(sub.str >= str);
@@ -1202,7 +1219,8 @@ public:
 
 public:
 
-    C4_DISABLED_FOR_CONST_C(bool) replace_all(C value, C repl, size_t pos=0)
+    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(bool) replace_all(C value, C repl, size_t pos=0)
     {
         bool did_it = false;
         while((pos = find(value, pos)) != npos)
@@ -1213,10 +1231,12 @@ public:
         return did_it;
     }
 
-#undef C4_DISABLED_FOR_CONST_C
-#undef C4_NC2C
 }; // template class basic_substring
 
+
+#undef C4_REQUIRE_RW
+#undef C4_REQUIRE_RO
+#undef C4_NC2C
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1228,6 +1248,7 @@ public:
  * provided to simplify obtaining a substr from a char*. Being a
  * function has the advantage of highlighting the strlen() cost.
  *
+ * @see to_csubstr
  * @see For a more detailed explanation on why the overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
 inline substr to_substr(char *s)
@@ -1241,6 +1262,7 @@ inline substr to_substr(char *s)
  * provided to simplify obtaining a substr from a char*. Being a
  * function has the advantage of highlighting the strlen() cost.
  *
+ * @see to_substr
  * @see For a more detailed explanation on why the overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
 inline csubstr to_csubstr(char *s)
@@ -1255,6 +1277,8 @@ inline csubstr to_csubstr(char *s)
  * char*. Being a function has the advantage of highlighting the
  * strlen() cost.
  *
+ * @overload to_csubstr
+ * @see to_substr
  * @see For a more detailed explanation on why the overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
 inline csubstr to_csubstr(const char *s)

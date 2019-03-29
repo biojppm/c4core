@@ -6,11 +6,23 @@ namespace c4 {
 TEST(std_string, to_substr)
 {
     std::string s("barnabe");
-    auto ss = to_substr(s);
+    substr ss = to_substr(s);
     EXPECT_EQ(ss.str, s.data());
     EXPECT_EQ(ss.len, s.size());
-    ss[0] = 'B';
-    EXPECT_EQ(s[0], 'B');
+    s[0] = 'B';
+    EXPECT_EQ(ss[0], 'B');
+    ss[0] = 'b';
+    EXPECT_EQ(s[0], 'b');
+}
+
+TEST(std_string, to_csubstr)
+{
+    std::string s("barnabe");
+    csubstr ss = to_csubstr(s);
+    EXPECT_EQ(ss.str, s.data());
+    EXPECT_EQ(ss.len, s.size());
+    s[0] = 'B';
+    EXPECT_EQ(ss[0], 'B');
 }
 
 } // namespace c4
