@@ -35,6 +35,18 @@ TEST(substr, contains)
     EXPECT_TRUE(ref.is_contained(buf));
     EXPECT_FALSE(ref.contains(buf));
     EXPECT_FALSE(buf.is_contained(ref));
+
+    buf.clear();
+    ref.clear();
+    EXPECT_FALSE(buf.contains(ref));
+    EXPECT_FALSE(ref.contains(buf));
+    EXPECT_FALSE(ref.is_contained(buf));
+    EXPECT_FALSE(buf.is_contained(ref));
+
+    buf = "";
+    ref = buf;
+    EXPECT_FALSE(buf.contains("a"));
+    EXPECT_TRUE(buf.contains(ref));
 }
 
 TEST(substr, overlaps)

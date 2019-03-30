@@ -204,12 +204,13 @@ public:
     /** true if *this is a substring of that (ie, from the same buffer) */
     inline bool is_contained(ro_substr const that) const
     {
-        return begin() >= that.begin() && end() <= that.end();
+        return that.contains(*this);
     }
 
     /** true if that is a substring of *this (ie, from the same buffer) */
     inline bool contains(ro_substr const that) const
     {
+        if(C4_UNLIKELY(len == 0)) return that.len == 0 && that.str == str && str != nullptr;
         return that.begin() >= begin() && that.end() <= end();
     }
 
