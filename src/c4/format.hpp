@@ -18,10 +18,61 @@ namespace c4 {
  * Convert a sequence of values to/from a string.
  */
 
+/** a generic class for providing custom formatting information for a type
+ * @ingroup formatting_functions */
+template<class T>
+struct fmt_wrapper;
+
+/** mark a variable to be written in its custom format wrapper
+ * @ingroup formatting_functions */
+template<class T, class... Args>
+inline fmt_wrapper<T> fmt(T v, Args && ...args)
+{
+    return fmt_wrapper<T>(v, std::forward<Args>(args)...);
+}
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// formatting floats and ints
+// formatting integral types
+
+
+namespace detail {
+template<class T>
+struct int_formatter
+{
+    T val;
+    T radix;
+    int_formatter(T val_, uint8_t radix_=10) : val(val_), radix(radix_) {}
+};
+} // namespace detail
+
+template<> struct fmt_wrapper<  int8_t> : public detail::int_formatter<  int8_t> { using detail::int_formatter<  int8_t>::int_formatter; };
+template<> struct fmt_wrapper< int16_t> : public detail::int_formatter< int16_t> { using detail::int_formatter< int16_t>::int_formatter; };
+template<> struct fmt_wrapper< int32_t> : public detail::int_formatter< int32_t> { using detail::int_formatter< int32_t>::int_formatter; };
+template<> struct fmt_wrapper< int64_t> : public detail::int_formatter< int64_t> { using detail::int_formatter< int64_t>::int_formatter; };
+
+template<> struct fmt_wrapper< uint8_t> : public detail::int_formatter< uint8_t> { using detail::int_formatter< uint8_t>::int_formatter; };
+template<> struct fmt_wrapper<uint16_t> : public detail::int_formatter<uint16_t> { using detail::int_formatter<uint16_t>::int_formatter; };
+template<> struct fmt_wrapper<uint32_t> : public detail::int_formatter<uint32_t> { using detail::int_formatter<uint32_t>::int_formatter; };
+template<> struct fmt_wrapper<uint64_t> : public detail::int_formatter<uint64_t> { using detail::int_formatter<uint64_t>::int_formatter; };
+
+
+inline size_t to_chars(substr buf, fmt_wrapper<  int8_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+inline size_t to_chars(substr buf, fmt_wrapper< uint8_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+inline size_t to_chars(substr buf, fmt_wrapper< int16_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+inline size_t to_chars(substr buf, fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+inline size_t to_chars(substr buf, fmt_wrapper< int32_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+inline size_t to_chars(substr buf, fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+inline size_t to_chars(substr buf, fmt_wrapper< int64_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+inline size_t to_chars(substr buf, fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// formatting real types
 
 namespace detail {
 template<class T>
@@ -32,33 +83,20 @@ struct float_formatter
     RealFormat_e fmt;
     float_formatter(T v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
 };
-
-template<class T>
-struct int_formatter
-{
-    T val;
-    T radix;
-    int_formatter(T val_, uint8_t radix_=10) : val(val_), radix(radix_) {}
-};
 } // namespace detail
 
-/** a generic class for providing custom formatting information for a type
- * @ingroup formatting_functions */
-template<class T>
-struct fmt_wrapper;
 
-// define format settings for intrinsic types.
+template<> struct fmt_wrapper< float> : public detail::float_formatter< float> { using detail::float_formatter< float>::float_formatter; };
+template<> struct fmt_wrapper<double> : public detail::float_formatter<double> { using detail::float_formatter<double>::float_formatter; };
 
-template<> struct fmt_wrapper<   float> : public detail::float_formatter< float> { using detail::float_formatter< float>::float_formatter; };
-template<> struct fmt_wrapper<  double> : public detail::float_formatter<double> { using detail::float_formatter<double>::float_formatter; };
-template<> struct fmt_wrapper<  int8_t> : public detail::int_formatter<  int8_t> { using detail::int_formatter<  int8_t>::int_formatter; };
-template<> struct fmt_wrapper< uint8_t> : public detail::int_formatter< uint8_t> { using detail::int_formatter< uint8_t>::int_formatter; };
-template<> struct fmt_wrapper< int16_t> : public detail::int_formatter< int16_t> { using detail::int_formatter< int16_t>::int_formatter; };
-template<> struct fmt_wrapper<uint16_t> : public detail::int_formatter<uint16_t> { using detail::int_formatter<uint16_t>::int_formatter; };
-template<> struct fmt_wrapper< int32_t> : public detail::int_formatter< int32_t> { using detail::int_formatter< int32_t>::int_formatter; };
-template<> struct fmt_wrapper<uint32_t> : public detail::int_formatter<uint32_t> { using detail::int_formatter<uint32_t>::int_formatter; };
-template<> struct fmt_wrapper< int64_t> : public detail::int_formatter< int64_t> { using detail::int_formatter< int64_t>::int_formatter; };
-template<> struct fmt_wrapper<uint64_t> : public detail::int_formatter<uint64_t> { using detail::int_formatter<uint64_t>::int_formatter; };
+inline size_t to_chars(substr buf, fmt_wrapper<   float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); } //!< @ingroup formatting_functions
+inline size_t to_chars(substr buf, fmt_wrapper<  double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); } //!< @ingroup formatting_functions
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// formatting real types
 
 /** format the argument as a hex value
  * @ingroup formatting_functions */
@@ -78,7 +116,7 @@ inline fmt_wrapper<T> fmtoct(T v)
     return fmt_wrapper<T>(v, T(8));
 }
 
-/** format the argument as an octal value
+/** format the argument as a binary 0-1 value
  * @ingroup formatting_functions */
 template<class T>
 inline fmt_wrapper<T> fmtbin(T v)
@@ -87,30 +125,11 @@ inline fmt_wrapper<T> fmtbin(T v)
     return fmt_wrapper<T>(v, T(2));
 }
 
-/** mark a variable to be written in its custom formatter
- * @ingroup formatting_functions */
-template<class T, class... Args>
-inline fmt_wrapper<T> fmt(T v, Args && ...args)
-{
-    return fmt_wrapper<T>(v, std::forward<Args>(args)...);
-}
-
-inline size_t to_chars(substr buf, fmt_wrapper<   float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<  double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<  int8_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper< uint8_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper< int16_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper< int32_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper< int64_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// writing binary values
+// writing binary data
 
 /** @todo add custom alignment
  * @ingroup formatting_functions */
@@ -146,6 +165,228 @@ inline size_t from_chars(csubstr buf, binary_wrapper<T> *b)
     if(sizeof(T) > buf.len) return csubstr::npos;
     memcpy(&b->val, buf.str, sizeof(T));
     return sizeof(T);
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// writing base64 data
+// https://en.m.wikipedia.org/wiki/Base64
+
+/** @todo add custom alignment
+ * @ingroup formatting_functions */
+template<typename CharOrConstChar>
+struct base64_wrapper_
+{
+    CharOrConstChar* data;
+    size_t len;
+    base64_wrapper_(CharOrConstChar *data_, size_t sz) : data(data_), len(sz) {}
+    static_assert(std::is_same<CharOrConstChar,char>::value || std::is_same<CharOrConstChar,const char>::value, "invalid template parameter");
+};
+
+/** mark a variable to be written in base64 format
+ * @ingroup formatting_functions  */
+using const_base64_wrapper = base64_wrapper_<const char>;
+
+/** mark a variable to be read in base64 format
+ * @ingroup formatting_functions  */
+using base64_wrapper = base64_wrapper_<char>;
+
+namespace detail {
+struct base64
+{
+    constexpr static const uint32_t sextet_mask = uint32_t(1 << 6) - 1;
+    constexpr static const char index_table[64] = {
+        /* 0*/ 'A', /* 1*/ 'B', /* 2*/ 'C', /* 3*/ 'D', /* 4*/ 'E', /* 5*/ 'F', /* 6*/ 'G', /* 7*/ 'H',
+        /* 8*/ 'I', /* 9*/ 'J', /*10*/ 'K', /*11*/ 'L', /*12*/ 'M', /*13*/ 'N', /*14*/ 'O', /*15*/ 'P',
+        /*16*/ 'Q', /*17*/ 'R', /*18*/ 'S', /*19*/ 'T', /*20*/ 'U', /*21*/ 'V', /*22*/ 'W', /*23*/ 'X',
+        /*24*/ 'Y', /*25*/ 'Z', /*26*/ 'a', /*27*/ 'b', /*28*/ 'c', /*29*/ 'd', /*30*/ 'e', /*31*/ 'f',
+        /*32*/ 'g', /*33*/ 'h', /*34*/ 'i', /*35*/ 'j', /*36*/ 'k', /*37*/ 'l', /*38*/ 'm', /*39*/ 'n',
+        /*40*/ 'o', /*41*/ 'p', /*42*/ 'q', /*43*/ 'r', /*44*/ 's', /*45*/ 't', /*46*/ 'u', /*47*/ 'v',
+        /*48*/ 'w', /*49*/ 'x', /*50*/ 'y', /*51*/ 'z', /*52*/ '0', /*53*/ '1', /*54*/ '2', /*55*/ '3',
+        /*56*/ '4', /*57*/ '5', /*58*/ '6', /*59*/ '7', /*60*/ '8', /*61*/ '9', /*62*/ '+', /*63*/ '/'
+    };
+    static const char table_idx(char c)
+    {
+        if(c >= 64/*A*/ && c <= 90/*Z*/)
+        {
+            return c - 'A';
+        }
+        else if(c >= 97/*a*/ && c <= 122/*z*/)
+        {
+            return 26 + (c - 'a');
+        }
+        else if(c >= 48/*0*/ && c <= 57/*9*/)
+        {
+            return 52 + (c - '0');
+        }
+        else if(c == '+')
+        {
+            return 62;
+        }
+        else if(c == '/')
+        {
+            return 63;
+        }
+        C4_NEVER_REACH();
+        return 0;
+    }
+
+#define c4append_(c) { if(pos < buf.len) { buf[pos] = (c); } ++pos; }
+#define c4append_idx_(char_idx) { C4_ASSERT((char_idx) < sizeof(index_table)); c4append_(index_table[(char_idx)]); }
+
+    static size_t encode(substr buf, const_base64_wrapper data)
+    {
+        size_t rem, pos = 0;
+        const char *C4_RESTRICT d = data.data;
+        for(rem = data.len; rem >= 3; rem -= 3, d += 3)
+        {
+            const char vb[4] = {d[2], d[1], d[0], 0};
+            uint32_t val = *reinterpret_cast<const uint32_t*>(vb);
+            c4append_idx_((val >> (3 * 6)) & sextet_mask);
+            c4append_idx_((val >> (2 * 6)) & sextet_mask);
+            c4append_idx_((val >> (1 * 6)) & sextet_mask);
+            c4append_idx_((val           ) & sextet_mask);
+        }
+        C4_ASSERT(rem < 3);
+        if(rem == 2)
+        {
+            const char vb[4] = {0, d[1], d[0], 0};
+            uint32_t val = *reinterpret_cast<const uint32_t*>(vb);
+            c4append_idx_((val >> (3 * 6)) & sextet_mask);
+            c4append_idx_((val >> (2 * 6)) & sextet_mask);
+            c4append_idx_((val >> (1 * 6)) & sextet_mask);
+            c4append_('=');
+        }
+        else if(rem == 1)
+        {
+            const char vb[4] = {0, 0, d[0], 0};
+            uint32_t val = *reinterpret_cast<const uint32_t*>(vb);
+            c4append_idx_((val >> (3 * 6)) & sextet_mask);
+            c4append_idx_((val >> (2 * 6)) & sextet_mask);
+            c4append_('=');
+            c4append_('=');
+        }
+        return pos;
+    }
+
+#undef c4append_
+#undef c4append_idx_
+#define c4append_(c) { if(wpos < buf.len) { buf.data[wpos] = (c); } ++wpos; }
+
+    static size_t decode(csubstr encoded, base64_wrapper buf)
+    {
+        C4_CHECK(encoded.len % 4 == 0);
+        size_t wpos = 0;
+        const char *C4_RESTRICT d = encoded.str;
+        // process every quartet of input bytes --> triplet of output bytes
+        for(size_t rpos = 0; rpos < encoded.len; rpos += 4, d += 4)
+        {
+            if(d[2] == '=' || d[3] == '=') // skip the last quartet if it is padded
+            {
+                C4_ASSERT(d + 4 == encoded.str + encoded.len);
+                break;
+            }
+            uint32_t val = 0;
+            val |= table_idx(d[3]);
+            val |= table_idx(d[2]) << (1 * 6);
+            val |= table_idx(d[1]) << (2 * 6);
+            val |= table_idx(d[0]) << (3 * 6);
+            c4append_((val >> (2 * 8)) & 0xff);
+            c4append_((val >> (1 * 8)) & 0xff);
+            c4append_((val           ) & 0xff);
+        }
+        // deal with the last quartet when it is padded
+        if(d[2] == '=') // 2 padding chars
+        {
+            C4_ASSERT(d + 4 == encoded.str + encoded.len);
+            C4_ASSERT(d[3] == '=');
+            uint32_t val = 0;
+            val |= table_idx(d[1]) << (2 * 6);
+            val |= table_idx(d[0]) << (3 * 6);
+            c4append_((val >> (2 * 8)) & 0xff);
+        }
+        else if(d[3] == '=') // 1 padding char
+        {
+            C4_ASSERT(d + 4 == encoded.str + encoded.len);
+            uint32_t val = 0;
+            val |= table_idx(d[2]) << (1 * 6);
+            val |= table_idx(d[1]) << (2 * 6);
+            val |= table_idx(d[0]) << (3 * 6);
+            c4append_((val >> (2 * 8)) & 0xff);
+            c4append_((val >> (1 * 8)) & 0xff);
+        }
+        return wpos;
+    }
+
+#undef c4append_
+
+};
+} // namespace detail
+
+/** mark a variable to be written in base64 format
+ * @ingroup formatting_functions */
+template<class T>
+inline const_base64_wrapper base64(T const& v, size_t num=1)
+{
+    return const_base64_wrapper(reinterpret_cast<const char*>(&v), sizeof(T) * num);
+}
+/** mark a variable to be written in base64 format
+ * @ingroup formatting_functions */
+template<class T, size_t N>
+inline const_base64_wrapper base64(T const (&arr)[N])
+{
+    return const_base64_wrapper(reinterpret_cast<const char*>(arr), sizeof(T) * N);
+}
+/** mark a variable to be written in base64 format
+ * @ingroup formatting_functions */
+template<size_t N>
+inline const_base64_wrapper base64(const char (&arr)[N])
+{
+    return const_base64_wrapper(arr, N);
+}
+/** mark a variable to be written in base64 format
+ * @ingroup formatting_functions */
+inline const_base64_wrapper base64(csubstr s)
+{
+    return const_base64_wrapper(s.str, s.len);
+}
+/** mark a variable to be written in base64 format
+ * @ingroup formatting_functions */
+inline const_base64_wrapper base64(const char* s)
+{
+    return const_base64_wrapper(s, strlen(s));
+}
+
+
+/** mark a variable to be read in base64 format
+ * @ingroup formatting_functions */
+inline base64_wrapper base64(substr s)
+{
+    return base64_wrapper(s.str, s.len);
+}
+/** mark a variable to be read in base64 format
+ * @ingroup formatting_functions */
+template<class T>
+inline base64_wrapper base64(T &v, size_t num=1)
+{
+    return base64_wrapper(reinterpret_cast<char*>(&v), sizeof(T) * num);
+}
+
+
+/** write a variable in base64 format
+ * @ingroup formatting_functions */
+inline size_t to_chars(substr buf, const_base64_wrapper b)
+{
+    return detail::base64::encode(buf, b);
+}
+
+/** read a variable in base64 format
+ * @ingroup formatting_functions */
+inline size_t from_chars(csubstr buf, base64_wrapper *b)
+{
+    return detail::base64::decode(buf, *b);
 }
 
 

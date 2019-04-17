@@ -4,6 +4,182 @@
 #include "c4/format.hpp"
 
 namespace c4 {
+    
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+template< class T >
+void test_to_chars_fmt_basic(T f, int precision, const char* flt, T fltv, const char *scient, T scientv)
+{
+    char bufc[64];
+    substr buf(bufc);
+    substr r;
+    T copy;
+
+    r = to_chars_sub(buf, fmt(f, precision));
+    EXPECT_EQ(r, to_csubstr(flt)) << "num=" << f;
+    from_chars(r, &copy);
+    if(sizeof(T) == sizeof(float))
+    {
+        EXPECT_FLOAT_EQ((float)fltv, (float)copy);
+    }
+    else
+    {
+        EXPECT_DOUBLE_EQ(fltv, copy);
+    }
+
+    r = to_chars_sub(buf, fmt(f, precision, FTOA_SCIENT));
+    EXPECT_EQ(r, to_csubstr(scient)) << "num=" << f;
+    from_chars(r, &copy);
+    if(sizeof(T) == sizeof(float))
+    {
+        EXPECT_FLOAT_EQ((float)scientv, (float)copy);
+    }
+    else
+    {
+        EXPECT_DOUBLE_EQ(scientv, copy);
+    }
+}
+
+TEST(to_chars, fmt_basic)
+{
+    char bufc[128];
+    substr buf(bufc);
+
+    size_t s = 0xff;
+    EXPECT_EQ(to_chars_sub(buf, fmt( int8_t(0x7f), 16)), "0x7f");
+    EXPECT_EQ(to_chars_sub(buf, fmt(uint8_t(0xff), 16)), "0xff");
+
+    float f = 256.064f;
+    test_to_chars_fmt_basic<float>(f, 0, "256", 256.f, "3e+02", 300.f);
+    test_to_chars_fmt_basic<float>(f, 1, "256.1", 256.1f, "2.6e+02", 260.f);
+    test_to_chars_fmt_basic<float>(f, 2, "256.06", 256.06f, "2.56e+02", 256.f);
+    test_to_chars_fmt_basic<float>(f, 3, "256.064", 256.064f, "2.561e+02", 256.1f);
+    test_to_chars_fmt_basic<float>(f, 4, "256.0640", 256.0640f, "2.5606e+02", 256.06f);
+    test_to_chars_fmt_basic<float>(f, 5, "256.06400", 256.06400f, "2.56064e+02", 256.064f);
+
+    double d = 256.064;
+    test_to_chars_fmt_basic<double>(d, 0, "256", 256., "3e+02", 300.);
+    test_to_chars_fmt_basic<double>(d, 1, "256.1", 256.1, "2.6e+02", 260.);
+    test_to_chars_fmt_basic<double>(d, 2, "256.06", 256.06, "2.56e+02", 256.);
+    test_to_chars_fmt_basic<double>(d, 3, "256.064", 256.064, "2.561e+02", 256.1);
+    test_to_chars_fmt_basic<double>(d, 4, "256.0640", 256.0640, "2.5606e+02", 256.06);
+    test_to_chars_fmt_basic<double>(d, 5, "256.06400", 256.06400, "2.56064e+02", 256.064);
+}
+
+  
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+template<class T, class U>
+void test_base64_str(T const& val, csubstr expected, U *ws)
+{
+    char buf_[512];
+    substr buf(buf_);
+
+    csubstr encoded = to_chars_sub(buf, base64(val));
+    EXPECT_EQ(encoded, expected);
+    EXPECT_EQ(encoded.len % 4, 0);
+
+    size_t written = from_chars(encoded, &base64(*ws));
+    EXPECT_EQ(ws->first(written), val);
+}
+
+template<class T>
+void test_base64(T const& val, csubstr expected, T *ws)
+{
+    char buf_[512];
+    substr buf(buf_);
+
+    csubstr encoded = to_chars_sub(buf, base64(val));
+    EXPECT_EQ(encoded, expected);
+    EXPECT_EQ(encoded.len % 4, 0);
+
+    size_t written = from_chars(encoded, &base64(*ws));
+    EXPECT_EQ(written, sizeof(T));
+    EXPECT_EQ(*ws, val);
+}
+
+template<class T>
+struct base64_test_pair
+{
+    T val;
+    csubstr encoded;
+};
+
+base64_test_pair<csubstr> base64_str_pairs[] = {
+    {""                    , ""                            },
+    {"0"                   , "MA=="                        },
+    {"1"                   , "MQ=="                        },
+    {"2"                   , "Mg=="                        },
+    {"3"                   , "Mw=="                        },
+    {"4"                   , "NA=="                        },
+    {"5"                   , "NQ=="                        },
+    {"6"                   , "Ng=="                        },
+    {"7"                   , "Nw=="                        },
+    {"8"                   , "OA=="                        },
+    {"9"                   , "OQ=="                        },
+    {"10"                  , "MTA="                        },
+    {"1234"                , "MTIzNA=="                    },
+    {"Man"                 , "TWFu"                        },
+    {"Ma"                  , "TWE="                        },
+    {"M"                   , "TQ=="                        },
+    {"any carnal pleasure.", "YW55IGNhcm5hbCBwbGVhc3VyZS4="},
+    {"any carnal pleasure" , "YW55IGNhcm5hbCBwbGVhc3VyZQ=="},
+    {"any carnal pleasur"  , "YW55IGNhcm5hbCBwbGVhc3Vy"    },
+    {"any carnal pleasu"   , "YW55IGNhcm5hbCBwbGVhc3U="    },
+    {"any carnal pleas"    , "YW55IGNhcm5hbCBwbGVhcw=="    },
+    {"pleasure."           , "cGxlYXN1cmUu"                },
+    { "leasure."           , "bGVhc3VyZS4="                },
+    {  "easure."           , "ZWFzdXJlLg=="                },
+    {   "asure."           , "YXN1cmUu"                    },
+    {    "sure."           , "c3VyZS4="                    },
+};
+
+base64_test_pair<int> base64_int_pairs[] = {
+    {   0, "AAAAAA=="},
+    {   1, "AQAAAA=="},
+    {   2, "AgAAAA=="},
+    {   3, "AwAAAA=="},
+    {   4, "BAAAAA=="},
+    {   5, "BQAAAA=="},
+    {   6, "BgAAAA=="},
+    {   7, "BwAAAA=="},
+    {   8, "CAAAAA=="},
+    {   9, "CQAAAA=="},
+    {  10, "CgAAAA=="},
+    {1234, "0gQAAA=="},
+};
+
+TEST(base64, str)
+{
+    char buf_[512];
+    substr buf(buf_);
+
+    for(auto p : base64_str_pairs)
+    {
+        SCOPED_TRACE(p.val);
+        test_base64_str(p.val, p.encoded, &buf);
+    }
+}
+
+TEST(base64, int)
+{
+    int val;
+
+    for(auto p : base64_int_pairs)
+    {
+        SCOPED_TRACE(p.val);
+        test_base64(p.val, p.encoded, &val);
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 TEST(cat, vars)
 {
