@@ -234,7 +234,7 @@ struct base64
     }
 
 #define c4append_(c) { if(pos < buf.len) { buf[pos] = (c); } ++pos; }
-#define c4append_idx_(char_idx) { C4_ASSERT((char_idx) < sizeof(index_table)); c4append_(index_table[(char_idx)]); }
+#define c4append_idx_(char_idx) { C4_XASSERT((char_idx) < sizeof(index_table)); c4append_(index_table[(char_idx)]); }
 
     static size_t encode(substr buf, const_base64_wrapper data)
     {
@@ -280,7 +280,7 @@ struct base64
         C4_CHECK(encoded.len % 4 == 0);
         size_t wpos = 0;
         const char *C4_RESTRICT d = encoded.str;
-        // process every quartet of input bytes --> triplet of output bytes
+        // process every quartet of input 6 bits --> triplet of output bytes
         for(size_t rpos = 0; rpos < encoded.len; rpos += 4, d += 4)
         {
             if(d[2] == '=' || d[3] == '=') // skip the last quartet if it is padded

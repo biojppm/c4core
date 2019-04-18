@@ -83,7 +83,8 @@ void test_base64_str(T const& val, csubstr expected, U *ws)
     EXPECT_EQ(encoded, expected);
     EXPECT_EQ(encoded.len % 4, 0);
 
-    size_t written = from_chars(encoded, &base64(*ws));
+    auto req = base64(*ws);
+    size_t written = from_chars(encoded, &req);
     EXPECT_EQ(ws->first(written), val);
 }
 
@@ -97,7 +98,8 @@ void test_base64(T const& val, csubstr expected, T *ws)
     EXPECT_EQ(encoded, expected);
     EXPECT_EQ(encoded.len % 4, 0);
 
-    size_t written = from_chars(encoded, &base64(*ws));
+    auto req = base64(*ws);
+    size_t written = from_chars(encoded, &req);
     EXPECT_EQ(written, sizeof(T));
     EXPECT_EQ(*ws, val);
 }
@@ -122,7 +124,9 @@ base64_test_pair<csubstr> base64_str_pairs[] = {
     {"8"                   , "OA=="                        },
     {"9"                   , "OQ=="                        },
     {"10"                  , "MTA="                        },
+    {"123"                 , "MTIz"                        },
     {"1234"                , "MTIzNA=="                    },
+    {"1235"                , "MTIzNQ=="                    },
     {"Man"                 , "TWFu"                        },
     {"Ma"                  , "TWE="                        },
     {"M"                   , "TQ=="                        },
