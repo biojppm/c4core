@@ -2,7 +2,7 @@
 #define _C4_CONFIG_HPP_
 
 /** @defgroup basic_headers Basic headers
- * Headers providing basic macros, platform+cpu+compiler information,
+ * @brief Headers providing basic macros, platform+cpu+compiler information,
  * C++ facilities and basic typedefs. */
 
 /** @file config.hpp Contains configuration defines and includes the basic_headers.

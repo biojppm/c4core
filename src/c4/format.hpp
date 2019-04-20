@@ -14,8 +14,8 @@
 
 namespace c4 {
 
-/** @defgroup formatting_functions
- * Convert a sequence of values to/from a string.
+/** @defgroup formatting_functions Formatting functions
+ * @brief Convert a sequence of values to/from a string.
  */
 
 /** a generic class for providing custom formatting information for a type

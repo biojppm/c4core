@@ -71,6 +71,18 @@ c4_add_library(C4CORE c4core-interface
     INTERFACE_INC_DIRS ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
 )
 
+c4_add_doxygen(C4CORE doc
+    PROJ c4core
+    DOXYFILE ${CMAKE_CURRENT_LIST_DIR}/cmake/Doxyfile.in
+    INPUT ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
+    STRIP_FROM_PATH ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR})
+c4_add_doxygen(C4CORE doc-full
+    PROJ c4core
+    DOXYFILE ${CMAKE_CURRENT_LIST_DIR}/cmake/Doxyfile.full.in
+    INPUT ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
+    STRIP_FROM_PATH ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR})
+
+
 if(C4CORE_BUILD_TESTS)
     enable_testing() # this must be done here (and not inside the test dir)
                      # so that the test targets are available at the top level

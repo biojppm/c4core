@@ -19,11 +19,13 @@
 
 namespace c4 {
 
-/** @defgroup lowlevel_tofrom_chars Functions providing type-specific
+/** @defgroup lowlevel_tofrom_chars Value/String conversion
+ * @brief Low-level functions providing type-specific
  * low-level conversion of values to and from string.
  */
 
-/** @defgroup generic_tofrom_chars Lightweight generic wrappers for
+/** @defgroup generic_tofrom_chars Generic Value/String conversion
+ * @brief Lightweight generic type-safe wrappers for
  * converting individual values to/from strings. These functions generally
  * just dispatch to the proper low-level conversion function.
  *

@@ -11,8 +11,8 @@
 
 namespace c4 {
 
-/** @defgroup base64_functions
- * Encode/decode binary data into base64.
+/** @defgroup base64_functions Base64
+ * @brief Encode/decode binary data into base64.
  * @see https://en.wikipedia.org/wiki/Base64
  */
 

@@ -9,11 +9,15 @@
 /** @file allocator.hpp Contains classes to make typeful allocations (note
  * that memory resources are typeless) */
 
-/** @defgroup mem_res_providers Policy classes which provide a memory
- * resource for use in an allocator. */
+/** @defgroup mem_res_providers Memory resources
+ * @brief Policy classes which provide a memory resource for
+ * use in an allocator.
+ */
 
-/** @defgroup allocators Lightweight classes that act as handles to specific
- * memory resources and provide typeful memory. */
+/** @defgroup allocators Allocators
+ * @brief Lightweight classes that act as handles to specific memory
+ * resources and provide typeful memory.
+ */
 
 C4_BEGIN_NAMESPACE(c4)
 
