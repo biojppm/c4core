@@ -791,7 +791,7 @@ public:
         if(ne.first_of_any("-0x", "-0X", "0x", "0X"))
         {
             if(ne.len == 2) return basic_substring();
-            for(size_t i = (2 + (ne[0] == '-')); i < ne.len; ++i)
+            for(size_t i = (size_t(2) + (ne[0] == '-')); i < ne.len; ++i)
             {
                 char c = ne.str[i];
                 if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
