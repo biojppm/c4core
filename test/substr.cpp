@@ -623,6 +623,9 @@ TEST(substr, compare)
 
 TEST(substr, compare_vs_char)
 {
+    EXPECT_EQ(csubstr("-"), '-');
+    EXPECT_NE(csubstr("+"), '-');
+
     EXPECT_NE(csubstr("---"), '-');
     EXPECT_NE(csubstr("---"), "-");
 

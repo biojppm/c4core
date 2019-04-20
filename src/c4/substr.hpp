@@ -176,6 +176,13 @@ public:
 
 public:
 
+    int compare(C const c) const
+    {
+        if( ! len) return -1;
+        if(*str == c) return static_cast<int>(len - 1);
+        return *str - c;
+    }
+
     int compare(ro_substr const that) const
     {
         size_t n = len < that.len ? len : that.len;
@@ -187,17 +194,19 @@ public:
         return ret;
     }
 
-    int compare(C const c) const
-    {
-        return compare(ro_substr(&c, 1));
-    }
+    bool operator== (C const c) const { return this->compare(c) == 0; }
+    bool operator!= (C const c) const { return this->compare(c) != 0; }
+    bool operator<  (C const c) const { return this->compare(c) <  0; }
+    bool operator>  (C const c) const { return this->compare(c) >  0; }
+    bool operator<= (C const c) const { return this->compare(c) <= 0; }
+    bool operator>= (C const c) const { return this->compare(c) >= 0; }
 
-    inline bool operator== (ro_substr const that) const { return this->compare(that) == 0; }
-    inline bool operator!= (ro_substr const that) const { return this->compare(that) != 0; }
-    inline bool operator<  (ro_substr const that) const { return this->compare(that) <  0; }
-    inline bool operator>  (ro_substr const that) const { return this->compare(that) >  0; }
-    inline bool operator<= (ro_substr const that) const { return this->compare(that) <= 0; }
-    inline bool operator>= (ro_substr const that) const { return this->compare(that) >= 0; }
+    bool operator== (ro_substr const that) const { return this->compare(that) == 0; }
+    bool operator!= (ro_substr const that) const { return this->compare(that) != 0; }
+    bool operator<  (ro_substr const that) const { return this->compare(that) <  0; }
+    bool operator>  (ro_substr const that) const { return this->compare(that) >  0; }
+    bool operator<= (ro_substr const that) const { return this->compare(that) <= 0; }
+    bool operator>= (ro_substr const that) const { return this->compare(that) >= 0; }
 
 public:
 
@@ -214,7 +223,7 @@ public:
         return that.begin() >= begin() && that.end() <= end();
     }
 
-    /** true if theres is overlap of at least one element between that and *this */
+    /** true if there is overlap of at least one element between that and *this */
     inline bool overlaps(ro_substr const that) const
     {
         CC * b =      begin(), * e =      end(),
