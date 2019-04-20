@@ -153,6 +153,7 @@ size_t base64_decode(csubstr encoded, blob data)
         c4append_((val           ) & 0xff);
     }
     // deal with the last quartet when it is padded
+    if(d == encoded.str + encoded.len) return wpos;
     if(d[2] == '=') // 2 padding chars
     {
         C4_ASSERT(d + 4 == encoded.str + encoded.len);
