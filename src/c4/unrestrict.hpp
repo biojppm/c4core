@@ -2,12 +2,6 @@
 
 /** @file unrestrict.hpp cleans up restrict macros  */
 
-#ifdef _MSC_VER
-#   ifdef _c4_RESTRICT
-#       undef __restrict__
-#   endif
-#endif
-
 #undef   $
 #undef  $$
 #undef  c$

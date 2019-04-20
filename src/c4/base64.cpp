@@ -25,7 +25,7 @@ constexpr static const char base64_sextet_to_char_[64] = {
 
 // https://www.cs.cmu.edu/~pattis/15-1XX/common/handouts/ascii.html
 constexpr static const char base64_char_to_sextet_[128] = {
-    #define __ -1
+    #define __ -1 // undefined below
     /*  0 NUL*/ __, /*  1 SOH*/ __, /*  2 STX*/ __, /*  3 ETX*/ __,
     /*  4 EOT*/ __, /*  5 ENQ*/ __, /*  6 ACK*/ __, /*  7 BEL*/ __,
     /*  8 BS */ __, /*  9 TAB*/ __, /* 10 LF */ __, /* 11 VT */ __,

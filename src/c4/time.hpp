@@ -3,7 +3,7 @@
 
 #include "c4/config.hpp"
 
-/** @macro C4_TIME_TYPE the type of the value to hold time */
+/** @def C4_TIME_TYPE the type of the value to hold time */
 
 C4_BEGIN_NAMESPACE(c4)
 

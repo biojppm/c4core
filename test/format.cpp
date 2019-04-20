@@ -18,7 +18,7 @@ void test_to_chars_fmt_basic(T f, int precision, const char* flt, T fltv, const 
     substr r;
     T copy;
 
-    r = to_chars_sub(buf, fmt(f, precision));
+    r = to_chars_sub(buf, fmt::fmt(f, precision));
     EXPECT_EQ(r, to_csubstr(flt)) << "num=" << f;
     from_chars(r, &copy);
     if(sizeof(T) == sizeof(float))
@@ -30,7 +30,7 @@ void test_to_chars_fmt_basic(T f, int precision, const char* flt, T fltv, const 
         EXPECT_DOUBLE_EQ(fltv, copy);
     }
 
-    r = to_chars_sub(buf, fmt(f, precision, FTOA_SCIENT));
+    r = to_chars_sub(buf, fmt::fmt(f, precision, FTOA_SCIENT));
     EXPECT_EQ(r, to_csubstr(scient)) << "num=" << f;
     from_chars(r, &copy);
     if(sizeof(T) == sizeof(float))
@@ -49,8 +49,8 @@ TEST(to_chars, fmt_basic)
     substr buf(bufc);
 
     size_t s = 0xff;
-    EXPECT_EQ(to_chars_sub(buf, fmt( int8_t(0x7f), 16)), "0x7f");
-    EXPECT_EQ(to_chars_sub(buf, fmt(uint8_t(0xff), 16)), "0xff");
+    EXPECT_EQ(to_chars_sub(buf, fmt::hex( int8_t(0x7f))), "0x7f");
+    EXPECT_EQ(to_chars_sub(buf, fmt::hex(uint8_t(0xff))), "0xff");
 
     float f = 256.064f;
     test_to_chars_fmt_basic<float>(f, 0, "256", 256.f, "3e+02", 300.f);

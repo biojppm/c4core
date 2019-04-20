@@ -205,6 +205,7 @@ void* MemoryResourceLinear::do_allocate(size_t sz, size_t alignment, void *hint)
     size_t space = m_size - m_pos;
     if(std::align(alignment, sz, mem, space))
     {
+        C4_ASSERT(m_pos <= m_size);
         C4_ASSERT(m_size - m_pos >= space);
         m_pos += (m_size - m_pos) - space;
         m_pos += sz;

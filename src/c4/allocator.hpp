@@ -9,21 +9,23 @@
 /** @file allocator.hpp Contains classes to make typeful allocations (note
  * that memory resources are typeless) */
 
-/** @defgroup mem_res_providers Memory resources
+/** @defgroup mem_res_providers Memory resource providers
  * @brief Policy classes which provide a memory resource for
  * use in an allocator.
+ * @ingroup memory
  */
 
 /** @defgroup allocators Allocators
  * @brief Lightweight classes that act as handles to specific memory
  * resources and provide typeful memory.
+ * @ingroup memory
  */
 
 C4_BEGIN_NAMESPACE(c4)
 
 C4_BEGIN_NAMESPACE(detail)
-template< class T > inline size_t size_for      (size_t num_objs) noexcept { return num_objs * sizeof(T); }
-template<         > inline size_t size_for<void>(size_t num_objs) noexcept { return num_objs;             }
+template<class T> inline size_t size_for      (size_t num_objs) noexcept { return num_objs * sizeof(T); }
+template<       > inline size_t size_for<void>(size_t num_objs) noexcept { return num_objs;             }
 C4_END_NAMESPACE(detail)
 
 

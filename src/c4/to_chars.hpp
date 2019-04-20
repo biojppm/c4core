@@ -19,15 +19,19 @@
 
 namespace c4 {
 
-/** @defgroup lowlevel_tofrom_chars Value/String conversion
+/** @defgroup formatting Formatting functions */
+
+/** @defgroup lowlevel_tofrom_chars Single value to/from string conversion
  * @brief Low-level functions providing type-specific
  * low-level conversion of values to and from string.
+ * @ingroup formatting
  */
 
-/** @defgroup generic_tofrom_chars Generic Value/String conversion
+/** @defgroup generic_tofrom_chars Generic single value to/from string conversion
  * @brief Lightweight generic type-safe wrappers for
  * converting individual values to/from strings. These functions generally
  * just dispatch to the proper low-level conversion function.
+ * @ingroup formatting
  *
  * These are the main functions:
  *

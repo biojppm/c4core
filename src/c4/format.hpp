@@ -5,6 +5,7 @@
  * to string buffers */
 
 #include "c4/to_chars.hpp"
+#include "c4/blob.hpp"
 
 #ifdef _MSC_VER
 #   pragma warning(push)
@@ -14,22 +15,39 @@
 
 namespace c4 {
 
-/** @defgroup formatting_functions Formatting functions
+/** @defgroup formatting_functions Formatting multiple values<->string
  * @brief Convert a sequence of values to/from a string.
+ * @ingroup formatting
  */
 
-/** a generic class for providing custom formatting information for a type
+/** C-style printing into a buffer
  * @ingroup formatting_functions */
+size_t sprintf(substr buf, const char * fmt, ...);
+//size_t sscanf(csubstr buf, const char *fmt, ...);
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** @addtogroup generic_tofrom_chars
+ * @{ */
+
+namespace fmt {
+
+/** a generic class for providing type-specific formatting settings */
 template<class T>
 struct fmt_wrapper;
 
-/** mark a variable to be written in its custom format wrapper
- * @ingroup formatting_functions */
+/** mark a variable to be written in its custom format wrapper */
 template<class T, class... Args>
-inline fmt_wrapper<T> fmt(T v, Args && ...args)
+inline fmt_wrapper<T> fmt(T &v, Args && ...args)
 {
-    return fmt_wrapper<T>(v, std::forward<Args>(args)...);
+    return fmt_wrapper<T>(std::ref(v), std::forward<Args>(args)...);
 }
+
+} // namespace fmt
+
+/** @} */
 
 
 //-----------------------------------------------------------------------------
@@ -37,135 +55,178 @@ inline fmt_wrapper<T> fmt(T v, Args && ...args)
 //-----------------------------------------------------------------------------
 // formatting integral types
 
+/** @addtogroup generic_tofrom_chars
+ * @{ */
 
-namespace detail {
+namespace fmt {
+
+/** format an integral type */
 template<class T>
-struct int_formatter
+struct integral
 {
     T val;
     T radix;
-    int_formatter(T val_, uint8_t radix_=10) : val(val_), radix(radix_) {}
+    integral(T val_, uint8_t radix_=10) : val(val_), radix(radix_) {}
 };
-} // namespace detail
-
-template<> struct fmt_wrapper<  int8_t> : public detail::int_formatter<  int8_t> { using detail::int_formatter<  int8_t>::int_formatter; };
-template<> struct fmt_wrapper< int16_t> : public detail::int_formatter< int16_t> { using detail::int_formatter< int16_t>::int_formatter; };
-template<> struct fmt_wrapper< int32_t> : public detail::int_formatter< int32_t> { using detail::int_formatter< int32_t>::int_formatter; };
-template<> struct fmt_wrapper< int64_t> : public detail::int_formatter< int64_t> { using detail::int_formatter< int64_t>::int_formatter; };
-
-template<> struct fmt_wrapper< uint8_t> : public detail::int_formatter< uint8_t> { using detail::int_formatter< uint8_t>::int_formatter; };
-template<> struct fmt_wrapper<uint16_t> : public detail::int_formatter<uint16_t> { using detail::int_formatter<uint16_t>::int_formatter; };
-template<> struct fmt_wrapper<uint32_t> : public detail::int_formatter<uint32_t> { using detail::int_formatter<uint32_t>::int_formatter; };
-template<> struct fmt_wrapper<uint64_t> : public detail::int_formatter<uint64_t> { using detail::int_formatter<uint64_t>::int_formatter; };
 
 
-inline size_t to_chars(substr buf, fmt_wrapper<  int8_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper< uint8_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper< int16_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper< int32_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper< int64_t> fmt) { return itoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, fmt.radix); } //!< @ingroup formatting_functions
+template<> struct fmt_wrapper<  int8_t> : public integral<  int8_t> { using integral<  int8_t>::integral; };
+template<> struct fmt_wrapper< int16_t> : public integral< int16_t> { using integral< int16_t>::integral; };
+template<> struct fmt_wrapper< int32_t> : public integral< int32_t> { using integral< int32_t>::integral; };
+template<> struct fmt_wrapper< int64_t> : public integral< int64_t> { using integral< int64_t>::integral; };
+
+template<> struct fmt_wrapper< uint8_t> : public integral< uint8_t> { using integral< uint8_t>::integral; };
+template<> struct fmt_wrapper<uint16_t> : public integral<uint16_t> { using integral<uint16_t>::integral; };
+template<> struct fmt_wrapper<uint32_t> : public integral<uint32_t> { using integral<uint32_t>::integral; };
+template<> struct fmt_wrapper<uint64_t> : public integral<uint64_t> { using integral<uint64_t>::integral; };
 
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-// formatting real types
-
-namespace detail {
+/** format the integral argument as a hex value */
 template<class T>
-struct float_formatter
-{
-    T val;
-    int precision;
-    RealFormat_e fmt;
-    float_formatter(T v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
-};
-} // namespace detail
-
-
-template<> struct fmt_wrapper< float> : public detail::float_formatter< float> { using detail::float_formatter< float>::float_formatter; };
-template<> struct fmt_wrapper<double> : public detail::float_formatter<double> { using detail::float_formatter<double>::float_formatter; };
-
-inline size_t to_chars(substr buf, fmt_wrapper<   float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); } //!< @ingroup formatting_functions
-inline size_t to_chars(substr buf, fmt_wrapper<  double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); } //!< @ingroup formatting_functions
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-// formatting real types
-
-/** format the argument as a hex value
- * @ingroup formatting_functions */
-template<class T>
-inline fmt_wrapper<T> fmthex(T v)
+inline fmt_wrapper<T> hex(T v)
 {
     static_assert(std::is_integral<T>::value, "must be an integral type");
     return fmt_wrapper<T>(v, T(16));
 }
 
-/** format the argument as an octal value
- * @ingroup formatting_functions */
+/** format the integral argument as an octal value */
 template<class T>
-inline fmt_wrapper<T> fmtoct(T v)
+inline fmt_wrapper<T> oct(T v)
 {
     static_assert(std::is_integral<T>::value, "must be an integral type");
     return fmt_wrapper<T>(v, T(8));
 }
 
-/** format the argument as a binary 0-1 value
- * @ingroup formatting_functions */
+/** format the integral argument as a binary 0-1 value */
 template<class T>
-inline fmt_wrapper<T> fmtbin(T v)
+inline fmt_wrapper<T> bin(T v)
 {
     static_assert(std::is_integral<T>::value, "must be an integral type");
     return fmt_wrapper<T>(v, T(2));
 }
 
+} // namespace fmt
+
+inline size_t to_chars(substr buf, fmt::fmt_wrapper< int8_t> fmt) { return itoa(buf, fmt.val, fmt.radix); }
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<int16_t> fmt) { return itoa(buf, fmt.val, fmt.radix); }
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<int32_t> fmt) { return itoa(buf, fmt.val, fmt.radix); }
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<int64_t> fmt) { return itoa(buf, fmt.val, fmt.radix); }
+
+inline size_t to_chars(substr buf, fmt::fmt_wrapper< uint8_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
+
+/** @} */
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// writing binary data
+// formatting real types
 
-/** @todo add custom alignment
- * @ingroup formatting_functions */
+/** @addtogroup generic_tofrom_chars
+ * @{ */
+
+namespace fmt {
+
 template<class T>
-struct binary_wrapper
+struct real
 {
-    T& val;
-    binary_wrapper(T& v) : val(v) {}
+    T val;
+    int precision;
+    RealFormat_e fmt;
+    real(T v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
 };
 
-/** mark a variable to be written in binary format
- * @ingroup formatting_functions  */
+
+template<> struct fmt_wrapper< float> : public real< float> { using real< float>::real; };
+template<> struct fmt_wrapper<double> : public real<double> { using real<double>::real; };
+
+} // namespace fmt
+
+inline size_t to_chars(substr buf, fmt::fmt_wrapper< float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); }
+
+/** @} */
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// writing raw binary data
+
+/** @addtogroup generic_tofrom_chars
+ * @{ */
+
+namespace fmt {
+
 template<class T>
-inline binary_wrapper<T> bin(T &v)
+struct raw_wrapper_ : public blob_<T>
 {
-    return binary_wrapper<T>(v);
+    size_t alignment;
+
+    template<class... BlobArgs>
+    constexpr raw_wrapper_(BlobArgs&& ...args, size_t alignment_) noexcept
+        :
+        blob_<T>(std::forward<BlobArgs>(args)...),
+        alignment(alignment_)
+    {
+        C4_ASSERT_MSG(alignment > 0 && (alignment & (alignment - 1)) == 0, "alignment must be a power of two");
+    }
+};
+
+using const_raw_wrapper = raw_wrapper_<cbyte>;
+using raw_wrapper = raw_wrapper_<byte>;
+
+
+/** mark a variable to be written in raw binary format */
+template<class... BlobArgs>
+inline const_raw_wrapper craw(BlobArgs&& ...args, size_t alignment=alignof(T))
+{
+    return const_raw_wrapper(std::forward<BlobArgs>(args)..., alignment);
 }
 
-/** write a variable in binary format
- * @ingroup formatting_functions */
-template<class T>
-inline size_t to_chars(substr buf, binary_wrapper<T> b)
+/** mark a variable to be read in raw binary format */
+template<class... BlobArgs>
+inline raw_wrapper raw(BlobArgs&& ...args, size_t alignment=alignof(T))
 {
-    if(sizeof(T) <= buf.len) memcpy(buf.str, &b.val, sizeof(T));
-    return sizeof(T);
+    return raw_wrapper(std::forward<BlobArgs>(args)..., alignment);
 }
 
-/** read a variable in binary format
- * @ingroup formatting_functions */
+} // namespace fmt
+
+
+/** write a variable in raw binary format */
 template<class T>
-inline size_t from_chars(csubstr buf, binary_wrapper<T> *b)
+inline size_t to_chars(substr buf, fmt::const_raw_wrapper r)
 {
-    if(sizeof(T) > buf.len) return csubstr::npos;
-    memcpy(&b->val, buf.str, sizeof(T));
-    return sizeof(T);
+    void * vptr = buf.str;
+    size_t space = buf.len;
+    auto ptr = (decltype(buf.str)) std::align(r.alignment, r.len, vptr, space);
+    if(ptr == nullptr) return r.alignment + r.len;
+    C4_CHECK(ptr >= r.buf && ptr <= r.buf + r.len);
+    size_t dim = (ptr - buf.str) + r.len;
+    if(dim <= buf.len) memcpy(ptr, r.buf, r.len);
+    return dim;
 }
+
+
+/** read a variable in raw binary format */
+template<class T>
+inline size_t from_chars(csubstr buf, fmt::raw_wrapper *r)
+{
+    void * vptr = (void*)buf.str;
+    size_t space = buf.len;
+    auto ptr = (decltype(buf.str)) std::align(r->alignment, r->len, vptr, space);
+    C4_CHECK(ptr != nullptr);
+    C4_CHECK(ptr >= r->buf && ptr <= r->buf + r->len);
+    size_t dim = (ptr - buf.str) + r->len;
+    memcpy(r->buf, ptr, r->len);
+    return r->len;
+}
+
+/** @} */
 
 
 //-----------------------------------------------------------------------------
@@ -430,15 +491,6 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** C-style printing into a buffer
- * @ingroup formatting_functions */
-size_t sprintf(substr buf, const char * fmt, ...);
-//size_t sscanf(csubstr buf, const char *fmt, ...);
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 
 /** a tag type
  * @see catrs
@@ -548,6 +600,19 @@ inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep co
     return to_csubstr(*cont).range(pos, cont->size());
 }
 
+
+/**
+ * @overload catseprs
+ * @ingroup formatting_functions */
+template<class CharOwningContainer, class Sep, class... Args>
+inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
+{
+    CharOwningContainer cont;
+    catseprs(&cont, std::cref(sep), std::forward<Args>(args)...);
+    return cont;
+}
+
+
 //-----------------------------------------------------------------------------
 
 /** like format(), but receives a container, and resizes it as needed
@@ -594,6 +659,17 @@ inline csubstr formatrs(append_t, CharOwningContainer * C4_RESTRICT cont, csubst
         }
     }
     return to_csubstr(*cont).range(pos, cont->size());
+}
+
+/**
+ * @overload formatrs
+ * @ingroup formatting_functions */
+template<class CharOwningContainer, class... Args>
+inline CharOwningContainer formatrs(csubstr fmt, Args const&  C4_RESTRICT ...args)
+{
+    CharOwningContainer cont;
+    formatrs(&cont, fmt, std::forward<Args>(args)...);
+    return cont;
 }
 
 } // namespace c4

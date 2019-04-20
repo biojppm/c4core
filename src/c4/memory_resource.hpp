@@ -4,12 +4,14 @@
 /** @file memory_resource.hpp Provides facilities to allocate typeless
  *  memory, via the memory resource model consecrated with C++17. */
 
+/** @defgroup memory memory utilities */
+
 /** @defgroup raw_memory_alloc Raw memory allocation
- *
+ * @ingroup memory
  */
 
 /** @defgroup memory_resources Memory resources
- *
+ * @ingroup memory
  */
 
 #include "c4/config.hpp"
@@ -146,7 +148,7 @@ protected:
 
 /** get the current global memory resource. To avoid static initialization
  * order problems, this is implemented using a function call to ensure
- * that it is available on when first used.
+ * that it is available when first used.
  * @ingroup memory_resources */
 C4_ALWAYS_INLINE MemoryResource* get_memory_resource()
 {
