@@ -13,6 +13,7 @@ set(C4CORE_EXT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern)
 
 set(C4CORE_SRC
     c4/allocator.hpp
+    c4/blob.hpp
     c4/bitmask.hpp
     c4/c4_pop.hpp
     c4/c4_push.hpp

@@ -17,6 +17,9 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
+using cbyte = const char;
+using  byte =       char;
+
 using i8 = int8_t;
 using u8 = uint8_t;
 using i16 = int16_t;
