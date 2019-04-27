@@ -1,7 +1,7 @@
-#include "c4/std/string.hpp"
-#include "c4/std/vector.hpp"
 #include "c4/test.hpp"
 #include "c4/to_chars.hpp"
+#include "c4/std/string.hpp"
+#include "c4/std/vector.hpp"
 #include "c4/format.hpp"
 
 namespace c4 {
@@ -538,8 +538,8 @@ void to_chars_roundtrip(char (&buf)[N], csubstr val)
     EXPECT_EQ(res.len, val.len);
     EXPECT_EQ(res, val);
     bool ok = from_chars(res, &cp);
-    EXPECT_TRUE(ok) << "val=" << val;
-    EXPECT_EQ(cp, val) << "val=" << val;
+    EXPECT_TRUE(ok) << "val='" << val << "'";
+    EXPECT_EQ(cp, val) << "val=" << val << "'";
 }
 
 

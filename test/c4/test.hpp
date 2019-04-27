@@ -44,7 +44,7 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
-inline void PrintTo(const substr& s, ::std::ostream* os) { *os << s; }
+inline void PrintTo(const  substr& s, ::std::ostream* os) { *os << s; }
 inline void PrintTo(const csubstr& s, ::std::ostream* os) { *os << s; }
 
 //-----------------------------------------------------------------------------
