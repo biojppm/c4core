@@ -7,6 +7,7 @@
 #include "c4/to_chars.hpp"
 #include "c4/blob.hpp"
 
+#include <memory>
 #include <functional>
 
 #ifdef _MSC_VER
