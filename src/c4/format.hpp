@@ -170,7 +170,7 @@ struct raw_wrapper_ : public blob_<T>
     size_t alignment;
 
     template<class... BlobArgs>
-    constexpr raw_wrapper_(BlobArgs&& ...args, size_t alignment_) noexcept
+    C4_ALWAYS_INLINE raw_wrapper_(BlobArgs&& ...args, size_t alignment_) noexcept
         :
         blob_<T>(std::forward<BlobArgs>(args)...),
         alignment(alignment_)
@@ -186,7 +186,7 @@ using raw_wrapper = raw_wrapper_<byte>;
 /** mark a variable to be written in raw binary format
  * @see blob_ */
 template<class... BlobArgs>
-inline const_raw_wrapper craw(BlobArgs&& ...args, size_t alignment=alignof(T))
+inline const_raw_wrapper craw(BlobArgs&& ...args, size_t alignment=alignof(max_align_t))
 {
     return const_raw_wrapper(std::forward<BlobArgs>(args)..., alignment);
 }
@@ -194,7 +194,7 @@ inline const_raw_wrapper craw(BlobArgs&& ...args, size_t alignment=alignof(T))
 /** mark a variable to be read in raw binary format
  * @see blob_  */
 template<class... BlobArgs>
-inline raw_wrapper raw(BlobArgs&& ...args, size_t alignment=alignof(T))
+inline raw_wrapper raw(BlobArgs&& ...args, size_t alignment=alignof(max_align_t))
 {
     return raw_wrapper(std::forward<BlobArgs>(args)..., alignment);
 }
