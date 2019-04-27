@@ -43,4 +43,4 @@ C4_MUST_BE_TRIVIAL_COPY(cblob);
 
 C4_END_NAMESPACE(c4)
 
-#endif _C4_BLOB_HPP_
+#endif // _C4_BLOB_HPP_

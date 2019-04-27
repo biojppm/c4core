@@ -7,6 +7,8 @@
 #include "c4/to_chars.hpp"
 #include "c4/blob.hpp"
 
+#include <functional>
+
 #ifdef _MSC_VER
 #   pragma warning(push)
 #   pragma warning(disable: 4800) // forcing value to bool 'true' or 'false' (performance warning)
