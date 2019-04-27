@@ -513,4 +513,95 @@ TEST(to_chars, trimmed_fit_double)
 }
 
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+template<class T>
+void to_chars_roundtrip(substr buf, T const& val, csubstr expected)
+{
+    T cp;
+    csubstr res = to_chars_sub(buf, val);
+    EXPECT_EQ(res, expected);
+    bool ok = from_chars(res, &cp);
+    EXPECT_TRUE(ok) << "val=" << val;
+    EXPECT_EQ(cp, val) << "val=" << val;
+}
+
+template<size_t N>
+void to_chars_roundtrip(char (&buf)[N], csubstr val)
+{
+    char cp_[N];
+    substr cp(cp_);
+    ASSERT_LE(val.len, N);
+    csubstr res = to_chars_sub(buf, val);
+    EXPECT_EQ(res.len, val.len);
+    EXPECT_EQ(res, val);
+    bool ok = from_chars(res, &cp);
+    EXPECT_TRUE(ok) << "val=" << val;
+    EXPECT_EQ(cp, val) << "val=" << val;
+}
+
+
+TEST(to_chars, roundtrip_bool)
+{
+    char buf[128];
+    to_chars_roundtrip<bool>(buf, false, "0");
+    to_chars_roundtrip<bool>(buf,  true, "1");
+}
+
+
+TEST(to_chars, roundtrip_char)
+{
+    char buf[128];
+    to_chars_roundtrip<char>(buf, 'a', "a");
+    to_chars_roundtrip<char>(buf, 'b', "b");
+    to_chars_roundtrip<char>(buf, 'c', "c");
+    to_chars_roundtrip<char>(buf, 'd', "d");
+}
+
+#define C4_TEST_ROUNDTRIP_INT(ty) \
+TEST(to_chars, roundtrip_##ty)\
+{\
+    char buf[128];\
+    to_chars_roundtrip<ty>(buf, 0, "0");\
+    to_chars_roundtrip<ty>(buf, 1, "1");\
+    to_chars_roundtrip<ty>(buf, 2, "2");\
+    to_chars_roundtrip<ty>(buf, 3, "3");\
+    to_chars_roundtrip<ty>(buf, 4, "4");\
+}
+C4_TEST_ROUNDTRIP_INT(int8_t)
+C4_TEST_ROUNDTRIP_INT(int16_t)
+C4_TEST_ROUNDTRIP_INT(int32_t)
+C4_TEST_ROUNDTRIP_INT(int64_t)
+C4_TEST_ROUNDTRIP_INT(uint8_t)
+C4_TEST_ROUNDTRIP_INT(uint16_t)
+C4_TEST_ROUNDTRIP_INT(uint32_t)
+C4_TEST_ROUNDTRIP_INT(uint64_t)
+
+#define C4_TEST_ROUNDTRIP_REAL(ty) \
+TEST(to_chars, roundtrip_##ty)\
+{\
+    char buf[128];\
+    to_chars_roundtrip<ty>(buf, ty(0.0), "0");\
+    to_chars_roundtrip<ty>(buf, ty(1.0), "1");\
+    to_chars_roundtrip<ty>(buf, ty(2.0), "2");\
+    to_chars_roundtrip<ty>(buf, ty(3.0), "3");\
+    to_chars_roundtrip<ty>(buf, ty(4.0), "4");\
+}
+C4_TEST_ROUNDTRIP_REAL(float)
+C4_TEST_ROUNDTRIP_REAL(double)
+
+TEST(to_chars, roundtrip_substr)
+{
+    char buf[128];
+    to_chars_roundtrip(buf, "");
+    to_chars_roundtrip(buf, "0");
+    to_chars_roundtrip(buf, "1");
+    to_chars_roundtrip(buf, "2");
+    to_chars_roundtrip(buf, "3");
+    to_chars_roundtrip(buf, "4");
+    to_chars_roundtrip(buf, "zhis iz a test");
+}
+
 } // namespace c4

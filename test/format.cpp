@@ -10,7 +10,7 @@ namespace c4 {
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template< class T >
+template<class T>
 void test_to_chars_fmt_basic(T f, int precision, const char* flt, T fltv, const char *scient, T scientv)
 {
     char bufc[64];

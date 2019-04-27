@@ -38,7 +38,7 @@ namespace fmt {
 template<class T>
 struct fmt_wrapper;
 
-/** mark a variable to be written in its custom format wrapper */
+/** mark a variable to be written in its default custom format wrapper */
 template<class T, class... Args>
 inline fmt_wrapper<T> fmt(T &v, Args && ...args)
 {
@@ -161,6 +161,7 @@ inline size_t to_chars(substr buf, fmt::fmt_wrapper<double> fmt) { return dtoa(b
 
 namespace fmt {
 
+/** @see blob_ */
 template<class T>
 struct raw_wrapper_ : public blob_<T>
 {
@@ -180,14 +181,16 @@ using const_raw_wrapper = raw_wrapper_<cbyte>;
 using raw_wrapper = raw_wrapper_<byte>;
 
 
-/** mark a variable to be written in raw binary format */
+/** mark a variable to be written in raw binary format
+ * @see blob_ */
 template<class... BlobArgs>
 inline const_raw_wrapper craw(BlobArgs&& ...args, size_t alignment=alignof(T))
 {
     return const_raw_wrapper(std::forward<BlobArgs>(args)..., alignment);
 }
 
-/** mark a variable to be read in raw binary format */
+/** mark a variable to be read in raw binary format
+ * @see blob_  */
 template<class... BlobArgs>
 inline raw_wrapper raw(BlobArgs&& ...args, size_t alignment=alignof(T))
 {
@@ -264,6 +267,7 @@ substr cat_sub(substr buf, Args && ...args)
     size_t sz = cat(buf, std::forward<Args>(args)...);
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
+
 
 //-----------------------------------------------------------------------------
 
@@ -420,31 +424,29 @@ template<class Arg, class... Args>
 size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
     auto pos = fmt.find("{}");
-    if(pos != csubstr::npos)
-    {
-        size_t num = to_chars(buf, fmt.sub(0, pos));
-        size_t out = num;
-        buf  = buf.len >= num ? buf.sub(num) : substr{};
-        num  = to_chars(buf, a);
-        out += num;
-        buf  = buf.len >= num ? buf.sub(num) : substr{};
-        num  = format(buf, fmt.sub(pos + 2), more...);
-        out += num;
-        return out;
-    }
-    else
+    if(C4_UNLIKELY(pos == csubstr::npos))
     {
         return format(buf, fmt);
     }
+    size_t num = to_chars(buf, fmt.sub(0, pos));
+    size_t out = num;
+    buf  = buf.len >= num ? buf.sub(num) : substr{};
+    num  = to_chars(buf, a);
+    out += num;
+    buf  = buf.len >= num ? buf.sub(num) : substr{};
+    num  = format(buf, fmt.sub(pos + 2), more...);
+    out += num;
+    return out;
 }
 
 /** like format but return a substr instead of a size
+ * @see format()
  * @see catsep(). uncatsep() is the inverse of catsep().
  * @ingroup formatting_functions */
 template<class... Args>
-substr format_sub(substr buf, Args && ...args)
+substr format_sub(substr buf, csubstr fmt, Args && ...args)
 {
-    size_t sz = c4::format(buf, std::forward<Args>(args)...);
+    size_t sz = c4::format(buf, fmt, std::forward<Args>(args)...);
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 
@@ -466,25 +468,22 @@ inline size_t unformat(csubstr buf, csubstr fmt)
 template<class Arg, class... Args>
 size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
-    auto pos = fmt.find("{}");
-    if(pos != csubstr::npos)
-    {
-        size_t num = pos;
-        size_t out = num;
-        buf  = buf.len >= num ? buf.sub(num) : substr{};
-        num  = from_chars_first(buf, &a);
-        if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
-        out += num;
-        buf  = buf.len >= num ? buf.sub(num) : substr{};
-        num  = unformat(buf, fmt.sub(pos + 2), more...);
-        if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
-        out += num;
-        return out;
-    }
-    else
+    size_t pos = fmt.find("{}");
+    if(C4_UNLIKELY(pos == csubstr::npos))
     {
         return unformat(buf, fmt);
     }
+    size_t num = pos;
+    size_t out = num;
+    buf  = buf.len >= num ? buf.sub(num) : substr{};
+    num  = from_chars_first(buf, &a);
+    if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
+    out += num;
+    buf  = buf.len >= num ? buf.sub(num) : substr{};
+    num  = unformat(buf, fmt.sub(pos + 2), more...);
+    if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
+    out += num;
+    return out;
 }
 
 
@@ -578,6 +577,17 @@ inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTR
     }
 }
 
+/**
+ * @overload catseprs
+ * @ingroup formatting_functions */
+template<class CharOwningContainer, class Sep, class... Args>
+inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
+{
+    CharOwningContainer cont;
+    catseprs(&cont, std::cref(sep), std::forward<Args>(args)...);
+    return cont;
+}
+
 /** like catsep(), but receives a container, and appends the arguments, resizing the
  * container as needed to contain the result. The buffer is appended to.
  * @ingroup formatting_functions */
@@ -598,18 +608,6 @@ inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep co
         }
     }
     return to_csubstr(*cont).range(pos, cont->size());
-}
-
-
-/**
- * @overload catseprs
- * @ingroup formatting_functions */
-template<class CharOwningContainer, class Sep, class... Args>
-inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
-{
-    CharOwningContainer cont;
-    catseprs(&cont, std::cref(sep), std::forward<Args>(args)...);
-    return cont;
 }
 
 
@@ -637,6 +635,17 @@ inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args c
     }
 }
 
+/**
+ * @overload formatrs
+ * @ingroup formatting_functions */
+template<class CharOwningContainer, class... Args>
+inline CharOwningContainer formatrs(csubstr fmt, Args const&  C4_RESTRICT ...args)
+{
+    CharOwningContainer cont;
+    formatrs(&cont, fmt, std::forward<Args>(args)...);
+    return cont;
+}
+
 /** like format(), but receives a container, and appends the
  * arguments, resizing the container as needed to contain the
  * result. The buffer is appended to.
@@ -659,17 +668,6 @@ inline csubstr formatrs(append_t, CharOwningContainer * C4_RESTRICT cont, csubst
         }
     }
     return to_csubstr(*cont).range(pos, cont->size());
-}
-
-/**
- * @overload formatrs
- * @ingroup formatting_functions */
-template<class CharOwningContainer, class... Args>
-inline CharOwningContainer formatrs(csubstr fmt, Args const&  C4_RESTRICT ...args)
-{
-    CharOwningContainer cont;
-    formatrs(&cont, fmt, std::forward<Args>(args)...);
-    return cont;
 }
 
 } // namespace c4
