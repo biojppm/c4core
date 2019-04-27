@@ -120,13 +120,13 @@ struct inheritfrom : public T {};
 // This is also useful for padding to prevent false-sharing.
 
 /** how many bytes must be added to size such that the result is at least minsize? */
-C4_ALWAYS_INLINE constexpr size_t min_remainder(size_t size, size_t minsize)
+C4_ALWAYS_INLINE constexpr size_t min_remainder(size_t size, size_t minsize) noexcept
 {
     return size < minsize ? minsize-size : 0;
 }
 
 /** how many bytes must be added to size such that the result is a multiple of multipleof?  */
-C4_ALWAYS_INLINE constexpr size_t mult_remainder(size_t size, size_t multipleof)
+C4_ALWAYS_INLINE constexpr size_t mult_remainder(size_t size, size_t multipleof) noexcept
 {
     return (((size % multipleof) != 0) ? (multipleof-(size % multipleof)) : 0);
 }
@@ -166,6 +166,46 @@ using MinMultSized = MultSized<MinSized<T, Min>, Mult>;
 /** make T be suitable for use as a uniform buffer. (at least with DirectX). */
 template<class T>
 using UbufSized = MinMultSized<T, 64, 16>;
+
+
+//-----------------------------------------------------------------------------
+
+#define C4_NO_COPY_CTOR(ty) ty(ty const&) = delete
+#define C4_NO_MOVE_CTOR(ty) ty(ty     &&) = delete
+#define C4_NO_COPY_ASSIGN(ty) ty& operator=(ty const&) = delete
+#define C4_NO_MOVE_ASSIGN(ty) ty& operator=(ty     &&) = delete
+#define C4_DEFAULT_COPY_CTOR(ty) ty(ty const&) noexcept = default
+#define C4_DEFAULT_MOVE_CTOR(ty) ty(ty     &&) noexcept = default
+#define C4_DEFAULT_COPY_ASSIGN(ty) ty& operator=(ty const&) noexcept = default
+#define C4_DEFAULT_MOVE_ASSIGN(ty) ty& operator=(ty     &&) noexcept = default
+
+#define C4_NO_COPY_OR_MOVE_CTOR(ty) \
+    C4_NO_COPY_CTOR(ty); \
+    C4_NO_MOVE_CTOR(ty)
+
+#define C4_NO_COPY_OR_MOVE_ASSIGN(ty) \
+    C4_NO_COPY_ASSIGN(ty); \
+    C4_NO_MOVE_ASSIGN(ty)
+
+#define C4_NO_COPY_OR_MOVE(ty) \
+    C4_NO_COPY_OR_MOVE_CTOR(ty); \
+    C4_NO_COPY_OR_MOVE_ASSIGN(ty)
+
+#define C4_DEFAULT_COPY_AND_MOVE_CTOR(ty) \
+    C4_DEFAULT_COPY_CTOR(ty); \
+    C4_DEFAULT_MOVE_CTOR(ty)
+
+#define C4_DEFAULT_COPY_AND_MOVE_ASSIGN(ty) \
+    C4_DEFAULT_COPY_ASSIGN(ty); \
+    C4_DEFAULT_MOVE_ASSIGN(ty)
+
+#define C4_DEFAULT_COPY_AND_MOVE(ty) \
+    C4_DEFAULT_COPY_AND_MOVE_CTOR(ty); \
+    C4_DEFAULT_COPY_AND_MOVE_ASSIGN(ty)
+
+/** @see https://en.cppreference.com/w/cpp/named_req/TriviallyCopyable */
+#define C4_MUST_BE_TRIVIAL_COPY(ty) \
+    static_assert(std::is_trivially_copyable<ty>::value, #ty " must be trivially copyable")
 
 /** @} */
 
@@ -289,24 +329,6 @@ public:                                                     \
     template<I n> using reverse_iterator = std::reverse_iterator< value_type<n>*>; \
     template<I n> using const_reverse_iterator = std::reverse_iterator< value_type<n> const*>
 
-
-//-----------------------------------------------------------------------------
-
-#define C4_NO_COPY_CTOR(ty) ty(ty const&) = delete
-#define C4_NO_MOVE_CTOR(ty) ty(ty     &&) = delete
-#define C4_NO_COPY_OR_MOVE_CTOR(ty) \
-    C4_NO_COPY_CTOR(ty); \
-    C4_NO_MOVE_CTOR(ty)
-
-#define C4_NO_COPY_ASSIGN(ty) ty& operator=(ty const&) = delete
-#define C4_NO_MOVE_ASSIGN(ty) ty& operator=(ty     &&) = delete
-#define C4_NO_COPY_OR_MOVE_ASSIGN(ty) \
-    C4_NO_COPY_ASSIGN(ty); \
-    C4_NO_MOVE_ASSIGN(ty)
-
-#define C4_NO_COPY_OR_MOVE(ty) \
-    C4_NO_COPY_OR_MOVE_CTOR(ty); \
-    C4_NO_COPY_OR_MOVE_ASSIGN(ty)
 
 
 /** @} */
