@@ -60,23 +60,23 @@ set(C4CORE_SRC
     c4/c4core.natvis
 )
 
-c4_add_library(C4CORE c4core
+c4core_add_library(c4core
     SOURCES ${C4CORE_SRC} SOURCE_ROOT ${C4CORE_SRC_DIR}
     INC_DIRS ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
 )
 
-c4_add_library(C4CORE c4core-interface
+c4core_add_library(c4core-interface
     LIBRARY_TYPE INTERFACE
     SOURCES ${C4CORE_SRC} SOURCE_ROOT ${C4CORE_SRC_DIR}
     INTERFACE_INC_DIRS ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
 )
 
-c4_add_doxygen(C4CORE doc
+c4core_add_doxygen(doc
     PROJ c4core
     DOXYFILE ${CMAKE_CURRENT_LIST_DIR}/cmake/Doxyfile.in
     INPUT ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
     STRIP_FROM_PATH ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR})
-c4_add_doxygen(C4CORE doc-full
+c4core_add_doxygen(doc-full
     PROJ c4core
     DOXYFILE ${CMAKE_CURRENT_LIST_DIR}/cmake/Doxyfile.full.in
     INPUT ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
