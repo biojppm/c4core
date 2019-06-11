@@ -452,6 +452,9 @@ void get_real_format_str(char (& C4_RESTRICT fmt)[N], int precision, RealFormat_
  * @see http://www.sparetimelabs.com/tinyprintf/tinyprintf.php (BSD)
  * @see https://github.com/weiss/c99-snprintf
  * @see https://github.com/nothings/stb/blob/master/stb_sprintf.h
+ * @see http://www.exploringbinary.com/
+ * @see https://blog.benoitblanchon.fr/lightweight-float-to-string/
+ * @see http://www.ryanjuckett.com/programming/printing-floating-point-numbers/
  */
 template<class T>
 size_t print_one(substr str, const char* full_fmt, T v)
