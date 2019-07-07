@@ -1297,6 +1297,25 @@ inline csubstr to_csubstr(const char *s)
 }
 
 
+/** neutral version for use in generic code */
+inline csubstr to_csubstr(csubstr s)
+{
+    return s;
+}
+
+/** neutral version for use in generic code */
+inline csubstr to_csubstr(substr s)
+{
+    return s;
+}
+
+/** neutral version for use in generic code */
+inline substr to_substr(substr s)
+{
+    return s;
+}
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

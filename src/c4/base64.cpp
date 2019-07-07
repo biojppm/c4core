@@ -68,7 +68,7 @@ bool base64_valid(csubstr encoded)
     if(encoded.len % 4) return false;
     for(const char c : encoded)
     {
-        if(c < 0 || c >= 128) return false;
+        if(c < 0/* || c >= 128*/) return false;
         if(c == '=') continue;
         if(detail::base64_char_to_sextet_[c] == -1) return false;
     }
