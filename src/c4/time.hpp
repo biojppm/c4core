@@ -9,9 +9,9 @@ C4_BEGIN_NAMESPACE(c4)
 
 using time_type = C4_TIME_TYPE;
 
-time_type currtime();
+time_type currtime(); // microsecs
 
-/** execution time */
+/** execution time, in microsecs */
 inline time_type exetime()
 {
     static const time_type atstart = currtime();

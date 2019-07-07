@@ -40,7 +40,7 @@ time_type currtime()
 #else
     auto time_point = std::chrono::high_resolution_clock::now();
     auto duration = time_point.time_since_epoch();
-    auto usecs_d = std::chrono::duration_cast< std::chrono::microseconds >(duration);
+    auto usecs_d = std::chrono::duration_cast<std::chrono::microseconds>(duration);
     time_type usecs = (time_type)usecs_d.count();
     return usecs;
 #endif
