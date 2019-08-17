@@ -1255,9 +1255,9 @@ public:
     {
 		C4_ASSERT( ! this  ->empty());
 		C4_ASSERT( ! pattern.empty());
-		C4_ASSERT( ! this  ->overlaps(c4::to_csubstr(*dst)));
-		C4_ASSERT( ! pattern.overlaps(c4::to_csubstr(*dst)));
-		C4_ASSERT( ! repl   .overlaps(c4::to_csubstr(*dst)));
+		C4_ASSERT( ! this  ->overlaps(to_csubstr(*dst)));
+		C4_ASSERT( ! pattern.overlaps(to_csubstr(*dst)));
+		C4_ASSERT( ! repl   .overlaps(to_csubstr(*dst)));
         dst->clear();
         size_t b = 0;
         do {
@@ -1271,7 +1271,7 @@ public:
             dst->append(repl.begin(), repl.end());
             b = e + pattern.size();
         } while(b < len && b != npos);
-        return c4::to_substr(*dst);
+        return to_substr(*dst);
     }
 
 }; // template class basic_substring
