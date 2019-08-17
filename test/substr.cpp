@@ -1,3 +1,4 @@
+#include "c4/std/std.hpp"
 #include "c4/test.hpp"
 #include "c4/substr.hpp"
 
@@ -2623,6 +2624,45 @@ TEST(substr, replace_all)
     ret = s.replace_all('.', '+');
     EXPECT_TRUE(ret);
     EXPECT_EQ(s, "0+1+2+3+4+5+6+7+8+9");
+
+    std::string out, tmp;
+    substr r = s;
+    r = r.replace_all(&out, "0+1", "0+++++1");
+    // the result must be a view of out
+    EXPECT_FALSE(r.empty());
+    EXPECT_FALSE(out.empty());
+    EXPECT_EQ(r.size(), out.size());
+    EXPECT_EQ(r.front(), out.front());
+    EXPECT_EQ(r.back(), out.back());
+    EXPECT_EQ(r, "0+++++1+2+3+4+5+6+7+8+9");
+
+    tmp = out; r = to_substr(tmp);
+    r = r.replace_all(&out, "+", "");
+    EXPECT_EQ(r, "0123456789");
+
+    tmp = out; r = to_substr(tmp);
+    r = r.replace_all(&out, "+", "");
+    EXPECT_EQ(r, "0123456789"); // must not change
+
+    tmp = out; r = to_substr(tmp);
+    r = r.replace_all(&out, "0123456789", "9876543210");
+    EXPECT_EQ(r, "9876543210");
+
+    tmp = out; r = to_substr(tmp);
+    r = r.replace_all(&out, "987", ".");
+    EXPECT_EQ(r, ".6543210");
+
+    tmp = out; r = to_substr(tmp);
+    r = r.replace_all(&out, "210", ".");
+    EXPECT_EQ(r, ".6543.");
+
+    tmp = out; r = to_substr(tmp);
+    r = r.replace_all(&out, "6543", ":");
+    EXPECT_EQ(r, ".:.");
+
+    tmp = out; r = to_substr(tmp);
+    r = r.replace_all(&out, ".:.", "");
+    EXPECT_EQ(r, "");
 }
 
 } // namespace c4
