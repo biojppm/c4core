@@ -174,6 +174,12 @@ public:
     inline C      & operator[] (size_t i)       { C4_ASSERT(i >= 0 && i < len); return str[i]; }
     inline C const& operator[] (size_t i) const { C4_ASSERT(i >= 0 && i < len); return str[i]; }
 
+    inline C      & front()       { C4_ASSERT(len > 0 && str != nullptr); return *str; }
+    inline C const& front() const { C4_ASSERT(len > 0 && str != nullptr); return *str; }
+
+    inline C      & back()       { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
+    inline C const& back() const { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
+
 public:
 
     int compare(C const c) const
