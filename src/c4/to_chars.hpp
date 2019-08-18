@@ -266,7 +266,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
         {
             char c = str.str[i];
             if(c < '0' || c > '9') return false;
-            n = n*10 + (c-'0');
+            n = n*T(10) + (T(c)-T('0'));
         }
     }
     else
@@ -284,11 +284,11 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
             {
                 char c = str.str[i];
                 T cv;
-                if(c >= '0' && c <= '9') cv = (T)(c-'0');
-                else if(c >= 'a' && c <= 'f') cv = T(10) + (T)(c-'a');
-                else if(c >= 'A' && c <= 'F') cv = T(10) + (T)(c-'A');
+                if(c >= '0' && c <= '9') cv = T(c) - T('0');
+                else if(c >= 'a' && c <= 'f') cv = T(10) + (T(c)-T('a'));
+                else if(c >= 'A' && c <= 'F') cv = T(10) + (T(c)-T('A'));
                 else return false;
-                n = n*16 + cv;
+                n = n*T(16) + cv;
             }
         }
         else // octal
@@ -298,7 +298,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
             {
                 char c = str.str[i];
                 if(c < '0' || c > '7') return false;
-                n = n*8 + (c-'0');
+                n = n*T(8) + (T(c)-T('0'));
             }
         }
     }
@@ -351,7 +351,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
         {
             char c = str.str[i];
             if(c < '0' || c > '9') return false;
-            n = n*10 + (c-'0');
+            n = n*T(10) + (T(c)-T('0'));
         }
     }
     else
@@ -368,11 +368,11 @@ bool atou(csubstr str, T * C4_RESTRICT v)
             {
                 char c = str.str[i];
                 T cv;
-                if(c >= '0' && c <= '9') cv = (T)(c-'0');
-                else if(c >= 'a' && c <= 'f') cv = T(10) + (T)(c-'a');
-                else if(c >= 'A' && c <= 'F') cv = T(10) + (T)(c-'A');
+                if(c >= '0' && c <= '9') cv = T(c) - T('0');
+                else if(c >= 'a' && c <= 'f') cv = T(10) + (T(c)-T('a'));
+                else if(c >= 'A' && c <= 'F') cv = T(10) + (T(c)-T('A'));
                 else return false;
-                n = n*16 + cv;
+                n = n*T(16) + (T(c)-T('0'));
             }
         }
         else // octal
@@ -382,7 +382,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
             {
                 char c = str.str[i];
                 if(c < '0' || c > '7') return false;
-                n = n*8 + (c-'0');
+                n = n*T(8) + (T(c)-T('0'));
             }
         }
     }
@@ -452,6 +452,9 @@ void get_real_format_str(char (& C4_RESTRICT fmt)[N], int precision, RealFormat_
  * @see http://www.sparetimelabs.com/tinyprintf/tinyprintf.php (BSD)
  * @see https://github.com/weiss/c99-snprintf
  * @see https://github.com/nothings/stb/blob/master/stb_sprintf.h
+ * @see http://www.exploringbinary.com/
+ * @see https://blog.benoitblanchon.fr/lightweight-float-to-string/
+ * @see http://www.ryanjuckett.com/programming/printing-floating-point-numbers/
  */
 template<class T>
 size_t print_one(substr str, const char* full_fmt, T v)

@@ -174,6 +174,12 @@ public:
     inline C      & operator[] (size_t i)       { C4_ASSERT(i >= 0 && i < len); return str[i]; }
     inline C const& operator[] (size_t i) const { C4_ASSERT(i >= 0 && i < len); return str[i]; }
 
+    inline C      & front()       { C4_ASSERT(len > 0 && str != nullptr); return *str; }
+    inline C const& front() const { C4_ASSERT(len > 0 && str != nullptr); return *str; }
+
+    inline C      & back()       { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
+    inline C const& back() const { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
+
 public:
 
     int compare(C const c) const
@@ -1164,7 +1170,7 @@ public:
 
 public:
 
-    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(void) copy_from(ro_substr that, size_t ifirst=0, size_t num=npos)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
@@ -1176,14 +1182,14 @@ public:
 
 public:
 
-    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(void) reverse()
     {
         if(len == 0) return;
         _do_reverse(str, str + len - 1);
     }
 
-    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(void) reverse_sub(size_t ifirst, size_t num)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
@@ -1192,7 +1198,7 @@ public:
         _do_reverse(str + ifirst, ifirst + num - 1);
     }
 
-    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(void) reverse_range(size_t ifirst, size_t ilast)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
@@ -1203,7 +1209,7 @@ public:
 
 public:
 
-    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(basic_substring) erase(size_t pos, size_t num)
     {
         C4_ASSERT(pos >= 0 && pos+num <= len);
@@ -1212,14 +1218,14 @@ public:
         return basic_substring{str, len - num};
     }
 
-    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(basic_substring) erase_range(size_t first, size_t last)
     {
         C4_ASSERT(first <= last);
         return erase(first, last-first);
     }
 
-    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(basic_substring) erase(ro_substr sub)
     {
         C4_ASSERT(contains(sub));
@@ -1229,9 +1235,10 @@ public:
 
 public:
 
-    /** this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(bool) replace_all(C value, C repl, size_t pos=0)
     {
+        C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
         bool did_it = false;
         while((pos = find(value, pos)) != npos)
         {
@@ -1239,6 +1246,47 @@ public:
             did_it = true;
         }
         return did_it;
+    }
+
+	/** replace pattern with repl, and write the result into
+     * dst. pattern and repl don't need equal sizes.
+     *
+     * @return the required size for dst. No overflow occurs if
+     * dst.len is smaller than the required size; this can be used to
+     * determine the required size for an existing container. */
+    size_t replace_all(rw_substr dst, ro_substr pattern, ro_substr repl, size_t pos=0) const
+    {
+		C4_ASSERT( ! this  ->empty());
+		C4_ASSERT( ! pattern.empty());
+		C4_ASSERT( ! this  ->overlaps(dst));
+		C4_ASSERT( ! pattern.overlaps(dst));
+		C4_ASSERT( ! repl   .overlaps(dst));
+        C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
+#define _c4append(first, last)                                  \
+        {                                                       \
+            auto num = (last) - (first);                        \
+            if(sz + num <= dst.len)                             \
+            {                                                   \
+                memcpy(dst.str + sz, first, num * sizeof(C));   \
+            }                                                   \
+            sz += num;                                          \
+        }
+        size_t sz = 0;
+        size_t b = pos;
+        _c4append(str, str + pos);
+        do {
+            size_t e = find(pattern, b);
+            if(e == npos)
+            {
+                _c4append(str + b, str + len);
+                break;
+            }
+            _c4append(str + b, str + e);
+            _c4append(repl.begin(), repl.end());
+            b = e + pattern.size();
+        } while(b < len && b != npos);
+#undef _c4append
+        return sz;
     }
 
 }; // template class basic_substring
@@ -1294,6 +1342,25 @@ inline csubstr to_csubstr(char *s)
 inline csubstr to_csubstr(const char *s)
 {
     return csubstr(s, s ? strlen(s) : 0);
+}
+
+
+/** neutral version for use in generic code */
+inline csubstr to_csubstr(csubstr s)
+{
+    return s;
+}
+
+/** neutral version for use in generic code */
+inline csubstr to_csubstr(substr s)
+{
+    return s;
+}
+
+/** neutral version for use in generic code */
+inline substr to_substr(substr s)
+{
+    return s;
 }
 
 
