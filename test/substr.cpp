@@ -2625,9 +2625,19 @@ TEST(substr, replace_all)
     EXPECT_TRUE(ret);
     EXPECT_EQ(s, "0+1+2+3+4+5+6+7+8+9");
 
-    std::string out, tmp;
-    substr r = s;
-    r = r.replace_all(&out, "0+1", "0+++++1");
+    std::string tmp, out("0+1+2+3+4+5+6+7+8+9");
+    substr r;
+    auto replall = [&](csubstr pattern, csubstr repl) -> substr {
+                       tmp = out;
+                       csubstr rtmp = to_csubstr(tmp);
+                       out.resize(128);
+                       substr dst = to_substr(out);
+                       size_t sz = rtmp.replace_all(dst, pattern, repl);
+                       EXPECT_LE(sz, out.size());
+                       out.resize(sz);
+                       return dst.first(sz);
+                   };
+    r = replall("0+1", "0+++++1");
     // the result must be a view of out
     EXPECT_FALSE(r.empty());
     EXPECT_FALSE(out.empty());
@@ -2636,32 +2646,25 @@ TEST(substr, replace_all)
     EXPECT_EQ(r.back(), out.back());
     EXPECT_EQ(r, "0+++++1+2+3+4+5+6+7+8+9");
 
-    tmp = out; r = to_substr(tmp);
-    r = r.replace_all(&out, "+", "");
+    r = replall("+", "");
     EXPECT_EQ(r, "0123456789");
 
-    tmp = out; r = to_substr(tmp);
-    r = r.replace_all(&out, "+", "");
+    r = replall("+", "");
     EXPECT_EQ(r, "0123456789"); // must not change
 
-    tmp = out; r = to_substr(tmp);
-    r = r.replace_all(&out, "0123456789", "9876543210");
+    r = replall("0123456789", "9876543210");
     EXPECT_EQ(r, "9876543210");
 
-    tmp = out; r = to_substr(tmp);
-    r = r.replace_all(&out, "987", ".");
+    r = replall("987", ".");
     EXPECT_EQ(r, ".6543210");
 
-    tmp = out; r = to_substr(tmp);
-    r = r.replace_all(&out, "210", ".");
+    r = replall("210", ".");
     EXPECT_EQ(r, ".6543.");
 
-    tmp = out; r = to_substr(tmp);
-    r = r.replace_all(&out, "6543", ":");
+    r = replall("6543", ":");
     EXPECT_EQ(r, ".:.");
 
-    tmp = out; r = to_substr(tmp);
-    r = r.replace_all(&out, ".:.", "");
+    r = replall(".:.", "");
     EXPECT_EQ(r, "");
 }
 

@@ -1249,29 +1249,44 @@ public:
     }
 
 	/** replace pattern with repl, and write the result into
-     * dst. pattern and repl do not need to have equal sizes */
-    template<class Container>
-    rw_substr replace_all(Container *dst, ro_substr pattern, ro_substr repl) const
+     * dst. pattern and repl don't need equal sizes.
+     *
+     * @return the required size for dst. No overflow occurs if
+     * dst.len is smaller than the required size; this can be used to
+     * determine the required size for an existing container. */
+    size_t replace_all(rw_substr dst, ro_substr pattern, ro_substr repl, size_t pos=0) const
     {
 		C4_ASSERT( ! this  ->empty());
 		C4_ASSERT( ! pattern.empty());
-		C4_ASSERT( ! this  ->overlaps(to_csubstr(*dst)));
-		C4_ASSERT( ! pattern.overlaps(to_csubstr(*dst)));
-		C4_ASSERT( ! repl   .overlaps(to_csubstr(*dst)));
-        dst->clear();
-        size_t b = 0;
+		C4_ASSERT( ! this  ->overlaps(dst));
+		C4_ASSERT( ! pattern.overlaps(dst));
+		C4_ASSERT( ! repl   .overlaps(dst));
+        C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
+#define _c4append(first, last)                                  \
+        {                                                       \
+            auto num = (last) - (first);                        \
+            if(sz + num <= dst.len)                             \
+            {                                                   \
+                memcpy(dst.str + sz, first, num * sizeof(C));   \
+            }                                                   \
+            sz += num;                                          \
+        }
+        size_t sz = 0;
+        size_t b = pos;
+        _c4append(str, str + pos);
         do {
             size_t e = find(pattern, b);
             if(e == npos)
             {
-                dst->append(str + b, str + len);
+                _c4append(str + b, str + len);
                 break;
             }
-            dst->append(str + b, str + e);
-            dst->append(repl.begin(), repl.end());
+            _c4append(str + b, str + e);
+            _c4append(repl.begin(), repl.end());
             b = e + pattern.size();
         } while(b < len && b != npos);
-        return to_substr(*dst);
+#undef _c4append
+        return sz;
     }
 
 }; // template class basic_substring
