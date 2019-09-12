@@ -272,6 +272,103 @@ TEST(substr, offs)
     EXPECT_EQ(s.offs(5, 5), "");
 }
 
+TEST(substr, count)
+{
+    csubstr buf = "0123456789";
+
+    EXPECT_EQ(buf.count('0'), 1);
+    EXPECT_EQ(buf.count('0', 0), 1);
+    EXPECT_EQ(buf.count('0', 1), 0);
+    EXPECT_EQ(buf.count('0', buf.len), 0);
+
+    EXPECT_EQ(buf.count('1'), 1);
+    EXPECT_EQ(buf.count('1', 0), 1);
+    EXPECT_EQ(buf.count('1', 1), 1);
+    EXPECT_EQ(buf.count('1', 2), 0);
+    EXPECT_EQ(buf.count('1', buf.len), 0);
+
+    EXPECT_EQ(buf.count('2'), 1);
+    EXPECT_EQ(buf.count('2', 0), 1);
+    EXPECT_EQ(buf.count('2', 1), 1);
+    EXPECT_EQ(buf.count('2', 2), 1);
+    EXPECT_EQ(buf.count('2', 3), 0);
+    EXPECT_EQ(buf.count('2', buf.len), 0);
+
+    EXPECT_EQ(buf.count('2'), 1);
+    EXPECT_EQ(buf.count('2', 0), 1);
+    EXPECT_EQ(buf.count('2', 1), 1);
+    EXPECT_EQ(buf.count('2', 2), 1);
+    EXPECT_EQ(buf.count('2', 3), 0);
+    EXPECT_EQ(buf.count('2', buf.len), 0);
+
+    EXPECT_EQ(buf.count('3'), 1);
+    EXPECT_EQ(buf.count('3', 0), 1);
+    EXPECT_EQ(buf.count('3', 1), 1);
+    EXPECT_EQ(buf.count('3', 2), 1);
+    EXPECT_EQ(buf.count('3', 3), 1);
+    EXPECT_EQ(buf.count('3', 4), 0);
+    EXPECT_EQ(buf.count('3', buf.len), 0);
+
+    EXPECT_EQ(buf.count('4'), 1);
+    EXPECT_EQ(buf.count('4', 0), 1);
+    EXPECT_EQ(buf.count('4', 1), 1);
+    EXPECT_EQ(buf.count('4', 2), 1);
+    EXPECT_EQ(buf.count('4', 3), 1);
+    EXPECT_EQ(buf.count('4', 4), 1);
+    EXPECT_EQ(buf.count('4', 5), 0);
+    EXPECT_EQ(buf.count('4', buf.len), 0);
+
+    EXPECT_EQ(buf.count('5'), 1);
+    EXPECT_EQ(buf.count('5', 0), 1);
+    EXPECT_EQ(buf.count('5', 1), 1);
+    EXPECT_EQ(buf.count('5', 2), 1);
+    EXPECT_EQ(buf.count('5', 3), 1);
+    EXPECT_EQ(buf.count('5', 4), 1);
+    EXPECT_EQ(buf.count('5', 5), 1);
+    EXPECT_EQ(buf.count('5', 6), 0);
+    EXPECT_EQ(buf.count('5', buf.len), 0);
+
+    EXPECT_EQ(buf.count('a'), 0);
+    EXPECT_EQ(buf.count('a', 0), 0);
+    EXPECT_EQ(buf.count('a', 1), 0);
+    EXPECT_EQ(buf.count('a', 2), 0);
+    EXPECT_EQ(buf.count('a', 3), 0);
+    EXPECT_EQ(buf.count('a', 4), 0);
+    EXPECT_EQ(buf.count('a', 5), 0);
+    EXPECT_EQ(buf.count('a', 6), 0);
+    EXPECT_EQ(buf.count('a', buf.len), 0);
+
+    buf = "00110022003300440055";
+    EXPECT_EQ(buf.count('0', 0), 10);
+    EXPECT_EQ(buf.count('0', 1), 9);
+    EXPECT_EQ(buf.count('0', 2), 8);
+    EXPECT_EQ(buf.count('0', 3), 8);
+    EXPECT_EQ(buf.count('0', 4), 8);
+    EXPECT_EQ(buf.count('0', 5), 7);
+    EXPECT_EQ(buf.count('0', 6), 6);
+    EXPECT_EQ(buf.count('0', 7), 6);
+    EXPECT_EQ(buf.count('0', 8), 6);
+    EXPECT_EQ(buf.count('0', 9), 5);
+    EXPECT_EQ(buf.count('0', 10), 4);
+    EXPECT_EQ(buf.count('0', 11), 4);
+    EXPECT_EQ(buf.count('0', 12), 4);
+    EXPECT_EQ(buf.count('0', 13), 3);
+    EXPECT_EQ(buf.count('0', 14), 2);
+    EXPECT_EQ(buf.count('0', 15), 2);
+    EXPECT_EQ(buf.count('0', 16), 2);
+    EXPECT_EQ(buf.count('0', 17), 1);
+    EXPECT_EQ(buf.count('0', 18), 0);
+    EXPECT_EQ(buf.count('0', 19), 0);
+    EXPECT_EQ(buf.count('0', 20), 0);
+
+    EXPECT_EQ(buf.count('1', 0), 2);
+    EXPECT_EQ(buf.count('1', 1), 2);
+    EXPECT_EQ(buf.count('1', 2), 2);
+    EXPECT_EQ(buf.count('1', 3), 1);
+    EXPECT_EQ(buf.count('1', 4), 0);
+    EXPECT_EQ(buf.count('1', 5), 0);
+}
+
 TEST(substr, select)
 {
     csubstr buf = "0123456789";

@@ -438,6 +438,19 @@ public:
 
 public:
 
+    inline size_t count(const C c, size_t pos=0) const
+    {
+        C4_ASSERT(pos >= 0 && pos <= len);
+        size_t num = 0;
+        pos = find(c, pos);
+        while(pos != npos)
+        {
+            ++num;
+            pos = find(c, pos + 1);
+        }
+        return num;
+    }
+
     inline basic_substring select(const C c) const
     {
         size_t pos = find(c);
