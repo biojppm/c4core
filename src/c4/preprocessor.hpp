@@ -23,7 +23,7 @@
 
 #define C4_WIDEN(str) L"" str
 
-#define C4_COUNTOF(arr) sizeof(arr)/sizeof((arr)[0])
+#define C4_COUNTOF(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 #define C4_EXPAND(arg) arg
 
