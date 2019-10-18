@@ -1,6 +1,12 @@
 #ifndef _C4_PUSH_HPP_
 #define _C4_PUSH_HPP_
 
+
+/** @file c4_push.hpp enables macros and warning control directives
+ * needed by c4core. This is implemented in a push/pop way.
+ * @see c4_pop.hpp */
+
+
 #ifndef _C4_CONFIG_HPP_
 #include "c4/config.hpp"
 #endif

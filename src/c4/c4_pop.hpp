@@ -1,5 +1,9 @@
 #ifdef _C4_PUSH_HPP_ // this must match the include guard from c4_push
 
+/** @file c4_pop.hpp disables the macros and control directives
+ * enabled in c4_push.hpp.
+ * @see c4_push.hpp */
+
 #include "c4/unrestrict.hpp"
 
 #ifdef C4_WIN
