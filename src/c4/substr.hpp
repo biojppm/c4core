@@ -706,6 +706,20 @@ public:
 
 public:
 
+    /** get the range delimited by an open-close pair of characters.
+     * There must be no nested pairs.
+     * No checks for escapes are performed. */
+    basic_substring pair_range(CC open, CC close) const
+    {
+        size_t b = find(open);
+        if(b == npos) return basic_substring();
+        size_t e = find(close, b+1);
+        if(e == npos) return basic_substring();
+        basic_substring ret = range(b, e+1);
+        C4_ASSERT(ret.sub(1).find(open) == npos);
+        return ret;
+    }
+
     /** get the range delimited by a single open-close character (eg, quotes).
      * The open-close character can be escaped. */
     basic_substring pair_range_esc(CC open_close, CC escape=CC('\\'))
@@ -725,20 +739,6 @@ public:
             }
         }
         return basic_substring();
-    }
-
-    /** get the range delimited by an open-close pair of characters.
-     * There must be no nested pairs.
-     * No checks for escapes are performed. */
-    basic_substring pair_range(CC open, CC close) const
-    {
-        size_t b = find(open);
-        if(b == npos) return basic_substring();
-        size_t e = find(close, b+1);
-        if(e == npos) return basic_substring();
-        basic_substring ret = range(b, e+1);
-        C4_ASSERT(ret.sub(1).find(open) == npos);
-        return ret;
     }
 
     /** get the range delimited by an open-close pair of characters,
@@ -1248,25 +1248,29 @@ public:
 
 public:
 
-    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(bool) replace_all(C value, C repl, size_t pos=0)
+    /** replace every occurrence of character @p value with the character @p repl
+     *
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(size_t) replace_all(C value, C repl, size_t pos=0)
     {
         C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
-        bool did_it = false;
+        size_t did_it = 0;
         while((pos = find(value, pos)) != npos)
         {
             str[pos++] = repl;
-            did_it = true;
+            ++did_it;
         }
         return did_it;
     }
 
-	/** replace pattern with repl, and write the result into
-     * dst. pattern and repl don't need equal sizes.
+	/** replace @p pattern with @p repl, and write the result into
+     * @dst. pattern and repl don't need equal sizes.
      *
      * @return the required size for dst. No overflow occurs if
      * dst.len is smaller than the required size; this can be used to
-     * determine the required size for an existing container. */
+     * determine the required size for an existing container.
+     *
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     size_t replace_all(rw_substr dst, ro_substr pattern, ro_substr repl, size_t pos=0) const
     {
 		C4_ASSERT( ! this  ->empty());
@@ -1298,8 +1302,8 @@ public:
             _c4append(repl.begin(), repl.end());
             b = e + pattern.size();
         } while(b < len && b != npos);
-#undef _c4append
         return sz;
+#undef _c4append
     }
 
 }; // template class basic_substring
