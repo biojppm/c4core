@@ -20,7 +20,7 @@
 // we resort to the preprocessor to conditionally disable these
 // benchmarks
 #if C4_CPP >= 17
-#define BENCHMARK_TEMPLATE_CPP17(...) BENCHMARK_TEMPLATE(__VA_ARGS__)
+#define BENCHMARK_TEMPLATE_CPP17(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__)
 #else
 #define BENCHMARK_TEMPLATE_CPP17(...)
 #endif
@@ -249,7 +249,7 @@ void std_to_string_real(bm::State& st)
 
 //-----------------------------------------------------------------------------
 
-#if C4_CPP >= 17
+#if (C4_CPP >= 17)
 template<class IntegralType>
 void std_to_chars_int(bm::State& st)
 {

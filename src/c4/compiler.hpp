@@ -8,6 +8,7 @@
 
 // Compilers:
 //      C4_MSVC
+//             Visual Studio 2019: MSVC++ 16, 1920
 //             Visual Studio 2017: MSVC++ 15
 //             Visual Studio 2015: MSVC++ 14
 //             Visual Studio 2013: MSVC++ 13
@@ -24,11 +25,15 @@
 
 #if defined(_MSC_VER)// && (defined(C4_WIN) || defined(C4_XBOX) || defined(C4_UE4))
 #   define C4_MSVC
+#   define C4_MSVC_VERSION_2019 16
 #   define C4_MSVC_VERSION_2017 15
 #   define C4_MSVC_VERSION_2015 14
 #   define C4_MSVC_VERSION_2013 12
 #   define C4_MSVC_VERSION_2012 11
-#   if _MSC_VER > 1900
+#   if _MSC_VER >= 1920
+#       define C4_MSVC_VERSION C4_MSVC_VERSION_2019  // visual studio 2019
+#       define C4_MSVC_2019
+#   elif _MSC_VER >= 1910
 #       define C4_MSVC_VERSION C4_MSVC_VERSION_2017  // visual studio 2017
 #       define C4_MSVC_2017
 #   elif _MSC_VER == 1900

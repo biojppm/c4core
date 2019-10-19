@@ -13,14 +13,32 @@
  * @see http://stackoverflow.com/a/7132549/5875572 */
 #ifndef C4_CPP
 #   ifdef _MSC_VER
-#       if _MSC_VER > 1900
-#           define C4_CPP 17
-#           define C4_CPP17
-#       elif _MSC_VER == 1900
-#           define C4_CPP 14
-#           define C4_CPP14
+#       if _MSC_VER >= 1910  // >VS2015: VS2017, VS2019
+#           if (!defined(_MSVC_LANG))
+#               error _MSVC not defined
+#           endif
+#           if _MSVC_LANG >= 201703L
+#               define C4_CPP 17
+#               define C4_CPP17
+#           elif _MSVC_LANG >= 201402L
+#               define C4_CPP 14
+#               define C4_CPP14
+#           elif _MSVC_LANG >= 201103L
+#               define C4_CPP 11
+#               define C4_CPP11
+#           else
+#               error C++ lesser than C++11 not supported
+#           endif
 #       else
-#           error C++ lesser than C++11 not supported
+#           if _MSC_VER == 1900
+#               define C4_CPP 14  // VS2015 is c++14 https://devblogs.microsoft.com/cppblog/c111417-features-in-vs-2015-rtm/
+#               define C4_CPP14
+#           elif _MSC_VER == 1800 // VS2013
+#               define C4_CPP 11
+#               define C4_CPP11
+#           else
+#               error C++ lesser than C++11 not supported
+#           endif
 #       endif
 #   elif defined(__INTEL_COMPILER) // https://software.intel.com/en-us/node/524490
 #       ifdef __INTEL_CXX17_MODE__ // not sure about this
@@ -41,7 +59,7 @@
 #       endif
 #       if __cplusplus == 1
 #           error cannot handle __cplusplus==1
-#       elif __cplusplus >= 201700L // what is the macro???
+#       elif __cplusplus >= 201703L
 #           define C4_CPP 17
 #           define C4_CPP17
 #       elif __cplusplus >= 201402L
@@ -51,8 +69,6 @@
 #           define C4_CPP 11
 #           define C4_CPP11
 #       elif __cplusplus >= 199711L
-#           define C4_CPP 98
-#           define C4_CPP98
 #           error C++ lesser than C++11 not supported
 #       endif
 #   endif
