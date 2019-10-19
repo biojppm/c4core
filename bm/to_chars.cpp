@@ -212,8 +212,37 @@ void sstream_naive_reuse_real(bm::State& st)
 
 //-----------------------------------------------------------------------------
 
+template<class IntegralType>
+void std_to_string_int(bm::State& st)
+{
+    IntegralType i = 0;
+    for(auto _ : st)
+    {
+        ++i;
+        std::string out = std::to_string(i);
+        C4_UNUSED(out);
+    }
+    st.SetBytesProcessed(st.iterations() * sizeof(IntegralType));
+}
+
+template<class FloatType>
+void std_to_string_real(bm::State& st)
+{
+    ranf<FloatType> rans;
+    for(auto _ : st)
+    {
+        std::string out = std::to_string(rans.next());
+        C4_UNUSED(out);
+    }
+    st.SetBytesProcessed(st.iterations() * sizeof(FloatType));
+}
+
+
+//-----------------------------------------------------------------------------
+
 BENCHMARK_TEMPLATE(c4_utoa,  uint8_t);
 BENCHMARK_TEMPLATE(sprintf_int,  uint8_t);
+BENCHMARK_TEMPLATE(std_to_string_int,  uint8_t);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  uint8_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  uint8_t, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,  uint8_t, std::ostringstream);
@@ -221,6 +250,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,  uint8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_itoa,   int8_t);
 BENCHMARK_TEMPLATE(sprintf_int,  int8_t);
+BENCHMARK_TEMPLATE(std_to_string_int,  int8_t);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,   int8_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,   int8_t, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,   int8_t, std::ostringstream);
@@ -228,6 +258,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,   int8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_utoa, uint16_t);
 BENCHMARK_TEMPLATE(sprintf_int,  uint16_t);
+BENCHMARK_TEMPLATE(std_to_string_int,  uint16_t);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint16_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint16_t, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int, uint16_t, std::ostringstream);
@@ -235,6 +266,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int, uint16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_itoa,  int16_t);
 BENCHMARK_TEMPLATE(sprintf_int,  int16_t);
+BENCHMARK_TEMPLATE(std_to_string_int,  int16_t);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int16_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int16_t, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,  int16_t, std::ostringstream);
@@ -242,6 +274,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,  int16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_utoa, uint32_t);
 BENCHMARK_TEMPLATE(sprintf_int,  uint32_t);
+BENCHMARK_TEMPLATE(std_to_string_int,  uint32_t);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint32_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint32_t, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int, uint32_t, std::ostringstream);
@@ -249,6 +282,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int, uint32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_itoa,  int32_t);
 BENCHMARK_TEMPLATE(sprintf_int,  int32_t);
+BENCHMARK_TEMPLATE(std_to_string_int,  int32_t);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int32_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int32_t, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,  int32_t, std::ostringstream);
@@ -256,6 +290,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,  int32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_utoa, uint64_t);
 BENCHMARK_TEMPLATE(sprintf_int,  uint64_t);
+BENCHMARK_TEMPLATE(std_to_string_int,  uint64_t);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint64_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint64_t, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int, uint64_t, std::ostringstream);
@@ -263,6 +298,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int, uint64_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_itoa,  int64_t);
 BENCHMARK_TEMPLATE(sprintf_int,  int64_t);
+BENCHMARK_TEMPLATE(std_to_string_int,  int64_t);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int64_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int64_t, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,  int64_t, std::ostringstream);
@@ -270,6 +306,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,  int64_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_ftoa,  float);
 BENCHMARK_TEMPLATE(sprintf_real,  float);
+BENCHMARK_TEMPLATE(std_to_string_real,  float);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_real,  float, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_real,  float, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_real,  float, std::ostringstream);
@@ -277,6 +314,7 @@ BENCHMARK_TEMPLATE(sstream_naive_real,  float, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_ftoa,  double);
 BENCHMARK_TEMPLATE(sprintf_real,  double);
+BENCHMARK_TEMPLATE(std_to_string_real,  double);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_real,  double, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_reuse_real,  double, std::stringstream);
 BENCHMARK_TEMPLATE(sstream_naive_real,  double, std::ostringstream);
