@@ -53,12 +53,12 @@ struct sbuf
     char* end() { return buf.end(); }
 };
 
-template<class FloatType>
+template<class T>
 struct ranf
 {
-    std::vector<FloatType> v;
+    std::vector<T> v;
     size_t curr;
-    FloatType next() { FloatType f = v[curr]; curr = (curr + 1) % v.size(); return f; }
+    T next() { T f = v[curr]; curr = (curr + 1) % v.size(); return f; }
     ranf(size_t sz=4096) : v(sz), curr(0) { std::generate(v.begin(), v.end(), std::rand); }
 };
 
@@ -67,42 +67,55 @@ struct ranf
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template<class IntegralType>
-void c4_itoa(bm::State& st)
+// facilities to deuglify SFINAE
+#define C4FOR(ty, condition)                            \
+    template<class ty>                                  \
+    typename std::enable_if<condition(ty), void>::type
+#define C4FOR2(ty1, ty2, condition)                             \
+    template<class ty1, class ty2>                              \
+    typename std::enable_if<condition(ty1), void>::type
+
+#define isint(ty) std::is_integral<T>::value
+#define isiint(ty) std::is_integral<T>::value && !std::is_unsigned<T>::value
+#define isuint(ty) std::is_integral<T>::value && std::is_unsigned<T>::value
+#define isreal(ty) std::is_floating_point<T>::value
+
+C4FOR(T, isiint)
+c4_xtoa(bm::State& st)
 {
     sbuf<> buf;
-    IntegralType i = 0;
+    T i = 0;
     for(auto _ : st)
     {
         ++i;
         c4::itoa(buf, i);
     }
-    report<IntegralType>(st);
+    report<T>(st);
 }
 
-template<class IntegralType>
-void c4_utoa(bm::State& st)
+C4FOR(T, isuint)
+c4_xtoa(bm::State& st)
 {
     sbuf<> buf;
-    IntegralType i = 0;
+    T i = 0;
     for(auto _ : st)
     {
         ++i;
         c4::utoa(buf, i);
     }
-    report<IntegralType>(st);
+    report<T>(st);
 }
 
-template<class FloatType>
-void c4_ftoa(bm::State& st)
+C4FOR(T, isreal)
+c4_xtoa(bm::State& st)
 {
     sbuf<> buf;
-    ranf<FloatType> rans;
+    ranf<T> rans;
     for(auto _ : st)
     {
         c4::ftoa(buf, rans.next());
     }
-    report<FloatType>(st);
+    report<T>(st);
 }
 
 
@@ -121,77 +134,77 @@ template<> struct fmtspec< float  > { constexpr static const char fmt[] = "%g"; 
 template<> struct fmtspec< double > { constexpr static const char fmt[] = "%lg"; };
 
 template<class T>
-void sprintf(c4::substr buf, T val)
+C4_ALWAYS_INLINE void sprintf(c4::substr buf, T val)
 {
     ::snprintf(buf.str, buf.len, fmtspec<T>::fmt, val);
 }
 
-template<class IntegralType>
-void sprintf_int(bm::State& st)
+C4FOR(T, isint)
+sprintf(bm::State& st)
 {
     sbuf<> buf;
-    IntegralType i = 0;
+    T i = 0;
     for(auto _ : st)
     {
         ++i;
         sprintf(buf, i);
     }
-    report<IntegralType>(st);
+    report<T>(st);
 }
 
-template<class FloatType>
-void sprintf_real(bm::State& st)
+C4FOR(T, isreal)
+sprintf(bm::State& st)
 {
     sbuf<> buf;
-    ranf<FloatType> rans;
+    ranf<T> rans;
     for(auto _ : st)
     {
         sprintf(buf, rans.next());
     }
-    report<FloatType>(st);
+    report<T>(st);
 }
 
 
 //-----------------------------------------------------------------------------
 
 template<class StreamType, class T>
-std::string sstream_naive(T const& C4_RESTRICT val)
+std::string sstream_(T const& C4_RESTRICT val)
 {
     StreamType ss;
     ss << val;
     return ss.str();
 }
 
-template<class IntegralType, class StreamType>
-void sstream_naive_int(bm::State& st)
+C4FOR2(T, StreamType, isint)
+sstream(bm::State& st)
 {
-    IntegralType i = 0;
+    T i = 0;
     for(auto _ : st)
     {
         ++i;
-        std::string out = sstream_naive<StreamType>(i);
+        std::string out = sstream_<StreamType>(i);
         C4_UNUSED(out);
     }
-    report<IntegralType>(st);
+    report<T>(st);
 }
 
-template<class FloatType, class StreamType>
-void sstream_naive_real(bm::State& st)
+C4FOR2(T, StreamType, isreal)
+sstream(bm::State& st)
 {
-    ranf<FloatType> rans;
+    ranf<T> rans;
     for(auto _ : st)
     {
-        std::string out = sstream_naive<StreamType>(rans.next());
+        std::string out = sstream_<StreamType>(rans.next());
         C4_UNUSED(out);
     }
-    report<FloatType>(st);
+    report<T>(st);
 }
 
 
 //-----------------------------------------------------------------------------
 
 template<class StreamType, class T>
-std::string sstream_naive_reuse(StreamType &ss, T const& C4_RESTRICT val)
+std::string sstream_reuse_(StreamType &ss, T const& C4_RESTRICT val)
 {
     ss.clear();
     ss.str("");
@@ -199,218 +212,218 @@ std::string sstream_naive_reuse(StreamType &ss, T const& C4_RESTRICT val)
     return ss.str();
 }
 
-template<class IntegralType, class StreamType>
-void sstream_naive_reuse_int(bm::State& st)
+C4FOR2(T, StreamType, isint)
+sstream_reuse(bm::State& st)
 {
-    IntegralType i = 0;
+    T i = 0;
     StreamType ss;
     for(auto _ : st)
     {
         ++i;
-        std::string out = sstream_naive_reuse(ss, i);
+        std::string out = sstream_reuse_(ss, i);
         C4_UNUSED(out);
     }
-    report<IntegralType>(st);
+    report<T>(st);
 }
 
-template<class FloatType, class StreamType>
-void sstream_naive_reuse_real(bm::State& st)
+C4FOR2(T, StreamType, isreal)
+sstream_reuse(bm::State& st)
 {
-    ranf<FloatType> rans;
+    ranf<T> rans;
     StreamType ss;
     for(auto _ : st)
     {
-        std::string out = sstream_naive_reuse(ss, rans.next());
+        std::string out = sstream_reuse_(ss, rans.next());
         C4_UNUSED(out);
     }
-    report<FloatType>(st);
+    report<T>(st);
 }
 
 
 //-----------------------------------------------------------------------------
 
-template<class IntegralType>
-void std_to_string_int(bm::State& st)
+C4FOR(T, isint)
+std_to_string(bm::State& st)
 {
-    IntegralType i = 0;
+    T i = 0;
     for(auto _ : st)
     {
         ++i;
         std::string out = std::to_string(i);
         C4_UNUSED(out);
     }
-    report<IntegralType>(st);
+    report<T>(st);
 }
 
-template<class FloatType>
-void std_to_string_real(bm::State& st)
+C4FOR(T, isreal)
+std_to_string(bm::State& st)
 {
-    ranf<FloatType> rans;
+    ranf<T> rans;
     for(auto _ : st)
     {
         std::string out = std::to_string(rans.next());
         C4_UNUSED(out);
     }
-    report<FloatType>(st);
+    report<T>(st);
 }
 
 
 //-----------------------------------------------------------------------------
 
 #if (C4_CPP >= 17)
-template<class IntegralType>
-void std_to_chars_int(bm::State& st)
+C4FOR(T, isint)
+std_to_chars(bm::State& st)
 {
     sbuf<> buf;
-    IntegralType i = 0;
+    T i = 0;
     for(auto _ : st)
     {
         ++i;
         std::to_chars(buf.begin(), buf.end(), i);
     }
-    report<IntegralType>(st);
+    report<T>(st);
 }
 
-template<class FloatType>
-void std_to_chars_real(bm::State& st)
+C4FOR(T, isreal)
+std_to_chars(bm::State& st)
 {
     sbuf<> buf;
-    ranf<FloatType> rans;
+    ranf<T> rans;
     for(auto _ : st)
     {
         std::to_chars(buf.begin(), buf.end(), rans.next());
     }
-    report<FloatType>(st);
+    report<T>(st);
 }
 #endif
 
-template<class IntegralType>
-void c4_to_chars_int(bm::State& st)
+C4FOR(T, isint)
+c4_to_chars(bm::State& st)
 {
     sbuf<> buf;
-    IntegralType i = 0;
+    T i = 0;
     for(auto _ : st)
     {
         ++i;
         c4::to_chars(buf, i);
     }
-    report<IntegralType>(st);
+    report<T>(st);
 }
 
-template<class FloatType>
-void c4_to_chars_real(bm::State& st)
+C4FOR(T, isreal)
+c4_to_chars(bm::State& st)
 {
     sbuf<> buf;
-    ranf<FloatType> rans;
+    ranf<T> rans;
     for(auto _ : st)
     {
         c4::to_chars(buf, rans.next());
     }
-    report<FloatType>(st);
+    report<T>(st);
 }
 
 
 //-----------------------------------------------------------------------------
 
-BENCHMARK_TEMPLATE(c4_utoa,  uint8_t);
-BENCHMARK_TEMPLATE(c4_to_chars_int,  uint8_t);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  uint8_t);
-BENCHMARK_TEMPLATE(std_to_string_int,  uint8_t);
-BENCHMARK_TEMPLATE(sprintf_int,  uint8_t);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  uint8_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  uint8_t, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,  uint8_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,  uint8_t, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa,  uint8_t);
+BENCHMARK_TEMPLATE(c4_to_chars,  uint8_t);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  uint8_t);
+BENCHMARK_TEMPLATE(std_to_string,  uint8_t);
+BENCHMARK_TEMPLATE(sprintf,  uint8_t);
+BENCHMARK_TEMPLATE(sstream_reuse,  uint8_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse,  uint8_t, std::stringstream);
+BENCHMARK_TEMPLATE(sstream,  uint8_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream,  uint8_t, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_itoa,   int8_t);
-BENCHMARK_TEMPLATE(c4_to_chars_int,  int8_t);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  int8_t);
-BENCHMARK_TEMPLATE(std_to_string_int,  int8_t);
-BENCHMARK_TEMPLATE(sprintf_int,  int8_t);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,   int8_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,   int8_t, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,   int8_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,   int8_t, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa,   int8_t);
+BENCHMARK_TEMPLATE(c4_to_chars,  int8_t);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  int8_t);
+BENCHMARK_TEMPLATE(std_to_string,  int8_t);
+BENCHMARK_TEMPLATE(sprintf,  int8_t);
+BENCHMARK_TEMPLATE(sstream_reuse,   int8_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse,   int8_t, std::stringstream);
+BENCHMARK_TEMPLATE(sstream,   int8_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream,   int8_t, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_utoa, uint16_t);
-BENCHMARK_TEMPLATE(c4_to_chars_int,  uint16_t);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  uint16_t);
-BENCHMARK_TEMPLATE(std_to_string_int,  uint16_t);
-BENCHMARK_TEMPLATE(sprintf_int,  uint16_t);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint16_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint16_t, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int, uint16_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int, uint16_t, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa, uint16_t);
+BENCHMARK_TEMPLATE(c4_to_chars,  uint16_t);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  uint16_t);
+BENCHMARK_TEMPLATE(std_to_string,  uint16_t);
+BENCHMARK_TEMPLATE(sprintf,  uint16_t);
+BENCHMARK_TEMPLATE(sstream_reuse, uint16_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse, uint16_t, std::stringstream);
+BENCHMARK_TEMPLATE(sstream, uint16_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream, uint16_t, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_itoa,  int16_t);
-BENCHMARK_TEMPLATE(c4_to_chars_int,  int16_t);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  int16_t);
-BENCHMARK_TEMPLATE(std_to_string_int,  int16_t);
-BENCHMARK_TEMPLATE(sprintf_int,  int16_t);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int16_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int16_t, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,  int16_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,  int16_t, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa,  int16_t);
+BENCHMARK_TEMPLATE(c4_to_chars,  int16_t);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  int16_t);
+BENCHMARK_TEMPLATE(std_to_string,  int16_t);
+BENCHMARK_TEMPLATE(sprintf,  int16_t);
+BENCHMARK_TEMPLATE(sstream_reuse,  int16_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse,  int16_t, std::stringstream);
+BENCHMARK_TEMPLATE(sstream,  int16_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream,  int16_t, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_utoa, uint32_t);
-BENCHMARK_TEMPLATE(c4_to_chars_int,  uint32_t);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  uint32_t);
-BENCHMARK_TEMPLATE(std_to_string_int,  uint32_t);
-BENCHMARK_TEMPLATE(sprintf_int,  uint32_t);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint32_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint32_t, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int, uint32_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int, uint32_t, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa, uint32_t);
+BENCHMARK_TEMPLATE(c4_to_chars,  uint32_t);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  uint32_t);
+BENCHMARK_TEMPLATE(std_to_string,  uint32_t);
+BENCHMARK_TEMPLATE(sprintf,  uint32_t);
+BENCHMARK_TEMPLATE(sstream_reuse, uint32_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse, uint32_t, std::stringstream);
+BENCHMARK_TEMPLATE(sstream, uint32_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream, uint32_t, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_itoa,  int32_t);
-BENCHMARK_TEMPLATE(c4_to_chars_int,  int32_t);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  int32_t);
-BENCHMARK_TEMPLATE(std_to_string_int,  int32_t);
-BENCHMARK_TEMPLATE(sprintf_int,  int32_t);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int32_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int32_t, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,  int32_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,  int32_t, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa,  int32_t);
+BENCHMARK_TEMPLATE(c4_to_chars,  int32_t);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  int32_t);
+BENCHMARK_TEMPLATE(std_to_string,  int32_t);
+BENCHMARK_TEMPLATE(sprintf,  int32_t);
+BENCHMARK_TEMPLATE(sstream_reuse,  int32_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse,  int32_t, std::stringstream);
+BENCHMARK_TEMPLATE(sstream,  int32_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream,  int32_t, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_utoa, uint64_t);
-BENCHMARK_TEMPLATE(c4_to_chars_int,  uint64_t);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  uint64_t);
-BENCHMARK_TEMPLATE(std_to_string_int,  uint64_t);
-BENCHMARK_TEMPLATE(sprintf_int,  uint64_t);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint64_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int, uint64_t, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int, uint64_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int, uint64_t, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa, uint64_t);
+BENCHMARK_TEMPLATE(c4_to_chars,  uint64_t);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  uint64_t);
+BENCHMARK_TEMPLATE(std_to_string,  uint64_t);
+BENCHMARK_TEMPLATE(sprintf,  uint64_t);
+BENCHMARK_TEMPLATE(sstream_reuse, uint64_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse, uint64_t, std::stringstream);
+BENCHMARK_TEMPLATE(sstream, uint64_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream, uint64_t, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_itoa,  int64_t);
-BENCHMARK_TEMPLATE(c4_to_chars_int,  int64_t);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  int64_t);
-BENCHMARK_TEMPLATE(std_to_string_int,  int64_t);
-BENCHMARK_TEMPLATE(sprintf_int,  int64_t);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int64_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_int,  int64_t, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,  int64_t, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_int,  int64_t, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa,  int64_t);
+BENCHMARK_TEMPLATE(c4_to_chars,  int64_t);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  int64_t);
+BENCHMARK_TEMPLATE(std_to_string,  int64_t);
+BENCHMARK_TEMPLATE(sprintf,  int64_t);
+BENCHMARK_TEMPLATE(sstream_reuse,  int64_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse,  int64_t, std::stringstream);
+BENCHMARK_TEMPLATE(sstream,  int64_t, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream,  int64_t, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_ftoa,  float);
-BENCHMARK_TEMPLATE(c4_to_chars_real,  float);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_real,  float);
-BENCHMARK_TEMPLATE(std_to_string_real,  float);
-BENCHMARK_TEMPLATE(sprintf_real,  float);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_real,  float, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_real,  float, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_real,  float, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_real,  float, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa,  float);
+BENCHMARK_TEMPLATE(c4_to_chars,  float);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  float);
+BENCHMARK_TEMPLATE(std_to_string,  float);
+BENCHMARK_TEMPLATE(sprintf,  float);
+BENCHMARK_TEMPLATE(sstream_reuse,  float, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse,  float, std::stringstream);
+BENCHMARK_TEMPLATE(sstream,  float, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream,  float, std::stringstream);
 
-BENCHMARK_TEMPLATE(c4_ftoa,  double);
-BENCHMARK_TEMPLATE(c4_to_chars_real,  double);
-BENCHMARK_TEMPLATE_CPP17(std_to_chars_real,  double);
-BENCHMARK_TEMPLATE(std_to_string_real,  double);
-BENCHMARK_TEMPLATE(sprintf_real,  double);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_real,  double, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_reuse_real,  double, std::stringstream);
-BENCHMARK_TEMPLATE(sstream_naive_real,  double, std::ostringstream);
-BENCHMARK_TEMPLATE(sstream_naive_real,  double, std::stringstream);
+BENCHMARK_TEMPLATE(c4_xtoa,  double);
+BENCHMARK_TEMPLATE(c4_to_chars,  double);
+BENCHMARK_TEMPLATE_CPP17(std_to_chars,  double);
+BENCHMARK_TEMPLATE(std_to_string,  double);
+BENCHMARK_TEMPLATE(sprintf,  double);
+BENCHMARK_TEMPLATE(sstream_reuse,  double, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream_reuse,  double, std::stringstream);
+BENCHMARK_TEMPLATE(sstream,  double, std::ostringstream);
+BENCHMARK_TEMPLATE(sstream,  double, std::stringstream);
 
 
 //-----------------------------------------------------------------------------
