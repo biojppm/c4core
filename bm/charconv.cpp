@@ -284,10 +284,36 @@ void std_to_chars_real(bm::State& st)
 }
 #endif
 
+template<class IntegralType>
+void c4_to_chars_int(bm::State& st)
+{
+    sbuf<> buf;
+    IntegralType i = 0;
+    for(auto _ : st)
+    {
+        ++i;
+        c4::to_chars(buf, i);
+    }
+    report<IntegralType>(st);
+}
+
+template<class FloatType>
+void c4_to_chars_real(bm::State& st)
+{
+    sbuf<> buf;
+    ranf<FloatType> rans;
+    for(auto _ : st)
+    {
+        c4::to_chars(buf, rans.next());
+    }
+    report<FloatType>(st);
+}
+
 
 //-----------------------------------------------------------------------------
 
 BENCHMARK_TEMPLATE(c4_utoa,  uint8_t);
+BENCHMARK_TEMPLATE(c4_to_chars_int,  uint8_t);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  uint8_t);
 BENCHMARK_TEMPLATE(std_to_string_int,  uint8_t);
 BENCHMARK_TEMPLATE(sprintf_int,  uint8_t);
@@ -297,6 +323,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,  uint8_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,  uint8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_itoa,   int8_t);
+BENCHMARK_TEMPLATE(c4_to_chars_int,  int8_t);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  int8_t);
 BENCHMARK_TEMPLATE(std_to_string_int,  int8_t);
 BENCHMARK_TEMPLATE(sprintf_int,  int8_t);
@@ -306,6 +333,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,   int8_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,   int8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_utoa, uint16_t);
+BENCHMARK_TEMPLATE(c4_to_chars_int,  uint16_t);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  uint16_t);
 BENCHMARK_TEMPLATE(std_to_string_int,  uint16_t);
 BENCHMARK_TEMPLATE(sprintf_int,  uint16_t);
@@ -315,6 +343,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int, uint16_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int, uint16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_itoa,  int16_t);
+BENCHMARK_TEMPLATE(c4_to_chars_int,  int16_t);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  int16_t);
 BENCHMARK_TEMPLATE(std_to_string_int,  int16_t);
 BENCHMARK_TEMPLATE(sprintf_int,  int16_t);
@@ -324,6 +353,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,  int16_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,  int16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_utoa, uint32_t);
+BENCHMARK_TEMPLATE(c4_to_chars_int,  uint32_t);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  uint32_t);
 BENCHMARK_TEMPLATE(std_to_string_int,  uint32_t);
 BENCHMARK_TEMPLATE(sprintf_int,  uint32_t);
@@ -333,6 +363,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int, uint32_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int, uint32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_itoa,  int32_t);
+BENCHMARK_TEMPLATE(c4_to_chars_int,  int32_t);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  int32_t);
 BENCHMARK_TEMPLATE(std_to_string_int,  int32_t);
 BENCHMARK_TEMPLATE(sprintf_int,  int32_t);
@@ -342,6 +373,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,  int32_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,  int32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_utoa, uint64_t);
+BENCHMARK_TEMPLATE(c4_to_chars_int,  uint64_t);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  uint64_t);
 BENCHMARK_TEMPLATE(std_to_string_int,  uint64_t);
 BENCHMARK_TEMPLATE(sprintf_int,  uint64_t);
@@ -351,6 +383,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int, uint64_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int, uint64_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_itoa,  int64_t);
+BENCHMARK_TEMPLATE(c4_to_chars_int,  int64_t);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_int,  int64_t);
 BENCHMARK_TEMPLATE(std_to_string_int,  int64_t);
 BENCHMARK_TEMPLATE(sprintf_int,  int64_t);
@@ -360,6 +393,7 @@ BENCHMARK_TEMPLATE(sstream_naive_int,  int64_t, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_int,  int64_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_ftoa,  float);
+BENCHMARK_TEMPLATE(c4_to_chars_real,  float);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_real,  float);
 BENCHMARK_TEMPLATE(std_to_string_real,  float);
 BENCHMARK_TEMPLATE(sprintf_real,  float);
@@ -369,6 +403,7 @@ BENCHMARK_TEMPLATE(sstream_naive_real,  float, std::ostringstream);
 BENCHMARK_TEMPLATE(sstream_naive_real,  float, std::stringstream);
 
 BENCHMARK_TEMPLATE(c4_ftoa,  double);
+BENCHMARK_TEMPLATE(c4_to_chars_real,  double);
 BENCHMARK_TEMPLATE_CPP17(std_to_chars_real,  double);
 BENCHMARK_TEMPLATE(std_to_string_real,  double);
 BENCHMARK_TEMPLATE(sprintf_real,  double);
