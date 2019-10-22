@@ -1,7 +1,7 @@
-#ifndef _C4_TO_CHARS_HPP_
-#define _C4_TO_CHARS_HPP_
+#ifndef _C4_CHARCONV_HPP_
+#define _C4_CHARCONV_HPP_
 
-/** @file to_chars.hpp Low-level conversion functions to/from strings */
+/** @file charconv.hpp Low-level conversion functions to/from strings */
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -908,4 +908,4 @@ inline size_t to_chars(substr buf, const char * C4_RESTRICT v)
 #   pragma warning(pop)
 #endif
 
-#endif /* _C4_TO_CHARS_HPP_ */
+#endif /* _C4_CHARCONV_HPP_ */

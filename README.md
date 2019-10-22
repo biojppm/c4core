@@ -14,13 +14,14 @@ projects in mind.
 
 Some of the utilities provided by c4core have already equivalent
 functionality in the C++ standard, but they are provided as the existing C++
-equivalent may be inefficient (eg, std::string), heavy (eg streams), or
-plainly unusable on some platforms, eg exceptions); some other utilities have
-equivalents under consideration for C++ standardisation; and yet some other
-utilities have (to my knowledge) no equivalent under consideration. Be that
-as it may, I've been using these utilities in this or similar forms for some
-years now, and I've found them incredibly useful in my projects. I'm packing
-these as a separate library, as all of my projects use it.
+equivalent may be insufficient (eg, std::string_view), inefficient (eg,
+std::string), heavy (eg streams), or plainly unusable on some
+platforms/projects, (eg exceptions); some other utilities have equivalent
+under consideration for C++ standardisation; and yet some other utilities
+have (to my knowledge) no equivalent under consideration. Be that as it may,
+I've been using these utilities in this or similar forms for some years now,
+and I've found them incredibly useful in my projects. I'm packing these as a
+separate library, as all of my projects use it.
 
 
 ## Obtaining c4core
@@ -88,6 +89,8 @@ C4_RESTRICT, $, c$, $$, c$$
 #include <c4/windows_pop.hpp>
 
 C4_UNREACHABLE()
+
+c4::type_name()
 ```
 
 ### Runtime assertions and error handling
@@ -117,30 +120,52 @@ c4::MemoryResource // global and scope
 c4::Allocator
 ```
 
-### Writeable string views: c4::substr and c4::csubstr
+### Mass initialization/construction/destruction
 
 ```c++
 // TODO: elaborate on the topics:
 
-disadvantages of having low-level algorithms force ownership models, eg std::to_string()
+c4::construct()/c4::construct_n()
 
-c4::itoa(), c4::utoa(), c4::ftoa()
+c4::destroy()/c4::destroy_n()
 
-c4::to_chars(), c4::from_chars()
+c4::copy_construct()/c4::copy_construct_n()
+
+c4::copy_assign()/c4::copy_assign_n()
+
+c4::move_construct()/c4::move_construct_n()
+
+c4::move_assign()/c4::move_assign_n()
+
+c4::make_room()/c4::destroy_room()
 ```
+
+
+### Writeable string views: c4::substr and c4::csubstr
+
+Here: [`#include <c4/substr.hpp>`](src/c4/substr.hpp)
 
 
 ### Value <-> character interoperation
 
+Here: [`#include <c4/charconv.hpp>`](src/c4/charconv.hpp)
+
 ```c++
 // TODO: elaborate on the topics:
 
-c4::itoa(), c4::utoa(), c4::ftoa()
+c4::utoa(), c4::atou()
+c4::itoa(), c4::atoi()
+c4::ftoa(), c4::atof()
+c4::dtoa(), c4::atod()
 
 c4::to_chars(), c4::from_chars()
+c4::to_chars_sub()
+c4::to_chars_first()
 ```
 
 ### String formatting and parsing
+
+* [`#include <c4/format.hpp>`](src/c4/format.hpp)
 
 ```c++
 // TODO: elaborate on the topics:
@@ -150,4 +175,39 @@ c4::cat(), c4::uncat()
 c4::catsep(), c4::uncatsep()
 
 c4::format(), c4::unformat()
+
+// formatting:
+c4::raw, c4::craw
 ```
+
+### `c4::span` and `c4::blob`
+
+* [`#include <c4/span.hpp>`](src/c4/span.hpp)
+* [`#include <c4/blob.hpp>`](src/c4/blob.hpp)
+
+
+### Enums and enum symbols
+
+[`#include <c4/enum.hpp>`](src/c4/enum.hpp)
+
+```c++
+// TODO: elaborate on the topics:
+
+c4::e2str(), c4::str2e()
+```
+
+### Bitmasks and bitmask symbols
+
+[`#include <c4/bitmask.hpp>`](src/c4/bitmask.hpp)
+
+```c++
+// TODO: elaborate on the topics:
+
+c4::bm2str(), c4::str2bm()
+```
+
+### Base64 encoding / decoding
+
+[`#include <c4/base64.hpp>`](src/c4/base64.hpp)
+
+### Fuzzy float comparison

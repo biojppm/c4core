@@ -17,6 +17,7 @@ set(C4CORE_SRC
     c4/base64.cpp
     c4/blob.hpp
     c4/bitmask.hpp
+    c4/charconv.hpp
     c4/c4_pop.hpp
     c4/c4_push.hpp
     c4/char_traits.cpp
@@ -50,7 +51,6 @@ set(C4CORE_SRC
     c4/szconv.hpp
     c4/time.hpp
     c4/time.cpp
-    c4/to_chars.hpp
     c4/type_name.hpp
     c4/types.hpp
     c4/unrestrict.hpp

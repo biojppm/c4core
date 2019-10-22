@@ -3,7 +3,7 @@
 #include <sstream>
 #include <c4/c4_push.hpp>
 #include <c4/substr.hpp>
-#include <c4/to_chars.hpp>
+#include <c4/charconv.hpp>
 #include <inttypes.h>
 #include <stdio.h>
 #include <algorithm>
@@ -25,7 +25,6 @@
 #define BENCHMARK_TEMPLATE_CPP17(...)
 #endif
 
-//! @todo add comparison to boost::lexical_cast
 
 namespace bm = benchmark;
 
@@ -34,13 +33,6 @@ namespace bm = benchmark;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // utilities for use in benchmarks below
-
-template<class T>
-void report(bm::State &st)
-{
-    st.SetBytesProcessed(st.iterations() * sizeof(T));
-    st.SetItemsProcessed(st.iterations());
-}
 
 template<size_t Dim=128>
 struct sbuf
@@ -77,7 +69,7 @@ void c4_itoa(bm::State& st)
         ++i;
         c4::itoa(buf, i);
     }
-    report<IntegralType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(IntegralType));
 }
 
 template<class IntegralType>
@@ -90,7 +82,7 @@ void c4_utoa(bm::State& st)
         ++i;
         c4::utoa(buf, i);
     }
-    report<IntegralType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(IntegralType));
 }
 
 template<class FloatType>
@@ -102,7 +94,7 @@ void c4_ftoa(bm::State& st)
     {
         c4::ftoa(buf, rans.next());
     }
-    report<FloatType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(FloatType));
 }
 
 
@@ -136,7 +128,7 @@ void sprintf_int(bm::State& st)
         ++i;
         sprintf(buf, i);
     }
-    report<IntegralType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(IntegralType));
 }
 
 template<class FloatType>
@@ -148,7 +140,7 @@ void sprintf_real(bm::State& st)
     {
         sprintf(buf, rans.next());
     }
-    report<FloatType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(FloatType));
 }
 
 
@@ -172,7 +164,7 @@ void sstream_naive_int(bm::State& st)
         std::string out = sstream_naive<StreamType>(i);
         C4_UNUSED(out);
     }
-    report<IntegralType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(IntegralType));
 }
 
 template<class FloatType, class StreamType>
@@ -184,7 +176,7 @@ void sstream_naive_real(bm::State& st)
         std::string out = sstream_naive<StreamType>(rans.next());
         C4_UNUSED(out);
     }
-    report<FloatType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(FloatType));
 }
 
 
@@ -210,7 +202,7 @@ void sstream_naive_reuse_int(bm::State& st)
         std::string out = sstream_naive_reuse(ss, i);
         C4_UNUSED(out);
     }
-    report<IntegralType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(IntegralType));
 }
 
 template<class FloatType, class StreamType>
@@ -223,7 +215,7 @@ void sstream_naive_reuse_real(bm::State& st)
         std::string out = sstream_naive_reuse(ss, rans.next());
         C4_UNUSED(out);
     }
-    report<FloatType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(FloatType));
 }
 
 
@@ -239,7 +231,7 @@ void std_to_string_int(bm::State& st)
         std::string out = std::to_string(i);
         C4_UNUSED(out);
     }
-    report<IntegralType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(IntegralType));
 }
 
 template<class FloatType>
@@ -251,7 +243,7 @@ void std_to_string_real(bm::State& st)
         std::string out = std::to_string(rans.next());
         C4_UNUSED(out);
     }
-    report<FloatType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(FloatType));
 }
 
 
@@ -268,7 +260,7 @@ void std_to_chars_int(bm::State& st)
         ++i;
         std::to_chars(buf.begin(), buf.end(), i);
     }
-    report<IntegralType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(IntegralType));
 }
 
 template<class FloatType>
@@ -280,7 +272,7 @@ void std_to_chars_real(bm::State& st)
     {
         std::to_chars(buf.begin(), buf.end(), rans.next());
     }
-    report<FloatType>(st);
+    st.SetBytesProcessed(st.iterations() * sizeof(FloatType));
 }
 #endif
 
