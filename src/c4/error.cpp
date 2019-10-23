@@ -69,14 +69,13 @@ void handle_error(srcloc where, const char *fmt, ...)
     {
         C4_LOGF_ERR("\n");
 #if defined(C4_ERROR_SHOWS_FILELINE) && defined(C4_ERROR_SHOWS_FUNC)
-        C4_LOGF_ERR("ERROR: %s:%d: %s\n", where.file, where.line, buf/*ss.c_strp()*/);
-        C4_LOGF_ERR("ERROR: %s:%d: here: %s\n", where.file, where.line, where.func);
+        C4_LOGF_ERR("%s:%d: ERROR: %s\n", where.file, where.line, buf);
+        C4_LOGF_ERR("%s:%d: ERROR here: %s\n", where.file, where.line, where.func);
 #elif defined(C4_ERROR_SHOWS_FILELINE)
-        C4_LOGF_ERR("ERROR: %s:%d: %s\n", where.file, where.line, buf/*ss.c_strp()*/);
+        C4_LOGF_ERR("%s:%d: ERROR: %s\n", where.file, where.line, buf);
 #elif ! defined(C4_ERROR_SHOWS_FUNC)
-        C4_LOGF_ERR("ERROR: %s\n", buf/*ss.c_strp()*/);
+        C4_LOGF_ERR("ERROR: %s\n", buf);
 #endif
-        //c4::log.flush();
     }
 
     if(s_error_flags & ON_ERROR_CALLBACK)
@@ -95,7 +94,7 @@ void handle_error(srcloc where, const char *fmt, ...)
     if(s_error_flags & ON_ERROR_THROW)
     {
 #if defined(C4_EXCEPTIONS_ENABLED) && defined(C4_ERROR_THROWS_EXCEPTION)
-        throw Exception(ss.c_str());
+        throw Exception(buf);
 #else
         abort();
 #endif
@@ -113,10 +112,10 @@ void handle_warning(srcloc where, const char *fmt, ...)
     va_end(args);
     C4_LOGF_WARN("\n");
 #if defined(C4_ERROR_SHOWS_FILELINE) && defined(C4_ERROR_SHOWS_FUNC)
-    C4_LOGF_WARN("WARNING: %s:%d: %s\n", where.file, where.line, buf/*ss.c_strp()*/);
-    C4_LOGF_WARN("WARNING: %s:%d: here: %s\n", where.file, where.line, where.func);
+    C4_LOGF_WARN("%s:%d: WARNING: %s\n", where.file, where.line, buf/*ss.c_strp()*/);
+    C4_LOGF_WARN("%s:%d: WARNING: here: %s\n", where.file, where.line, where.func);
 #elif defined(C4_ERROR_SHOWS_FILELINE)
-    C4_LOGF_WARN("WARNING: %s:%d: %s\n", where.file, where.line, buf/*ss.c_strp()*/);
+    C4_LOGF_WARN("%s:%d: WARNING: %s\n", where.file, where.line, buf/*ss.c_strp()*/);
 #elif ! defined(C4_ERROR_SHOWS_FUNC)
     C4_LOGF_WARN("WARNING: %s\n", buf/*ss.c_strp()*/);
 #endif
