@@ -76,7 +76,7 @@ struct ranstr
     {
         for(auto &s : v)
         {
-            c4::catrs(&s, T(std::rand()));
+            c4::catrs(&s, (T) std::rand());
         }
     }
 };
@@ -162,7 +162,7 @@ atox_c4_atox(bm::State& st)
     T val;
     for(auto _ : st)
     {
-        c4::atou(rans.next(), &val);
+        c4::atoi(rans.next(), &val);
     }
     report<T>(st);
 }
@@ -339,16 +339,16 @@ void atox_std_strtod(bm::State& st)
 //-----------------------------------------------------------------------------
 
 template<class T> struct fmtspec;
-template<> struct fmtspec< uint8_t> { constexpr static const char w[] = "%" PRIu8 , r[] = "%" SCNu8; };
-template<> struct fmtspec<  int8_t> { constexpr static const char w[] = "%" PRIi8 , r[] = "%" SCNi8; };
+template<> struct fmtspec< uint8_t> { constexpr static const char w[] = "%" PRIu8 , r[] = "%" SCNu8 ; };
+template<> struct fmtspec<  int8_t> { constexpr static const char w[] = "%" PRIi8 , r[] = "%" SCNi8 ; };
 template<> struct fmtspec<uint16_t> { constexpr static const char w[] = "%" PRIu16, r[] = "%" SCNu16; };
 template<> struct fmtspec< int16_t> { constexpr static const char w[] = "%" PRIi16, r[] = "%" SCNi16; };
 template<> struct fmtspec<uint32_t> { constexpr static const char w[] = "%" PRIu32, r[] = "%" SCNu32; };
 template<> struct fmtspec< int32_t> { constexpr static const char w[] = "%" PRIi32, r[] = "%" SCNi32; };
 template<> struct fmtspec<uint64_t> { constexpr static const char w[] = "%" PRIu64, r[] = "%" SCNu64; };
 template<> struct fmtspec< int64_t> { constexpr static const char w[] = "%" PRIi64, r[] = "%" SCNi64; };
-template<> struct fmtspec< float  > { constexpr static const char w[] = "%g"      , r[] = "%g"; };
-template<> struct fmtspec< double > { constexpr static const char w[] = "%lg"     , r[] = "%lg"; };
+template<> struct fmtspec< float  > { constexpr static const char w[] = "%g"      , r[] = "%g"      ; };
+template<> struct fmtspec< double > { constexpr static const char w[] = "%lg"     , r[] = "%lg"     ; };
 
 template<class T>
 C4_ALWAYS_INLINE void sprintf(c4::substr buf, T val)
@@ -558,6 +558,31 @@ xtoa_std_to_string(bm::State& st)
 
 //-----------------------------------------------------------------------------
 
+C4FOR(T, isint)
+xtoa_c4_to_chars(bm::State& st)
+{
+    sbuf<> buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        ++i;
+        c4::to_chars(buf, i);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isreal)
+xtoa_c4_to_chars(bm::State& st)
+{
+    sbuf<> buf;
+    ranf<T> rans;
+    for(auto _ : st)
+    {
+        c4::to_chars(buf, rans.next());
+    }
+    report<T>(st);
+}
+
 #if (C4_CPP >= 17)
 C4FOR(T, isint)
 xtoa_std_to_chars(bm::State& st)
@@ -583,32 +608,35 @@ xtoa_std_to_chars(bm::State& st)
     }
     report<T>(st);
 }
-#endif
 
 C4FOR(T, isint)
-xtoa_c4_to_chars(bm::State& st)
+atox_std_from_chars(bm::State& st)
 {
-    sbuf<> buf;
-    T i = 0;
+    ranstr rans;
+    rans.init_as<T>();
+    T val;
     for(auto _ : st)
     {
-        ++i;
-        c4::to_chars(buf, i);
+        c4::csubstr buf = rans.next();
+        std::from_chars(buf.begin(), buf.end(), val);
     }
     report<T>(st);
 }
 
 C4FOR(T, isreal)
-xtoa_c4_to_chars(bm::State& st)
+atox_std_from_chars(bm::State& st)
 {
     sbuf<> buf;
     ranf<T> rans;
+    T val;
     for(auto _ : st)
     {
-        c4::to_chars(buf, rans.next());
+        c4::csubstr buf = rans.next();
+        std::from_chars(buf.begin(), buf.end(), val);
     }
     report<T>(st);
 }
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -720,6 +748,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream,  double, std::stringstream);
 
 
 BENCHMARK_TEMPLATE(atox_c4_atox,  uint8_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint8_t);
 BENCHMARK_TEMPLATE(atox_std_atoi,   uint8_t);
 BENCHMARK_TEMPLATE(atox_std_strtoul,   uint8_t);
 BENCHMARK_TEMPLATE(atox_scanf,   uint8_t);
@@ -729,6 +758,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint8_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox,   int8_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int8_t);
 BENCHMARK_TEMPLATE(atox_std_atoi,   int8_t);
 BENCHMARK_TEMPLATE(atox_std_strtol,   int8_t);
 BENCHMARK_TEMPLATE(atox_scanf,   int8_t);
@@ -738,6 +768,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   int8_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   int8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox, uint16_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint16_t);
 BENCHMARK_TEMPLATE(atox_std_atoi,   uint16_t);
 BENCHMARK_TEMPLATE(atox_std_strtoul,   uint16_t);
 BENCHMARK_TEMPLATE(atox_scanf,   uint16_t);
@@ -747,6 +778,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint16_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox,  int16_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int16_t);
 BENCHMARK_TEMPLATE(atox_std_atoi,   int16_t);
 BENCHMARK_TEMPLATE(atox_std_strtol,   int16_t);
 BENCHMARK_TEMPLATE(atox_scanf,   int16_t);
@@ -756,6 +788,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   int16_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   int16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox, uint32_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint32_t);
 BENCHMARK_TEMPLATE(atox_std_atoi,   uint32_t);
 BENCHMARK_TEMPLATE(atox_std_strtoul,   uint32_t);
 BENCHMARK_TEMPLATE(atox_scanf,   uint32_t);
@@ -765,6 +798,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint32_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox,  int32_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int32_t);
 BENCHMARK_TEMPLATE(atox_std_atoi,   int32_t);
 BENCHMARK_TEMPLATE(atox_std_strtol,   int32_t);
 BENCHMARK_TEMPLATE(atox_scanf,   int32_t);
@@ -774,6 +808,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   int32_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   int32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox, uint64_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint64_t);
 BENCHMARK_TEMPLATE(atox_std_atol,   uint64_t);
 BENCHMARK_TEMPLATE(atox_std_strtoull,   uint64_t);
 BENCHMARK_TEMPLATE(atox_scanf,   uint64_t);
