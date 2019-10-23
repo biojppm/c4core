@@ -6,6 +6,29 @@
 
 namespace c4 {
 
+TEST(itoa, int8_t)
+{
+    char bufc[64];
+    substr buf = bufc;
+    int8_t val = -128;
+    size_t ret = itoa(buf, val);
+    EXPECT_EQ(buf.first(ret), "-128");
+    val = 127;
+    ret = itoa(buf, val);
+    EXPECT_EQ(buf.first(ret), "127");
+}
+
+TEST(itoa, int16_t)
+{
+    char bufc[64];
+    substr buf = bufc;
+    int16_t val = -32768;
+    size_t ret = itoa(buf, val);
+    EXPECT_EQ(buf.first(ret), "-32768");
+    val = 32767;
+    ret = itoa(buf, val);
+    EXPECT_EQ(buf.first(ret), "32767");
+}
 
 template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class I>
 void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I num, const char *r2, const char *r8, const char *r10, const char *r16)

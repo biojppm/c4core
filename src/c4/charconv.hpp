@@ -100,9 +100,8 @@ size_t itoa(substr buf, T v)
     if(v < 0)
     {
         _c4append('-');
-        v = -v;
         do {
-            _c4append((v % 10) + '0');
+            _c4append('0' - (v % 10));
             v /= 10;
         } while(v);
         if(buf.len > 0)
@@ -113,7 +112,7 @@ size_t itoa(substr buf, T v)
     else
     {
         do {
-            _c4append((v % 10) + '0');
+            _c4append('0' + (v % 10));
             v /= 10;
         } while(v);
         buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
