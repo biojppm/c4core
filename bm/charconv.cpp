@@ -342,16 +342,38 @@ void atox_std_strtod(bm::State& st)
 //-----------------------------------------------------------------------------
 
 template<class T> struct fmtspec;
-template<> struct fmtspec< uint8_t> { constexpr static const char w[] = "%" PRIu8 , r[] = "%" SCNu8 ; };
-template<> struct fmtspec<  int8_t> { constexpr static const char w[] = "%" PRIi8 , r[] = "%" SCNi8 ; };
-template<> struct fmtspec<uint16_t> { constexpr static const char w[] = "%" PRIu16, r[] = "%" SCNu16; };
-template<> struct fmtspec< int16_t> { constexpr static const char w[] = "%" PRIi16, r[] = "%" SCNi16; };
-template<> struct fmtspec<uint32_t> { constexpr static const char w[] = "%" PRIu32, r[] = "%" SCNu32; };
-template<> struct fmtspec< int32_t> { constexpr static const char w[] = "%" PRIi32, r[] = "%" SCNi32; };
-template<> struct fmtspec<uint64_t> { constexpr static const char w[] = "%" PRIu64, r[] = "%" SCNu64; };
-template<> struct fmtspec< int64_t> { constexpr static const char w[] = "%" PRIi64, r[] = "%" SCNi64; };
-template<> struct fmtspec< float  > { constexpr static const char w[] = "%g"      , r[] = "%g"      ; };
-template<> struct fmtspec< double > { constexpr static const char w[] = "%lg"     , r[] = "%lg"     ; };
+template<> struct fmtspec< uint8_t> { static const char w[], r[]; };
+template<> struct fmtspec<  int8_t> { static const char w[], r[]; };
+template<> struct fmtspec<uint16_t> { static const char w[], r[]; };
+template<> struct fmtspec< int16_t> { static const char w[], r[]; };
+template<> struct fmtspec<uint32_t> { static const char w[], r[]; };
+template<> struct fmtspec< int32_t> { static const char w[], r[]; };
+template<> struct fmtspec<uint64_t> { static const char w[], r[]; };
+template<> struct fmtspec< int64_t> { static const char w[], r[]; };
+template<> struct fmtspec< float  > { static const char w[], r[]; };
+template<> struct fmtspec< double > { static const char w[], r[]; };
+
+constexpr const char fmtspec< uint8_t>::w[] = "%" PRIu8 ;
+constexpr const char fmtspec<  int8_t>::w[] = "%" PRIi8 ;
+constexpr const char fmtspec<uint16_t>::w[] = "%" PRIu16;
+constexpr const char fmtspec< int16_t>::w[] = "%" PRIi16;
+constexpr const char fmtspec<uint32_t>::w[] = "%" PRIu32;
+constexpr const char fmtspec< int32_t>::w[] = "%" PRIi32;
+constexpr const char fmtspec<uint64_t>::w[] = "%" PRIu64;
+constexpr const char fmtspec< int64_t>::w[] = "%" PRIi64;
+constexpr const char fmtspec< float  >::w[] = "%g"      ;
+constexpr const char fmtspec< double >::w[] = "%lg"     ;
+
+constexpr const char fmtspec< uint8_t>::r[] = "%" SCNu8 ;
+constexpr const char fmtspec<  int8_t>::r[] = "%" SCNi8 ;
+constexpr const char fmtspec<uint16_t>::r[] = "%" SCNu16;
+constexpr const char fmtspec< int16_t>::r[] = "%" SCNi16;
+constexpr const char fmtspec<uint32_t>::r[] = "%" SCNu32;
+constexpr const char fmtspec< int32_t>::r[] = "%" SCNi32;
+constexpr const char fmtspec<uint64_t>::r[] = "%" SCNu64;
+constexpr const char fmtspec< int64_t>::r[] = "%" SCNi64;
+constexpr const char fmtspec< float  >::r[] = "%g"      ;
+constexpr const char fmtspec< double >::r[] = "%lg"     ;
 
 template<class T>
 C4_ALWAYS_INLINE void sprintf(c4::substr buf, T val)
