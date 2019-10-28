@@ -33,7 +33,7 @@ namespace bm = benchmark;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// utilities for use in benchmarks below
+// utilities for use in the benchmarks below
 
 
 template<class T>
@@ -43,6 +43,7 @@ void report(bm::State &st)
     st.SetItemsProcessed(st.iterations());
 }
 
+/** a character buffer, easily convertable to c4::substr */
 template<size_t Dim=128>
 struct sbuf
 {
@@ -54,6 +55,7 @@ struct sbuf
     char* end() { return buf.end(); }
 };
 
+/** holds a ring buffer with values to be read from on benchmarks converting to string */
 template<class T>
 struct ranf
 {
@@ -63,6 +65,7 @@ struct ranf
     ranf(size_t sz=4096) : v(sz), curr(0) { std::generate(v.begin(), v.end(), std::rand); }
 };
 
+/** holds a ring buffer with strings representing values, to be read from on benchmarks converting from string */
 struct ranstr
 {
     std::vector<std::string> v;
@@ -82,10 +85,6 @@ struct ranstr
 };
 
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
 // facilities to deuglify SFINAE
 #define C4FOR(ty, condition)                            \
     template<class ty>                                  \
@@ -94,12 +93,17 @@ struct ranstr
     template<class ty1, class ty2>                              \
     typename std::enable_if<condition(ty1), void>::type
 
-#define isint(ty) std::is_integral<T>::value
-#define isiint(ty) std::is_integral<T>::value && !std::is_unsigned<T>::value
-#define isuint(ty) std::is_integral<T>::value && std::is_unsigned<T>::value
-#define isreal(ty) std::is_floating_point<T>::value
-#define isfloat(ty) std::is_same<T, float>::value
-#define isdouble(ty) std::is_same<T, double>::value
+#define isint(ty) std::is_integral<ty>::value
+#define isiint(ty) std::is_integral<ty>::value && !std::is_unsigned<ty>::value
+#define isuint(ty) std::is_integral<ty>::value && std::is_unsigned<ty>::value
+#define isreal(ty) std::is_floating_point<ty>::value
+#define isfloat(ty) std::is_same<ty, float>::value
+#define isdouble(ty) std::is_same<ty, double>::value
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 C4FOR(T, isiint)
 xtoa_c4_xtoa(bm::State& st)
@@ -108,8 +112,7 @@ xtoa_c4_xtoa(bm::State& st)
     T i = -10;
     for(auto _ : st)
     {
-        ++i;
-        c4::itoa(buf, i);
+        c4::itoa(buf, ++i);
     }
     report<T>(st);
 }
@@ -122,7 +125,7 @@ xtoa_c4_xtoa(bm::State& st)
     for(auto _ : st)
     {
         ++i;
-        c4::utoa(buf, i);
+        c4::utoa(buf, ++i);
     }
     report<T>(st);
 }
@@ -417,8 +420,7 @@ xtoa_sstream(bm::State& st)
     T i = 0;
     for(auto _ : st)
     {
-        ++i;
-        std::string out = xtoa_sstream_<StreamType>(i);
+        std::string out = xtoa_sstream_<StreamType>(++i);
         C4_UNUSED(out);
     }
     report<T>(st);
@@ -479,8 +481,7 @@ xtoa_sstream_reuse(bm::State& st)
     StreamType ss;
     for(auto _ : st)
     {
-        ++i;
-        std::string out = xtoa_sstream_reuse_(ss, i);
+        std::string out = xtoa_sstream_reuse_(ss, ++i);
         C4_UNUSED(out);
     }
     report<T>(st);
@@ -498,7 +499,6 @@ xtoa_sstream_reuse(bm::State& st)
     }
     report<T>(st);
 }
-
 
 
 //-----------------------------------------------------------------------------
@@ -536,8 +536,7 @@ xtoa_std_to_string(bm::State& st)
     T i = 0;
     for(auto _ : st)
     {
-        ++i;
-        std::string out = std::to_string(i);
+        std::string out = std::to_string(++i);
         C4_UNUSED(out);
     }
     report<T>(st);
@@ -565,8 +564,7 @@ xtoa_c4_to_chars(bm::State& st)
     T i = 0;
     for(auto _ : st)
     {
-        ++i;
-        c4::to_chars(buf, i);
+        c4::to_chars(buf, ++i);
     }
     report<T>(st);
 }
@@ -591,8 +589,7 @@ xtoa_std_to_chars(bm::State& st)
     T i = 0;
     for(auto _ : st)
     {
-        ++i;
-        std::to_chars(buf.begin(), buf.end(), i);
+        std::to_chars(buf.begin(), buf.end(), ++i);
     }
     report<T>(st);
 }
