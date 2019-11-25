@@ -60,7 +60,12 @@ set(C4CORE_SRC
     c4/c4core.natvis
 )
 
+if(NOT C4_LIBRARY_TYPE)
+    set(C4_LIBRARY_TYPE STATIC)
+endif()
+
 c4core_add_library(c4core
+    LIBRARY_TYPE ${RYML_LIBRARY_TYPE}  
     SOURCES ${C4CORE_SRC} SOURCE_ROOT ${C4CORE_SRC_DIR}
     INC_DIRS ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
 )
