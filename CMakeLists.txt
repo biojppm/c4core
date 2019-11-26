@@ -70,6 +70,12 @@ c4core_add_library(c4core
     INC_DIRS ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
 )
 
+c4core_add_library(c4core-interface
+    LIBRARY_TYPE INTERFACE
+    SOURCES ${C4CORE_SRC} SOURCE_ROOT ${C4CORE_SRC_DIR}
+    INTERFACE_INC_DIRS ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
+)
+
 c4core_add_doxygen(doc
     PROJ c4core
     DOXYFILE ${CMAKE_CURRENT_LIST_DIR}/cmake/Doxyfile.in
