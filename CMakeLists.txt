@@ -60,10 +60,24 @@ set(C4CORE_SRC
     c4/c4core.natvis
 )
 
+set(C4CORE_EXT_TO_INSTALL
+    ${C4CORE_EXT_DIR}/debugbreak/debugbreak.h
+    ${C4CORE_EXT_DIR}/sg14/inplace_function.h
+)
+
 c4core_add_library(c4core
     SOURCES ${C4CORE_SRC} SOURCE_ROOT ${C4CORE_SRC_DIR}
-    INC_DIRS ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
+    INC_DIRS
+       $<BUILD_INTERFACE:${C4CORE_SRC_DIR}> $<INSTALL_INTERFACE:include>
+       $<BUILD_INTERFACE:${C4CORE_EXT_DIR}> $<INSTALL_INTERFACE:include/c4/extern>
 )
+
+c4core_install_library(c4core)
+c4_install_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/extern" "${C4CORE_EXT_DIR}")
+
+
+#-------------------------------------------------------
+# developer targets
 
 c4core_add_doxygen(doc
     PROJ c4core

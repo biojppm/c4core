@@ -45,3 +45,14 @@ c4core_test(format           format.cpp)
 c4core_test(base64           base64.cpp)
 c4core_test(std_string       std_string.cpp)
 c4core_test(std_vector       std_vector.cpp)
+
+
+c4core_add_install_include_test(c4core "c4core::")
+c4core_add_install_link_test(c4core "c4core::" "
+#include <c4/substr.hpp>
+int main()
+{
+    c4::csubstr s = \"12345\"\;
+    return s.len == decltype(s.len)(5)\;
+}
+")
