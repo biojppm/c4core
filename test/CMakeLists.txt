@@ -53,6 +53,6 @@ c4core_add_install_link_test(c4core "c4core::" "
 int main()
 {
     c4::csubstr s = \"12345\"\;
-    return s.len == decltype(s.len)(5)\;
+    return s.len != decltype(s.len)(5)\;
 }
 ")
