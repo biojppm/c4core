@@ -29,6 +29,7 @@
 #   define C4_NOEXCEPT noexcept
 #endif
 
+
 //-----------------------------------------------------------------------------
 
 #define C4_ASSERT_SAME_TYPE(ty1, ty2)                       \
@@ -36,6 +37,7 @@
 
 #define C4_ASSERT_DIFF_TYPE(ty1, ty2)                       \
     C4_STATIC_ASSERT( ! std::is_same< ty1 C4_COMMA_X ty2 >::value)
+
 
 //-----------------------------------------------------------------------------
 
@@ -50,12 +52,14 @@
 #ifdef NDEBUG
 #   define C4_DEBUG_BREAK()
 #else
-C4_BEGIN_NAMESPACE(c4)
-bool is_debugger_attached();
-C4_END_NAMESPACE(c4)
 #   include <debugbreak/debugbreak.h>
 #   define C4_DEBUG_BREAK() if(c4::is_debugger_attached()) { ::debug_break(); }
 #endif
+
+C4_BEGIN_NAMESPACE(c4)
+bool is_debugger_attached();
+C4_END_NAMESPACE(c4)
+
 
 //-----------------------------------------------------------------------------
 
@@ -75,6 +79,7 @@ C4_END_NAMESPACE(c4)
      * @see http://stackoverflow.com/questions/35587137/ */
 #   pragma GCC system_header
 #endif
+
 
 //-----------------------------------------------------------------------------
 

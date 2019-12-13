@@ -123,14 +123,9 @@ void handle_warning(srcloc where, const char *fmt, ...)
 }
 
 //-----------------------------------------------------------------------------
-#ifndef NDEBUG
 bool is_debugger_attached()
 {
-#if defined(C4_PS4)
-    return (sceDbgIsDebuggerAttached() != 0);
-#elif defined(C4_XBOX) || (defined(C4_WIN) && defined(C4_MSVC))
-    return IsDebuggerPresent() != 0;
-#elif defined(C4_UNIX) || defined(C4_LINUX)
+#if defined(C4_UNIX) || defined(C4_LINUX)
     static bool first_call = true;
     static bool first_call_result = false;
     if(first_call)
@@ -157,7 +152,7 @@ bool is_debugger_attached()
             {
                 buf[num_read] = 0;
             }
-            tracer_pid    = strstr(buf, TracerPid);
+            tracer_pid = strstr(buf, TracerPid);
             if (tracer_pid)
             {
                 first_call_result = !!atoi(tracer_pid + sizeof(TracerPid) - 1);
@@ -165,11 +160,14 @@ bool is_debugger_attached()
         }
     }
     return first_call_result;
+#elif defined(C4_PS4)
+    return (sceDbgIsDebuggerAttached() != 0);
+#elif defined(C4_XBOX) || (defined(C4_WIN) && defined(C4_MSVC))
+    return IsDebuggerPresent() != 0;
 #else
     C4_NOT_IMPLEMENTED();
     return false;
 #endif
 } // is_debugger_attached()
-#endif // NDEBUG
 
 C4_END_NAMESPACE(c4)
