@@ -13,19 +13,19 @@ struct subject
 {
     static size_t ct_cp, ct_mv, cp, mv;
     static void clear() { ct_cp = ct_mv = cp = mv = 0; }
-    subject(Counting<std::string> const& s)
+    subject(Counting<std::string> const&)
     {
         ++ct_cp;
     }
-    subject(Counting<std::string> && s)
+    subject(Counting<std::string> &&)
     {
         ++ct_mv;
     }
-    subject(subject const& s)
+    subject(subject const&)
     {
         ++cp;
     }
-    subject(subject && s)
+    subject(subject &&)
     {
         ++mv;
     }
@@ -38,13 +38,13 @@ C4_END_HIDDEN_NAMESPACE
 
 TEST(ctor_dtor, construct_n)
 {
-    using T = Counting< subject >;
+    using T = Counting<subject>;
     char buf1[100 * sizeof(T)];
     T* mem1 = reinterpret_cast<T*>(buf1);
 
-    using cs = Counting< std::string >;
+    using cs = Counting<std::string>;
 
-    int num = 10;
+    decltype(subject::ct_cp) num = 10;
 
     {
         auto chc = T::check_num_ctors_dtors(num, 0);
@@ -65,17 +65,17 @@ TEST(ctor_dtor, construct_n)
 }
 
 //-----------------------------------------------------------------------------
-template< class T >
+template<class T>
 void create_make_room_buffer(std::vector<T> &orig)
 {
-    C4_STATIC_ASSERT(std::is_integral< T >::value);
-    for(T i = 0, e = (T)orig.size(); i < e; ++i)
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    for(int i = 0, e = (int)orig.size(); i < e; ++i)
     {
-        orig[i] = (T)(T(33) + i % (T(122) - T(33))); // assign characters
+        orig[i] = (T)(33 + i % (122 - 33)); // assign characters
     }
 }
 template<>
-void create_make_room_buffer< std::string >(std::vector<std::string> &orig)
+void create_make_room_buffer<std::string>(std::vector<std::string> &orig)
 {
     for(int i = 0, e = (int)orig.size(); i < e; ++i)
     {
@@ -84,15 +84,15 @@ void create_make_room_buffer< std::string >(std::vector<std::string> &orig)
     }
 }
 
-template< class T >
-void do_make_room_inplace(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_make_room_inplace(std::vector<T> const& orig, std::vector<T> & buf,
                           size_t bufsz, size_t room, size_t pos)
 {
     buf = orig;
     make_room(buf.data() + pos, bufsz, room);
 }
-template< class T >
-void do_make_room_srcdst(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_make_room_srcdst(std::vector<T> const& orig, std::vector<T> & buf,
                          size_t bufsz, size_t room, size_t pos)
 {
     buf.resize(orig.size());
@@ -103,8 +103,8 @@ void do_make_room_srcdst(std::vector< T > const& orig, std::vector< T > & buf,
     make_room(buf.data(), orig.data(), bufsz, room, pos);
 }
 
-template< class T >
-void do_make_room_check(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_make_room_check(std::vector<T> const& orig, std::vector<T> & buf,
                         size_t bufsz, size_t room, size_t pos)
 {
     for(size_t i = 0, e = orig.size(); i < e; ++i)
@@ -135,26 +135,26 @@ void do_make_room_check(std::vector< T > const& orig, std::vector< T > & buf,
     }
 };
 
-template< class T >
-void do_make_room_inplace_test(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_make_room_inplace_test(std::vector<T> const& orig, std::vector<T> & buf,
                                size_t bufsz, size_t room, size_t pos)
 {
     do_make_room_inplace(orig, buf, bufsz, room, pos);
     do_make_room_check(orig, buf, bufsz, room, pos);
 }
 
-template< class T >
-void do_make_room_srcdst_test(std::vector< T > const& orig, std::vector< T > & buf,
-                              size_t bufsz, size_t room, size_t pos)
+template<class T>
+void do_make_room_srcdst_test(std::vector<T> const& orig, std::vector<T> & buf,
+                              size_t /*bufsz*/, size_t room, size_t pos)
 {
     do_make_room_srcdst(orig, buf, buf.size() - room, room, pos);
     do_make_room_check(orig, buf, buf.size() - room, room, pos);
 }
 
-template< class T, class Func >
+template<class T, class Func>
 void test_make_room(Func test_func)
 {
-    std::vector< T > orig(100), buf(100);
+    std::vector<T> orig(100), buf(100);
 
     create_make_room_buffer(orig);
 
@@ -182,52 +182,52 @@ TEST(ctor_dtor, make_room_inplace)
 {
     {
         SCOPED_TRACE("uint8_t");
-        test_make_room< uint8_t >(do_make_room_inplace_test< uint8_t >);
+        test_make_room<uint8_t>(do_make_room_inplace_test<uint8_t>);
     }
     {
         SCOPED_TRACE("uint64_t");
-        test_make_room< uint64_t >(do_make_room_inplace_test< uint64_t >);
+        test_make_room<uint64_t>(do_make_room_inplace_test<uint64_t>);
     }
     {
         SCOPED_TRACE("std::string");
-        test_make_room< std::string >(&do_make_room_inplace_test< std::string >);
+        test_make_room<std::string>(&do_make_room_inplace_test<std::string>);
     }
 }
 TEST(ctor_dtor, make_room_srcdst)
 {
     {
         SCOPED_TRACE("uint8_t");
-        test_make_room< uint8_t >(&do_make_room_srcdst_test< uint8_t >);
+        test_make_room<uint8_t>(&do_make_room_srcdst_test<uint8_t>);
     }
     {
         SCOPED_TRACE("uint64_t");
-        test_make_room< uint64_t >(&do_make_room_srcdst_test< uint64_t >);
+        test_make_room<uint64_t>(&do_make_room_srcdst_test<uint64_t>);
     }
     {
         SCOPED_TRACE("std::string");
-        test_make_room< std::string >(&do_make_room_srcdst_test< std::string >);
+        test_make_room<std::string>(&do_make_room_srcdst_test<std::string>);
     }
 }
 
 //-----------------------------------------------------------------------------
 
-template< class T >
-void do_destroy_room_inplace(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_destroy_room_inplace(std::vector<T> const& orig, std::vector<T> & buf,
                           size_t bufsz, size_t room, size_t pos)
 {
     buf = orig;
     destroy_room(buf.data() + pos, bufsz - pos, room);
 }
-template< class T >
-void do_destroy_room_srcdst(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_destroy_room_srcdst(std::vector<T> const& orig, std::vector<T> & buf,
                             size_t bufsz, size_t room, size_t pos)
 {
     buf = orig;
     destroy_room(buf.data(), orig.data(), bufsz, room, pos);
 }
 
-template< class T >
-void do_destroy_room_check(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_destroy_room_check(std::vector<T> const& orig, std::vector<T> & buf,
                            size_t bufsz, size_t room, size_t pos)
 {
     for(size_t i = 0, e = orig.size(); i < e; ++i)
@@ -257,25 +257,25 @@ void do_destroy_room_check(std::vector< T > const& orig, std::vector< T > & buf,
     }
 };
 
-template< class T >
-void do_destroy_room_inplace_test(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_destroy_room_inplace_test(std::vector<T> const& orig, std::vector<T> & buf,
                                   size_t room, size_t pos)
 {
     do_destroy_room_inplace(orig, buf, buf.size(), room, pos);
     do_destroy_room_check(orig, buf, buf.size(), room, pos);
 }
 
-template< class T >
-void do_destroy_room_srcdst_test(std::vector< T > const& orig, std::vector< T > & buf,
+template<class T>
+void do_destroy_room_srcdst_test(std::vector<T> const& orig, std::vector<T> & buf,
                                  size_t room, size_t pos)
 {
     do_destroy_room_srcdst(orig, buf, buf.size(), room, pos);
     do_destroy_room_check(orig, buf, buf.size(), room, pos);
 }
-template< class T, class Func >
+template<class T, class Func>
 void test_destroy_room(Func test_func)
 {
-    std::vector< T > orig(100), buf(100);
+    std::vector<T> orig(100), buf(100);
 
     create_make_room_buffer(orig);
 
@@ -303,30 +303,30 @@ TEST(ctor_dtor, destroy_room_inplace)
 {
     {
         SCOPED_TRACE("uint8_t");
-        test_destroy_room< uint8_t >(do_destroy_room_inplace_test< uint8_t >);
+        test_destroy_room<uint8_t>(do_destroy_room_inplace_test<uint8_t>);
     }
     {
         SCOPED_TRACE("uint64_t");
-        test_destroy_room< uint64_t >(do_destroy_room_inplace_test< uint64_t >);
+        test_destroy_room<uint64_t>(do_destroy_room_inplace_test<uint64_t>);
     }
     {
         SCOPED_TRACE("std::string");
-        test_destroy_room< std::string >(&do_destroy_room_inplace_test< std::string >);
+        test_destroy_room<std::string>(&do_destroy_room_inplace_test<std::string>);
     }
 }
 TEST(ctor_dtor, destroy_room_srcdst)
 {
     {
         SCOPED_TRACE("uint8_t");
-        test_destroy_room< uint8_t >(&do_destroy_room_srcdst_test< uint8_t >);
+        test_destroy_room<uint8_t>(&do_destroy_room_srcdst_test<uint8_t>);
     }
     {
         SCOPED_TRACE("uint64_t");
-        test_destroy_room< uint64_t >(&do_destroy_room_srcdst_test< uint64_t >);
+        test_destroy_room<uint64_t>(&do_destroy_room_srcdst_test<uint64_t>);
     }
     {
         SCOPED_TRACE("std::string");
-        test_destroy_room< std::string >(&do_destroy_room_srcdst_test< std::string >);
+        test_destroy_room<std::string>(&do_destroy_room_srcdst_test<std::string>);
     }
 }
 

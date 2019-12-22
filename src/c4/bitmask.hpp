@@ -10,6 +10,13 @@
 #ifdef _MSC_VER
 #   pragma warning(push)
 #   pragma warning(disable : 4996) // 'strncpy', fopen, etc: This function or variable may be unsafe
+#elif defined(__clang__)
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   if __GNUC__ >= 8
+#       pragma GCC diagnostic ignored "-Wstringop-truncation"
+#       pragma GCC diagnostic ignored "-Wstringop-overflow"
+#   endif
 #endif
 
 namespace c4 {
@@ -48,7 +55,9 @@ Stream& bm2stream(typename std::underlying_type<Enum>::type bits, Stream &s)
 
 // some utility macros, undefed below
 
-/** this macro simplifies the code for bm2str()
+
+/** Execute @p code if the @p num of characters is available in the str
+ * buffer. This macro simplifies the code for bm2str().
  * @todo improve this by writing from the end and moving only once. */
 #define _c4prependchars(code, num)                                      \
     if(str && (pos + num <= sz))                                        \
@@ -61,6 +70,8 @@ Stream& bm2stream(typename std::underlying_type<Enum>::type bits, Stream &s)
     else if(str && sz) { C4_ERROR("cannot write to string pos=%d num=%d sz=%d", (int)pos, (int)num, (int)sz); } \
     pos += num
 
+/** Execute @p code if the @p num of characters is available in the str
+ * buffer. This macro simplifies the code for bm2str(). */
 #define _c4appendchars(code, num)                                       \
     if(str && (pos + num <= sz))                                        \
     {                                                                   \
@@ -251,6 +262,9 @@ typename std::underlying_type<Enum>::type str2bm(const char *str)
 
 #ifdef _MSC_VER
 #   pragma warning(pop)
+#elif defined(__clang__)
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
 #endif
 
 #endif // _C4_BITMASK_HPP_

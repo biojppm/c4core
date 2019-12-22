@@ -3,6 +3,7 @@
 #include "c4/std/string.hpp"
 #include "c4/std/vector.hpp"
 #include "c4/format.hpp"
+#include "c4/libtest/supprwarn_push.hpp"
 
 namespace c4 {
 
@@ -628,3 +629,5 @@ TEST(to_chars, roundtrip_substr)
 }
 
 } // namespace c4
+
+#include "c4/libtest/supprwarn_pop.hpp"

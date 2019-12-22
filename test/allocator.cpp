@@ -3,6 +3,7 @@
 
 #include "c4/allocator.hpp"
 #include "c4/test.hpp"
+#include "c4/libtest/supprwarn_push.hpp"
 
 #include <vector>
 #include <string>
@@ -234,3 +235,5 @@ TEST(small_allocator_mr_linear_arr, std_containers)
 }
 
 C4_END_NAMESPACE(c4)
+
+#include "c4/libtest/supprwarn_pop.hpp"

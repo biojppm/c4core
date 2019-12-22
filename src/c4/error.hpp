@@ -52,8 +52,21 @@
 #ifdef NDEBUG
 #   define C4_DEBUG_BREAK()
 #else
+#   ifdef __clang__
+#       pragma clang diagnostic push
+#       if (__clang_major__ >= 10)
+#           pragma clang diagnostic ignored "-Wgnu-inline-cpp-without-extern" // debugbreak/debugbreak.h:50:16: error: 'gnu_inline' attribute without 'extern' in C++ treated as externally available, this changed in Clang 10 [-Werror,-Wgnu-inline-cpp-without-extern]
+#       endif
+#   elif defined(__GNUC__)
+#   endif
+
 #   include <debugbreak/debugbreak.h>
 #   define C4_DEBUG_BREAK() if(c4::is_debugger_attached()) { ::debug_break(); }
+
+#   ifdef __clang__
+#       pragma clang diagnostic pop
+#   elif defined(__GNUC__)
+#   endif
 #endif
 
 C4_BEGIN_NAMESPACE(c4)
@@ -229,12 +242,12 @@ struct srcloc
 
 #ifdef C4_USE_ASSERT
 #   define C4_ASSERT(cond) C4_CHECK(cond)
-#   define C4_ASSERT_MSG(cond, fmt, ...) C4_CHECK_MSG(cond, fmt, ## __VA_ARGS__)
+#   define C4_ASSERT_MSG(cond, /*fmt, */...) C4_CHECK_MSG(cond, ## __VA_ARGS__)
 #   define C4_ASSERT_IF(predicate, cond) if(predicate) { C4_ASSERT(cond); }
 #   define C4_NOEXCEPT_A C4_NOEXCEPT
 #else
 #   define C4_ASSERT(cond)
-#   define C4_ASSERT_MSG(cond, fmt, ...)
+#   define C4_ASSERT_MSG(cond, /*fmt, */...)
 #   define C4_ASSERT_IF(predicate, cond)
 #   define C4_NOEXCEPT_A noexcept
 #endif
@@ -270,12 +283,12 @@ struct srcloc
 
 #ifdef C4_USE_XASSERT
 #   define C4_XASSERT(cond) C4_CHECK(cond)
-#   define C4_XASSERT_MSG(cond, fmt, ...) C4_CHECK_MSG(cond, fmt, ## __VA_ARGS__)
+#   define C4_XASSERT_MSG(cond, /*fmt, */...) C4_CHECK_MSG(cond, ## __VA_ARGS__)
 #   define C4_XASSERT_IF(predicate, cond) if(predicate) { C4_XASSERT(cond); }
 #   define C4_NOEXCEPT_X C4_NOEXCEPT
 #else
 #   define C4_XASSERT(cond)
-#   define C4_XASSERT_MSG(cond, fmt, ...)
+#   define C4_XASSERT_MSG(cond, /*fmt, */...)
 #   define C4_XASSERT_IF(predicate, cond)
 #   define C4_NOEXCEPT_X noexcept
 #endif
@@ -302,21 +315,22 @@ struct srcloc
 /** like C4_CHECK(), and additionally log a printf-style message.
  * @see C4_CHECK
  * @ingroup error_checking */
-#define C4_CHECK_MSG(cond, fmt, ...)                                \
-    if(C4_UNLIKELY(!(cond)))                                        \
-    {                                                               \
-        C4_ERROR("check failed: %s\n" fmt, #cond, ## __VA_ARGS__);  \
+#define C4_CHECK_MSG(cond, /*fmt, */...)                        \
+    if(C4_UNLIKELY(!(cond)))                                    \
+    {                                                           \
+        C4_ERROR("check failed: %s\n", #cond, ## __VA_ARGS__);  \
     }
+
 
 //-----------------------------------------------------------------------------
 // Common error conditions
 #define C4_NOT_IMPLEMENTED() C4_ERROR("NOT IMPLEMENTED")
-#define C4_NOT_IMPLEMENTED_MSG(msg, ...) C4_ERROR("NOT IMPLEMENTED: " msg, ## __VA_ARGS__)
+#define C4_NOT_IMPLEMENTED_MSG(/*msg, */...) C4_ERROR("NOT IMPLEMENTED: " ## __VA_ARGS__)
 #define C4_NOT_IMPLEMENTED_IF(condition) if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED"); }
-#define C4_NOT_IMPLEMENTED_IF_MSG(condition, msg, ...) if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED: " msg, ## __VA_ARGS__); }
+#define C4_NOT_IMPLEMENTED_IF_MSG(condition, /*msg, */...) if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED: " ## __VA_ARGS__); }
 
 #define C4_NEVER_REACH() C4_UNREACHABLE(); C4_ERROR("never reach this point")
-#define C4_NEVER_REACH_MSG(msg, ...) C4_UNREACHABLE(); C4_ERROR("never reach this point: " msg, ## __VA_ARGS__)
+#define C4_NEVER_REACH_MSG(/*msg, */...) C4_UNREACHABLE(); C4_ERROR("never reach this point: " ## __VA_ARGS__)
 
 C4_END_NAMESPACE(c4)
 

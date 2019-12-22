@@ -4,34 +4,35 @@
 #include <c4/test.hpp>
 
 #include "./enum_common.hpp"
+#include "c4/libtest/supprwarn_push.hpp"
 
 
 TEST(eoffs, simple_enum)
 {
     using namespace c4;
-    EXPECT_EQ(eoffs_cls< MyEnum >(), 0);
-    EXPECT_EQ(eoffs_pfx< MyEnum >(), 0);
+    EXPECT_EQ(eoffs_cls<MyEnum>(), 0);
+    EXPECT_EQ(eoffs_pfx<MyEnum>(), 0);
 }
 
 TEST(eoffs, scoped_enum)
 {
     using namespace c4;
-    EXPECT_EQ(eoffs_cls< MyEnumClass >(), strlen("MyEnumClass::"));
-    EXPECT_EQ(eoffs_pfx< MyEnumClass >(), 0);
+    EXPECT_EQ(eoffs_cls<MyEnumClass>(), strlen("MyEnumClass::"));
+    EXPECT_EQ(eoffs_pfx<MyEnumClass>(), 0);
 }
 
 TEST(eoffs, simple_bitmask)
 {
     using namespace c4;
-    EXPECT_EQ(eoffs_cls< MyBitmask >(), 0);
-    EXPECT_EQ(eoffs_pfx< MyBitmask >(), strlen("BM_"));
+    EXPECT_EQ(eoffs_cls<MyBitmask>(), 0);
+    EXPECT_EQ(eoffs_pfx<MyBitmask>(), strlen("BM_"));
 }
 
 TEST(eoffs, scoped_bitmask)
 {
     using namespace c4;
-    EXPECT_EQ(eoffs_cls< MyBitmaskClass >(), strlen("MyBitmaskClass::"));
-    EXPECT_EQ(eoffs_pfx< MyBitmaskClass >(), strlen("MyBitmaskClass::BM_"));
+    EXPECT_EQ(eoffs_cls<MyBitmaskClass>(), strlen("MyBitmaskClass::"));
+    EXPECT_EQ(eoffs_pfx<MyBitmaskClass>(), strlen("MyBitmaskClass::BM_"));
 }
 
 
@@ -79,7 +80,7 @@ TEST(esyms, scoped_bitmask)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template< typename Enum >
+template<typename Enum>
 void test_e2str()
 {
     using namespace c4;
@@ -124,3 +125,4 @@ TEST(e2str, scoped_bitmask)
     EXPECT_EQ(c4::str2e<MyBitmaskClass>("FOO"), MyBitmaskClass::BM_FOO);
 }
 
+#include "c4/libtest/supprwarn_pop.hpp"

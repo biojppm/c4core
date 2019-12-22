@@ -4,6 +4,8 @@
 #include "c4/memory_resource.hpp"
 
 #include "c4/test.hpp"
+#include "c4/libtest/supprwarn_push.hpp"
+
 #include <limits>
 
 C4_BEGIN_NAMESPACE(c4)
@@ -67,8 +69,8 @@ TEST(aalloc_impl, error_out_of_mem)
 
 void do_test_realloc(arealloc_pfn fn)
 {
-#define _set(dim) for(char i = 0; i < dim; ++i) { mem[i] = size_t(i); }
-#define _check(dim) for(char i = 0; i < dim; ++i) { EXPECT_EQ(mem[i], i); }
+#define _set(dim) for(uint8_t i = 0; i < dim; ++i) { mem[i] = size_t(i); }
+#define _check(dim) for(uint8_t i = 0; i < dim; ++i) { EXPECT_EQ(mem[i], i); }
 
     char *mem = (char*) aalloc(16, alignof(max_align_t));
     _set(16);
@@ -249,3 +251,5 @@ TEST(ScopedMemoryResourceCounts, counts)
 }
 
 C4_END_NAMESPACE(c4)
+
+#include "c4/libtest/supprwarn_pop.hpp"

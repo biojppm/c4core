@@ -3,6 +3,8 @@
 #include "c4/test.hpp"
 #include "c4/format.hpp"
 
+#include "c4/libtest/supprwarn_push.hpp"
+
 namespace c4 {
 
 
@@ -48,7 +50,6 @@ TEST(to_chars, fmt_basic)
     char bufc[128];
     substr buf(bufc);
 
-    size_t s = 0xff;
     EXPECT_EQ(to_chars_sub(buf, fmt::hex( int8_t(0x7f))), "0x7f");
     EXPECT_EQ(to_chars_sub(buf, fmt::hex(uint8_t(0xff))), "0xff");
 
@@ -429,3 +430,5 @@ TEST(formatrs, basic_append)
 }
 
 } // namespace c4
+
+#include "c4/libtest/supprwarn_pop.hpp"

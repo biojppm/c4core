@@ -4,6 +4,7 @@
 #include "c4/memory_util.hpp"
 
 #include "c4/test.hpp"
+#include "c4/libtest/supprwarn_push.hpp"
 
 C4_BEGIN_NAMESPACE(c4)
 
@@ -175,9 +176,9 @@ TEST(msb11, basic)
 
 //-----------------------------------------------------------------------------
 
-template< size_t N > struct sz    { char buf[N]; };
-template<          > struct sz<0> {              };
-template< size_t F, size_t S > void check_tp()
+template<size_t N> struct sz    { char buf[N]; };
+template<        > struct sz<0> {              };
+template<size_t F, size_t S > void check_tp()
 {
     size_t expected;
     if(F == 0 && S == 0) expected = 1;
@@ -210,3 +211,5 @@ TEST(tight_pair, basic)
 }
 
 C4_END_NAMESPACE(c4)
+
+#include "c4/libtest/supprwarn_pop.hpp"

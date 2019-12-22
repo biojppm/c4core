@@ -2,6 +2,8 @@
 #include "c4/test.hpp"
 #include "c4/substr.hpp"
 
+#include "c4/libtest/supprwarn_push.hpp"
+
 namespace c4 {
 
 TEST(substr, ctor_from_char)
@@ -146,8 +148,6 @@ TEST(substr, sub)
 TEST(substr, range)
 {
     csubstr s = "0123456789";
-    size_t l = s.len;
-
     EXPECT_EQ(s.range(0, 10), "0123456789");
     EXPECT_EQ(s.range(0    ), "0123456789");
     EXPECT_EQ(s.range(1, 10), "123456789");
@@ -2766,3 +2766,5 @@ TEST(substr, replace_all)
 }
 
 } // namespace c4
+
+#include "c4/libtest/supprwarn_pop.hpp"

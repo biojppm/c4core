@@ -1,5 +1,13 @@
 #include "c4/base64.hpp"
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wchar-subscripts" // array subscript is of type 'char'
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wchar-subscripts"
+#endif
+
 namespace c4 {
 
 namespace detail {
@@ -78,6 +86,12 @@ bool base64_valid(csubstr encoded)
 
 size_t base64_encode(substr buf, cblob data)
 {
+    #ifdef __clang__
+    #    pragma clang diagnostic push
+    #elif defined(__GNUC__)
+    #    pragma GCC diagnostic push
+    #    pragma GCC diagnostic ignored "-Wstrict-aliasing" // error: dereferencing type-punned pointer will break strict-aliasing rules
+    #endif
     #define c4append_(c) { if(pos < buf.len) { buf.str[pos] = (c); } ++pos; }
     #define c4append_idx_(char_idx) \
     {\
@@ -117,8 +131,14 @@ size_t base64_encode(substr buf, cblob data)
         c4append_('=');
     }
     return pos;
+
     #undef c4append_
     #undef c4append_idx_
+    #ifdef __clang__
+    #    pragma clang diagnostic pop
+    #elif defined(__GNUC__)
+    #    pragma GCC diagnostic pop
+    #endif
 }
 
 
@@ -179,3 +199,9 @@ size_t base64_decode(csubstr encoded, blob data)
 }
 
 } // namespace c4
+
+#ifdef __clang__
+#    pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif

@@ -726,7 +726,6 @@ public:
     {
         size_t b = find(open_close);
         if(b == npos) return basic_substring();
-        size_t nest_level = 0;
         for(size_t i = b+1; i < len; ++i)
         {
             CC c = str[i];
@@ -969,8 +968,8 @@ private:
         size_t m_start_pos;
         C m_sep;
 
-        split_proxy_impl(basic_substring str, size_t start_pos, C sep)
-            : m_str(str), m_start_pos(start_pos), m_sep(sep)
+        split_proxy_impl(basic_substring str_, size_t start_pos, C sep)
+            : m_str(str_), m_start_pos(start_pos), m_sep(sep)
         {
         }
 

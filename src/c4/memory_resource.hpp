@@ -351,16 +351,24 @@ protected:
     virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
 };
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 /** provides a linear array-based memory resource.
  * @see MemoryResourceLinear
  * @ingroup memory_resources */
-template< size_t N >
+template<size_t N>
 struct MemoryResourceLinearArr : public MemoryResourceLinear
 {
+    #ifdef _MSC_VER
+    #pragma warning(push)
+    #pragma warning(disable: 4324) // structure was padded due to alignment specifier
+    #endif
     alignas(alignof(max_align_t)) char m_arr[N];
+    #ifdef _MSC_VER
+    #pragma warning(pop)
+    #endif
     MemoryResourceLinearArr() : MemoryResourceLinear(m_arr, N) { name = "linear_arr"; }
 };
 
@@ -491,7 +499,7 @@ protected:
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override
+    virtual void* do_allocate(size_t sz, size_t alignment, void * /*hint*/) override
     {
         void *ptr = m_resource->allocate(sz, alignment);
         m_counts.add_counts(ptr, sz);

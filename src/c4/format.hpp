@@ -227,7 +227,7 @@ inline size_t from_chars(csubstr buf, fmt::raw_wrapper *r)
     auto ptr = (decltype(buf.str)) std::align(r->alignment, r->len, vptr, space);
     C4_CHECK(ptr != nullptr);
     C4_CHECK(ptr >= r->buf && ptr <= r->buf + r->len);
-    size_t dim = (ptr - buf.str) + r->len;
+    //size_t dim = (ptr - buf.str) + r->len;
     memcpy(r->buf, ptr, r->len);
     return r->len;
 }
@@ -458,7 +458,7 @@ substr format_sub(substr buf, csubstr fmt, Args && ...args)
 
 /** terminates the variadic recursion
  * @ingroup formatting_functions */
-inline size_t unformat(csubstr buf, csubstr fmt)
+inline size_t unformat(csubstr /*buf*/, csubstr /*fmt*/)
 {
     return 0;
 }

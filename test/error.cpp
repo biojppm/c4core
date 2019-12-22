@@ -3,6 +3,7 @@
 
 #include "c4/error.hpp"
 #include "c4/test.hpp"
+#include "c4/libtest/supprwarn_push.hpp"
 
 C4_BEGIN_HIDDEN_NAMESPACE
 bool got_an_error = false;
@@ -46,3 +47,5 @@ TEST(Error, outside_of_c4_namespace)
     }
     EXPECT_EQ(c4::get_error_callback() == orig, true);
 }
+
+#include "c4/libtest/supprwarn_pop.hpp"

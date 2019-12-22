@@ -34,11 +34,22 @@
 /** @def \$\$  a restricted reference */
 /** @def c\$\$  a restricted reference to const data */
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wdollar-in-identifier-extension"
+#elif defined(__GNUC__)
+#endif
+
 #define   $       * C4_RESTRICT // a restricted pointer
 #define  c$  const* C4_RESTRICT // a restricted pointer to const data
 
 #define  $$       & C4_RESTRICT // restricted reference
 #define c$$  const& C4_RESTRICT // restricted reference to const data
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#endif
 
 /** @} */
 

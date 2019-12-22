@@ -11,7 +11,7 @@ C4_BEGIN_NAMESPACE(c4)
 //-----------------------------------------------------------------------------
 TEST(span, default_init)
 {
-    span< int > s;
+    span<int> s;
     EXPECT_EQ(s.size(), 0);
     EXPECT_EQ(s.capacity(), 0);
     EXPECT_EQ(s.data(), nullptr);
@@ -19,7 +19,7 @@ TEST(span, default_init)
 
 TEST(spanrs, default_init)
 {
-    spanrs< int > s;
+    spanrs<int> s;
     EXPECT_EQ(s.size(), 0);
     EXPECT_EQ(s.capacity(), 0);
     EXPECT_EQ(s.data(), nullptr);
@@ -27,7 +27,7 @@ TEST(spanrs, default_init)
 
 TEST(spanrsl, default_init)
 {
-    spanrsl< int > s;
+    spanrsl<int> s;
     EXPECT_EQ(s.size(), 0);
     EXPECT_EQ(s.capacity(), 0);
     EXPECT_EQ(s.data(), nullptr);
@@ -37,7 +37,7 @@ TEST(spanrsl, default_init)
 TEST(span, empty_init)
 {
     int arr[10];
-    span< int > s(arr, 0);
+    span<int> s(arr, 0);
     EXPECT_EQ(s.size(), 0);
     EXPECT_EQ(s.capacity(), 0);
     EXPECT_NE(s.data(), nullptr);
@@ -48,14 +48,14 @@ TEST(spanrs, empty_init)
     int arr[10];
 
     {
-        spanrs< int > s(arr, 0);
+        spanrs<int> s(arr, 0);
         EXPECT_EQ(s.size(), 0);
         EXPECT_EQ(s.capacity(), 0);
         EXPECT_EQ(s.data(), arr);
     }
 
     {
-        spanrs< int > s(arr, 0, C4_COUNTOF(arr));
+        spanrs<int> s(arr, 0, C4_COUNTOF(arr));
         EXPECT_EQ(s.size(), 0);
         EXPECT_EQ(s.capacity(), 10);
         EXPECT_EQ(s.data(), arr);
@@ -67,7 +67,7 @@ TEST(spanrsl, empty_init)
     int arr[10];
 
     {
-        spanrsl< int > s(arr, 0);
+        spanrsl<int> s(arr, 0);
         EXPECT_EQ(s.size(), 0);
         EXPECT_EQ(s.capacity(), 0);
         EXPECT_EQ(s.data(), arr);
@@ -75,7 +75,7 @@ TEST(spanrsl, empty_init)
     }
 
     {
-        spanrsl< int > s(arr, 0, C4_COUNTOF(arr));
+        spanrsl<int> s(arr, 0, C4_COUNTOF(arr));
         EXPECT_EQ(s.size(), 0);
         EXPECT_EQ(s.capacity(), 10);
         EXPECT_EQ(s.data(), arr);
@@ -84,7 +84,7 @@ TEST(spanrsl, empty_init)
 }
 
 //-----------------------------------------------------------------------------
-template< class SpanClass >
+template<class SpanClass>
 void test_fromArray()
 {
     using T = typename SpanClass::value_type;
@@ -123,31 +123,31 @@ void test_fromArray()
 
 TEST(span, fromArray)
 {
-    test_fromArray< span<char> >();
-    test_fromArray< span<int> >();
-    test_fromArray< span<uint32_t> >();
+    test_fromArray<span<char>>();
+    test_fromArray<span<int>>();
+    test_fromArray<span<uint32_t>>();
 }
 
 TEST(spanrs, fromArray)
 {
-    test_fromArray< spanrs<char> >();
-    test_fromArray< spanrs<int> >();
-    test_fromArray< spanrs<uint32_t> >();
+    test_fromArray<spanrs<char>>();
+    test_fromArray<spanrs<int>>();
+    test_fromArray<spanrs<uint32_t>>();
 }
 
 TEST(spanrsl, fromArray)
 {
-    test_fromArray< spanrsl<char> >();
-    test_fromArray< spanrsl<int> >();
-    test_fromArray< spanrsl<uint32_t> >();
+    test_fromArray<spanrsl<char>>();
+    test_fromArray<spanrsl<int>>();
+    test_fromArray<spanrsl<uint32_t>>();
 }
 
 //-----------------------------------------------------------------------------
 TEST(span, subspan)
 {
     int arr[10];
-    span< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.subspan(0)), decltype(s) >::value));
+    span<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.subspan(0)), decltype(s)>::value));
 
     {
         auto ss = s.subspan(0, 5);
@@ -187,8 +187,8 @@ TEST(span, subspan)
 TEST(spanrs, subspan)
 {
     int arr[10];
-    spanrs< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.subspan(0)), decltype(s) >::value));
+    spanrs<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.subspan(0)), decltype(s)>::value));
 
     auto ss = s.subspan(0, 5);
     EXPECT_EQ(ss.size(), 5);
@@ -203,8 +203,8 @@ TEST(spanrs, subspan)
 TEST(spanrsl, subspan)
 {
     int arr[10];
-    spanrsl< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.subspan(0)), decltype(s) >::value));
+    spanrsl<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.subspan(0)), decltype(s)>::value));
 
     auto ss = s.subspan(0, 5);
     EXPECT_EQ(ss.size(), 5);
@@ -235,8 +235,8 @@ TEST(spanrsl, subspan)
 TEST(span, range)
 {
     int arr[10];
-    span< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.range(0)), decltype(s) >::value));
+    span<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.range(0)), decltype(s)>::value));
 
     auto ss = s.range(0, 5);
     EXPECT_EQ(ss.size(), 5);
@@ -256,8 +256,8 @@ TEST(span, range)
 TEST(spanrs, range)
 {
     int arr[10];
-    spanrs< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.range(0)), decltype(s) >::value));
+    spanrs<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.range(0)), decltype(s)>::value));
 
     auto ss = s.range(0, 5);
     EXPECT_EQ(ss.size(), 5);
@@ -277,8 +277,8 @@ TEST(spanrs, range)
 TEST(spanrsl, range)
 {
     int arr[10];
-    spanrsl< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.range(0)), decltype(s) >::value));
+    spanrsl<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.range(0)), decltype(s)>::value));
 
     auto ss = s.range(0, 5);
     EXPECT_EQ(ss.size(), 5);
@@ -310,8 +310,8 @@ TEST(spanrsl, range)
 TEST(span, first)
 {
     int arr[10];
-    span< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.first(1)), decltype(s) >::value));
+    span<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.first(1)), decltype(s)>::value));
 
     auto ss = s.first(0);
     EXPECT_EQ(ss.size(), 0);
@@ -326,8 +326,8 @@ TEST(span, first)
 TEST(spanrs, first)
 {
     int arr[10];
-    spanrs< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.first(1)), decltype(s) >::value));
+    spanrs<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.first(1)), decltype(s)>::value));
 
     auto ss = s.first(0);
     EXPECT_EQ(ss.size(), 0);
@@ -342,8 +342,8 @@ TEST(spanrs, first)
 TEST(spanrsl, first)
 {
     int arr[10];
-    spanrsl< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.first(1)), decltype(s) >::value));
+    spanrsl<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.first(1)), decltype(s)>::value));
 
     auto ss = s.first(0);
     EXPECT_EQ(ss.size(), 0);
@@ -370,8 +370,8 @@ TEST(spanrsl, first)
 TEST(span, last)
 {
     int arr[10];
-    span< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.last(1)), decltype(s) >::value));
+    span<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.last(1)), decltype(s)>::value));
 
     auto ss = s.last(0);
     EXPECT_EQ(ss.size(), 0);
@@ -386,8 +386,8 @@ TEST(span, last)
 TEST(spanrs, last)
 {
     int arr[10];
-    spanrs< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.last(1)), decltype(s) >::value));
+    spanrs<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.last(1)), decltype(s)>::value));
 
     auto ss = s.last(0);
     EXPECT_EQ(ss.size(), 0);
@@ -402,8 +402,8 @@ TEST(spanrs, last)
 TEST(spanrsl, last)
 {
     int arr[10];
-    spanrsl< int > s(arr);
-    C4_STATIC_ASSERT((std::is_same< decltype(s.last(1)), decltype(s) >::value));
+    spanrsl<int> s(arr);
+    C4_STATIC_ASSERT((std::is_same<decltype(s.last(1)), decltype(s)>::value));
 
     auto ss = s.last(0);
     EXPECT_EQ(ss.size(), 0);
@@ -427,7 +427,7 @@ TEST(spanrsl, last)
 }
 
 //-----------------------------------------------------------------------------
-template< typename S >
+template<typename S>
 void test_span_is_subspan()
 {
     int buf10[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -451,21 +451,21 @@ void test_span_is_subspan()
 TEST(span, is_subspan)
 {
     SCOPED_TRACE("span.is_subspan");
-    test_span_is_subspan< span<int> >();
+    test_span_is_subspan<span<int>>();
 }
 TEST(spanrs, is_subspan)
 {
     SCOPED_TRACE("spanrs.is_subspan");
-    test_span_is_subspan< spanrs<int> >();
+    test_span_is_subspan<spanrs<int>>();
 }
 TEST(spanrsl, is_subspan)
 {
     SCOPED_TRACE("spanrsl.is_subspan");
-    test_span_is_subspan< spanrsl<int> >();
+    test_span_is_subspan<spanrsl<int>>();
 }
 
 //-----------------------------------------------------------------------------
-template< typename S >
+template<typename S>
 void test_span_compll()
 {
     int buf10[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -489,23 +489,23 @@ void test_span_compll()
 TEST(span, compll)
 {
     SCOPED_TRACE("span.compll");
-    test_span_compll< span<int> >();
+    test_span_compll<span<int>>();
 }
 TEST(spanrs, compll)
 {
     SCOPED_TRACE("spanrs.compll");
-    test_span_compll< spanrs<int> >();
+    test_span_compll<spanrs<int>>();
 }
 TEST(spanrsl, compll)
 {
     SCOPED_TRACE("spanrsl.compll");
-    test_span_compll< spanrsl<int> >();
+    test_span_compll<spanrsl<int>>();
 }
 
 
 //-----------------------------------------------------------------------------
 
-template< typename S >
+template<typename S>
 void test_span_complr()
 {
     int buf10[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -532,17 +532,17 @@ void test_span_complr()
 TEST(span, complr)
 {
     SCOPED_TRACE("span.compll");
-    test_span_complr< span<int> >();
+    test_span_complr<span<int>>();
 }
 TEST(spanrs, complr)
 {
     SCOPED_TRACE("spanrs.complr");
-    test_span_complr< spanrs<int> >();
+    test_span_complr<spanrs<int>>();
 }
 TEST(spanrsl, complr)
 {
     SCOPED_TRACE("spanrsl.complr");
-    test_span_complr< spanrsl<int> >();
+    test_span_complr<spanrsl<int>>();
 }
 
 
@@ -551,7 +551,7 @@ TEST(spanrsl, complr)
 TEST(span, rtrim)
 {
     int arr[10];
-    span< int > s(arr);
+    span<int> s(arr);
     auto ss = s;
 
     ss.rtrim(0);
@@ -567,7 +567,7 @@ TEST(span, rtrim)
 TEST(spanrs, rtrim)
 {
     int arr[10];
-    spanrs< int > s(arr);
+    spanrs<int> s(arr);
     auto ss = s;
 
     ss.rtrim(0);
@@ -583,7 +583,7 @@ TEST(spanrs, rtrim)
 TEST(spanrsl, rtrim)
 {
     int arr[10];
-    spanrsl< int > s(arr);
+    spanrsl<int> s(arr);
     auto ss = s;
 
     ss.rtrim(0);
@@ -611,7 +611,7 @@ TEST(spanrsl, rtrim)
 TEST(span, ltrim)
 {
     int arr[10];
-    span< int > s(arr);
+    span<int> s(arr);
     auto ss = s;
 
     ss.ltrim(0);
@@ -627,7 +627,7 @@ TEST(span, ltrim)
 TEST(spanrs, ltrim)
 {
     int arr[10];
-    spanrs< int > s(arr);
+    spanrs<int> s(arr);
     auto ss = s;
 
     ss.ltrim(0);
@@ -643,7 +643,7 @@ TEST(spanrs, ltrim)
 TEST(spanrsl, ltrim)
 {
     int arr[10];
-    spanrsl< int > s(arr);
+    spanrsl<int> s(arr);
     auto ss = s;
 
     ss.ltrim(0);
@@ -674,9 +674,9 @@ const int larri[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 const int rarri[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
 TEST(span, reverse_iter)
 {
-    cspan< int > s(larri);
-    using rit = cspan< int >::const_reverse_iterator;
-    int pos = szconv< int >(s.size()) - 1;
+    cspan<int> s(larri);
+    using rit = cspan<int>::const_reverse_iterator;
+    int pos = szconv<int>(s.size()) - 1;
     for(rit b = s.rbegin(), e = s.rend(); b != e; ++b)
     {
         EXPECT_EQ(*b, s[pos--]);
@@ -692,10 +692,10 @@ TEST(span_impl, eq)
     EXPECT_EQ(cspan  <char>(larrc), cspanrs<char>(larrc));
     EXPECT_EQ(cspanrs<char>(larrc), cspanrs<char>(larrc));
 
-    EXPECT_EQ(cspan  <int>(larri), cspan  <int>(larri));
-    EXPECT_EQ(cspanrs<int>(larri), cspan  <int>(larri));
-    EXPECT_EQ(cspan  <int>(larri), cspanrs<int>(larri));
-    EXPECT_EQ(cspanrs<int>(larri), cspanrs<int>(larri));
+    EXPECT_EQ(cspan  <int>(larri) , cspan  <int>(larri));
+    EXPECT_EQ(cspanrs<int>(larri) , cspan  <int>(larri));
+    EXPECT_EQ(cspan  <int>(larri) , cspanrs<int>(larri));
+    EXPECT_EQ(cspanrs<int>(larri) , cspanrs<int>(larri));
 }
 
 TEST(span_impl, lt)
@@ -705,10 +705,10 @@ TEST(span_impl, lt)
     EXPECT_LT(cspan  <char>(larrc), cspanrs<char>(rarrc));
     EXPECT_LT(cspanrs<char>(larrc), cspanrs<char>(rarrc));
 
-    EXPECT_LT(cspan  <int>(larri), cspan  <int>(rarri));
-    EXPECT_LT(cspanrs<int>(larri), cspan  <int>(rarri));
-    EXPECT_LT(cspan  <int>(larri), cspanrs<int>(rarri));
-    EXPECT_LT(cspanrs<int>(larri), cspanrs<int>(rarri));
+    EXPECT_LT(cspan  <int>(larri) , cspan  <int>(rarri));
+    EXPECT_LT(cspanrs<int>(larri) , cspan  <int>(rarri));
+    EXPECT_LT(cspan  <int>(larri) , cspanrs<int>(rarri));
+    EXPECT_LT(cspanrs<int>(larri) , cspanrs<int>(rarri));
 }
 TEST(span_impl, gt)
 {
@@ -717,10 +717,10 @@ TEST(span_impl, gt)
     EXPECT_GT(cspanrs<char>(rarrc), cspan  <char>(larrc));
     EXPECT_GT(cspanrs<char>(rarrc), cspanrs<char>(larrc));
 
-    EXPECT_GT(cspan  <int>(rarri), cspan  <int>(larri));
-    EXPECT_GT(cspan  <int>(rarri), cspanrs<int>(larri));
-    EXPECT_GT(cspanrs<int>(rarri), cspan  <int>(larri));
-    EXPECT_GT(cspanrs<int>(rarri), cspanrs<int>(larri));
+    EXPECT_GT(cspan  <int>(rarri) , cspan  <int>(larri));
+    EXPECT_GT(cspan  <int>(rarri) , cspanrs<int>(larri));
+    EXPECT_GT(cspanrs<int>(rarri) , cspan  <int>(larri));
+    EXPECT_GT(cspanrs<int>(rarri) , cspanrs<int>(larri));
 }
 
 TEST(span_impl, ge)
@@ -733,14 +733,14 @@ TEST(span_impl, ge)
     EXPECT_GE(cspan  <char>(larrc), cspanrs<char>(larrc));
     EXPECT_GE(cspanrs<char>(larrc), cspan  <char>(larrc));
     EXPECT_GE(cspanrs<char>(larrc), cspanrs<char>(larrc));
-    EXPECT_GE(cspan  <int >(rarri), cspan  <int >(larri));
-    EXPECT_GE(cspan  <int >(rarri), cspanrs<int >(larri));
-    EXPECT_GE(cspanrs<int >(rarri), cspan  <int >(larri));
-    EXPECT_GE(cspanrs<int >(rarri), cspanrs<int >(larri));
-    EXPECT_GE(cspan  <int >(larri), cspan  <int >(larri));
-    EXPECT_GE(cspan  <int >(larri), cspanrs<int >(larri));
-    EXPECT_GE(cspanrs<int >(larri), cspan  <int >(larri));
-    EXPECT_GE(cspanrs<int >(larri), cspanrs<int >(larri));
+    EXPECT_GE(cspan  <int>(rarri) , cspan  <int>(larri));
+    EXPECT_GE(cspan  <int>(rarri) , cspanrs<int>(larri));
+    EXPECT_GE(cspanrs<int>(rarri) , cspan  <int>(larri));
+    EXPECT_GE(cspanrs<int>(rarri) , cspanrs<int>(larri));
+    EXPECT_GE(cspan  <int>(larri) , cspan  <int>(larri));
+    EXPECT_GE(cspan  <int>(larri) , cspanrs<int>(larri));
+    EXPECT_GE(cspanrs<int>(larri) , cspan  <int>(larri));
+    EXPECT_GE(cspanrs<int>(larri) , cspanrs<int>(larri));
 }
 TEST(span_impl, le)
 {
@@ -752,14 +752,14 @@ TEST(span_impl, le)
     EXPECT_LE(cspanrs<char>(larrc), cspan  <char>(larrc));
     EXPECT_LE(cspan  <char>(larrc), cspanrs<char>(larrc));
     EXPECT_LE(cspanrs<char>(larrc), cspanrs<char>(larrc));
-    EXPECT_LE(cspan  <int >(larri), cspan  <int >(rarri));
-    EXPECT_LE(cspanrs<int >(larri), cspan  <int >(rarri));
-    EXPECT_LE(cspan  <int >(larri), cspanrs<int >(rarri));
-    EXPECT_LE(cspanrs<int >(larri), cspanrs<int >(rarri));
-    EXPECT_LE(cspan  <int >(larri), cspan  <int >(larri));
-    EXPECT_LE(cspanrs<int >(larri), cspan  <int >(larri));
-    EXPECT_LE(cspan  <int >(larri), cspanrs<int >(larri));
-    EXPECT_LE(cspanrs<int >(larri), cspanrs<int >(larri));
+    EXPECT_LE(cspan  <int>(larri) , cspan  <int>(rarri));
+    EXPECT_LE(cspanrs<int>(larri) , cspan  <int>(rarri));
+    EXPECT_LE(cspan  <int>(larri) , cspanrs<int>(rarri));
+    EXPECT_LE(cspanrs<int>(larri) , cspanrs<int>(rarri));
+    EXPECT_LE(cspan  <int>(larri) , cspan  <int>(larri));
+    EXPECT_LE(cspanrs<int>(larri) , cspan  <int>(larri));
+    EXPECT_LE(cspan  <int>(larri) , cspanrs<int>(larri));
+    EXPECT_LE(cspanrs<int>(larri) , cspanrs<int>(larri));
 }
 
 C4_END_NAMESPACE(c4)

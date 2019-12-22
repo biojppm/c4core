@@ -42,15 +42,15 @@ C4_CONSTEXPR14 cspan<char> type_name()
 {
     const _c4t p = _c4tn<T>();
 
-#if (0 && defined(_C4_THIS_IS_A_DEBUG_SCAFFOLD))
-    for(int index = 0; index < p.sz; ++index)
+#if (0) // _C4_THIS_IS_A_DEBUG_SCAFFOLD
+    for(size_t index = 0; index < p.sz; ++index)
     {
         printf(" %2c", p.str[index]);
     }
     printf("\n");
-    for(int index = 0; index < p.sz; ++index)
+    for(size_t index = 0; index < p.sz; ++index)
     {
-        printf(" %2d", index);
+        printf(" %2d", (int)index);
     }
     printf("\n");
 #endif
@@ -60,7 +60,7 @@ C4_CONSTEXPR14 cspan<char> type_name()
     // example:
     // ..........................xxx.
     // _c4t __cdecl _c4tn() [T = int]
-    enum { tstart = 26, tend = 1};
+    enum : size_t { tstart = 26, tend = 1};
 
 #   elif defined(C4_MSVC_2015) || defined(C4_MSVC_2017) || defined(C4_MSVC_2019)
     // Note: subtract 7 at the end because the function terminates with ">(void)" in VS2015+
@@ -89,25 +89,25 @@ C4_CONSTEXPR14 cspan<char> type_name()
     // example:
     // ........................xxx.
     // "_c4t _c4tn() [with T = int]"
-    enum { tstart = 23, tend = 1};
+    enum : size_t { tstart = 23, tend = 1};
 
 #elif defined(__clang__)
     // example:
     // ...................xxx.
     // "_c4t _c4tn() [T = int]"
-    enum { tstart = 18, tend = 1};
+    enum : size_t { tstart = 18, tend = 1};
 
 #elif defined(__GNUC__)
-    #if __GNUC__ >= 9
+    #if __GNUC__ >= 9 && false // ??
         // example:
         // ........................xxx.
         // "constexpr _c4t _c4tn() [with T = int]"
-        enum { tstart = 33, tend = 1 };
+        enum : size_t { tstart = 33, tend = 1 };
     #else
         // example:
         // ........................xxx.
         // "_c4t _c4tn() [with T = int]"
-        enum { tstart = 23, tend = 1 };
+        enum : size_t { tstart = 23, tend = 1 };
     #endif
 #else
     C4_NOT_IMPLEMENTED();

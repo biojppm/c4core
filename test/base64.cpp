@@ -4,6 +4,8 @@
 #include "c4/format.hpp"
 #include "c4/base64.hpp"
 
+#include "c4/libtest/supprwarn_push.hpp"
+
 namespace c4 {
 
 //-----------------------------------------------------------------------------
@@ -125,3 +127,5 @@ TEST(base64, int)
 }
 
 } // namespace c4
+
+#include "c4/libtest/supprwarn_pop.hpp"

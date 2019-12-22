@@ -371,7 +371,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
                 else if(c >= 'a' && c <= 'f') cv = T(10) + (T(c)-T('a'));
                 else if(c >= 'A' && c <= 'F') cv = T(10) + (T(c)-T('A'));
                 else return false;
-                n = n*T(16) + (T(c)-T('0'));
+                n = n*T(16) + cv;
             }
         }
         else // octal
@@ -426,7 +426,7 @@ void get_real_format_str(char (& C4_RESTRICT fmt)[N], int precision, RealFormat_
     default:
          c = 'g';
     }
-    int iret;
+    int iret; C4_UNUSED(iret);
     if(precision == -1)
     {
         iret = snprintf(fmt, sizeof(fmt), "%%%s%c", length_modifier, c);

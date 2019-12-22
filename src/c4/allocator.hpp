@@ -58,7 +58,7 @@ class MemResGlobal
 public:
 
     MemResGlobal() {}
-    MemResGlobal(MemoryResource* r) noexcept { C4_ASSERT(r == get_memory_resource()); }
+    MemResGlobal(MemoryResource* r) noexcept { C4_UNUSED(r); C4_ASSERT(r == get_memory_resource()); }
 
     inline MemoryResource* resource() const { return get_memory_resource(); }
 };

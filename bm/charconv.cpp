@@ -162,7 +162,7 @@ atox_c4_atox(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         c4::atoi(rans.next(), &val);
@@ -175,7 +175,7 @@ atox_c4_atox(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         c4::atou(rans.next(), &val);
@@ -188,7 +188,7 @@ atox_c4_atox(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         c4::atof(rans.next(), &val);
@@ -201,7 +201,7 @@ atox_c4_atox(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         c4::atod(rans.next(), &val);
@@ -217,7 +217,7 @@ void atox_std_atoi(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         val = (T) std::atoi(rans.next().data());
@@ -230,7 +230,7 @@ void atox_std_atol(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         val = (T) std::atol(rans.next().data());
@@ -243,7 +243,7 @@ void atox_std_atof(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         val = (T) std::atof(rans.next().data());
@@ -259,7 +259,7 @@ void atox_std_strtol(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         auto s = rans.next();
@@ -273,7 +273,7 @@ void atox_std_strtoll(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         auto s = rans.next();
@@ -287,7 +287,7 @@ void atox_std_strtoul(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         auto s = rans.next();
@@ -301,7 +301,7 @@ void atox_std_strtoull(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         auto s = rans.next();
@@ -315,7 +315,7 @@ void atox_std_strtof(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         auto s = rans.next();
@@ -329,7 +329,7 @@ void atox_std_strtod(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         auto s = rans.next();
@@ -417,7 +417,7 @@ void atox_scanf(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         sscanf(rans.next(), &val);
@@ -476,7 +476,7 @@ void atox_sstream(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     for(auto _ : st)
     {
         val = atox_sstream_<StreamType, T>(rans.next_s());
@@ -540,7 +540,7 @@ void atox_sstream_reuse(bm::State& st)
 {
     ranstr rans;
     rans.init_as<T>();
-    T val;
+    T val; C4_UNUSED(val);
     StreamType ss;
     for(auto _ : st)
     {
@@ -662,7 +662,7 @@ atox_std_from_chars(bm::State& st)
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa,  uint8_t);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  uint8_t);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  uint8_t);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  uint8_t)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  uint8_t);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  uint8_t);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse,  uint8_t, std::ostringstream);
@@ -672,7 +672,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream,  uint8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa,   int8_t);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  int8_t);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  int8_t);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  int8_t)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  int8_t);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  int8_t);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse,   int8_t, std::ostringstream);
@@ -682,7 +682,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream,   int8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa, uint16_t);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  uint16_t);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  uint16_t);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  uint16_t)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  uint16_t);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  uint16_t);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse, uint16_t, std::ostringstream);
@@ -692,7 +692,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream, uint16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa,  int16_t);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  int16_t);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  int16_t);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  int16_t)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  int16_t);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  int16_t);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse,  int16_t, std::ostringstream);
@@ -702,7 +702,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream,  int16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa, uint32_t);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  uint32_t);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  uint32_t);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  uint32_t)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  uint32_t);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  uint32_t);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse, uint32_t, std::ostringstream);
@@ -712,7 +712,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream, uint32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa,  int32_t);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  int32_t);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  int32_t);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  int32_t)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  int32_t);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  int32_t);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse,  int32_t, std::ostringstream);
@@ -722,7 +722,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream,  int32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa, uint64_t);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  uint64_t);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  uint64_t);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  uint64_t)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  uint64_t);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  uint64_t);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse, uint64_t, std::ostringstream);
@@ -732,7 +732,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream, uint64_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa,  int64_t);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  int64_t);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  int64_t);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  int64_t)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  int64_t);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  int64_t);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse,  int64_t, std::ostringstream);
@@ -742,7 +742,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream,  int64_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa,  float);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  float);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  float);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  float)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  float);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  float);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse,  float, std::ostringstream);
@@ -752,7 +752,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream,  float, std::stringstream);
 
 BENCHMARK_TEMPLATE(xtoa_c4_xtoa,  double);
 BENCHMARK_TEMPLATE(xtoa_c4_to_chars,  double);
-BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  double);
+BENCHMARK_TEMPLATE_CPP17(xtoa_std_to_chars,  double)
 BENCHMARK_TEMPLATE(xtoa_std_to_string,  double);
 BENCHMARK_TEMPLATE(xtoa_sprintf,  double);
 BENCHMARK_TEMPLATE(xtoa_sstream_reuse,  double, std::ostringstream);
@@ -767,7 +767,7 @@ BENCHMARK_TEMPLATE(xtoa_sstream,  double, std::stringstream);
 
 
 BENCHMARK_TEMPLATE(atox_c4_atox,  uint8_t);
-BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint8_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint8_t)
 BENCHMARK_TEMPLATE(atox_std_atoi,   uint8_t);
 BENCHMARK_TEMPLATE(atox_std_strtoul,   uint8_t);
 BENCHMARK_TEMPLATE(atox_scanf,   uint8_t);
@@ -777,7 +777,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint8_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox,   int8_t);
-BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int8_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int8_t)
 BENCHMARK_TEMPLATE(atox_std_atoi,   int8_t);
 BENCHMARK_TEMPLATE(atox_std_strtol,   int8_t);
 BENCHMARK_TEMPLATE(atox_scanf,   int8_t);
@@ -787,7 +787,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   int8_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   int8_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox, uint16_t);
-BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint16_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint16_t)
 BENCHMARK_TEMPLATE(atox_std_atoi,   uint16_t);
 BENCHMARK_TEMPLATE(atox_std_strtoul,   uint16_t);
 BENCHMARK_TEMPLATE(atox_scanf,   uint16_t);
@@ -797,7 +797,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint16_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox,  int16_t);
-BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int16_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int16_t)
 BENCHMARK_TEMPLATE(atox_std_atoi,   int16_t);
 BENCHMARK_TEMPLATE(atox_std_strtol,   int16_t);
 BENCHMARK_TEMPLATE(atox_scanf,   int16_t);
@@ -807,7 +807,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   int16_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   int16_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox, uint32_t);
-BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint32_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint32_t)
 BENCHMARK_TEMPLATE(atox_std_atoi,   uint32_t);
 BENCHMARK_TEMPLATE(atox_std_strtoul,   uint32_t);
 BENCHMARK_TEMPLATE(atox_scanf,   uint32_t);
@@ -817,7 +817,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint32_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   uint32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox,  int32_t);
-BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int32_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   int32_t)
 BENCHMARK_TEMPLATE(atox_std_atoi,   int32_t);
 BENCHMARK_TEMPLATE(atox_std_strtol,   int32_t);
 BENCHMARK_TEMPLATE(atox_scanf,   int32_t);
@@ -827,7 +827,7 @@ BENCHMARK_TEMPLATE(atox_sstream_reuse,   int32_t, std::istringstream);
 BENCHMARK_TEMPLATE(atox_sstream_reuse,   int32_t, std::stringstream);
 
 BENCHMARK_TEMPLATE(atox_c4_atox, uint64_t);
-BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint64_t);
+BENCHMARK_TEMPLATE_CPP17(atox_std_from_chars,   uint64_t)
 BENCHMARK_TEMPLATE(atox_std_atol,   uint64_t);
 BENCHMARK_TEMPLATE(atox_std_strtoull,   uint64_t);
 BENCHMARK_TEMPLATE(atox_scanf,   uint64_t);
