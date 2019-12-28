@@ -33,7 +33,7 @@ Stream& bm2stream(typename std::underlying_type<Enum>::type bits, Stream &s)
 
     // do reverse iteration to give preference to composite enum symbols,
     // which are likely to appear at the end of the enum sequence
-    for(size_t i=pairs.size()-1; i != size_t(-1); --i)
+    for(size_t i = pairs.size() - 1; i != size_t(-1); --i)
     {
         auto p = pairs[i];
         I b(p.value);
@@ -102,7 +102,7 @@ size_t bm2str
 
     // do reverse iteration to give preference to composite enum symbols,
     // which are likely to appear later in the enum sequence
-    for(size_t i=syms.size()-1; i != size_t(-1); --i)
+    for(size_t i = syms.size()-1; i != size_t(-1); --i)
     {
         auto const p = syms[i];
         I b = static_cast<I>(p.value);
