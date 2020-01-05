@@ -3,7 +3,7 @@ project(c4core)
 
 include(./cmake/c4Project.cmake)
 
-c4_declare_project(C4CORE
+c4_declare_project(c4core
     DESC "Multiplatform low-level C++ utilities"
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>"
     MAJOR 0 MINOR 0 RELEASE 1)
@@ -65,7 +65,7 @@ set(C4CORE_EXT_TO_INSTALL
     ${C4CORE_EXT_DIR}/sg14/inplace_function.h
 )
 
-c4core_add_library(c4core
+c4_add_library(c4core
     SOURCES ${C4CORE_SRC} SOURCE_ROOT ${C4CORE_SRC_DIR}
     INC_DIRS
        $<BUILD_INTERFACE:${C4CORE_SRC_DIR}> $<INSTALL_INTERFACE:include>
@@ -75,20 +75,20 @@ c4core_add_library(c4core
 
 #-------------------------------------------------------
 
-c4core_install_target(c4core)
-c4_install_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/extern" "${C4CORE_EXT_DIR}")
-c4core_install_exports()
+c4_install_target(c4core)
+c4_install_files("${C4CORE_EXT_TO_INSTALL}" "include/c4/extern" "${C4CORE_EXT_DIR}")
+c4_install_exports()
 
 
 #-------------------------------------------------------
 # developer targets
 
-c4core_add_doxygen(doc
+c4_add_doxygen(doc
     PROJ c4core
     DOXYFILE ${CMAKE_CURRENT_LIST_DIR}/cmake/Doxyfile.in
     INPUT ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}
     STRIP_FROM_PATH ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR})
-c4core_add_doxygen(doc-full
+c4_add_doxygen(doc-full
     PROJ c4core
     DOXYFILE ${CMAKE_CURRENT_LIST_DIR}/cmake/Doxyfile.full.in
     INPUT ${C4CORE_SRC_DIR} ${C4CORE_EXT_DIR}

@@ -1,4 +1,4 @@
-c4core_setup_testing()
+c4_setup_testing()
 
 set(testsrc
     c4/test.hpp
@@ -8,7 +8,7 @@ set(testsrc
     c4/libtest/supprwarn_push.hpp
     c4/libtest/supprwarn_pop.hpp
     )
-c4core_add_library(c4core-libtest
+c4_add_library(c4core-libtest
     SOURCES ${testsrc}
     LIBS c4core gtest
     INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
@@ -16,12 +16,12 @@ c4core_add_library(c4core-libtest
     )
 
 function(c4core_test name)
-    c4core_add_executable(c4core-test-${name}
+    c4_add_executable(c4core-test-${name}
         SOURCES ${ARGN} main.cpp
         INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
         LIBS c4core c4core-libtest gtest
         FOLDER c4core-test)
-    c4core_add_test(c4core-test-${name} ON)
+    c4_add_test(c4core-test-${name} ON)
 endfunction(c4core_test)
 
 c4core_test(preprocessor     preprocessor.cpp)
@@ -47,12 +47,12 @@ c4core_test(std_string       std_string.cpp)
 c4core_test(std_vector       std_vector.cpp)
 
 
-c4core_add_install_include_test(c4core "c4core::")
-c4core_add_install_link_test(c4core "c4core::" "
+c4_add_install_include_test(c4core "c4core::")
+c4_add_install_link_test(c4core "c4core::" "
 #include <c4/substr.hpp>
 int main()
 {
-    c4::csubstr s = \"12345\"\;
-    return s.len != decltype(s.len)(5)\;
+    c4::csubstr s = \"12345\";
+    return s.len != decltype(s.len)(5);
 }
 ")
