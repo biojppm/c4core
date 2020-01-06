@@ -21,25 +21,30 @@ struct blob_
     T *    buf;
     size_t len;
 
-    C4_DEFAULT_COPY_AND_MOVE(blob_);
-
     C4_ALWAYS_INLINE constexpr blob_() noexcept : buf(), len() {}
 
+    C4_ALWAYS_INLINE constexpr blob_(blob_ const& that) noexcept = default;
+    C4_ALWAYS_INLINE constexpr blob_(blob_     && that) noexcept = default;
+    C4_ALWAYS_INLINE constexpr blob_& operator=(blob_     && that) noexcept = default;
+    C4_ALWAYS_INLINE constexpr blob_& operator=(blob_ const& that) noexcept = default;
+
+    // need to sfinae out copy constructors! (why? isn't the above sufficient?)
+    #define _C4_REQUIRE_NOT_SAME class=typename std::enable_if< ( ! std::is_same<U, blob_>::value) && ( ! std::is_pointer<U>::value), T>::type
+    template<class U, _C4_REQUIRE_NOT_SAME> C4_ALWAYS_INLINE constexpr blob_(U &var) noexcept : buf(reinterpret_cast<T*>(&var)), len(sizeof(U)) {}
+    template<class U, _C4_REQUIRE_NOT_SAME> C4_ALWAYS_INLINE constexpr blob_& operator= (U &var) noexcept { buf = reinterpret_cast<T*>(&var); len = sizeof(U); return *this; }
+    #undef _C4_REQUIRE_NOT_SAME
+
+    template<class U, size_t N> C4_ALWAYS_INLINE constexpr blob_(U (&arr)[N]) noexcept : buf(reinterpret_cast<T*>(arr)), len(sizeof(U) * N) {}
+    template<class U, size_t N> C4_ALWAYS_INLINE constexpr blob_& operator= (U (&arr)[N]) noexcept { buf = reinterpret_cast<T*>(arr); len = sizeof(U) * N; return *this; }
+
     template<class U>
-    C4_ALWAYS_INLINE constexpr blob_(U *ptr, size_t n=1) noexcept : buf(reinterpret_cast<T*>(ptr)), len(sizeof(U) * n) {}
-
-    template<class U, size_t N>
-    C4_ALWAYS_INLINE constexpr blob_(U (&arr)[N]) noexcept : buf(reinterpret_cast<T*>(arr)), len(sizeof(U) * N) {}
-
-    template<size_t N>
-    C4_ALWAYS_INLINE constexpr blob_(const char (&arr)[N]) noexcept : buf(reinterpret_cast<T*>(arr)), len(N-1) {}
-    
+    C4_ALWAYS_INLINE constexpr blob_(U          *ptr, size_t n) noexcept : buf(reinterpret_cast<T*>(ptr)), len(sizeof(U) * n) {}
     C4_ALWAYS_INLINE constexpr blob_(void       *ptr, size_t n) noexcept : buf(reinterpret_cast<T*>(ptr)), len(n) {}
     C4_ALWAYS_INLINE constexpr blob_(void const *ptr, size_t n) noexcept : buf(reinterpret_cast<T*>(ptr)), len(n) {}
 };
+
 C4_MUST_BE_TRIVIAL_COPY(blob);
 C4_MUST_BE_TRIVIAL_COPY(cblob);
-
 
 C4_END_NAMESPACE(c4)
 

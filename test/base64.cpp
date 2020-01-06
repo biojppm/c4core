@@ -34,12 +34,12 @@ void test_base64(T const& val, csubstr expected, T *ws)
     char buf_[512];
     substr buf(buf_);
 
-    csubstr encoded = to_chars_sub(buf, fmt::cbase64(&val));
+    csubstr encoded = to_chars_sub(buf, fmt::cbase64(val));
     EXPECT_TRUE(base64_valid(encoded));
     EXPECT_EQ(encoded, expected);
     EXPECT_EQ(encoded.len % 4, 0);
 
-    auto req = fmt::base64(ws);
+    auto req = fmt::base64(*ws);
     size_t written = from_chars(encoded, &req);
     EXPECT_EQ(written, sizeof(T));
     EXPECT_EQ(*ws, val);

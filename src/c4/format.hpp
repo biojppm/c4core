@@ -170,10 +170,9 @@ struct raw_wrapper_ : public blob_<T>
 {
     size_t alignment;
 
-    template<class... BlobArgs>
-    C4_ALWAYS_INLINE raw_wrapper_(BlobArgs&& ...args, size_t alignment_) noexcept
+    C4_ALWAYS_INLINE raw_wrapper_(blob_<T> data, size_t alignment_) noexcept
         :
-        blob_<T>(std::forward<BlobArgs>(args)...),
+        blob_<T>(data),
         alignment(alignment_)
     {
         C4_ASSERT_MSG(alignment > 0 && (alignment & (alignment - 1)) == 0, "alignment must be a power of two");
@@ -186,18 +185,16 @@ using raw_wrapper = raw_wrapper_<byte>;
 
 /** mark a variable to be written in raw binary format
  * @see blob_ */
-template<class... BlobArgs>
-inline const_raw_wrapper craw(BlobArgs&& ...args, size_t alignment=alignof(max_align_t))
+inline const_raw_wrapper craw(cblob data, size_t alignment=alignof(max_align_t))
 {
-    return const_raw_wrapper(std::forward<BlobArgs>(args)..., alignment);
+    return const_raw_wrapper(data, alignment);
 }
 
 /** mark a variable to be read in raw binary format
  * @see blob_  */
-template<class... BlobArgs>
-inline raw_wrapper raw(BlobArgs&& ...args, size_t alignment=alignof(max_align_t))
+inline raw_wrapper raw(blob data, size_t alignment=alignof(max_align_t))
 {
-    return raw_wrapper(std::forward<BlobArgs>(args)..., alignment);
+    return raw_wrapper(data, alignment);
 }
 
 } // namespace fmt
@@ -263,11 +260,13 @@ size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more
     return num;
 }
 
-/** like cat but return a substr instead of a size */
+/** like cat but return a substr instead of a size, checking
+ * @ingroup formatting_functions */
 template<class... Args>
 substr cat_sub(substr buf, Args && ...args)
 {
     size_t sz = cat(buf, std::forward<Args>(args)...);
+    C4_CHECK(sz <= buf.len);
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 
@@ -374,6 +373,7 @@ template<class... Args>
 substr catsep_sub(substr buf, Args && ...args)
 {
     size_t sz = catsep(buf, std::forward<Args>(args)...);
+    C4_CHECK(sz <= buf.len);
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 
@@ -450,6 +450,7 @@ template<class... Args>
 substr format_sub(substr buf, csubstr fmt, Args && ...args)
 {
     size_t sz = c4::format(buf, fmt, std::forward<Args>(args)...);
+    C4_CHECK(sz <= buf.len);
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 

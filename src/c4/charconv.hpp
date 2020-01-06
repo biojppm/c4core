@@ -884,6 +884,7 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v)
     return trimmed.end() - buf.begin();
 }
 
+
 //-----------------------------------------------------------------------------
 
 /** @ingroup generic_tofrom_chars */

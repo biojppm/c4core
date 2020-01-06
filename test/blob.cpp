@@ -7,7 +7,7 @@ template<class T>
 void test_blob()
 {
     T v;
-    blob b(&v);
+    blob b(v);
     EXPECT_EQ((T*)b.buf, &v);
     EXPECT_EQ(b.len, sizeof(T));
 
