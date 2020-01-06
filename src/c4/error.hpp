@@ -98,7 +98,7 @@ C4_END_NAMESPACE(c4)
 
 C4_BEGIN_NAMESPACE(c4)
 
-typedef enum {
+typedef enum : uint32_t {
     /** when an error happens and the debugger is attached, call C4_DEBUG_BREAK().
      * Without effect otherwise. */
     ON_ERROR_DEBUGBREAK = 0x01 << 0,
@@ -115,7 +115,7 @@ typedef enum {
     /** the default flags. */
     ON_ERROR_DEFAULTS = ON_ERROR_DEBUGBREAK|ON_ERROR_LOG|ON_ERROR_CALLBACK|ON_ERROR_ABORT
 } ErrorFlags_e;
-using error_flags = int;
+using error_flags = uint32_t;
 void set_error_flags(error_flags f);
 error_flags get_error_flags();
 
