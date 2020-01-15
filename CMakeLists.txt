@@ -76,7 +76,7 @@ c4_add_library(c4core
 #-------------------------------------------------------
 
 c4_install_target(c4core)
-c4_install_files("${C4CORE_EXT_TO_INSTALL}" "include/c4/extern" "${C4CORE_EXT_DIR}")
+c4_install_target_add_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/extern" "${C4CORE_EXT_DIR}")
 c4_install_exports()
 
 
