@@ -9,7 +9,7 @@ c4_declare_project(c4core
     MAJOR 0 MINOR 0 RELEASE 1)
 
 set(C4CORE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(C4CORE_EXT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern)
+set(C4CORE_EXT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext)
 
 set(C4CORE_SRC
     c4/allocator.hpp

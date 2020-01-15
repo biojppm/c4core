@@ -2,5 +2,5 @@
 	path = cmake
 	url = https://github.com/biojppm/cmake
 [submodule "extern/debugbreak"]
-	path = extern/debugbreak
+	path = ext/debugbreak
 	url = https://github.com/biojppm/debugbreak
