@@ -2,12 +2,6 @@
 
 /** @file unrestrict.hpp cleans up restrict macros  */
 
-#ifdef __clang__
-#   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wdollar-in-identifier-extension"
-#elif defined(__GNUC__)
-#endif
-
 #undef   $
 #undef  $$
 #undef  c$

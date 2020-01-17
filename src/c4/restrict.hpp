@@ -46,11 +46,6 @@
 #define  $$       & C4_RESTRICT // restricted reference
 #define c$$  const& C4_RESTRICT // restricted reference to const data
 
-#ifdef __clang__
-#   pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#endif
-
 /** @} */
 
 #endif /* _C4_RESTRICT_HPP_ */
