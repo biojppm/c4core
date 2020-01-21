@@ -1,18 +1,16 @@
 c4_setup_testing()
 
-set(testsrc
-    c4/test.hpp
-    c4/libtest/test.cpp
-    c4/libtest/archetypes.cpp
-    c4/libtest/archetypes.hpp
-    c4/libtest/supprwarn_push.hpp
-    c4/libtest/supprwarn_pop.hpp
-    )
 c4_add_library(c4core-libtest
-    SOURCES ${testsrc}
+    SOURCES
+        c4/test.hpp
+        c4/libtest/test.cpp
+        c4/libtest/archetypes.cpp
+        c4/libtest/archetypes.hpp
+        c4/libtest/supprwarn_push.hpp
+        c4/libtest/supprwarn_pop.hpp
     LIBS c4core gtest
     INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
-    FOLDER c4core-test
+    FOLDER test
     )
 
 function(c4core_test name)
@@ -20,9 +18,9 @@ function(c4core_test name)
         SOURCES ${ARGN} main.cpp
         INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
         LIBS c4core c4core-libtest gtest
-        FOLDER c4core-test)
-    c4_add_test(c4core-test-${name} ON)
-endfunction(c4core_test)
+        FOLDER test)
+    c4_add_test(c4core-test-${name})
+endfunction()
 
 c4core_test(preprocessor     preprocessor.cpp)
 c4core_test(type_name        type_name.cpp)
