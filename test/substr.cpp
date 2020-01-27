@@ -1031,6 +1031,9 @@ struct number
     csubstr num;
     NumberClass cls;
 
+    template<size_t N>
+    number(const char (&n)[N], uint8_t c) : num(n), cls((NumberClass)c) {}
+
     void test()
     {
         switch(cls)
