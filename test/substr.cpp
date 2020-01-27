@@ -1025,65 +1025,73 @@ TEST(substr, first_real_span)
     EXPECT_EQ(csubstr("0b01gasdasd").first_int_span(), "");
 }
 
-typedef enum : uint8_t { kNone = 0, kIsUint = 1, kIsInt = 3, kIsReal = 7 } NumberClass;
+typedef enum : uint8_t { kIsNone = 0, kIsUint = 1, kIsInt = 3, kIsReal = 7 } NumberClass;
 struct number
 {
     csubstr num;
     NumberClass cls;
 
     template<size_t N>
-    number(const char (&n)[N], uint8_t c) : num(n), cls((NumberClass)c) {}
+    number(const char (&n)[N], NumberClass c) : num(n), cls(c) {}
+    number(csubstr n, NumberClass c) : num(n), cls(c) {}
 
-    void test()
+
+    void test(csubstr ref={})
     {
+        if(ref.empty()) ref = num;
         switch(cls)
         {
         case kIsUint:
         {
-            EXPECT_EQ(num.first_uint_span(), num) << num;
-            EXPECT_EQ(num.first_int_span(), num) << num;
-            EXPECT_EQ(num.first_real_span(), num) << num;
-            EXPECT_TRUE(num.is_integer()) << num;
-            EXPECT_TRUE(num.is_number()) << num;
+            EXPECT_EQ(num.first_uint_span(), ref) << num << " vs " << ref;
+            EXPECT_EQ(num.first_int_span(), ref) << num << " vs " << ref;
+            EXPECT_EQ(num.first_real_span(), ref) << num << " vs " << ref;
+            EXPECT_TRUE(num.first_uint_span().is_integer()) << num;
+            EXPECT_TRUE(num.first_uint_span().is_number()) << num;
             break;
         }
         case kIsInt:
         {
-            EXPECT_EQ(num.first_uint_span(), "") << num;
-            EXPECT_EQ(num.first_int_span(), num) << num;
-            EXPECT_EQ(num.first_real_span(), num) << num;
-            EXPECT_TRUE(num.is_integer()) << num;
-            EXPECT_TRUE(num.is_number()) << num;
+            EXPECT_EQ(num.first_uint_span(), "") << num << " vs " << ref;
+            EXPECT_EQ(num.first_int_span(), ref) << num << " vs " << ref;
+            EXPECT_EQ(num.first_real_span(), ref) << num << " vs " << ref;
+            EXPECT_TRUE(num.first_int_span().is_integer()) << num;
+            EXPECT_TRUE(num.first_int_span().is_number()) << num;
             break;
         }
         case kIsReal:
         {
-            EXPECT_EQ(num.first_uint_span(), "") << num;
-            EXPECT_EQ(num.first_int_span(), "") << num;
-            EXPECT_EQ(num.first_real_span(), num) << num;
-            EXPECT_FALSE(num.is_integer()) << num;
-            EXPECT_TRUE(num.is_number()) << num;
+            EXPECT_EQ(num.first_uint_span(), "") << num << " vs " << ref;
+            EXPECT_EQ(num.first_int_span(), "") << num << " vs " << ref;
+            EXPECT_EQ(num.first_real_span(), ref) << num << " vs " << ref;
+            EXPECT_FALSE(num.first_real_span().is_integer()) << num;
+            EXPECT_TRUE(num .first_real_span().is_number()) << num;
             break;
         }
-        case 0:
+        case kIsNone:
         {
-            EXPECT_EQ(num.first_uint_span(), "") << num;
-            EXPECT_EQ(num.first_int_span(), "") << num;
-            EXPECT_EQ(num.first_real_span(), "") << num;
+            EXPECT_EQ(num.first_uint_span(), "") << num << " vs " << ref;
+            EXPECT_EQ(num.first_int_span(), "") << num << " vs " << ref;
+            EXPECT_EQ(num.first_real_span(), "") << num << " vs " << ref;
             EXPECT_FALSE(num.is_integer()) << num;
             EXPECT_FALSE(num.is_number()) << num;
             break;
         }
         default:
         {
-            FAIL() << num;
+            FAIL() << num << " vs " << ref;
             break;
         }
         }
     }
 };
 
-number numbers[] = {
+const number numbers[] = {
+    {"", kIsNone},
+    // TODO: {".", kIsNone},
+    {".0", kIsReal},
+    {"0.", kIsReal},
+    {"0.0", kIsReal},
     {"1234", kIsUint},
     {"+1234", kIsUint},
     {"-1234", kIsInt},
@@ -1172,6 +1180,34 @@ TEST(substr, is_number)
     for(number n : numbers)
     {
         n.test();
+    }
+    char buf[128];
+    csubstr garbage = "sdkjhsdfkju";
+    // adding anything before the number will make it not be a number
+    for(number n : numbers)
+    {
+        for(int i = 0; i < 127; ++i)
+        {
+            char c = (char)i;
+            csubstr fmtd = cat_sub(buf, garbage, c, n.num);
+            number cp(fmtd, kIsNone);
+            cp.test();
+        }
+    }
+    // adding after may or may not make it a number
+    for(const number n : numbers)
+    {
+        for(int i = 0; i < 127; ++i)
+        {
+            number cp = n;
+            char c = (char)i;
+            cp.num = cat_sub(buf, n.num, c, garbage);
+            if(!csubstr::_is_delim_char(c))
+            {
+                cp.cls = kIsNone;
+            }
+            cp.test(n.num);
+        }
     }
 }
 

@@ -919,8 +919,9 @@ public:
     /** true if the character is a delimiter character *at the end* */
     static constexpr C4_ALWAYS_INLINE bool _is_delim_char(char c) noexcept
     {
-        return c == ' ' || c == '\n' || c == '\r' || c == '\t'
-            || c == ']' || c == ')';
+        return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\0'
+            || c == ']' || c == ')'  || c == '}'
+            || c == ',' || c == ';';
     }
 
     /** true if the character is in [0-9a-fA-F] */
