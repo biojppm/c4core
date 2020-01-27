@@ -65,7 +65,7 @@ cmake -DCMAKE_C_COMPILER=$CC_ -DCMAKE_C_FLAGS="$CFLAGS_" \
       $CMFLAGS \
       $C4CORE_DIR
 make help | sed 1d | sort
-make CTEST_OUTPUT_ON_FAILURE=1 c4core-test
+make CTEST_OUTPUT_ON_FAILURE=1 test
 cd -
 
 exit 0
