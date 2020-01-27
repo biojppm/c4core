@@ -1043,43 +1043,43 @@ struct number
         {
         case kIsUint:
         {
-            EXPECT_EQ(num.first_uint_span(), ref) << num << " vs " << ref;
-            EXPECT_EQ(num.first_int_span(), ref) << num << " vs " << ref;
-            EXPECT_EQ(num.first_real_span(), ref) << num << " vs " << ref;
-            EXPECT_TRUE(num.first_uint_span().is_integer()) << num;
-            EXPECT_TRUE(num.first_uint_span().is_number()) << num;
+            EXPECT_EQ(num.first_uint_span(), ref);
+            EXPECT_EQ(num.first_int_span(), ref);
+            EXPECT_EQ(num.first_real_span(), ref);
+            EXPECT_TRUE(num.first_uint_span().is_integer());
+            EXPECT_TRUE(num.first_uint_span().is_number());
             break;
         }
         case kIsInt:
         {
-            EXPECT_EQ(num.first_uint_span(), "") << num << " vs " << ref;
-            EXPECT_EQ(num.first_int_span(), ref) << num << " vs " << ref;
-            EXPECT_EQ(num.first_real_span(), ref) << num << " vs " << ref;
-            EXPECT_TRUE(num.first_int_span().is_integer()) << num;
-            EXPECT_TRUE(num.first_int_span().is_number()) << num;
+            EXPECT_EQ(num.first_uint_span(), "");
+            EXPECT_EQ(num.first_int_span(), ref);
+            EXPECT_EQ(num.first_real_span(), ref);
+            EXPECT_TRUE(num.first_int_span().is_integer());
+            EXPECT_TRUE(num.first_int_span().is_number());
             break;
         }
         case kIsReal:
         {
-            EXPECT_EQ(num.first_uint_span(), "") << num << " vs " << ref;
-            EXPECT_EQ(num.first_int_span(), "") << num << " vs " << ref;
-            EXPECT_EQ(num.first_real_span(), ref) << num << " vs " << ref;
-            EXPECT_FALSE(num.first_real_span().is_integer()) << num;
-            EXPECT_TRUE(num .first_real_span().is_number()) << num;
+            EXPECT_EQ(num.first_uint_span(), "");
+            EXPECT_EQ(num.first_int_span(), "");
+            EXPECT_EQ(num.first_real_span(), ref);
+            EXPECT_FALSE(num.first_real_span().is_integer());
+            EXPECT_TRUE(num .first_real_span().is_number());
             break;
         }
         case kIsNone:
         {
-            EXPECT_EQ(num.first_uint_span(), "") << num << " vs " << ref;
-            EXPECT_EQ(num.first_int_span(), "") << num << " vs " << ref;
-            EXPECT_EQ(num.first_real_span(), "") << num << " vs " << ref;
-            EXPECT_FALSE(num.is_integer()) << num;
-            EXPECT_FALSE(num.is_number()) << num;
+            EXPECT_EQ(num.first_uint_span(), "");
+            EXPECT_EQ(num.first_int_span(), "");
+            EXPECT_EQ(num.first_real_span(), "");
+            EXPECT_FALSE(num.is_integer());
+            EXPECT_FALSE(num.is_number());
             break;
         }
         default:
         {
-            FAIL() << num << " vs " << ref;
+            FAIL();
             break;
         }
         }
