@@ -52,13 +52,12 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 /** a non-owning string-view, consisting of a character pointer
  * and a length. The pointer is restricted.
  *
- * @note Because of a C++ limitation, there cannot coexist
- * overloads for constructing from a char[N] and a char*; the latter
- * will always be chosen by the compiler. To construct an object
- * of this type, call to_substr() or to_csubstr().
- *
- * @see For a more detailed explanation on why the overloads cannot
+ * @note Because of a C++ limitation, there cannot coexist overloads for
+ * constructing from a char[N] and a char*; the latter will always be chosen
+ * by the compiler. To construct an object of this type, call to_substr() or
+ * to_csubstr(). For a more detailed explanation on why the overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html
+ *
  * @see to_substr()
  * @see to_csubstr()
  */
@@ -768,120 +767,166 @@ public:
 
 public:
 
+    /** @return true if the substring contents are a floating-point or integer number */
+    bool is_number() const
+    {
+        if(empty() || (first_non_empty_span().empty())) return false;
+        if(first_real_span() == *this) return true;
+        if(first_int_span() == *this) return true;
+        if(first_uint_span() == *this) return true;
+        return false;
+    }
+
+    /** @return true if the substring contents are an integer number */
+    bool is_integer() const
+    {
+        if(empty() || (first_non_empty_span().empty())) return false;
+        if(first_int_span() == *this) return true;
+        if(first_uint_span() == *this) return true;
+        return false;
+    }
+
+
     /** get the first span consisting exclusively of non-empty characters */
     basic_substring first_non_empty_span() const
     {
-        ro_substr empty_chars(" \n\r\t");
+        constexpr const ro_substr empty_chars(" \n\r\t");
         size_t pos = first_not_of(empty_chars);
-        if(pos == npos) return sub(0, 0);
+        if(pos == npos) return first(0);
         auto ret = sub(pos);
         pos = ret.first_of(empty_chars);
-        return ret.sub(0, pos);
+        return ret.first(pos);
     }
 
     /** get the first span which can be interpreted as an unsigned integer */
     basic_substring first_uint_span() const
     {
         basic_substring ne = first_non_empty_span();
-        if(ne.first_of_any("0x", "0X"))
-        {
-            if(ne.len == 2) return basic_substring();
-            for(size_t i = 2; i < ne.len; ++i)
-            {
-                char c = ne.str[i];
-                if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
-                    continue;
-                else
-                {
-                    return ne.sub(0, i);
-                }
-            }
-        }
-        else
-        {
-            for(size_t i = 0; i < ne.len; ++i)
-            {
-                char c = ne.str[i];
-                if(c < '0' || c > '9')
-                {
-                    return ne.sub(0, i);
-                }
-            }
-        }
-        return ne;
+        if(ne.empty()) return ne;
+        if(ne.str[0] == '-') return first(0);
+        size_t skip_start = (ne.str[0] == '+') ? 1 : 0;
+        return ne._first_integral_span(skip_start);
     }
 
     /** get the first span which can be interpreted as a signed integer */
     basic_substring first_int_span() const
     {
         basic_substring ne = first_non_empty_span();
-        if(ne.first_of_any("-0x", "-0X", "0x", "0X"))
+        if(ne.empty()) return ne;
+        size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-') ? 1 : 0;
+        return ne._first_integral_span(skip_start);
+    }
+
+    basic_substring _first_integral_span(size_t skip_start) const
+    {
+        C4_ASSERT(!empty());
+        C4_ASSERT(skip_start < len);
+        if(first_of_any("0x", "0X")) // hexadecimal
         {
-            if(ne.len == 2) return basic_substring();
-            for(size_t i = (size_t(2) + (ne[0] == '-')); i < ne.len; ++i)
+            skip_start += 2;
+            if(len == skip_start) return first(0);
+            for(size_t i = skip_start; i < len; ++i)
             {
-                char c = ne.str[i];
-                if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
-                    continue;
-                else
+                if( ! _is_hex_char(str[i]))
                 {
-                    return ne.sub(0, i);
+                    return _is_delim_char(str[i]) ? first(i) : first(0);
                 }
             }
         }
-        else
+        else if(first_of_any("0b", "0B")) // binary
         {
-            for(size_t i = 0; i < ne.len; ++i)
+            skip_start += 2;
+            if(len == skip_start) return first(0);
+            for(size_t i = skip_start; i < len; ++i)
             {
-                char c = ne.str[i];
-                if(c == '-')
+                char c = str[i];
+                if(c != '0' && c != '1')
                 {
-                    if(i != 0)
-                    {
-                        return ne.sub(0, i);
-                    }
-                }
-                else if(c < '0' || c > '9')
-                {
-                    return ne.sub(0, i);
+                    return _is_delim_char(c) ? first(i) : first(0);
                 }
             }
         }
-        return ne;
+        else // otherwise, decimal
+        {
+            if(len == skip_start) return first(0);
+            for(size_t i = skip_start; i < len; ++i)
+            {
+                char c = str[i];
+                if(c < '0' || c > '9')
+                {
+                    return _is_delim_char(c) ? first(i) : first(0);
+                }
+            }
+        }
+        return *this;
     }
 
     /** get the first span which can be interpreted as a real (floating-point) number */
     basic_substring first_real_span() const
     {
         basic_substring ne = first_non_empty_span();
-        for(size_t i = 0; i < ne.len; ++i)
+        if(ne.empty()) return ne;
+        size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-') ? 1 : 0;
+        if(ne.first_of_any("0x", "0X")) // hexadecimal
         {
-            char c = ne.str[i];
-            if(c == '-' || c == '+')
+            skip_start += 2;
+            if(ne.len == skip_start) return ne.first(0);
+            for(size_t i = skip_start; i < ne.len; ++i)
             {
-                if(i == 0) // a leading signal is valid
+                char c = ne.str[i];
+                if(( ! _is_hex_char(c)) && c != '.')
                 {
-                    continue;
-                }
-                else // we can also have a sign for the exponent
-                {
-                    char e = ne[i-1];
-                    if(e == 'e' || e == 'E')
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        return ne.sub(0, i);
-                    }
+                    return _is_delim_char(c) ? ne.first(i) : ne.first(0);
                 }
             }
-            else if((c < '0' || c > '9') && (c != '.' && c != 'e' && c != 'E'))
+        }
+        else if(ne.first_of_any("0b", "0B")) // binary
+        {
+            skip_start += 2;
+            if(ne.len == skip_start) return ne.first(0);
+            for(size_t i = skip_start; i < ne.len; ++i)
             {
-                return ne.sub(0, i);
+                char c = ne.str[i];
+                if(c != '0' && c != '1' && c != '.')
+                {
+                    return _is_delim_char(c) ? ne.first(i) : ne.first(0);
+                }
+            }
+        }
+        else // assume decimal
+        {
+            if(ne.len == skip_start) return ne.first(0);
+            for(size_t i = skip_start; i < ne.len; ++i)
+            {
+                char c = ne.str[i];
+                if((c < '0' || c > '9') && (c != '.' && c != 'e' && c != 'E'))
+                {
+                    if(c == '-' || c == '+')
+                    {
+                        // we can also have a sign for the exponent
+                        if(i > 1 && (ne[i-1] == 'e' || ne[i-1] == 'E'))
+                        {
+                            continue;
+                        }
+                    }
+                    return _is_delim_char(c) ? ne.first(i) : ne.first(0);
+                }
             }
         }
         return ne;
+    }
+
+    /** true if the character is a delimiter character *at the end* */
+    static constexpr C4_ALWAYS_INLINE bool _is_delim_char(char c) noexcept
+    {
+        return c == ' ' || c == '\n' || c == '\r' || c == '\t'
+            || c == ']' || c == ')';
+    }
+
+    /** true if the character is in [0-9a-fA-F] */
+    static constexpr C4_ALWAYS_INLINE bool _is_hex_char(char c) noexcept
+    {
+        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
 public:

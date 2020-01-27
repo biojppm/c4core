@@ -902,21 +902,127 @@ TEST(substr, first_non_empty_span)
 TEST(substr, first_uint_span)
 {
     EXPECT_EQ(csubstr("1234").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("+1234").first_uint_span(), "+1234");
+    EXPECT_EQ(csubstr("-1234").first_uint_span(), "");
+    EXPECT_EQ(csubstr("1234 asdkjh").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("1234\rasdkjh").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("1234\tasdkjh").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("1234\nasdkjh").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("1234]asdkjh").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("1234)asdkjh").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("1234gasdkjh").first_uint_span(), "");
+    EXPECT_EQ(csubstr("1").first_uint_span(), "1");
+    EXPECT_EQ(csubstr("+1").first_uint_span(), "+1");
+    EXPECT_EQ(csubstr("-1").first_uint_span(), "");
+    EXPECT_EQ(csubstr("-0").first_uint_span(), "");
+    EXPECT_EQ(csubstr("0").first_uint_span(), "0");
+    EXPECT_EQ(csubstr("+0").first_uint_span(), "+0");
+    EXPECT_EQ(csubstr("-0").first_uint_span(), "");
     EXPECT_EQ(csubstr("1234 abc").first_uint_span(), "1234");
+    EXPECT_EQ(csubstr("abc 1234 abc").first_uint_span(), "");
+    EXPECT_EQ(csubstr("+0x1234 abc").first_uint_span(), "+0x1234");
+    EXPECT_EQ(csubstr("-0x1234 abc").first_uint_span(), "");
     EXPECT_EQ(csubstr("0x1234 abc").first_uint_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\rabc").first_uint_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\nabc").first_uint_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\tabc").first_uint_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234]abc").first_uint_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234)abc").first_uint_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234g").first_uint_span(), "");
+    EXPECT_EQ(csubstr("0b01").first_uint_span(), "0b01");
+    EXPECT_EQ(csubstr("+0b01").first_uint_span(), "+0b01");
+    EXPECT_EQ(csubstr("-0b01").first_uint_span(), "");
+    EXPECT_EQ(csubstr("0b01 asdasd").first_uint_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\rasdasd").first_uint_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\tasdasd").first_uint_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\nasdasd").first_uint_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01]asdasd").first_uint_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01)asdasd").first_uint_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01hasdasd").first_uint_span(), "");
 }
 
 TEST(substr, first_int_span)
 {
     EXPECT_EQ(csubstr("1234").first_int_span(), "1234");
+    EXPECT_EQ(csubstr("+1234").first_int_span(), "+1234");
     EXPECT_EQ(csubstr("-1234").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234 asdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234\rasdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234\tasdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234\nasdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234]asdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234)asdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234gasdkjh").first_int_span(), "");
+    EXPECT_EQ(csubstr("1").first_int_span(), "1");
+    EXPECT_EQ(csubstr("+1").first_int_span(), "+1");
+    EXPECT_EQ(csubstr("-1").first_int_span(), "-1");
+    EXPECT_EQ(csubstr("-0").first_int_span(), "-0");
+    EXPECT_EQ(csubstr("0").first_int_span(), "0");
+    EXPECT_EQ(csubstr("+0").first_int_span(), "+0");
+    EXPECT_EQ(csubstr("-0").first_int_span(), "-0");
     EXPECT_EQ(csubstr("1234 abc").first_int_span(), "1234");
-    EXPECT_EQ(csubstr("-1234 abc").first_int_span(), "-1234");
-    EXPECT_EQ(csubstr("0x1234 abc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("abc 1234 abc").first_int_span(), "");
+    EXPECT_EQ(csubstr("+0x1234 abc").first_int_span(), "+0x1234");
     EXPECT_EQ(csubstr("-0x1234 abc").first_int_span(), "-0x1234");
+    EXPECT_EQ(csubstr("0x1234 abc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\rabc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\nabc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\tabc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234]abc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234)abc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234gabc").first_int_span(), "");
+    EXPECT_EQ(csubstr("0b01").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("+0b01").first_int_span(), "+0b01");
+    EXPECT_EQ(csubstr("-0b01").first_int_span(), "-0b01");
+    EXPECT_EQ(csubstr("0b01 asdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\rasdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\tasdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\nasdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01]asdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01)asdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01gasdasd").first_int_span(), "");
+}
 
-    // bugs
-    EXPECT_EQ(csubstr("10]").first_int_span(), "10");
+TEST(substr, first_real_span)
+{
+    EXPECT_EQ(csubstr("1234").first_int_span(), "1234");
+    EXPECT_EQ(csubstr("+1234").first_int_span(), "+1234");
+    EXPECT_EQ(csubstr("-1234").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234 asdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234\rasdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234\tasdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234\nasdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234]asdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234)asdkjh").first_int_span(), "-1234");
+    EXPECT_EQ(csubstr("-1234gasdkjh").first_int_span(), "");
+    EXPECT_EQ(csubstr("1").first_int_span(), "1");
+    EXPECT_EQ(csubstr("+1").first_int_span(), "+1");
+    EXPECT_EQ(csubstr("-1").first_int_span(), "-1");
+    EXPECT_EQ(csubstr("-0").first_int_span(), "-0");
+    EXPECT_EQ(csubstr("0").first_int_span(), "0");
+    EXPECT_EQ(csubstr("+0").first_int_span(), "+0");
+    EXPECT_EQ(csubstr("-0").first_int_span(), "-0");
+    EXPECT_EQ(csubstr("1234 abc").first_int_span(), "1234");
+    EXPECT_EQ(csubstr("abc 1234 abc").first_int_span(), "");
+    EXPECT_EQ(csubstr("+0x1234 abc").first_int_span(), "+0x1234");
+    EXPECT_EQ(csubstr("-0x1234 abc").first_int_span(), "-0x1234");
+    EXPECT_EQ(csubstr("0x1234 abc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\rabc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\nabc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234\tabc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234]abc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234)abc").first_int_span(), "0x1234");
+    EXPECT_EQ(csubstr("0x1234gabc").first_int_span(), "");
+    EXPECT_EQ(csubstr("0b01").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("+0b01").first_int_span(), "+0b01");
+    EXPECT_EQ(csubstr("-0b01").first_int_span(), "-0b01");
+    EXPECT_EQ(csubstr("0b01 asdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\rasdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\tasdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01\nasdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01]asdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01)asdasd").first_int_span(), "0b01");
+    EXPECT_EQ(csubstr("0b01gasdasd").first_int_span(), "");
 }
 
 
