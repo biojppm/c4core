@@ -1025,6 +1025,152 @@ TEST(substr, first_real_span)
     EXPECT_EQ(csubstr("0b01gasdasd").first_int_span(), "");
 }
 
+typedef enum : uint8_t { kNone = 0, kIsUint = 1, kIsInt = 3, kIsReal = 7 } NumberClass;
+struct number
+{
+    csubstr num;
+    NumberClass cls;
+
+    void test()
+    {
+        switch(cls)
+        {
+        case kIsUint:
+        {
+            EXPECT_EQ(num.first_uint_span(), num) << num;
+            EXPECT_EQ(num.first_int_span(), num) << num;
+            EXPECT_EQ(num.first_real_span(), num) << num;
+            EXPECT_TRUE(num.is_integer()) << num;
+            EXPECT_TRUE(num.is_number()) << num;
+            break;
+        }
+        case kIsInt:
+        {
+            EXPECT_EQ(num.first_uint_span(), "") << num;
+            EXPECT_EQ(num.first_int_span(), num) << num;
+            EXPECT_EQ(num.first_real_span(), num) << num;
+            EXPECT_TRUE(num.is_integer()) << num;
+            EXPECT_TRUE(num.is_number()) << num;
+            break;
+        }
+        case kIsReal:
+        {
+            EXPECT_EQ(num.first_uint_span(), "") << num;
+            EXPECT_EQ(num.first_int_span(), "") << num;
+            EXPECT_EQ(num.first_real_span(), num) << num;
+            EXPECT_FALSE(num.is_integer()) << num;
+            EXPECT_TRUE(num.is_number()) << num;
+            break;
+        }
+        case 0:
+        {
+            EXPECT_EQ(num.first_uint_span(), "") << num;
+            EXPECT_EQ(num.first_int_span(), "") << num;
+            EXPECT_EQ(num.first_real_span(), "") << num;
+            EXPECT_FALSE(num.is_integer()) << num;
+            EXPECT_FALSE(num.is_number()) << num;
+            break;
+        }
+        default:
+        {
+            FAIL() << num;
+            break;
+        }
+        }
+    }
+};
+
+number numbers[] = {
+    {"1234", kIsUint},
+    {"+1234", kIsUint},
+    {"-1234", kIsInt},
+    {"1234.0", kIsReal},
+    {"+1234.0", kIsReal},
+    {"-1234.0", kIsReal},
+    {"1", kIsUint},
+    {"+1", kIsUint},
+    {"-1", kIsInt},
+    {"1.", kIsReal},
+    {"+1.", kIsReal},
+    {"-1.", kIsReal},
+    {"0", kIsUint},
+    {"+0", kIsUint},
+    {"-0", kIsInt},
+    {"1.", kIsReal},
+    {"+1.", kIsReal},
+    {"-1.", kIsReal},
+    {".1", kIsReal},
+    {"+.1", kIsReal},
+    {"-.1", kIsReal},
+    {"0x1234", kIsUint},
+    {"+0x1234", kIsUint},
+    {"-0x1234", kIsInt},
+    {"0b01", kIsUint},
+    {"+0b01", kIsUint},
+    {"-0b01", kIsInt},
+    {"1e1", kIsReal},
+    {"1e+1", kIsReal},
+    {"1e-1", kIsReal},
+    {"1.e1", kIsReal},
+    {"1.e-1", kIsReal},
+    {"1.e+1", kIsReal},
+    {"1.0e1", kIsReal},
+    {"1.0e-1", kIsReal},
+    {"1.0e+1", kIsReal},
+    {"+1e1", kIsReal},
+    {"+1e+1", kIsReal},
+    {"+1e-1", kIsReal},
+    {"+1.e1", kIsReal},
+    {"+1.e-1", kIsReal},
+    {"+1.e+1", kIsReal},
+    {"+1.0e1", kIsReal},
+    {"+1.0e-1", kIsReal},
+    {"+1.0e+1", kIsReal},
+    {"-1e1", kIsReal},
+    {"-1e+1", kIsReal},
+    {"-1e-1", kIsReal},
+    {"-1.e1", kIsReal},
+    {"-1.e-1", kIsReal},
+    {"-1.e+1", kIsReal},
+    {"-1.0e1", kIsReal},
+    {"-1.0e-1", kIsReal},
+    {"-1.0e+1", kIsReal},
+    {"1e123", kIsReal},
+    {"1e+123", kIsReal},
+    {"1e-123", kIsReal},
+    {"1.e123", kIsReal},
+    {"1.e-123", kIsReal},
+    {"1.e+123", kIsReal},
+    {"1.0e123", kIsReal},
+    {"1.0e-123", kIsReal},
+    {"1.0e+123", kIsReal},
+    {"+1e123", kIsReal},
+    {"+1e+123", kIsReal},
+    {"+1e-123", kIsReal},
+    {"+1.e123", kIsReal},
+    {"+1.e-123", kIsReal},
+    {"+1.e+123", kIsReal},
+    {"+1.0e123", kIsReal},
+    {"+1.0e-123", kIsReal},
+    {"+1.0e+123", kIsReal},
+    {"-1e123", kIsReal},
+    {"-1e+123", kIsReal},
+    {"-1e-123", kIsReal},
+    {"-1.e123", kIsReal},
+    {"-1.e-123", kIsReal},
+    {"-1.e+123", kIsReal},
+    {"-1.0e123", kIsReal},
+    {"-1.0e-123", kIsReal},
+    {"-1.0e+123", kIsReal},
+};
+
+TEST(substr, is_number)
+{
+    for(number n : numbers)
+    {
+        n.test();
+    }
+}
 
 TEST(substr, triml)
 {
