@@ -119,5 +119,3 @@ skip_commits:
     - doc/*
     - LICENSE.txt
     - README.*
-    - *.md
-    - *.txt
