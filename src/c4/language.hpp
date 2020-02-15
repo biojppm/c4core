@@ -207,8 +207,12 @@
 /** prevent compiler warnings about a specific var being unused */
 #define C4_UNUSED(var) (void)var
 
-#define C4_STATIC_ASSERT(cond) static_assert((cond), "static assert failed: " #cond)
-#define C4_STATIC_ASSERT_MSG(cond, msg) static_assert((cond), "static assert failed: " #cond ": " msg)
+#if C4_CPP >= 17
+#define C4_STATIC_ASSERT(cond) static_assert(cond)
+#else
+#define C4_STATIC_ASSERT(cond) static_assert((cond), #cond)
+#endif
+#define C4_STATIC_ASSERT_MSG(cond, msg) static_assert((cond), #cond ": " msg)
 
 /** @def C4_DONT_OPTIMIZE idea lifted from GoogleBenchmark.
  * @see https://github.com/google/benchmark/blob/master/include/benchmark/benchmark_api.h */

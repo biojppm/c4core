@@ -94,8 +94,8 @@ typedef enum {
 template<class T>
 size_t itoa(substr buf, T v)
 {
-    static_assert(std::is_integral<T>::value, "must be integral type");
-    static_assert(std::is_signed<T>::value, "must be signed type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
     size_t pos = 0;
     if(v < 0)
     {
@@ -131,8 +131,8 @@ size_t itoa(substr buf, T v)
 template<class T>
 size_t itoa(substr buf, T v, T radix)
 {
-    static_assert(std::is_integral<T>::value, "must be integral type");
-    static_assert(std::is_signed<T>::value, "must be signed type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
     constexpr static const char hexchars[] = "0123456789abcdef";
     size_t pos = 0;
 
@@ -176,8 +176,8 @@ size_t itoa(substr buf, T v, T radix)
 template<class T>
 size_t utoa(substr buf, T v)
 {
-    static_assert(std::is_integral<T>::value, "must be integral type");
-    static_assert(std::is_unsigned<T>::value, "must be unsigned type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_unsigned<T>::value);
     size_t pos = 0;
     do {
         _c4append((char)(v % 10) + '0');
@@ -196,8 +196,8 @@ size_t utoa(substr buf, T v)
 template<class T>
 size_t utoa(substr buf, T v, T radix)
 {
-    static_assert(std::is_integral<T>::value, "must be integral type");
-    static_assert(std::is_unsigned<T>::value, "must be unsigned type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_unsigned<T>::value);
     constexpr static const char hexchars[] = "0123456789abcdef";
     size_t pos = 0;
 
@@ -244,8 +244,8 @@ size_t utoa(substr buf, T v, T radix)
 template<class T>
 bool atoi(csubstr str, T * C4_RESTRICT v)
 {
-    static_assert(std::is_integral<T>::value, "must be integral type");
-    static_assert(std::is_signed<T>::value, "must be signed type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
 
     C4_ASSERT(str.len > 0);
     C4_ASSERT(str == str.first_int_span());
@@ -270,6 +270,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
     }
     else
     {
+        C4_ASSERT(str.len > start);
         if(str.len == start+1)
         {
             *v = 0; // because the first character is 0
@@ -337,7 +338,7 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
 template<class T>
 bool atou(csubstr str, T * C4_RESTRICT v)
 {
-    static_assert(std::is_integral<T>::value, "must be integral type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(str.len > 0);
     C4_ASSERT_MSG(str.str[0] != '-', "must be positive");
     C4_ASSERT(str == str.first_uint_span());
@@ -555,7 +556,8 @@ inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatti
 
 
 /** Convert a string to a single precision real number.
- * The input string must be trimmed to the value.
+ * The input string must be trimmed to the value, ie
+ * no leading or trailing whitespace can be present.
  * @return true iff the conversion succeeded
  * @ingroup lowlevel_tofrom_chars
  * @see atof_first() if the string is not trimmed
@@ -569,7 +571,8 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
 
 
 /** Convert a string to a double precision real number.
- * The input string must be trimmed to the value.
+ * The input string must be trimmed to the value, ie
+ * no leading or trailing whitespace can be present.
  * @return true iff the conversion succeeded
  * @ingroup lowlevel_tofrom_chars
  * @see atod_first() if the string is not trimmed
@@ -609,10 +612,10 @@ inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
     return csubstr::npos;
 }
 
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 #define _C4_DEFINE_TO_FROM_CHARS_TOA(ty, id)                    \
                                                                 \

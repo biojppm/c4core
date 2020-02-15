@@ -29,21 +29,4 @@ size_t sprintf(substr buf, const char *fmt, ...)
     return snum;
 }
 
-#ifdef C4_HMM_DONT_KNOW_ABOUT_THIS
-/* @todo This is going to be a major headache. How can we reliably know the
- * number of characters read, given that the format string is user
- * defined?  Yes, we're forcing the user to provide %n as the last format
- * specifier, but how can we access the value?
- */
-size_t sscanf(csubstr buf, const char *fmt, ...);
-{
-    va_list args;
-    va_start(args, fmt);
-
-    C4_ASSERT_MSG(to_csubstr(fmt).ends_with("%n"), "this function requires that %n is passed as the last argument");
-
-    va_end(args);
-}
-#endif
-
 } // namespace c4

@@ -88,7 +88,7 @@ template<> struct fmt_wrapper<uint64_t> : public integral<uint64_t> { using inte
 template<class T>
 inline fmt_wrapper<T> hex(T v)
 {
-    static_assert(std::is_integral<T>::value, "must be an integral type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(16));
 }
 
@@ -96,7 +96,7 @@ inline fmt_wrapper<T> hex(T v)
 template<class T>
 inline fmt_wrapper<T> oct(T v)
 {
-    static_assert(std::is_integral<T>::value, "must be an integral type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(8));
 }
 
@@ -104,7 +104,7 @@ inline fmt_wrapper<T> oct(T v)
 template<class T>
 inline fmt_wrapper<T> bin(T v)
 {
-    static_assert(std::is_integral<T>::value, "must be an integral type");
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(2));
 }
 
