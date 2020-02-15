@@ -436,7 +436,7 @@ TEST(ftoa, basic)
 
     {
         SCOPED_TRACE("precision 3");
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && (C4_CPP < 17)
         test_ftoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.032p+0");
         test_dtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.032p+0");
 #else
@@ -504,8 +504,13 @@ TEST(to_chars, trimmed_fit_float)
     substr sp(buf);
     size_t sz = to_chars(sp, v);
     sp = sp.left_of(sz);
+#if C4_CPP < 17
     EXPECT_EQ(sp, "1024.16"); // ehemm.
     char buf2[7 + 1];
+#else
+    EXPECT_EQ(sp, "1024.1569"); // ehemm.
+    char buf2[9 + 1];
+#endif
     C4_ASSERT(sizeof(buf2) == sz+1);
     substr sp2(buf2, sizeof(buf2)); // make sure it spans the whole buffer
     sp2 = to_chars_sub(sp2, v);
@@ -525,8 +530,13 @@ TEST(to_chars, trimmed_fit_double)
     substr sp(buf);
     size_t sz = to_chars(sp, v);
     sp = sp.left_of(sz);
+#if C4_CPP < 17
     EXPECT_EQ(sp, "1024.16"); // ehemm.
     char buf2[7 + 1];
+#else
+    EXPECT_EQ(sp, "1024.1568"); // ehemm.
+    char buf2[9 + 1];
+#endif
     C4_ASSERT(sizeof(buf2) == sz+1);
     substr sp2(buf2, sizeof(buf2)); // make sure it spans the whole buffer
     sp2 = to_chars_sub(sp2, v);

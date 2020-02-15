@@ -9,6 +9,12 @@
 #include <utility>
 #include <stdarg.h>
 
+#include "c4/config.hpp"
+
+#if C4_CPP >= 17
+#include <charconv>
+#endif
+
 #include "c4/substr.hpp"
 
 #ifdef _MSC_VER
@@ -67,14 +73,45 @@ namespace c4 {
 /** @ingroup lowlevel_tofrom_chars */
 typedef enum {
     /** print the real number in floating point format (like %f) */
-    FTOA_FLOAT,
+    FTOA_FLOAT = 0,
     /** print the real number in scientific format (like %e) */
-    FTOA_SCIENT,
+    FTOA_SCIENT = 1,
     /** print the real number in flexible format (like %g) */
-    FTOA_FLEX,
+    FTOA_FLEX = 2,
     /** print the real number in hexadecimal format (like %a) */
-    FTOA_HEXA
+    FTOA_HEXA = 3
 } RealFormat_e;
+
+
+inline C4_CONSTEXPR14 char to_c_fmt(RealFormat_e f)
+{
+    constexpr const char fmt[] = {
+        'f',  // FTOA_FLOAT
+        'e',  // FTOA_SCIENT
+        'g',  // FTOA_FLEX
+        'a',  // FTOA_HEXA
+    };
+    using ftype = typename std::underlying_type<RealFormat_e>::type;
+    C4_ASSERT((ftype)f >= 0 && (ftype)f < (ftype)sizeof(fmt));
+    return fmt[f];
+}
+
+
+#if C4_CPP >= 17
+inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
+{
+    constexpr const std::chars_format fmt[] = {
+        std::chars_format::fixed,       // FTOA_FLOAT
+        std::chars_format::scientific,  // FTOA_SCIENT
+        std::chars_format::general,     // FTOA_FLEX
+        std::chars_format::hex,         // FTOA_HEXA
+    };
+    using ftype = typename std::underlying_type<RealFormat_e>::type;
+    C4_ASSERT((ftype)f >= 0 && (ftype)f < (ftype)sizeof(fmt));
+    return fmt[f];
+}
+#endif // C4_CPP >= 17
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -223,9 +260,6 @@ size_t utoa(substr buf, T v, T radix)
 
     return pos;
 }
-
-#undef _c4appendrdx
-#undef _c4append
 
 
 //-----------------------------------------------------------------------------
@@ -413,34 +447,26 @@ inline size_t atou_first(csubstr str, T *v)
 
 namespace detail {
 
+
 /** @see http://www.exploringbinary.com/ for many good examples on float-str conversion */
 template<size_t N>
 void get_real_format_str(char (& C4_RESTRICT fmt)[N], int precision, RealFormat_e formatting, const char* length_modifier="")
 {
-    char c;
-    switch(formatting)
-    {
-    case FTOA_FLOAT: c = 'f'; break;
-    case FTOA_SCIENT: c = 'e'; break;
-    case FTOA_HEXA: c = 'a'; break;
-    case FTOA_FLEX:
-    default:
-         c = 'g';
-    }
-    int iret; C4_UNUSED(iret);
+    int iret;
     if(precision == -1)
     {
-        iret = snprintf(fmt, sizeof(fmt), "%%%s%c", length_modifier, c);
+        iret = snprintf(fmt, sizeof(fmt), "%%%s%c", length_modifier, to_c_fmt(formatting));
     }
     else if(precision == 0)
     {
-        iret = snprintf(fmt, sizeof(fmt), "%%.%s%c", length_modifier, c);
+        iret = snprintf(fmt, sizeof(fmt), "%%.%s%c", length_modifier, to_c_fmt(formatting));
     }
     else
     {
-        iret = snprintf(fmt, sizeof(fmt), "%%.%d%s%c", precision, length_modifier, c);
+        iret = snprintf(fmt, sizeof(fmt), "%%.%d%s%c", precision, length_modifier, to_c_fmt(formatting));
     }
     C4_ASSERT(iret >= 2 && size_t(iret) < sizeof(fmt));
+    C4_UNUSED(iret);
 }
 
 
@@ -486,6 +512,77 @@ size_t print_one(substr str, const char* full_fmt, T v)
 #endif
 }
 
+template<typename T>
+constexpr inline int get_storage_bits()
+{
+    return sizeof(T) * CHAR_BIT;
+}
+
+template<typename T>
+constexpr inline int get_mantissa_bits()
+{
+    return ::std::numeric_limits<T>::digits - 1;
+}
+
+template<typename T>
+constexpr inline int get_exponent_bits()
+{
+    using nl = std::numeric_limits<T>;
+    int range = nl::max_exponent - nl::min_exponent;
+    int bits = 0;
+    while ((range >> bits) > 0) ++bits;
+    return bits;
+}
+
+template<class T> struct real_type_info
+{
+    enum : int {
+        storage_bits = get_storage_bits<T>(),
+        exponent_bits = get_exponent_bits<T>(),
+        mantissa_bits = get_mantiss_bits<T>(),
+    };
+};
+
+template<typename T> constexpr const char* get_length_modifier();
+template<> constexpr inline const char* get_length_modifier<float>() { return ""; }
+template<> constexpr inline const char* get_length_modifier<double>() { return "l"; }
+
+template<class T>
+inline size_t scan_one_real(csubstr str, T *v)
+{
+    C4_STATIC_ASSERT(std::is_floating_point<T>::value);
+
+    C4_ASSERT(str.len > 0);
+    C4_ASSERT(str == str.first_real_span());
+
+    size_t pos = 0;
+    T sign = T(1);
+    if(str[0] == '-')
+    {
+        sign = T(-1);
+        ++pos;
+    }
+
+    if(str.str[pos] == '0')
+    {
+        C4_ASSERT(str.len > pos);
+        if(str.len == pos+1)
+        {
+            *v = T(0);
+            return pos;
+        }
+        else if(str.str[pos + 1] == 'x' || str.str[pos + 1] == 'X')
+        {
+            // hexadecimal
+            C4_ASSERT(str.len > 2);
+            pos += 2;
+            return pos;
+        }
+    }
+
+}
+
+
 /** scans a string using the given type format, while at the same time
  * allowing non-null-terminated strings AND guaranteeing that the given
  * string length is strictly respected, so that no buffer overflows
@@ -526,6 +623,54 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 } // namespace detail
 
 
+#if C4_CPP >= 17  // when CPP >= 17 we can use std::to_chars() and std::from_chars()
+template<class T>
+size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
+{
+    std::to_chars_result result;
+    size_t pos = 0;
+    if(formatting == FTOA_HEXA)
+    {
+        _c4append('0');
+        _c4append('x');
+    }
+    if(precision == -1)
+    {
+        result = std::to_chars(buf.str + pos, buf.str + buf.len, v, to_std_fmt(formatting));
+    }
+    else
+    {
+        result = std::to_chars(buf.str + pos, buf.str + buf.len, v, to_std_fmt(formatting), precision);
+    }
+    if(result.ec == std::errc())
+    {
+        // all good, no errors.
+        C4_ASSERT(result.ptr >= buf.str);
+        ptrdiff_t delta = result.ptr - buf.str;
+        return static_cast<size_t>(delta);
+    }
+    C4_ASSERT(result.ec == std::errc::value_too_large);
+    // This is unfortunate.
+    //
+    // When the result can't fit in the given buffer,
+    // std::to_chars() returns the end pointer it was originally
+    // given, which is useless because here we want to known
+    // _exactly_ how many characters the buffer must have to fit
+    // the result.
+    //
+    // So we fall back on printf in this case.
+    char fmt[16];
+    detail::get_real_format_str(fmt, precision, formatting, detail::get_length_modifier<T>());
+    size_t ret = detail::print_one(buf, fmt, v);
+    return ret > buf.len ? ret : buf.len + 1;
+}
+#endif
+
+
+#undef _c4appendrdx
+#undef _c4append
+
+
 /** Convert a single precision real number to string.
  * The string will in general be NOT null-terminated.
  * For FTOA_FLEX, \p precision is the number of significand digits. Otherwise
@@ -534,9 +679,13 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
  */
 inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
+#if C4_CPP >= 17
+    return rtoa(str, v, precision, formatting);
+#else
     char fmt[16];
     detail::get_real_format_str(fmt, precision, formatting, /*length_modifier*/"");
     return detail::print_one(str, fmt, v);
+#endif
 }
 
 
@@ -549,9 +698,13 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
  */
 inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
+#if C4_CPP >= 17
+    return rtoa(str, v, precision, formatting);
+#else
     char fmt[16];
     detail::get_real_format_str(fmt, precision, formatting, /*length_modifier*/"l");
     return detail::print_one(str, fmt, v);
+#endif
 }
 
 
@@ -565,8 +718,14 @@ inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatti
 inline bool atof(csubstr str, float * C4_RESTRICT v)
 {
     C4_ASSERT(str == str.first_real_span());
+#if C4_CPP >= 17
+    std::from_chars_result result;
+    result = std::from_chars(str.str, str.str + str.len, *v);
+    return result.ec == std::errc();
+#else
     size_t ret = detail::scan_one(str, "g", v);
     return ret != csubstr::npos;
+#endif
 }
 
 
@@ -580,8 +739,14 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
 inline bool atod(csubstr str, double * C4_RESTRICT v)
 {
     C4_ASSERT(str == str.first_real_span());
+#if C4_CPP >= 17
+    std::from_chars_result result;
+    result = std::from_chars(str.str, str.str + str.len, *v);
+    return result.ec == std::errc();
+#else
     size_t ret = detail::scan_one(str, "lg", v);
     return ret != csubstr::npos;
+#endif
 }
 
 

@@ -518,18 +518,11 @@ constexpr const append_t append = {};
 template<class CharOwningContainer, class... Args>
 inline void catrs(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
+retry:
     substr buf = to_substr(*cont);
     size_t ret = cat(buf, args...);
     cont->resize(ret);
-    if(ret > buf.len)
-    {
-        buf = to_substr(*cont);
-        ret = cat(buf, args...);
-        if(ret != buf.len)
-        {
-            cont->resize(ret);
-        }
-    }
+    if(ret > buf.len) goto retry;
 }
 
 /** like cat(), but receives a container, and appends to it instead of
@@ -543,18 +536,11 @@ template<class CharOwningContainer, class... Args>
 inline csubstr catrs(append_t, CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
+retry:
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = cat(buf, args...);
     cont->resize(pos + ret);
-    if(ret > buf.len)
-    {
-        buf = to_substr(*cont).sub(pos);
-        ret = cat(buf, args...);
-        if(ret != buf.len)
-        {
-            cont->resize(pos + ret);
-        }
-    }
+    if(ret > buf.len) goto retry;
     return to_csubstr(*cont).range(pos, cont->size());
 }
 
@@ -567,18 +553,11 @@ inline csubstr catrs(append_t, CharOwningContainer * C4_RESTRICT cont, Args cons
 template<class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
+retry:
     substr buf = to_substr(*cont);
     size_t ret = catsep(buf, sep, args...);
     cont->resize(ret);
-    if(ret > buf.len)
-    {
-        buf = to_substr(*cont);
-        ret = catsep(buf, sep, args...);
-        if(ret != buf.len)
-        {
-            cont->resize(ret);
-        }
-    }
+    if(ret > buf.len) goto retry;
 }
 
 /**
@@ -599,18 +578,11 @@ template<class CharOwningContainer, class Sep, class... Args>
 inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
+retry:
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = catsep(buf, sep, args...);
     cont->resize(pos + ret);
-    if(ret > buf.len)
-    {
-        buf = to_substr(*cont).sub(pos);
-        ret = catsep(buf, sep, args...);
-        if(ret != buf.len)
-        {
-            cont->resize(pos + ret);
-        }
-    }
+    if(ret > buf.len) goto retry;
     return to_csubstr(*cont).range(pos, cont->size());
 }
 
@@ -625,18 +597,11 @@ inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep co
 template<class CharOwningContainer, class... Args>
 inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const&  C4_RESTRICT ...args)
 {
+    retry:
     substr buf = to_substr(*cont);
     size_t ret = format(buf, fmt, args...);
     cont->resize(ret);
-    if(ret > buf.len)
-    {
-        buf = to_substr(*cont);
-        ret = format(buf, fmt, args...);
-        if(ret != buf.len)
-        {
-            cont->resize(ret);
-        }
-    }
+    if(ret > buf.len) goto retry;
 }
 
 /**
@@ -659,18 +624,11 @@ template<class CharOwningContainer, class... Args>
 inline csubstr formatrs(append_t, CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
+    retry:
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = format(buf, fmt, args...);
     cont->resize(pos + ret);
-    if(ret > buf.len)
-    {
-        buf = to_substr(*cont).sub(pos);
-        ret = format(buf, fmt, args...);
-        if(ret != buf.len)
-        {
-            cont->resize(pos + ret);
-        }
-    }
+    if(ret > buf.len) goto retry;
     return to_csubstr(*cont).range(pos, cont->size());
 }
 
