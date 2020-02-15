@@ -42,30 +42,36 @@ elif [ "$BM" == "OFF" ] || [ "$BM" == "" ] ; then
     CMFLAGS="$CMFLAGS -DC4CORE_BUILD_BENCHMARKS=OFF"
 fi
 
+if [ "$STD" != "" ] ; then
+    CMFLAGS="$CMFLAGS -DC4_CXX_STANDARD=$STD"
+fi
+
 if [ ! -z "$CMFLAGS" ] ; then
     echo "additional cmake flags: $CMFLAGS"
 fi
 
-CFLAGS_="-std=c99"
-XFLAGS_="-std=c++11"
-if [ "$A" == "32" ] ; then
-    CFLAGS_="$CFLAGS_ -m32"
-    XFLAGS_="$XFLAGS_ -m32"
-fi
+function run_test()
+{
+    bits=$1
+    build=`pwd`/build/$bits
+    install=`pwd`/install/$bits
+    mkdir -p $build
+    mkdir -p $install
+    cd $build
+    cmake -DCMAKE_C_COMPILER=$CC_ -DCMAKE_C_FLAGS="-std=c99 -m$bits" \
+          -DCMAKE_CXX_COMPILER=$CXX_ -DCMAKE_CXX_FLAGS="-m$bits" \
+          -DCMAKE_INSTALL_PREFIX="$install" \
+          -DCMAKE_BUILD_TYPE=$BT \
+          -DC4CORE_DEV=ON \
+          -DC4CORE_CXX_STANDARD=$STD \
+          $CMFLAGS \
+          $C4CORE_DIR
+    make help | sed 1d | sort
+    make CTEST_OUTPUT_ON_FAILURE=1 test
+    cd -
+}
 
-install=`pwd`/install
-mkdir install
-mkdir build
-cd build
-cmake -DCMAKE_C_COMPILER=$CC_ -DCMAKE_C_FLAGS="$CFLAGS_" \
-      -DCMAKE_CXX_COMPILER=$CXX_ -DCMAKE_CXX_FLAGS="$XFLAGS_" \
-      -DCMAKE_INSTALL_PREFIX="$install" \
-      -DCMAKE_BUILD_TYPE=$BT \
-      -DC4CORE_DEV=ON \
-      $CMFLAGS \
-      $C4CORE_DIR
-make help | sed 1d | sort
-make CTEST_OUTPUT_ON_FAILURE=1 test
-cd -
+run_test 64
+run_test 32
 
 exit 0

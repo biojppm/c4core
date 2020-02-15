@@ -26,16 +26,11 @@ EOF'
 sudo apt-get clean
 sudo -E apt-get update
 
-  if [ "$CXX_" == "g++-4.9" ] && [ "$A" == "64" ] ; then DPKG="$DPKG g++-4.9"
-elif [ "$CXX_" == "g++-4.9" ] && [ "$A" == "32" ] ; then DPKG="$DPKG g++-4.9 g++-4.9-multilib"
-elif [ "$CXX_" == "g++-5"   ] && [ "$A" == "64" ] ; then DPKG="$DPKG"
-elif [ "$CXX_" == "g++-5"   ] && [ "$A" == "32" ] ; then DPKG="$DPKG"
-elif [ "$CXX_" == "g++-6"   ] && [ "$A" == "64" ] ; then DPKG="$DPKG g++-6"
-elif [ "$CXX_" == "g++-6"   ] && [ "$A" == "32" ] ; then DPKG="$DPKG g++-6 g++-6-multilib"
-elif [ "$CXX_" == "g++-7"   ] && [ "$A" == "64" ] ; then DPKG="$DPKG g++-7"
-elif [ "$CXX_" == "g++-7"   ] && [ "$A" == "32" ] ; then DPKG="$DPKG g++-7 g++-7-multilib"
-elif [ "$CXX_" == "g++-8"   ] && [ "$A" == "64" ] ; then DPKG="$DPKG g++-8"
-elif [ "$CXX_" == "g++-8"   ] && [ "$A" == "32" ] ; then DPKG="$DPKG g++-8 g++-8-multilib"
+  if [ "$CXX_" == "g++-4.9" ] ; then DPKG="$DPKG g++-4.9 g++-4.9-multilib"
+elif [ "$CXX_" == "g++-5"   ] ; then DPKG="$DPKG"
+elif [ "$CXX_" == "g++-6"   ] ; then DPKG="$DPKG g++-6 g++-6-multilib"
+elif [ "$CXX_" == "g++-7"   ] ; then DPKG="$DPKG g++-7 g++-7-multilib"
+elif [ "$CXX_" == "g++-8"   ] ; then DPKG="$DPKG g++-8 g++-8-multilib"
 elif [ "$CXX_" == "clang++-3.6" ] ; then DPKG="$DPKG clang-3.6"
 elif [ "$CXX_" == "clang++-3.7" ] ; then DPKG="$DPKG clang-3.7"
 elif [ "$CXX_" == "clang++-3.8" ] ; then DPKG="$DPKG clang-3.8"
@@ -46,6 +41,7 @@ elif [ "$CXX_" == "clang++-6.0" ] ; then DPKG="$DPKG clang-6.0"
 elif [ "$CXX_" == "clang++-7" ] ; then DPKG="$DPKG clang-7"
 elif [ "$CXX_" == "all" ] ; then
     DPKG="$DPKG \
+g++-4.9 g++-4.9-multilib \
 g++-6 g++-6-multilib \
 g++-7 g++-7-multilib \
 clang-3.6 \
@@ -59,9 +55,7 @@ clang-7 \
 "
 fi
 
-if [ "$A" == "32" ] ; then
-    DPKG="$DPKG libc6-dbg:i386"
-fi
+DPKG="$DPKG libc6-dbg:i386"
 
 if [ "$BT" == "Coverage" ] ; then
     DPKG="$DPKG lcov libffi-dev libssl-dev"

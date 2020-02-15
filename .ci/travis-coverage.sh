@@ -12,7 +12,6 @@ function submit_coverage()
 }
 
 if [ "${BT}" == "Coverage" ] ; then
-    pwd
-    cd build
-    make c4core-coverage && submit_coverage
+    make -C build/64 c4core-coverage && submit_coverage
+    make -C build/32 c4core-coverage && submit_coverage
 fi
