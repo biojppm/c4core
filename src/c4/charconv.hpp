@@ -6,15 +6,18 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <type_traits>
-#include <utility>
 #include <stdarg.h>
-
-#include "c4/config.hpp"
-
-#if C4_CPP >= 17
-#include <charconv>
+#include <climits>
+#include <limits>
+#include <utility>
+#if (C4_CPP >= 17) && __has_include(<charconv>) && __cpp_lib_to_chars
+#   define C4CORE_HAVE_STD_TOCHARS 1
+#   include <charconv>
+#else
+#   define C4CORE_HAVE_STD_TOCHARS 0
 #endif
 
+#include "c4/config.hpp"
 #include "c4/substr.hpp"
 
 #ifdef _MSC_VER
@@ -91,13 +94,12 @@ inline C4_CONSTEXPR14 char to_c_fmt(RealFormat_e f)
         'g',  // FTOA_FLEX
         'a',  // FTOA_HEXA
     };
-    using ftype = typename std::underlying_type<RealFormat_e>::type;
-    C4_ASSERT((ftype)f >= 0 && (ftype)f < (ftype)sizeof(fmt));
+    C4_ASSERT(f >= 0 && f < (typename std::underlying_type<RealFormat_e>::type)sizeof(fmt));
     return fmt[f];
 }
 
 
-#if C4_CPP >= 17
+#if C4CORE_HAVE_STD_TOCHARS
 inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
 {
     constexpr const std::chars_format fmt[] = {
@@ -106,11 +108,10 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
         std::chars_format::general,     // FTOA_FLEX
         std::chars_format::hex,         // FTOA_HEXA
     };
-    using ftype = typename std::underlying_type<RealFormat_e>::type;
-    C4_ASSERT((ftype)f >= 0 && (ftype)f < (ftype)sizeof(fmt));
+    C4_ASSERT(f >= 0 && f < (typename std::underlying_type<RealFormat_e>::type)sizeof(fmt));
     return fmt[f];
 }
-#endif // C4_CPP >= 17
+#endif // C4CORE_HAVE_STD_TOCHARS
 
 
 //-----------------------------------------------------------------------------
@@ -235,11 +236,11 @@ size_t utoa(substr buf, T v, T radix)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
-    constexpr static const char hexchars[] = "0123456789abcdef";
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    static constexpr const char hexchars[] = "0123456789abcdef";
     size_t pos = 0;
 
     // write the radix prefix
-    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
     switch(radix)
     {
     case 2 : _c4append('0'); _c4append('b'); break;
@@ -539,7 +540,7 @@ template<class T> struct real_type_info
     enum : int {
         storage_bits = get_storage_bits<T>(),
         exponent_bits = get_exponent_bits<T>(),
-        mantissa_bits = get_mantiss_bits<T>(),
+        mantissa_bits = get_mantissa_bits<T>(),
     };
 };
 
@@ -623,7 +624,7 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 } // namespace detail
 
 
-#if C4_CPP >= 17  // when CPP >= 17 we can use std::to_chars() and std::from_chars()
+#if C4CORE_HAVE_STD_TOCHARS
 template<class T>
 size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
@@ -664,7 +665,7 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
     size_t ret = detail::print_one(buf, fmt, v);
     return ret > buf.len ? ret : buf.len + 1;
 }
-#endif
+#endif // C4CORE_HAVE_STD_TOCHARS
 
 
 #undef _c4appendrdx
@@ -679,7 +680,7 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
  */
 inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
-#if C4_CPP >= 17
+#if C4CORE_HAVE_STD_TOCHARS
     return rtoa(str, v, precision, formatting);
 #else
     char fmt[16];
@@ -698,7 +699,7 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
  */
 inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
-#if C4_CPP >= 17
+#if C4CORE_HAVE_STD_TOCHARS
     return rtoa(str, v, precision, formatting);
 #else
     char fmt[16];
@@ -718,7 +719,7 @@ inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatti
 inline bool atof(csubstr str, float * C4_RESTRICT v)
 {
     C4_ASSERT(str == str.first_real_span());
-#if C4_CPP >= 17
+#if C4CORE_HAVE_STD_TOCHARS
     std::from_chars_result result;
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
@@ -739,7 +740,7 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
 inline bool atod(csubstr str, double * C4_RESTRICT v)
 {
     C4_ASSERT(str == str.first_real_span());
-#if C4_CPP >= 17
+#if C4CORE_HAVE_STD_TOCHARS
     std::from_chars_result result;
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
