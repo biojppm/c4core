@@ -314,7 +314,7 @@ public:
 
     basic_substring right_of(size_t pos, bool include_pos=false) const
     {
-        if(pos == npos) return sub(0, 0);
+        if(pos == npos) return sub(len, 0);
         if( ! include_pos) ++pos;
         return sub(pos);
     }
