@@ -513,55 +513,70 @@ size_t print_one(substr str, const char* full_fmt, T v)
 #endif
 }
 
-template<typename T>
-constexpr inline int get_storage_bits()
-{
-    return sizeof(T) * CHAR_BIT;
-}
+template<class T> struct real_buf;
+template<> struct real_buf<float> { using type = uint32_t; };
+template<> struct real_buf<double> { using type = uint64_t; };
 
-template<typename T>
-constexpr inline int get_mantissa_bits()
+template<class T>
+struct real_type_info
 {
-    return ::std::numeric_limits<T>::digits - 1;
-}
+    C4_STATIC_ASSERT(std::is_floating_point<T>::value);
+    using itype = typename real_buf<T>::type;
+    itype buf = {};
 
-template<typename T>
-constexpr inline int get_exponent_bits()
-{
-    using nl = std::numeric_limits<T>;
-    int range = nl::max_exponent - nl::min_exponent;
-    int bits = 0;
-    while ((range >> bits) > 0) ++bits;
-    return bits;
-}
+    constexpr static inline int get_exponent_bits()
+    {
+        using nl = std::numeric_limits<T>;
+        int range = nl::max_exponent - nl::min_exponent;
+        int bits = 0;
+        while ((range >> bits) > 0) ++bits;
+        return bits;
+    }
 
-template<class T> struct real_type_info
-{
+    constexpr static inline itype get_mask(int start, int end)
+    {
+        itype r = 0;
+        constexpr const itype o = 1;
+        for(int i = start; i < end; ++i) r |= (o << i);
+        return r;
+    }
+
     enum : int {
-        storage_bits = get_storage_bits<T>(),
-        exponent_bits = get_exponent_bits<T>(),
-        mantissa_bits = get_mantissa_bits<T>(),
+        num_bits  = sizeof(T) * CHAR_BIT,
+        num_frac_bits = std::numeric_limits<T>::digits - 1,
+        num_exp_bits = get_exponent_bits(),
+        frac_start = 0, frac_end = num_frac_bits,
+        exp_start = frac_end, exp_end = exp_start + num_exp_bits,
+        sign_bit = num_bits - 1,
+    };
+    enum : itype {
+        one = 1,
+        frac_mask = get_mask(frac_start, frac_end),
+        exp_mask = get_mask(exp_start, exp_end),
     };
 };
-
-template<typename T> constexpr const char* get_length_modifier();
-template<> constexpr inline const char* get_length_modifier<float>() { return ""; }
-template<> constexpr inline const char* get_length_modifier<double>() { return "l"; }
 
 template<class T>
 inline size_t scan_one_real(csubstr str, T *v)
 {
     C4_STATIC_ASSERT(std::is_floating_point<T>::value);
-
     C4_ASSERT(str.len > 0);
     C4_ASSERT(str == str.first_real_span());
 
-    size_t pos = 0;
-    T sign = T(1);
+    using rtype = real_type_info<T>;
+    using itype = typename real_type_info<T>::itype;
+
+    size_t pos = 0; // the current buffer position
+    rtype r; // the result, initialized to zero
     if(str[0] == '-')
     {
-        sign = T(-1);
+        r.buf |= (rtype::one << rtype::sign_bit);
         ++pos;
+    }
+    else if(str[0] == '+')
+    {
+        // no need to clear the sign bit
+        ++pos; // other than counting the position
     }
 
     if(str.str[pos] == '0')
@@ -570,19 +585,52 @@ inline size_t scan_one_real(csubstr str, T *v)
         if(str.len == pos+1)
         {
             *v = T(0);
-            return pos;
+            return pos+1;
         }
         else if(str.str[pos + 1] == 'x' || str.str[pos + 1] == 'X')
-        {
-            // hexadecimal
+        {   // hexadecimal
             C4_ASSERT(str.len > 2);
             pos += 2;
             return pos;
         }
+        while(str.str[++pos] == '0') {;} // skip leading zeroes
+        if(str.len == pos+1)
+        {
+            *v = T(0);
+            return pos+1;
+        }
     }
 
+    csubstr rem = str.sub(pos);
+    size_t exp_pos = rem.first_of_any("e", "E").pos;
+    csubstr exponent = rem.right_of(exp_pos);
+    csubstr mantissa = rem.left_of(exp_pos);
+    size_t dot_pos = mantissa.first_of('.');
+    csubstr integral = mantissa.left_of(dot_pos);
+    csubstr fractional = mantissa.right_of(dot_pos);
+
+    itype integral_v = 0;
+    itype fractional_v = 0;
+    itype exponent_v = 0;
+    for(char c : integral)
+    {
+        C4_ASSERT(c >= '0' && c <= '9');
+        integral_v = integral_v * itype(10) + (itype(c) - itype('0'));
+    }
+    for(char c : fractional)
+    {
+        C4_ASSERT(c >= '0' && c <= '9');
+        fractional_v = fractional_v * itype(10) + (itype(c) - itype('0'));
+    }
+
+    C4_NOT_IMPLEMENTED();
+    return pos;
 }
 
+
+template<typename T> constexpr        const char* get_length_modifier();
+template<>           constexpr inline const char* get_length_modifier<float>() { return ""; }
+template<>           constexpr inline const char* get_length_modifier<double>() { return "l"; }
 
 /** scans a string using the given type format, while at the same time
  * allowing non-null-terminated strings AND guaranteeing that the given
