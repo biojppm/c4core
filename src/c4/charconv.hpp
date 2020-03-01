@@ -355,7 +355,7 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         if(C4_UNLIKELY(c < '0' || c > '9')) return false;
-        *v =  (*v) * I(10) + (I(c) - I('0'));
+        *v = (*v) * I(10) + (I(c) - I('0'));
     }
     return true;
 }
@@ -466,7 +466,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
             }
             else
             {
-                if(C4_UNLIKELY( ! detail::read_dec(str.sub(start), v))) return false;
+                return false;
             }
         }
     }
@@ -529,17 +529,21 @@ bool atou(csubstr str, T * C4_RESTRICT v)
             if(pfx == 'x' || pfx == 'X') // hexadecimal
             {
                 C4_ASSERT(str.len > 2);
-                return detail::read_hex(str.sub(2), v);
+                if(C4_UNLIKELY( ! detail::read_hex(str.sub(2), v))) return false;
             }
             else if(pfx == 'b' || pfx == 'B') // binary
             {
                 C4_ASSERT(str.len > 2);
-                return detail::read_bin(str.sub(2), v);
+                if(C4_UNLIKELY( ! detail::read_bin(str.sub(2), v))) return false;
             }
             else if(pfx == 'o' || pfx == 'O') // octal
             {
                 C4_ASSERT(str.len > 2);
-                return detail::read_oct(str.sub(2), v);
+                if(C4_UNLIKELY( ! detail::read_oct(str.sub(2), v))) return false;
+            }
+            else
+            {
+                return false;
             }
         }
     }

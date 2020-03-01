@@ -543,10 +543,9 @@ TEST_CASE("atoi.basic")
 }
 
 template<class T>
-void test_atoi(const char* num_, T expected)
+void test_atoi(csubstr num, T expected)
 {
-    INFO("num=" << num_);
-    csubstr num = to_csubstr(num_);
+    INFO("num=" << num);
     T val;
     bool ok = atoi(num, &val);
     CHECK_UNARY(ok);
