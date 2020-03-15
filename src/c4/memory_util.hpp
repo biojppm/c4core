@@ -105,14 +105,14 @@ struct lsb11
 template<class I>
 C4_CONSTEXPR14 I msb(I v)
 {
-    if(!v) return 0;
+    if(!v) return static_cast<I>(-1);
     I b = 0;
     while(v != 0)
     {
         v >>= 1;
         ++b;
     }
-    return b;
+    return b-1;
 }
 
 namespace detail {
@@ -130,7 +130,7 @@ template<class I, I val, I num_bits>
 struct _msb11<I, val, num_bits, true>
 {
     static_assert(val == 0, "bad implementation");
-    enum : I { num = num_bits };
+    enum : I { num = num_bits-1 };
 };
 
 } // namespace detail
