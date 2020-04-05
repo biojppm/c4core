@@ -176,6 +176,35 @@ TEST(msb11, basic)
 
 //-----------------------------------------------------------------------------
 
+TEST(contiguous_mask, basic)
+{
+    EXPECT_EQ(contiguous_mask(0, 0), 0);
+    EXPECT_EQ(contiguous_mask(0, 1), 1);
+    EXPECT_EQ(contiguous_mask(0, 2), 3);
+    EXPECT_EQ(contiguous_mask(0, 3), 7);
+    EXPECT_EQ(contiguous_mask(0, 4), 15);
+    EXPECT_EQ(contiguous_mask(1, 4), 14);
+    EXPECT_EQ(contiguous_mask(2, 4), 12);
+    EXPECT_EQ(contiguous_mask(3, 4), 8);
+    EXPECT_EQ(contiguous_mask(4, 4), 0);
+}
+
+TEST(contiguous_mask11, basic)
+{
+    EXPECT_EQ((contiguous_mask11<int, 0, 0>::value), 0);
+    EXPECT_EQ((contiguous_mask11<int, 0, 1>::value), 1);
+    EXPECT_EQ((contiguous_mask11<int, 0, 2>::value), 3);
+    EXPECT_EQ((contiguous_mask11<int, 0, 3>::value), 7);
+    EXPECT_EQ((contiguous_mask11<int, 0, 4>::value), 15);
+    EXPECT_EQ((contiguous_mask11<int, 1, 4>::value), 14);
+    EXPECT_EQ((contiguous_mask11<int, 2, 4>::value), 12);
+    EXPECT_EQ((contiguous_mask11<int, 3, 4>::value), 8);
+    EXPECT_EQ((contiguous_mask11<int, 4, 4>::value), 0);
+}
+
+
+//-----------------------------------------------------------------------------
+
 template<size_t N> struct sz    { char buf[N]; };
 template<        > struct sz<0> {              };
 template<size_t F, size_t S > void check_tp()

@@ -139,6 +139,56 @@ struct msb11
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
+/** return a mask with all bits set [first_bit,last_bit[; this function
+ * is constexpr-14 because of the local variables */
+template<class I>
+C4_CONSTEXPR14 I contiguous_mask(I first_bit, I last_bit)
+{
+    I r = 0;
+    constexpr const I o = 1;
+    for(I i = first_bit; i < last_bit; ++i)
+    {
+        r |= (o << i);
+    }
+    return r;
+}
+
+
+namespace detail {
+
+template<class I, I val, I first, I last, bool finished>
+struct _ctgmsk11;
+
+template<class I, I val, I first, I last>
+struct _ctgmsk11< I, val, first, last, true>
+{
+    enum : I { value = _ctgmsk11<I, val|(I(1)<<first), first+I(1), last, (first+1!=last)>::value };
+};
+
+template<class I, I val, I first, I last>
+struct _ctgmsk11< I, val, first, last, false>
+{
+    enum : I { value = val };
+};
+
+} // namespace detail
+
+
+/** TMP version of contiguous_mask(); this needs to be implemented with template
+ * meta-programming because C++11 cannot use a constexpr function with
+ * local variables
+ * @see contiguous_mask */
+template<class I, I first_bit, I last_bit>
+struct contiguous_mask11
+{
+    enum : I { value = detail::_ctgmsk11<I, I(0), first_bit, last_bit, (first_bit!=last_bit)>::value };
+};
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /** use Empty Base Class Optimization to reduce the size of a pair of
  * potentially empty types*/
 
