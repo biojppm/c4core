@@ -450,6 +450,8 @@ TEST(ftoa, basic)
 
 //-----------------------------------------------------------------------------
 
+#ifdef WORK_IN_PROGRESS
+
 #define __(buf_, expected, eps)                         \
     {                                                   \
         csubstr buf(buf_);                              \
@@ -564,6 +566,7 @@ TEST(scan_one_real, hexadecimal)
 
 }
 
+#endif
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -616,7 +619,7 @@ TEST(to_chars, trimmed_fit_float)
     substr sp(buf);
     size_t sz = to_chars(sp, v);
     sp = sp.left_of(sz);
-#if C4CORE_HAVE_STD_TOCHARS
+#if 1 || C4CORE_HAVE_STD_TOCHARS // WORK_IN PROGRESS
     EXPECT_EQ(sp, "1024.16"); // ehemm.
     char buf2[7 + 1];
 #else
@@ -642,7 +645,7 @@ TEST(to_chars, trimmed_fit_double)
     substr sp(buf);
     size_t sz = to_chars(sp, v);
     sp = sp.left_of(sz);
-#if C4CORE_HAVE_STD_TOCHARS
+#if 1 || C4CORE_HAVE_STD_TOCHARS // WORK_IN PROGRESS
     EXPECT_EQ(sp, "1024.16"); // ehemm.
     char buf2[7 + 1];
 #else

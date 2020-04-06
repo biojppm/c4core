@@ -19,6 +19,7 @@
 
 #include "c4/config.hpp"
 #include "c4/substr.hpp"
+#include "c4/memory_util.hpp"
 
 #ifdef _MSC_VER
 #   pragma warning(push)
@@ -524,21 +525,10 @@ struct real_type_info
     using itype = typename real_buf<T>::type;
     itype buf = {};
 
-    constexpr static inline int get_exponent_bits()
+    constexpr static inline int get_exponent_bits() noexcept
     {
         using nl = std::numeric_limits<T>;
-        int range = nl::max_exponent - nl::min_exponent;
-        int bits = 0;
-        while ((range >> bits) > 0) ++bits;
-        return bits;
-    }
-
-    constexpr static inline itype get_mask(int start, int end)
-    {
-        itype r = 0;
-        constexpr const itype o = 1;
-        for(int i = start; i < end; ++i) r |= (o << i);
-        return r;
+        return msb11<int, nl::max_exponent - nl::min_exponent>::value;
     }
 
     enum : int {
@@ -551,8 +541,8 @@ struct real_type_info
     };
     enum : itype {
         one = 1,
-        frac_mask = get_mask(frac_start, frac_end),
-        exp_mask = get_mask(exp_start, exp_end),
+        frac_mask = contiguous_mask11<itype, frac_start, frac_end>::value,
+        exp_mask = contiguous_mask11<itype, exp_start, exp_end>::value,
     };
 };
 
@@ -603,7 +593,7 @@ inline size_t scan_one_real(csubstr str, T *v)
 
     csubstr rem = str.sub(pos);
     size_t exp_pos = rem.first_of_any("e", "E").pos;
-    csubstr exponent = rem.right_of(exp_pos);
+    //csubstr exponent = rem.right_of(exp_pos);
     csubstr mantissa = rem.left_of(exp_pos);
     size_t dot_pos = mantissa.first_of('.');
     csubstr integral = mantissa.left_of(dot_pos);
@@ -611,7 +601,7 @@ inline size_t scan_one_real(csubstr str, T *v)
 
     itype integral_v = 0;
     itype fractional_v = 0;
-    itype exponent_v = 0;
+    //itype exponent_v = 0;
     for(char c : integral)
     {
         C4_ASSERT(c >= '0' && c <= '9');
