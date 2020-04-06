@@ -25,6 +25,11 @@
 #   pragma warning(push)
 #   pragma warning(disable: 4800) //'int': forcing value to bool 'true' or 'false' (performance warning)
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
+#elif defined(__clang__)
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
 #endif
 
 namespace c4 {
@@ -1113,6 +1118,10 @@ inline size_t to_chars(substr buf, const char * C4_RESTRICT v)
 
 #ifdef _MSC_VER
 #   pragma warning(pop)
+#elif defined(__clang__)
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
 #endif
 
 #endif /* _C4_CHARCONV_HPP_ */
