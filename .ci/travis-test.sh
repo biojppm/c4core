@@ -53,10 +53,19 @@ fi
 function run_test()
 {
     bits=$1
+    linktype=$2
+    #
+    export C4_EXTERN_DIR=`pwd`/build/extern
+    mkdir -p $C4_EXTERN_DIR
     build=`pwd`/build/$bits
     install=`pwd`/install/$bits
     mkdir -p $build
     mkdir -p $install
+    if [ "$linktype"  == "static" ] ; then
+        linktype="-DBUILD_SHARED_LIBS=OFF"
+    else
+        linktype="-DBUILD_SHARED_LIBS=ON"
+    fi
     cd $build
     cmake -DCMAKE_C_COMPILER=$CC_ -DCMAKE_C_FLAGS="-std=c99 -m$bits" \
           -DCMAKE_CXX_COMPILER=$CXX_ -DCMAKE_CXX_FLAGS="-m$bits" \
@@ -65,13 +74,15 @@ function run_test()
           -DC4CORE_DEV=ON \
           -DC4CORE_CXX_STANDARD=$STD \
           $CMFLAGS \
+          $linktype \
           $C4CORE_DIR
     make help | sed 1d | sort
     make CTEST_OUTPUT_ON_FAILURE=1 test
     cd -
 }
 
-run_test 64
-run_test 32
+run_test 64 static
+run_test 32 static
+run_test 64 dynamic
 
 exit 0
