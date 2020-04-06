@@ -98,7 +98,7 @@ C4_CONSTEXPR14 cspan<char> type_name()
     enum : size_t { tstart = 18, tend = 1};
 
 #elif defined(__GNUC__)
-    #if __GNUC__ >= 9 && C4_CPP >= 14
+    #if __GNUC__ >= 7 && C4_CPP >= 14
         // example:
         // ..................................xxx.
         // "constexpr _c4t _c4tn() [with T = int]"
