@@ -23,8 +23,9 @@ function addclang()
     case $version in
         # in 18.04, clang9 and later require PPAs
         9 | 10 ) addpkg clang-$version "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-$version main" ;;
-        default) addpkg clang-$version ;;
+        *      ) addpkg clang-$version ;;
     esac
+    addpkg g++-multilib  # this is required for 32 bit https://askubuntu.com/questions/1057341/unable-to-find-stl-headers-in-ubuntu-18-04
     addpkg clang-tidy-$version
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 }
@@ -94,6 +95,8 @@ sudo -E apt-get install -y --force-yes \
      build-essential \
      valgrind \
      linux-libc-dev:i386 \
+     libc6:i386 \
+     libc6-dev:i386 \
      libc6-dbg:i386 \
      $DPKG \
      python3-pip \

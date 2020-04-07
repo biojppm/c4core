@@ -19,9 +19,9 @@ matrix:
     # SAN := sanitizers
     # VG := valgrind
 
-    - env: CXX_=g++-9     BT=Coverage STD=17
-    - env: CXX_=g++-9     BT=Coverage STD=14
     - env: CXX_=g++-9     BT=Coverage STD=11
+    - env: CXX_=g++-9     BT=Coverage STD=14
+    - env: CXX_=g++-9     BT=Coverage STD=17
 
     - env: CXX_=g++-9     BT=Debug   STD=11         VG=ON
     - env: CXX_=g++-9     BT=Release STD=11         VG=ON
@@ -57,8 +57,9 @@ matrix:
     - env: CXX_=clang++-5.0 BT=Debug
     - env: CXX_=clang++-5.0 BT=Release
 
-    - env: CXX_=g++-4.9     BT=Debug
-    - env: CXX_=g++-4.9     BT=Release
+    # gcc 4.9 is not available in 18.04 -- https://stackoverflow.com/questions/48398475/
+    #- env: CXX_=g++-4.9     BT=Debug
+    #- env: CXX_=g++-4.9     BT=Release
     - env: CXX_=clang++-4.0 BT=Debug
     - env: CXX_=clang++-4.0 BT=Release
 
