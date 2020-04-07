@@ -46,7 +46,7 @@ elif [ "$BM" == "OFF" ] || [ "$BM" == "" ] ; then
 fi
 
 if [ "$STD" != "" ] ; then
-    CMFLAGS="$CMFLAGS -DC4_CXX_STANDARD=$STD"
+    CMFLAGS="$CMFLAGS -DC4_CXX_STANDARD=$STD -DC4CORE_CXX_STANDARD=$STD"
 fi
 
 if [ ! -z "$CMFLAGS" ] ; then
@@ -75,7 +75,6 @@ function run_test()
           -DCMAKE_INSTALL_PREFIX="$install" \
           -DCMAKE_BUILD_TYPE=$BT \
           -DC4CORE_DEV=ON \
-          -DC4CORE_CXX_STANDARD=$STD \
           $CMFLAGS \
           $linktype \
           $C4CORE_DIR
