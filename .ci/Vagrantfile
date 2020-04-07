@@ -4,7 +4,7 @@
 # 1) download and install vagrant: https://www.vagrantup.com/downloads.html
 #    (do not install ubuntu's 14.04 16.04 version, see https://stackoverflow.com/questions/22717428/vagrant-error-failed-to-mount-folders-in-linux-guest ):
 # 2) vagrant plugin install vagrant-vbguest
-# 3) vagrant up
+# 3) vagrant up --provider virtualbox
 # 4) vagrant ssh
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
@@ -30,8 +30,8 @@ Vagrant.configure(2) do |config|
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
 
-  config.ssh.username = 'travis'
-  config.ssh.password = 'travis'
+  #config.ssh.username = 'travis'
+  #config.ssh.password = 'travis'
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -75,6 +75,6 @@ Vagrant.configure(2) do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  config.vm.provision "shell", path: "travis-install.sh"
+  #config.vm.provision "shell", path: "travis-install.sh"
 
 end

@@ -7,6 +7,9 @@ pwd
 C4CORE_DIR=$(pwd)
 
 export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
+$CXX_ --version
+$CC_ --version
+cmake --version
 
 if   [ "$LINT" == "all"        ] ; then CMFLAGS="$CMFLAGS -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=ON"
 elif [ "$LINT" == "clang-tidy" ] ; then CMFLAGS="$CMFLAGS -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=OFF"
