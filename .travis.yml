@@ -19,9 +19,10 @@ matrix:
     # SAN := sanitizers
     # VG := valgrind
 
-    - env: CXX_=g++-9     BT=Coverage STD=11
-    - env: CXX_=g++-9     BT=Coverage STD=14
-    - env: CXX_=g++-9     BT=Coverage STD=17
+    # coverage: in 18.04, lcov is incompatible with g++8 and later
+    - env: CXX_=g++-7     BT=Coverage STD=11
+    - env: CXX_=g++-7     BT=Coverage STD=14
+    - env: CXX_=g++-7     BT=Coverage STD=17
 
     - env: CXX_=g++-9     BT=Debug   STD=11         VG=ON
     - env: CXX_=g++-9     BT=Release STD=11         VG=ON
