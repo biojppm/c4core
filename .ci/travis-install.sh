@@ -93,10 +93,11 @@ sudo -E apt-get update
 sudo -E apt-get install -y --force-yes \
      build-essential \
      valgrind \
+     linux-libc-dev:i386 \
      libc6-dbg:i386 \
+     $DPKG \
      python3-pip \
-     python3-setuptools \
-     $DPKG
+     python3-setuptools
 
 if [ "$BT" == "Coverage" ]; then
     sudo pip3 install \
