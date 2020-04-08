@@ -6,69 +6,82 @@ set -x
 pwd
 C4CORE_DIR=$(pwd)
 
+
 export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
 $CXX_ --version
 $CC_ --version
 cmake --version
 
-if   [ "$LINT" == "all"        ] ; then CMFLAGS="$CMFLAGS -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=ON"
-elif [ "$LINT" == "clang-tidy" ] ; then CMFLAGS="$CMFLAGS -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=OFF"
-elif [ "$LINT" == "pvs-studio" ] ; then CMFLAGS="$CMFLAGS -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=OFF -DC4CORE_LINT_PVS_STUDIO=ON"
-else
-    CMFLAGS="$CMFLAGS -DC4CORE_LINT=OFF"
-fi
 
-if   [ "$SAN" == "ALL" ] ; then CMFLAGS="$CMFLAGS -DC4CORE_SANITIZE=ON"
-elif [ "$SAN" == "A"   ] ; then CMFLAGS="$CMFLAGS -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=ON  -DC4CORE_TSAN=OFF -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=OFF"
-elif [ "$SAN" == "T"   ] ; then CMFLAGS="$CMFLAGS -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=ON  -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=OFF"
-elif [ "$SAN" == "M"   ] ; then CMFLAGS="$CMFLAGS -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=OFF -DC4CORE_MSAN=ON  -DC4CORE_UBSAN=OFF"
-elif [ "$SAN" == "UB"  ] ; then CMFLAGS="$CMFLAGS -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=OFF -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=ON"
-else
-    CMFLAGS="$CMFLAGS -DC4CORE_SANITIZE=OFF"
-fi
+# add cmake flags
+function addcmflags()
+{
+    CMFLAGS="$CMFLAGS $*"
+}
 
-if [ "$SAN_ONLY" == "ON" ] ; then
-    CMFLAGS="$CMFLAGS -DC4CORE_SANITIZE_ONLY=ON"
-else
-    CMFLAGS="$CMFLAGS -DC4CORE_SANITIZE_ONLY=OFF"
-fi
 
-if [ "$VG" == "ON" ] ; then
-    CMFLAGS="$CMFLAGS -DC4CORE_VALGRIND=ON -DC4CORE_VALGRIND_SGCHECK=OFF" # FIXME SGCHECK should be ON
-elif [ "$VG" == "OFF" ] ; then
-    CMFLAGS="$CMFLAGS -DC4CORE_VALGRIND=OFF -DC4CORE_VALGRIND_SGCHECK=OFF"
-fi
+case "$LINT" in
+    all       ) addcmflags -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=ON ;;
+    clang-tidy) addcmflags -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=OFF ;;
+    pvs-studio) addcmflags -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=OFF -DC4CORE_LINT_PVS_STUDIO=ON ;;
+    *         ) addcmflags -DC4CORE_LINT=OFF ;;
+esac
 
-if [ "$BM" == "ON" ] ; then
-    CMFLAGS="$CMFLAGS -DC4CORE_BUILD_BENCHMARKS=ON"
-elif [ "$BM" == "OFF" ] || [ "$BM" == "" ] ; then
-    CMFLAGS="$CMFLAGS -DC4CORE_BUILD_BENCHMARKS=OFF"
-fi
+case "$SAN" in
+    ALL) addcmflags -DC4CORE_SANITIZE=ON ;;
+    A  ) addcmflags -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=ON  -DC4CORE_TSAN=OFF -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=OFF ;;
+    T  ) addcmflags -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=ON  -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=OFF ;;
+    M  ) addcmflags -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=OFF -DC4CORE_MSAN=ON  -DC4CORE_UBSAN=OFF ;;
+    UB ) addcmflags -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=OFF -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=ON ;;
+    *  ) addcmflags -DC4CORE_SANITIZE=OFF ;;
+esac
+
+case "$SAN_ONLY" in
+    ON) addcmflags -DC4CORE_SANITIZE_ONLY=ON ;;
+    * ) addcmflags -DC4CORE_SANITIZE_ONLY=OFF ;;
+esac
+
+case "$VG" in
+    ON) addcmflags -DC4CORE_VALGRIND=ON -DC4CORE_VALGRIND_SGCHECK=OFF ;; # FIXME SGCHECK should be ON
+    * ) addcmflags -DC4CORE_VALGRIND=OFF -DC4CORE_VALGRIND_SGCHECK=OFF ;;
+esac
+
+case "$BM" in
+    ON) addcmflags -DC4CORE_BUILD_BENCHMARKS=ON ;;
+    * ) addcmflags -DC4CORE_BUILD_BENCHMARKS=OFF ;;
+esac
 
 if [ "$STD" != "" ] ; then
-    CMFLAGS="$CMFLAGS -DC4_CXX_STANDARD=$STD -DC4CORE_CXX_STANDARD=$STD"
+    addcmflags -DC4_CXX_STANDARD=$STD -DC4CORE_CXX_STANDARD=$STD
 fi
 
-if [ ! -z "$CMFLAGS" ] ; then
-    echo "additional cmake flags: $CMFLAGS"
+if [ "$BT" == "Coverage" ] ; then
+    addcmflags -DC4CORE_COVERAGE=ON
+    addcmflags -DC4CORE_COVERAGE_CODECOV=ON
+    addcmflags -DC4CORE_COVERAGE_COVERALLS=ON
 fi
+
+echo "building with additional cmake flags: $CMFLAGS"
+
+# these ones are set in the travis environment:
+# export CODECOV_REPO_TOKEN=.......
+# export COVERALLS_REPO_TOKEN=.......
+export C4_EXTERN_DIR=`pwd`/build/extern
+mkdir -p $C4_EXTERN_DIR
 
 function run_test()
 {
     bits=$1
     linktype=$2
     #
-    export C4_EXTERN_DIR=`pwd`/build/extern
-    mkdir -p $C4_EXTERN_DIR
     build=`pwd`/build/$bits
     install=`pwd`/install/$bits
     mkdir -p $build
     mkdir -p $install
-    if [ "$linktype"  == "static" ] ; then
-        linktype="-DBUILD_SHARED_LIBS=OFF"
-    else
-        linktype="-DBUILD_SHARED_LIBS=ON"
-    fi
+    case "$linktype" in
+        static) linktype="-DBUILD_SHARED_LIBS=OFF" ;;
+        dynamic) linktype="-DBUILD_SHARED_LIBS=ON" ;;
+    esac
     cd $build
     cmake -DCMAKE_C_COMPILER=$CC_ -DCMAKE_C_FLAGS="-std=c99 -m$bits" \
           -DCMAKE_CXX_COMPILER=$CXX_ -DCMAKE_CXX_FLAGS="-m$bits" \
