@@ -83,8 +83,14 @@ install:
   - bash -x .ci/travis-install.sh
 
 script:
-  - bash -x .ci/travis-test.sh
+  - source .ci/travis-setenv.sh
+  - c4core_run_test 64 dynamic
+  - c4core_run_test 64 static
+  - c4core_run_test 32 static
+  - echo "Success!"
 
 after_success:
-  - echo "Success!"
-  - bash -x .ci/travis-coverage.sh
+  - c4core_submit_coverage build/64 codecov
+  - c4core_submit_coverage build/32 codecov
+  - c4core_submit_coverage build/64 coveralls
+  - c4core_submit_coverage build/32 coveralls

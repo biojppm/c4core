@@ -6,7 +6,6 @@ set -x
 pwd
 C4CORE_DIR=$(pwd)
 
-
 export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
 $CXX_ --version
 $CC_ --version
@@ -18,7 +17,6 @@ function addcmflags()
 {
     CMFLAGS="$CMFLAGS $*"
 }
-
 
 case "$LINT" in
     all       ) addcmflags -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=ON ;;
@@ -63,13 +61,13 @@ fi
 
 echo "building with additional cmake flags: $CMFLAGS"
 
-# these ones are set in the travis environment:
+# the coverage repo tokens are set in the travis environment:
 # export CODECOV_REPO_TOKEN=.......
 # export COVERALLS_REPO_TOKEN=.......
 export C4_EXTERN_DIR=`pwd`/build/extern
 mkdir -p $C4_EXTERN_DIR
 
-function run_test()
+function c4core_run_test()
 {
     bits=$1
     linktype=$2
@@ -96,8 +94,13 @@ function run_test()
     cd -
 }
 
-run_test 64 static
-run_test 32 static
-run_test 64 dynamic
 
-exit 0
+function c4core_submit_coverage()
+{
+    if [ "$BT" == "Coverage" ] ; then
+        build_dir=$1
+        coverage_service=$2
+        echo "Submiting coverage data: $build_dir --> $coverage_service"
+        cmake --build $build_dir --target c4core-coverage-submit-$coverage_service
+    fi
+}
