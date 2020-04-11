@@ -222,7 +222,7 @@ struct srcloc
      * @ingroup error_checking */
 #   define C4_USE_ASSERT
     /** assert that a condition is true; this is turned off when NDEBUG
-     * is defined and C4_USE_ASSERT is not defined.
+     * is defined and C4_USE_ASSERT is not true.
      * @ingroup error_checking  */
 #   define C4_ASSERT
     /** same as C4_ASSERT(), additionally prints a printf-formatted message
@@ -235,12 +235,10 @@ struct srcloc
 #endif // _DOXYGEN_
 
 #ifndef C4_USE_ASSERT
-#   ifndef NDEBUG
-#       define C4_USE_ASSERT
-#   endif
+#   define C4_USE_ASSERT (!defined(NDEBUG))
 #endif
 
-#ifdef C4_USE_ASSERT
+#if C4_USE_ASSERT
 #   define C4_ASSERT(cond) C4_CHECK(cond)
 #   define C4_ASSERT_MSG(cond, /*fmt, */...) C4_CHECK_MSG(cond, ## __VA_ARGS__)
 #   define C4_ASSERT_IF(predicate, cond) if(predicate) { C4_ASSERT(cond); }
@@ -276,12 +274,10 @@ struct srcloc
 #endif // _DOXYGEN_
 
 #ifndef C4_USE_XASSERT
-#   ifdef C4_USE_ASSERT
-#       define C4_USE_XASSERT
-#   endif
+#   define C4_USE_XASSERT C4_USE_ASSERT
 #endif
 
-#ifdef C4_USE_XASSERT
+#if C4_USE_XASSERT
 #   define C4_XASSERT(cond) C4_CHECK(cond)
 #   define C4_XASSERT_MSG(cond, /*fmt, */...) C4_CHECK_MSG(cond, ## __VA_ARGS__)
 #   define C4_XASSERT_IF(predicate, cond) if(predicate) { C4_XASSERT(cond); }

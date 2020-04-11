@@ -107,7 +107,7 @@ struct TestErrorOccurs
 #define C4_EXPECT_ERROR_OCCURS(...) \
   auto _testerroroccurs##__LINE__ = TestErrorOccurs(__VA_ARGS__)
 
-#ifdef C4_USE_ASSERT
+#if C4_USE_ASSERT
 #   define C4_EXPECT_ASSERT_TRIGGERS(...) C4_EXPECT_ERROR_OCCURS(__VA_ARGS__)
 #else
 #   define C4_EXPECT_ASSERT_TRIGGERS(...)
