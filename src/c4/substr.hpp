@@ -1228,7 +1228,8 @@ public:
 
 public:
 
-    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** set the current substring to a copy of the given csubstr
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(void) copy_from(ro_substr that, size_t ifirst=0, size_t num=npos)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
@@ -1240,14 +1241,16 @@ public:
 
 public:
 
-    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** reverse in place
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(void) reverse()
     {
         if(len == 0) return;
         _do_reverse(str, str + len - 1);
     }
 
-    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** revert a subpart in place
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(void) reverse_sub(size_t ifirst, size_t num)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
@@ -1256,7 +1259,8 @@ public:
         _do_reverse(str + ifirst, ifirst + num - 1);
     }
 
-    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** revert a range in place
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(void) reverse_range(size_t ifirst, size_t ilast)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
@@ -1267,7 +1271,9 @@ public:
 
 public:
 
-    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** erase part of the string. eg, with char s[] = "0123456789",
+     * substr(s).erase(3, 2) = "01256789", and s is now "01245678989"
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(basic_substring) erase(size_t pos, size_t num)
     {
         C4_ASSERT(pos >= 0 && pos+num <= len);
