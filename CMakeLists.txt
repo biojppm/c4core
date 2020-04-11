@@ -16,7 +16,7 @@ set(C4CORE_EXT_TO_INSTALL
 c4_add_library(c4core
     INC_DIRS
        $<BUILD_INTERFACE:${C4CORE_SRC_DIR}> $<INSTALL_INTERFACE:include>
-       $<BUILD_INTERFACE:${C4CORE_EXT_DIR}> $<INSTALL_INTERFACE:include/c4/extern>
+       $<BUILD_INTERFACE:${C4CORE_EXT_DIR}> $<INSTALL_INTERFACE:include/c4/ext>
     SOURCE_ROOT ${C4CORE_SRC_DIR}
     SOURCES
         c4/allocator.hpp
@@ -71,7 +71,7 @@ c4_add_library(c4core
 #-------------------------------------------------------
 
 c4_install_target(c4core)
-c4_install_target_add_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/extern" "${C4CORE_EXT_DIR}")
+c4_install_target_add_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/ext" "${C4CORE_EXT_DIR}")
 c4_install_exports()
 
 c4_add_dev_targets()
