@@ -235,7 +235,11 @@ struct srcloc
 #endif // _DOXYGEN_
 
 #ifndef C4_USE_ASSERT
-#   define C4_USE_ASSERT (!defined(NDEBUG))
+#   ifdef NDEBUG
+#       define C4_USE_ASSERT 0
+#   else
+#       define C4_USE_ASSERT 1
+#   endif
 #endif
 
 #if C4_USE_ASSERT
