@@ -1060,6 +1060,16 @@ public:
         return ss;
     }
 
+    C4_ALWAYS_INLINE basic_substring name_wo_extshort() const
+    {
+        return gpop_left('.');
+    }
+
+    C4_ALWAYS_INLINE basic_substring name_wo_extlong() const
+    {
+        return pop_left('.');
+    }
+
     C4_ALWAYS_INLINE basic_substring extshort() const
     {
         return pop_right('.');
