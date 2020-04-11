@@ -7,7 +7,7 @@
 #include "c4/test.hpp"
 
 #define C4_EXPECT_NARROWER(yes_or_no, ty_out, ty_in) \
-    EXPECT_TRUE(( yes_or_no (is_narrower_size< ty_out C4_COMMA ty_in >::value)));
+    EXPECT_TRUE(( yes_or_no (is_narrower_size<ty_out C4_COMMA ty_in>::value)));
 
 C4_BEGIN_NAMESPACE(c4)
 
@@ -83,38 +83,38 @@ TEST(is_narrower_size, unsigned_types)
     C4_EXPECT_NARROWER( ! , uint64_t , uint64_t);
 }
 
-template< typename I, typename O >
-typename std::enable_if< std::is_same< I, O >::value, void >::type
+template<typename I, typename O>
+typename std::enable_if<std::is_same<I, O>::value, void>::type
 test_szconv()
 {
   // nothing to do here
 }
 
-template< typename I, typename O >
-typename std::enable_if< !std::is_same< I, O >::value, void >::type
+template<typename I, typename O>
+typename std::enable_if< ! std::is_same<I, O>::value, void>::type
 test_szconv()
 {
-    C4_STATIC_ASSERT(std::is_integral< I >::value);
-    C4_STATIC_ASSERT(std::is_integral< O >::value);
+    C4_STATIC_ASSERT(std::is_integral<I>::value);
+    C4_STATIC_ASSERT(std::is_integral<O>::value);
 
-    const I imax = std::numeric_limits< I >::max();
-    const I imin = std::numeric_limits< I >::min();
-    const O omax = std::numeric_limits< O >::max();
-    const O omin = std::numeric_limits< O >::min();
+    const I imax = std::numeric_limits<I>::max();
+    const I imin = std::numeric_limits<I>::min();
+    const O omax = std::numeric_limits<O>::max();
+    const O omin = std::numeric_limits<O>::min();
 
-    EXPECT_EQ(szconv< O >(I(0)), O(0));
-    EXPECT_EQ(szconv< I >(I(0)), I(0));
+    EXPECT_EQ(szconv<O>(I(0)), O(0));
+    EXPECT_EQ(szconv<I>(I(0)), I(0));
 
-#ifdef C4_USE_XASSERT
+#if C4_USE_XASSERT
     if((uint64_t)omax < (uint64_t)imax)
     {
         C4_EXPECT_ERROR_OCCURS();
-        O out = szconv< O >(imax);
+        O out = szconv<O>(imax);
     }
     else if((uint64_t)omax > (uint64_t)imax)
     {
         C4_EXPECT_ERROR_OCCURS();
-        I out = szconv< I >(omax);
+        I out = szconv<I>(omax);
     }
 #endif
 }
@@ -122,35 +122,35 @@ test_szconv()
 #define DO_TEST_SZCONV(ty)                      \
 TEST(szconv, ty##_to_int8)                      \
 {                                               \
-    test_szconv< ty##_t, int8_t >();            \
+    test_szconv<ty##_t, int8_t>();              \
 }                                               \
 TEST(szconv, ty##_to_uint8)                     \
 {                                               \
-    test_szconv< ty##_t, uint8_t >();           \
+    test_szconv<ty##_t, uint8_t>();             \
 }                                               \
 TEST(szconv, ty##_to_int16)                     \
 {                                               \
-    test_szconv< ty##_t, int16_t >();           \
+    test_szconv<ty##_t, int16_t>();             \
 }                                               \
 TEST(szconv, ty##_to_uint16)                    \
 {                                               \
-    test_szconv< ty##_t, uint16_t >();          \
+    test_szconv<ty##_t, uint16_t>();            \
 }                                               \
 TEST(szconv, ty##_to_int32)                     \
 {                                               \
-    test_szconv< ty##_t, int32_t >();           \
+    test_szconv<ty##_t, int32_t>();             \
 }                                               \
 TEST(szconv, ty##_to_uint32)                    \
 {                                               \
-    test_szconv< ty##_t, uint32_t >();          \
+    test_szconv<ty##_t, uint32_t>();            \
 }                                               \
 TEST(szconv, ty##_to_int64)                     \
 {                                               \
-    test_szconv< ty##_t, int64_t >();           \
+    test_szconv<ty##_t, int64_t>();             \
 }                                               \
 TEST(szconv, ty##_to_uint64)                    \
 {                                               \
-    test_szconv< ty##_t, uint64_t >();          \
+    test_szconv<ty##_t, uint64_t>();            \
 }
 
 DO_TEST_SZCONV(int8)

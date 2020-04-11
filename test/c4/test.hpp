@@ -113,7 +113,7 @@ struct TestErrorOccurs
 #   define C4_EXPECT_ASSERT_TRIGGERS(...)
 #endif
 
-#ifdef C4_USE_XASSERT
+#if C4_USE_XASSERT
 #   define C4_EXPECT_XASSERT_TRIGGERS(...) C4_EXPECT_ERROR_OCCURS(__VA_ARGS__)
 #else
 #   define C4_EXPECT_XASSERT_TRIGGERS(...)
