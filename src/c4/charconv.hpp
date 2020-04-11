@@ -90,14 +90,14 @@ namespace c4 {
  * template<class T> substr to_chars_sub(substr buf, T const& C4_RESTRICT val);
  *
  *
- * // read a value from the string, which must be
+ * // Read a value from the string, which must be
  * // trimmed to the value (ie, no leading/trailing whitespace).
- * // return true if the conversion succeeded
+ * // return true if the conversion succeeded.
  * template<class T> bool from_chars(csubstr buf, T * C4_RESTRICT val);
  *
  *
- * // read the first valid sequence of characters from the string
- * // and convert it using from_chars().
+ * // Read the first valid sequence of characters from the string,
+ * // skipping leading whitespace, and convert it using from_chars().
  * // Return the number of characters read for converting.
  * template<class T> size_t from_first_chars(csubstr buf, T * C4_RESTRICT val);
  * @endcode
@@ -649,61 +649,100 @@ size_t print_one(substr str, const char* full_fmt, T v)
 
 
 template<class T> struct real_buf;
-template<> struct real_buf<float> { using type = uint32_t; using stype = int32_t; };
-template<> struct real_buf<double> { using type = uint64_t; using stype = int64_t; };
+template<> struct real_buf<float > { using utype = uint32_t; using stype = int32_t; };
+template<> struct real_buf<double> { using utype = uint64_t; using stype = int64_t; };
 
 
 template<class T>
 struct real
 {
     C4_STATIC_ASSERT(std::is_floating_point<T>::value);
-    using itype = typename real_buf<T>::type;
-    using stype = typename real_buf<T>::type;
+    using utype = typename real_buf<T>::utype;
+    using stype = typename real_buf<T>::stype;
 
-    itype buf;
+    utype buf;
 
     real() : buf() {}
     explicit real(T val) : buf() { set(val); }
 
-    C4_ALWAYS_INLINE void set(T val) { buf = reinterpret_cast<itype const&>(val); }
+    C4_ALWAYS_INLINE void set(T val) { buf = reinterpret_cast<utype const&>(val); }
     C4_ALWAYS_INLINE T get() const { return reinterpret_cast<T const&>(buf); }
 
-    C4_ALWAYS_INLINE itype get_sign() const { return (buf & sign_mask) >> sign_bit; }
-    C4_ALWAYS_INLINE itype get_exp()  const { return (buf & exp_mask) >> exp_start; }
-    C4_ALWAYS_INLINE itype get_frac() const { return (buf & frac_mask) >> frac_start; }
-
-    C4_ALWAYS_INLINE T as_real() const { return get_sign_r() * get_exp_r() * get_frac_r(); }
+    C4_ALWAYS_INLINE T as_real() const { return get_sign_r() * get_exp_r() * get_mant_r(); }
     C4_ALWAYS_INLINE T get_sign_r() const { return get_sign() ? T(-1) : T(1); }
     C4_ALWAYS_INLINE T get_exp_r() const { return T(one << (get_exp() - exp_bias)); }
-    C4_ALWAYS_INLINE T get_frac_r() const
+    C4_ALWAYS_INLINE T get_mant_r() const
     {
         T out = 1, exp = 1;
-        itype frac = get_frac();
-        for(int i = 0; i < num_frac_bits; ++i)
+        utype mant = get_mant();
+        for(int i = 0; i < num_mant_bits; ++i)
         {
             exp /= T(2);
-            out += ((frac >> (num_frac_bits - i)) & one) * exp;
+            out += ((mant >> (num_mant_bits - i)) & one) * exp;
         }
         return out;
     }
 
-    C4_ALWAYS_INLINE void set_sign() { buf |= sign_mask; } //!< to negative
-    C4_ALWAYS_INLINE void clr_sign() { buf &= ~sign_mask; } //!< to positive
+    C4_ALWAYS_INLINE void  clr_sign() { buf &= ~sign_mask; } //!< to positive
+    C4_ALWAYS_INLINE void  set_sign() { buf |= sign_mask; } //!< to negative
+    C4_ALWAYS_INLINE utype get_sign() const { return (buf & sign_mask) >> sign_bit; }
 
-    C4_ALWAYS_INLINE void set_frac(itype f) { buf |= (f << frac_start) & frac_mask; }
-    C4_ALWAYS_INLINE void clr_frac(itype  ) { buf &= ~frac_mask; }
+    C4_ALWAYS_INLINE void  clr_mant() { buf &= ~mant_mask; }
+    C4_ALWAYS_INLINE utype get_mant() const { return (buf & mant_mask) >> mant_start; }
 
-    C4_ALWAYS_INLINE void set_exp(itype f) { buf |= (f << exp_start) & exp_mask; }
-    C4_ALWAYS_INLINE void clr_exp(itype  ) { buf &= ~exp_mask; }
-
-    C4_ALWAYS_INLINE T set(itype integral, itype /*fractional*/, itype exponent)
+    C4_ALWAYS_INLINE void  clr_exp() { buf &= ~exp_mask; }
+    C4_ALWAYS_INLINE utype get_exp()  const { return (buf & exp_mask) >> exp_start; }
+    C4_ALWAYS_INLINE void  set_exp(stype exp2)
     {
-        // TODO handle overflows
-        itype b = msb(integral); // Most Significant Bit
-        if(b) --b; // always an implicit 1 as the integral part
-        set_exp(exponent + b);
-        itype f = (integral << b);
-        set_frac(f);
+        //        unsigned   signed
+        utype f = exp_bias + exp2; // TODO prevent overflow
+        buf |= (f << exp_start) & exp_mask;
+    }
+
+    /** @p exponent is the base-10 exponent */
+    C4_ALWAYS_INLINE T setfrom10(utype integral, utype num_frac_zeros, utype fractional, stype exponent)
+    {
+        utype mantissa;
+        utype b = 0;
+        // TODO convert exponent from base 10 to base 2, adjust integral and/or fractional as needed
+        if(integral)
+        {
+            b = msb(integral);
+            exponent += b;
+        }
+        else
+        {
+            C4_ASSERT(fractional);
+        }
+        utype mantissa = (integral & ~(one << b)); // truncate the MSB out of the mantissa
+        if(C4_UNLIKELY(b > num_mant_bits))
+        {
+            // shift to make the truncated mantissa start at the left of its bit range
+            mantissa >>= (b - num_mant_bits);
+        }
+        else
+        {
+            // shift to make the truncated mantissa start at the left of its bit range
+            mantissa <<= (mant_end - b);
+            if(fractional)
+            {
+                C4_ASSERT(mant_end >= b+1);
+                b = mant_end - b - 1;
+                T fr = as_frac(num_frac_zeros, fractional);
+                exponent += integral ? stype(0) : -(stype)msb(fr);
+                while((fr != T(0)) && (b != utype(-1)))
+                {
+                    fr *= T(2);
+                    auto bit = utype(fr >= T(1));
+                    mantissa |= (bit << b);
+                    fr -= T(bit);
+                    --b;
+                }
+            }
+        }
+        set_exp(exponent);
+        // TODO defend against overflow
+        buf |= ((mantissa << mant_start) & mant_mask);
         return get();
     }
 
@@ -712,25 +751,87 @@ struct real
         using nl = std::numeric_limits<T>;
         return msb11<int, nl::max_exponent - nl::min_exponent>::value;
     }
+/*
+    constexpr static inline int get_exponent_bits()
+    {
+        using nl = std::numeric_limits<T>;
+        int range = nl::max_exponent - nl::min_exponent;
+        int bits = 0;
+        while ((range >> bits) > 0) ++bits;
+        return bits;
+    }
+*/
+    /** quick'n'dirty */
+    C4_ALWAYS_INLINE static T setfrom10qnd(utype integral, utype num_frac_zeros, utype fractional, stype exponent)
+    {
+        T integral_f = (T)integral;
+        T result = integral_f + as_frac(num_frac_zeros, fractional);
+        result *= ipowf10(exponent);
+        return result;
+    }
+
+    C4_ALWAYS_INLINE static T ipowf10(stype exponent) noexcept
+    {
+        T result = T(1);
+        if(exponent > 0)
+        {
+            for(stype i = 0; i < exponent; ++i)
+            {
+                result *= T(10);
+            }
+        }
+        else if(exponent < 0)
+        {
+            for(stype i = 0; i > exponent; --i)
+            {
+                result /= T(10);
+            }
+        }
+        return result;
+    }
+
+    C4_ALWAYS_INLINE static T as_frac(utype numzeros, utype frac) noexcept
+    {
+        T ret = (T)frac; //TODO overflow
+        while(ret >= T(1))
+        {
+            ret /= T(10);
+        }
+        for(utype i = 0; i < numzeros; ++i)
+        {
+            ret /= T(10);
+        }
+        return ret;
+    }
+
+    //------------------------------------
+
+    constexpr static inline utype get_mask(int start, int end)
+    {
+        utype r = 0;
+        constexpr const utype o = 1;
+        for(int i = start; i < end; ++i) r |= (o << i);
+        return r;
+    }
 
     enum : int {
         num_bits  = sizeof(T) * CHAR_BIT,
-        num_frac_bits = std::numeric_limits<T>::digits - 1,
+        num_mant_bits = std::numeric_limits<T>::digits - 1,
         num_exp_bits = get_exponent_bits(),
-        frac_start = 0, frac_end = num_frac_bits,
-        exp_start = frac_end, exp_end = exp_start + num_exp_bits,
+        mant_start = 0, mant_end = num_mant_bits,
+        exp_start = mant_end, exp_end = exp_start + num_exp_bits,
         sign_bit = num_bits - 1,
     };
-    enum : itype {
+    enum : utype {
         one = 1,
         sign_mask = one << sign_bit,
-        frac_mask = contiguous_mask11<itype, frac_start, frac_end>::value,
+        mant_mask = contiguous_mask11<stype, mant_start, mant_end>::value,
         //frac_mask = get_mask(frac_start, frac_end),
-        exp_mask = contiguous_mask11<itype, exp_start, exp_end>::value,
+        exp_mask = contiguous_mask11<stype, exp_start, exp_end>::value,
         //exp_mask = get_mask(exp_start, exp_end),
-        exp_bias = ((one << (num_exp_bits + 1)) - 1),
+        exp_bias = ((one << (num_exp_bits - 1)) - one),
+        //exp_bias = ((one << (num_exp_bits + 1)) - 1),
     };
-
 };
 
 template<class T>
@@ -740,13 +841,14 @@ inline size_t scan_one_real(csubstr str, T *v)
     C4_ASSERT(str.len > 0);
     C4_ASSERT(str == str.first_real_span());
     using rtype = real<T>;
-    using itype = typename real<T>::itype;
+    using utype = typename real<T>::utype;
+    using stype = typename real<T>::stype;
 
     size_t pos = 0; // the current buffer position
-    real<T> r; // the result, initialized to zero
+    T sign = T(1);
     if(str[0] == '-')
     {
-        r.set_sign();
+        sign = T(-1);
         ++pos;
     }
     else if(str[0] == '+')
@@ -754,7 +856,7 @@ inline size_t scan_one_real(csubstr str, T *v)
         // no need to clear the sign bit
         ++pos; // other than counting the position
     }
-    C4_ASSERT(str.len > 1);
+    C4_ASSERT(str.len > pos);
 
     if(str.str[pos] == '0')
     {
@@ -777,39 +879,20 @@ inline size_t scan_one_real(csubstr str, T *v)
     csubstr rem = str.trimr(" \t\r\n");
     size_t dot_pos = rem.first_of('.');
     size_t exp_pos = rem.first_of("eE", dot_pos != csubstr::npos ? dot_pos : 0);
-    itype integral_v, fractional_v, exponent_v;
-    C4_CHECK(detail::read_dec<itype>(str.range(pos, dot_pos != csubstr::npos ? dot_pos : exp_pos), &integral_v));
+    utype integral_v = 0, num_frac_zeros = 0, fractional_v = 0;
+    stype exponent_v = 0;
+    // read integral
+    C4_CHECK(detail::read_dec<utype>(str.range(pos, dot_pos != csubstr::npos ? dot_pos : exp_pos), &integral_v));
     C4_CHECK(rem.end() >= str.begin());
     pos = static_cast<size_t>(rem.end() - str.begin());
 
+    // read fractional
     if(dot_pos != csubstr::npos)
     {
-        C4_CHECK(detail::read_dec<itype>(rem.range(dot_pos+1, exp_pos), &fractional_v));
-    }
-    else
-    {
-        fractional_v = 0;
-    }
-
-    if(exp_pos != csubstr::npos)
-    {
-        const char exp_front = rem.right_of(exp_pos).front();
-        if(exp_front == '-')
-        {
-            ++exp_pos;
-            C4_CHECK(detail::read_dec<itype>(rem.right_of(exp_pos), &exponent_v));
-            exponent_v = rtype::exp_bias - exponent_v;
-        }
-        else
-        {
-            if(exp_front == '+') ++exp_pos;
-            C4_CHECK(detail::read_dec<itype>(rem.right_of(exp_pos), &exponent_v));
-            exponent_v = rtype::exp_bias + exponent_v;
-        }
-    }
-    else
-    {
-        exponent_v = 0;
+        csubstr sfrac = rem.range(dot_pos+1, exp_pos);
+        auto fnz = sfrac.first_not_of('0');
+        num_frac_zeros = fnz != csubstr::npos ? (utype)fnz : 0;
+        C4_CHECK(detail::read_dec<utype>(sfrac, &fractional_v));
     }
 
     if(integral_v == 0 && fractional_v == 0)
@@ -818,7 +901,13 @@ inline size_t scan_one_real(csubstr str, T *v)
         return pos;
     }
 
-    *v = r.set(integral_v, fractional_v, exponent_v);
+    // read exponent
+    if(exp_pos != csubstr::npos)
+    {
+        C4_CHECK(detail::read_dec<stype>(rem.right_of(exp_pos), &exponent_v));
+    }
+
+    *v = sign * rtype::setfrom10qnd(integral_v, num_frac_zeros, fractional_v, exponent_v);
 
     return pos;
 }
@@ -938,6 +1027,7 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
  * The string will in general be NOT null-terminated.
  * For FTOA_FLEX, \p precision is the number of significand digits. Otherwise
  * \p precision is the number of decimals.
+ *
  * @return the number of characters written.
  * @ingroup lowlevel_tofrom_chars
  */
@@ -968,7 +1058,7 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
 #else
-    size_t ret = detail::scan_one(str, "g", v);
+    size_t ret = detail::scan_one_real(str, v);
     return ret != csubstr::npos;
 #endif
 }
@@ -989,7 +1079,7 @@ inline bool atod(csubstr str, double * C4_RESTRICT v)
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
 #else
-    size_t ret = detail::scan_one(str, "lg", v);
+    size_t ret = detail::scan_one_real(str, v);
     return ret != csubstr::npos;
 #endif
 }
@@ -1030,23 +1120,23 @@ inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
 
 // generic versions
 C4_ALWAYS_INLINE bool atox(csubstr s,  uint8_t *v) { return atou(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,   int8_t *v) { return atoi(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s, uint16_t *v) { return atou(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,  int16_t *v) { return atoi(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s, uint32_t *v) { return atou(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,  int32_t *v) { return atoi(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s, uint64_t *v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,   int8_t *v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,  int16_t *v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,  int32_t *v) { return atoi(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s,  int64_t *v) { return atoi(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s,    float *v) { return atof(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s,   double *v) { return atod(s, v); }
 
 C4_ALWAYS_INLINE size_t xtoa(substr s,  uint8_t v) { return utoa(s, v); }
-C4_ALWAYS_INLINE size_t xtoa(substr s,   int8_t v) { return itoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s, uint16_t v) { return utoa(s, v); }
-C4_ALWAYS_INLINE size_t xtoa(substr s,  int16_t v) { return itoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s, uint32_t v) { return utoa(s, v); }
-C4_ALWAYS_INLINE size_t xtoa(substr s,  int32_t v) { return itoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s, uint64_t v) { return utoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,   int8_t v) { return itoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int16_t v) { return itoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int32_t v) { return itoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s,  int64_t v) { return itoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s,    float v) { return ftoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s,   double v) { return dtoa(s, v); }

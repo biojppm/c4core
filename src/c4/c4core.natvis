@@ -146,4 +146,25 @@ See also:
     </Expand>
   </Type>
 
+  <Type Name="c4::detail::real&lt;*&gt;">
+    <DisplayString>{*($T1*)&amp;buf} ({buf})</DisplayString>
+    <Expand>
+      <Synthetic Name="[real]">
+        <DisplayString>{*($T1*)&amp;buf}</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[integral]">
+        <DisplayString>{buf}</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[sign]">
+        <DisplayString>{(buf &amp; sign_mask) >> sign_bit}</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[exponent]">
+        <DisplayString>{(buf &amp; exp_mask) ? ((int64_t)((buf &amp; exp_mask) >> exp_start) - (int64_t)exp_bias) : 0}</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[mantissa]">
+        <DisplayString>{((buf &amp; mant_mask) >> mant_start)}</DisplayString>
+      </Synthetic>
+    </Expand>
+  </Type>
+
 </AutoVisualizer>
