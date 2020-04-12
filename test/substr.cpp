@@ -3016,9 +3016,9 @@ TEST(substr, replace)
     ret = s.replace("16", '.');
     EXPECT_TRUE(ret);
     EXPECT_EQ(s, "0+.+2+3+4+5+.+7+8+9");
-    ret = s.replace("3+2", '.');
+    ret = s.replace("3+2", '_');
     EXPECT_TRUE(ret);
-    EXPECT_EQ(s, "0+.+...+4+5+.+7+8+9");
+    EXPECT_EQ(s, "0_._____4_5_._7_8_9");
 }
 
 TEST(substr, replace_all)
