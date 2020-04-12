@@ -83,13 +83,21 @@ template<> struct fmt_wrapper<uint16_t> : public integral<uint16_t> { using inte
 template<> struct fmt_wrapper<uint32_t> : public integral<uint32_t> { using integral<uint32_t>::integral; };
 template<> struct fmt_wrapper<uint64_t> : public integral<uint64_t> { using integral<uint64_t>::integral; };
 
-
 /** format the integral argument as a hex value */
 template<class T>
 inline fmt_wrapper<T> hex(T v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(16));
+}
+template<class T>
+inline fmt_wrapper<uintptr_t> hex(T const* v)
+{
+    return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(16));
+}
+inline fmt_wrapper<uintptr_t> hex(std::nullptr_t)
+{
+    return fmt_wrapper<uintptr_t>(0, uintptr_t(16));
 }
 
 /** format the integral argument as an octal value */
@@ -99,6 +107,16 @@ inline fmt_wrapper<T> oct(T v)
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(8));
 }
+template<class T>
+inline fmt_wrapper<uintptr_t> oct(T const* v)
+{
+    return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(8));
+}
+inline fmt_wrapper<uintptr_t> oct(std::nullptr_t)
+{
+    return fmt_wrapper<uintptr_t>(0, uintptr_t(8));
+}
+
 
 /** format the integral argument as a binary 0-1 value */
 template<class T>
@@ -107,6 +125,16 @@ inline fmt_wrapper<T> bin(T v)
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(2));
 }
+template<class T>
+inline fmt_wrapper<uintptr_t> bin(T const* v)
+{
+    return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(2));
+}
+inline fmt_wrapper<uintptr_t> bin(std::nullptr_t)
+{
+    return fmt_wrapper<uintptr_t>(0, uintptr_t(2));
+}
+
 
 } // namespace fmt
 

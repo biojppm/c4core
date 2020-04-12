@@ -429,6 +429,59 @@ TEST(formatrs, basic_append)
     EXPECT_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat, coffee anytime. And water. 1 glass of 40cl in the morning clears you up for the day");
 }
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+TEST(fmt, hex)
+{
+    std::vector<char> buf;
+    char buf1[1] = {};
+    char buf2[2] = {};
+    char buf3[3] = {};
+
+#define _(in, expected_)                                            \
+    {                                                               \
+        auto expected = csubstr(expected_);                         \
+        EXPECT_EQ(cat({}, fmt::hex(in)), expected.len);             \
+                                                                    \
+        std::cout << "AQUI 0\n";                                    \
+        buf1[0] = '?';                                              \
+        EXPECT_EQ(cat(buf1, fmt::hex(in)), expected.len);           \
+        EXPECT_EQ(buf1[0], '?');                                    \
+                                                                    \
+        std::cout << "AQUI 1\n";                                    \
+        buf2[0] = '?';                                              \
+        buf2[1] = '?';                                              \
+        EXPECT_EQ(cat(buf2, fmt::hex(in)), expected.len);           \
+        EXPECT_EQ(buf2[0], '0');                                    \
+        EXPECT_EQ(buf2[1], '?');                                    \
+                                                                    \
+        std::cout << "AQUI 2\n";                                    \
+        buf3[0] = '?';                                              \
+        buf3[1] = '?';                                              \
+        buf3[2] = '?';                                              \
+        EXPECT_EQ(cat(buf3, fmt::hex(in)), expected.len);           \
+        EXPECT_EQ(buf3[0], '0');                                    \
+        EXPECT_EQ(buf3[1], 'x');                                    \
+        EXPECT_EQ(buf3[2], '?');                                    \
+                                                                    \
+        std::cout << "AQUI 3\n";                                    \
+        buf.clear();                                                \
+        EXPECT_EQ(cat(to_substr(buf), fmt::hex(in)), expected.len); \
+        EXPECT_EQ(buf.size(), 0);                                   \
+                                                                    \
+        catrs(&buf, fmt::hex(in));                                  \
+        EXPECT_EQ(buf.size(), expected.len);                        \
+        EXPECT_EQ(to_csubstr(buf), expected);                       \
+    }
+
+    _(0, "0x0");
+    _(nullptr, "0x0");
+    _(256, "0x100");
+
+#undef _
+}
+
 } // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"
