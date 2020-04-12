@@ -31,6 +31,96 @@ TEST(itoa, int16_t)
     EXPECT_EQ(buf.first(ret), "32767");
 }
 
+TEST(itoa, shortbuf)
+{
+    char buf0_[1];
+    char buf1_[2];
+    char buf2_[3];
+    char buf3_[4];
+    char buf4_[5];
+    substr buf0 = buf0_;
+    substr buf1 = buf1_;
+    substr buf2 = buf2_;
+    substr buf3 = buf3_;
+    substr buf4 = buf4_;
+    EXPECT_EQ(buf0.len, 0);
+    EXPECT_EQ(buf1.len, 1);
+    EXPECT_EQ(buf2.len, 2);
+    EXPECT_EQ(buf3.len, 3);
+    EXPECT_EQ(buf4.len, 4);
+
+#define _chktoa(fn, in, expected_)                                      \
+    {                                                                   \
+        csubstr expected = expected_;                                   \
+        auto rdx = decltype(in)(16);                                    \
+                                                                        \
+        buf0.fill('?');                                                 \
+        size_t ret0 = fn(buf0, in, rdx);                                \
+        EXPECT_EQ(ret0, expected.len);                                  \
+                                                                        \
+        buf1.fill('?');                                                 \
+        EXPECT_EQ(buf1, "?");                                           \
+        size_t ret1 = fn(buf1, in, rdx);                                \
+        EXPECT_EQ(ret1, expected.len);                                  \
+        if(ret1 <= buf1.len && buf1.len >= expected.len)                \
+        {                                                               \
+            EXPECT_EQ(buf1.first(ret1), expected);                      \
+        }                                                               \
+                                                                        \
+        buf2.fill('?');                                                 \
+        EXPECT_EQ(buf2, "??");                                          \
+        size_t ret2 = fn(buf2, in, rdx);                                \
+        EXPECT_EQ(ret2, expected.len);                                  \
+        if(ret2 <= buf2.len && buf2.len >= expected.len)                \
+        {                                                               \
+            EXPECT_EQ(buf2.first(ret2), expected);                      \
+        }                                                               \
+                                                                        \
+        buf3.fill('?');                                                 \
+        EXPECT_EQ(buf3, "???");                                         \
+        size_t ret3 = fn(buf3, in, rdx);                                \
+        EXPECT_EQ(ret3, expected.len);                                  \
+        if(ret3 <= buf3.len && buf3.len >= expected.len)                \
+        {                                                               \
+            EXPECT_EQ(buf3.first(ret3), expected);                      \
+        }                                                               \
+                                                                        \
+        buf4.fill('?');                                                 \
+        EXPECT_EQ(buf4, "????");                                        \
+        size_t ret4 = fn(buf4, in, rdx);                                \
+        EXPECT_EQ(ret4, expected.len);                                  \
+        if(ret4 <= buf4.len && buf4.len >= expected.len)                \
+        {                                                               \
+            EXPECT_EQ(buf4.first(ret4), expected);                      \
+        }                                                               \
+    }
+
+    _chktoa(itoa, 0, "0x0");
+    _chktoa(utoa, 0u, "0x0");
+    _chktoa(itoa, -0, "0x0");
+
+    _chktoa(itoa, 1, "0x1");
+    _chktoa(utoa, 1u, "0x1");
+    _chktoa(itoa, -1, "-0x1");
+
+    _chktoa(itoa, 15, "0xf");
+    _chktoa(utoa, 15u, "0xf");
+    _chktoa(itoa, -15, "-0xf");
+
+    _chktoa(itoa, 255, "0xff");
+    _chktoa(utoa, 255u, "0xff");
+    _chktoa(itoa, -255, "-0xff");
+
+    _chktoa(itoa, 256, "0x100");
+    _chktoa(utoa, 256u, "0x100");
+    _chktoa(itoa, -256, "-0x100");
+
+    _chktoa(itoa, 4096, "0x1000");
+    _chktoa(utoa, 4096u, "0x1000");
+    _chktoa(itoa, -4096, "-0x1000");
+}
+
+
 template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class I>
 void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {

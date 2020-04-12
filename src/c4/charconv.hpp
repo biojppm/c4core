@@ -148,7 +148,7 @@ size_t itoa(substr buf, T v)
             _c4append('0' - (v % 10));
             v /= 10;
         } while(v);
-        if(buf.len > 0)
+        if(buf.len)
         {
             buf.reverse_range(1, pos <= buf.len ? pos : buf.len);
         }
@@ -204,7 +204,8 @@ size_t itoa(substr buf, T v, T radix)
     } while(v);
     if(buf.len)
     {
-        buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+        buf.reverse_range(pfx <= buf.len ? pfx : buf.len,
+                          pos <= buf.len ? pos : buf.len);
     }
 
     return pos;
@@ -262,7 +263,8 @@ size_t utoa(substr buf, T v, T radix)
     } while(v);
     if(buf.len)
     {
-        buf.reverse_range(pfx, pos <= buf.len ? pos : buf.len);
+        buf.reverse_range(pfx <= buf.len ? pfx : buf.len,
+                          pos <= buf.len ? pos : buf.len);
     }
 
     return pos;
