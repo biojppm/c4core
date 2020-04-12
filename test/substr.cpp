@@ -2995,23 +2995,35 @@ TEST(substr, erase)
 
 
 //-----------------------------------------------------------------------------
-TEST(substr, replace_all)
+TEST(substr, replace)
 {
     char buf[] = "0.1.2.3.4.5.6.7.8.9";
 
     substr s = buf;
     bool ret;
 
-    ret = s.replace_all('+', '.');
+    ret = s.replace('+', '.');
     EXPECT_FALSE(ret);
 
-    ret = s.replace_all('.', '.');
+    ret = s.replace('.', '.');
     EXPECT_TRUE(ret);
     EXPECT_EQ(s, "0.1.2.3.4.5.6.7.8.9");
 
-    ret = s.replace_all('.', '+');
+    ret = s.replace('.', '+');
     EXPECT_TRUE(ret);
     EXPECT_EQ(s, "0+1+2+3+4+5+6+7+8+9");
+
+    ret = s.replace("16", '.');
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(s, "0+.+2+3+4+5+.+7+8+9");
+    ret = s.replace("3+2", '.');
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(s, "0+.+...+4+5+.+7+8+9");
+}
+
+TEST(substr, replace_all)
+{
+    char buf[] = "0.1.2.3.4.5.6.7.8.9";
 
     std::string tmp, out("0+1+2+3+4+5+6+7+8+9");
     substr r;

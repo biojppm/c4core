@@ -2,6 +2,7 @@
 #define _C4_SUBSTR_HPP_
 
 #include <string.h>
+#include <ctype.h>
 #include <type_traits>
 
 #include "c4/config.hpp"
@@ -411,17 +412,17 @@ public:
     {
         return first_of(c, start_pos);
     }
-    inline size_t find(ro_substr chars, size_t start_pos=0) const
+    inline size_t find(ro_substr pattern, size_t start_pos=0) const
     {
         C4_ASSERT(start_pos == npos || (start_pos >= 0 && start_pos <= len));
-        if(len < chars.len) return npos;
-        for(size_t i = start_pos, e = len - chars.len + 1; i < e; ++i)
+        if(len < pattern.len) return npos;
+        for(size_t i = start_pos, e = len - pattern.len + 1; i < e; ++i)
         {
             bool gotit = true;
-            for(size_t j = 0; j < chars.len; ++j)
+            for(size_t j = 0; j < pattern.len; ++j)
             {
                 C4_ASSERT(i + j < len);
-                if(str[i + j] != chars.str[j])
+                if(str[i + j] != pattern.str[j])
                 {
                     gotit = false;
                     break;
@@ -1310,13 +1311,28 @@ public:
 public:
 
     /** replace every occurrence of character @p value with the character @p repl
-     *
+     * @return the number of characters that were replaced
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(size_t) replace_all(C value, C repl, size_t pos=0)
+    C4_REQUIRE_RW(size_t) replace(C value, C repl, size_t pos=0)
     {
         C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
         size_t did_it = 0;
         while((pos = find(value, pos)) != npos)
+        {
+            str[pos++] = repl;
+            ++did_it;
+        }
+        return did_it;
+    }
+
+    /** replace every occurrence of character @p value with the character @p repl
+     * @return the number of characters that were replaced
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(size_t) replace(ro_substr chars, C repl, size_t pos=0)
+    {
+        C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
+        size_t did_it = 0;
+        while((pos = first_of(chars, pos)) != npos)
         {
             str[pos++] = repl;
             ++did_it;
@@ -1365,6 +1381,38 @@ public:
         } while(b < len && b != npos);
         return sz;
 #undef _c4append
+    }
+
+public:
+
+    /** convert the string to upper-case
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) toupper()
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            str[i] = static_cast<C>(::toupper(str[i]));
+        }
+    }
+
+    /** convert the string to lower-case
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) tolower()
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            str[i] = static_cast<C>(::tolower(str[i]));
+        }
+    }
+
+public:
+
+    C4_REQUIRE_RW(void) fill(C val)
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            str[i] = val;
+        }
     }
 
 }; // template class basic_substring
