@@ -23,7 +23,7 @@
 #if C4_CPP >= 17
 #define BENCHMARK_TEMPLATE_CPP17(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__)
 #else
-#define BENCHMARK_TEMPLATE_CPP17(...)
+#define BENCHMARK_TEMPLATE_CPP17(...) void shutup_extra_semicolon()
 #endif
 
 
