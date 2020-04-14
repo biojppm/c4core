@@ -888,6 +888,21 @@ TEST(substr, pair_range_nested)
     EXPECT_EQ(csubstr("123{{{}}a{{}}b{{}}c{{}}}456").pair_range_nested('{', '}'), "{{{}}a{{}}b{{}}c{{}}}");
 }
 
+TEST(substr, unquoted)
+{
+    EXPECT_EQ(csubstr("").unquoted(), "");
+
+    EXPECT_EQ(csubstr("''").unquoted(), "");
+    EXPECT_EQ(csubstr("\"\"").unquoted(), "");
+
+    EXPECT_EQ(csubstr("'\''").unquoted(), "'");
+
+    EXPECT_EQ(csubstr("aa").unquoted(), "aa");
+    EXPECT_EQ(csubstr("'aa'").unquoted(), "aa");
+    EXPECT_EQ(csubstr("\"aa\"").unquoted(), "aa");
+    EXPECT_EQ(csubstr("'aa\''").unquoted(), "aa'");
+}
+
 
 TEST(substr, first_non_empty_span)
 {

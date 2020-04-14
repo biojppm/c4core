@@ -766,6 +766,19 @@ public:
         return basic_substring();
     }
 
+    basic_substring unquoted() const
+    {
+        constexpr const C dq('"'), sq('\'');
+        if(len >= 2 && (str[len - 2] != C('\\')) &&
+           ((begins_with(sq) && ends_with(sq))
+            ||
+            (begins_with(dq) && ends_with(dq))))
+        {
+            return range(1, len -1);
+        }
+        return *this;
+    }
+
 public:
 
     /** @return true if the substring contents are a floating-point or integer number */
