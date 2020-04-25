@@ -72,11 +72,11 @@ public:
 
 public:
 
-    using  CC = typename std::add_const<C>::type;    //!< CC=const char
-    using NCC = typename std::remove_const<C>::type; //!< NCC=non const char
+    using  CC  = typename std::add_const<C>::type;     //!< CC=const char
+    using NCC_ = typename std::remove_const<C>::type; //!< NCC_=non const char
 
     using ro_substr = basic_substring<CC>;
-    using rw_substr = basic_substring<NCC>;
+    using rw_substr = basic_substring<NCC_>;
 
     using char_type = C;
     using size_type = size_t;
@@ -136,21 +136,21 @@ public:
     // when the char type is const, allow construction and assignment from non-const chars
 
     /** only available when the char type is const */
-    template<size_t N, class U=NCC> explicit basic_substring(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
+    template<size_t N, class U=NCC_> explicit basic_substring(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
     /** only available when the char type is const */
-    template<          class U=NCC>          basic_substring(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
+    template<          class U=NCC_>          basic_substring(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
     /** only available when the char type is const */
-    template<          class U=NCC>          basic_substring(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
+    template<          class U=NCC_>          basic_substring(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
 
     /** only available when the char type is const */
-    template<size_t N, class U=NCC> void assign(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
+    template<size_t N, class U=NCC_> void assign(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
     /** only available when the char type is const */
-    template<          class U=NCC> void assign(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
+    template<          class U=NCC_> void assign(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
     /** only available when the char type is const */
-    template<          class U=NCC> void assign(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
+    template<          class U=NCC_> void assign(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
 
     /** only available when the char type is const */
-    template<size_t N, class U=NCC>
+    template<size_t N, class U=NCC_>
     basic_substring& operator=(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; return *this; }
 
 public:
@@ -992,7 +992,7 @@ private:
             split_proxy_impl const* m_proxy;
             basic_substring m_str;
             size_t m_pos;
-            NCC m_sep;
+            NCC_ m_sep;
 
             split_iterator_impl(split_proxy_impl const* proxy, size_t pos, C sep)
                 : m_proxy(proxy), m_pos(pos), m_sep(sep)
