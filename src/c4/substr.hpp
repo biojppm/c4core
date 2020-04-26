@@ -847,6 +847,19 @@ public:
                 }
             }
         }
+        else if(first_of_any("0o", "0O")) // octal
+        {
+            skip_start += 2;
+            if(len == skip_start) return first(0);
+            for(size_t i = skip_start; i < len; ++i)
+            {
+                char c = str[i];
+                if(c < '0' || c > '7')
+                {
+                    return _is_delim_char(str[i]) ? first(i) : first(0);
+                }
+            }
+        }
         else if(first_of_any("0b", "0B")) // binary
         {
             skip_start += 2;
