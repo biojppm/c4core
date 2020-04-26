@@ -10,9 +10,24 @@
 #include <climits>
 #include <limits>
 #include <utility>
-#if (C4_CPP >= 17) && __has_include(<charconv>) && __cpp_lib_to_chars
-#   define C4CORE_HAVE_STD_TOCHARS 1
-#   include <charconv>
+
+#if (C4_CPP >= 17)
+#   if defined(_MSC_VER)
+#       if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
+#           define C4CORE_HAVE_STD_TOCHARS 1
+#           include <charconv>
+#       else
+#           define C4CORE_HAVE_STD_TOCHARS 0
+#       endif
+#   else
+#       // VS2017 and lower do not have these macros
+#       if __has_include(<charconv>) && __cpp_lib_to_chars
+#           define C4CORE_HAVE_STD_TOCHARS 1
+#           include <charconv>
+#       else
+#           define C4CORE_HAVE_STD_TOCHARS 0
+#       endif
+#   endif
 #else
 #   define C4CORE_HAVE_STD_TOCHARS 0
 #endif
