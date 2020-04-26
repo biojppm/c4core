@@ -183,6 +183,7 @@ void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I nu
 #undef _c4clbuf
 }
 
+// need these functions for overload disambiguation
 size_t call_itoa(substr s, int num)
 {
     return itoa(s, num);
@@ -192,6 +193,7 @@ size_t call_itoa_radix(substr s, int num, int radix)
     return itoa(s, num, radix);
 }
 
+// need these functions for overload disambiguation
 size_t call_utoa(substr s, unsigned num)
 {
     return utoa(s, num);
@@ -203,18 +205,18 @@ size_t call_utoa_radix(substr s, unsigned num, unsigned radix)
 
 TEST(itoa, prefixed_number_on_empty_buffer)
 {
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, 0, "0b0", "0o0", "0", "0x0");
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -10, "-0b1010", "-0o12", "-10", "-0xa");
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  10, "0b1010", "0o12", "10", "0xa");
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -20, "-0b10100",  "-0o24",  "-20", "-0x14");
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  20, "0b10100",  "0o24",  "20", "0x14");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,   0,      "0b0",   "0o0",   "0",   "0x0");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -10,  "-0b1010", "-0o12", "-10",  "-0xa");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  10,   "0b1010",  "0o12",  "10",   "0xa");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -20, "-0b10100", "-0o24", "-20", "-0x14");
+    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  20,  "0b10100",  "0o24",  "20",  "0x14");
 }
 
 TEST(utoa, prefixed_number_on_empty_buffer)
 {
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 0, "0b0", "0o0", "0", "0x0");
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  10, "0b1010", "0o12", "10", "0xa");
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  20, "0b10100",  "0o24",  "20", "0x14");
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  0, "0b0"    ,  "0o0",  "0",  "0x0");
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 10, "0b1010" , "0o12", "10",  "0xa");
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 20, "0b10100", "0o24", "20", "0x14");
 }
 
 
@@ -223,36 +225,124 @@ TEST(utoa, prefixed_number_on_empty_buffer)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+TEST(read_dec, fail)
+{
+    int dec = 1;
+    EXPECT_FALSE(detail::read_dec("zzzz", &dec));
+    EXPECT_TRUE(detail::read_dec("00000", &dec));
+    EXPECT_EQ(dec, 0);
+    dec = 1;
+    EXPECT_TRUE(atoi("00000", &dec));
+    EXPECT_EQ(dec, 0);
+    EXPECT_TRUE(atoi("00010", &dec));
+    EXPECT_EQ(dec, 10);
+}
 
-template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class I>
-void test_toa_radix(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
+TEST(read_hex, fail)
+{
+    int dec = 1;
+    EXPECT_FALSE(detail::read_hex("zzzz", &dec));
+    EXPECT_TRUE(detail::read_hex("00000", &dec));
+    EXPECT_EQ(dec, 0);
+    dec = 1;
+    EXPECT_TRUE(atoi("0x00000", &dec));
+    EXPECT_EQ(dec, 0);
+    EXPECT_TRUE(atoi("0x00010", &dec));
+    EXPECT_EQ(dec, 16);
+    dec = 1;
+    EXPECT_TRUE(atoi("0X00000", &dec));
+    EXPECT_EQ(dec, 0);
+    EXPECT_TRUE(atoi("0X00010", &dec));
+    EXPECT_EQ(dec, 16);
+}
+
+TEST(read_oct, fail)
+{
+    int dec;
+    EXPECT_FALSE(detail::read_oct("zzzz", &dec));
+    EXPECT_TRUE(detail::read_oct("00000", &dec));
+    EXPECT_EQ(dec, 0);
+    dec = 1;
+    EXPECT_TRUE(atoi("0o00000", &dec));
+    EXPECT_EQ(dec, 0);
+    EXPECT_TRUE(atoi("0o00010", &dec));
+    EXPECT_EQ(dec, 8);
+    dec = 1;
+    EXPECT_TRUE(atoi("0O00000", &dec));
+    EXPECT_EQ(dec, 0);
+    EXPECT_TRUE(atoi("0O00010", &dec));
+    EXPECT_EQ(dec, 8);
+}
+
+TEST(read_bin, fail)
+{
+    int dec;
+    EXPECT_FALSE(detail::read_bin("zzzz", &dec));
+    EXPECT_TRUE(detail::read_bin("00000", &dec));
+    EXPECT_EQ(dec, 0);
+    dec = 1;
+    EXPECT_TRUE(atoi("0b00000", &dec));
+    EXPECT_EQ(dec, 0);
+    EXPECT_TRUE(atoi("0b00010", &dec));
+    EXPECT_EQ(dec, 2);
+    dec = 1;
+    EXPECT_TRUE(atoi("0B00000", &dec));
+    EXPECT_EQ(dec, 0);
+    EXPECT_TRUE(atoi("0B00010", &dec));
+    EXPECT_EQ(dec, 2);
+}
+
+template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class Atoi, class I>
+void test_toa_radix(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, Atoi aifn, substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
     size_t ret;
+    bool ok;
+    I result;
 
+    // binary
     memset(buf.str, 0, buf.len);
     ret = rfn(buf, num, 2);
     EXPECT_EQ(buf.first(ret), to_csubstr(r2)) << "num=" << num;
+    ok = aifn(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 
+    // octal
     memset(buf.str, 0, ret);
     ret = rfn(buf, num, 8);
     EXPECT_EQ(buf.first(ret), to_csubstr(r8)) << "num=" << num;
+    ok = aifn(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 
+    // decimal, explicit
     memset(buf.str, 0, ret);
     ret = rfn(buf, num, 10);
     EXPECT_EQ(buf.first(ret), to_csubstr(r10)) << "num=" << num;
+    ok = aifn(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 
+    // decimal, implicit
     memset(buf.str, 0, ret);
     ret = fn(buf, num);
     EXPECT_EQ(buf.first(ret), to_csubstr(r10)) << "num=" << num;
+    ok = aifn(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 
+    // hexadecimal
     memset(buf.str, 0, ret);
     ret = rfn(buf, num, 16);
     EXPECT_EQ(buf.first(ret), to_csubstr(r16)) << "num=" << num;
+    ok = aifn(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 }
 
 void test_utoa_radix(substr buf, unsigned num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
-    test_toa_radix(&call_utoa, &call_utoa_radix, buf, num, r2, r8, r10, r16);
+    test_toa_radix(&call_utoa, &call_utoa_radix, &atou<unsigned>, buf, num, r2, r8, r10, r16);
 }
 
 void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const char *r10, const char *r16)
@@ -260,40 +350,62 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     size_t ret;
 
     ASSERT_GE(num, 0);
-    test_toa_radix(&call_itoa, &call_itoa_radix, buf, num, r2, r8, r10, r16);
+    test_toa_radix(&call_itoa, &call_itoa_radix, &atoi<int>, buf, num, r2, r8, r10, r16);
 
     if(num == 0) return;
     // test negative values
     num *= -1;
     char nbufc[128];
     csubstr nbuf;
+    bool ok;
+    int result;
 
-#define _c4getn(which) nbufc[0] = '-'; memcpy(nbufc+1, which, strlen(which)+1); nbuf.assign(nbufc, 1 + strlen(which));
+#define _c4getn(which) \
+{\
+    nbufc[0] = '-'; \
+    memcpy(nbufc+1, which, strlen(which)+1); \
+    nbuf.assign(nbufc, 1 + strlen(which)); \
+}
 
     memset(buf.str, 0, buf.len);
     _c4getn(r2);
     ret = itoa(buf, num, 2);
     EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    ok = atoi(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 
     memset(buf.str, 0, ret);
     _c4getn(r8);
     ret = itoa(buf, num, 8);
     EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    ok = atoi(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 
     memset(buf.str, 0, ret);
     _c4getn(r10);
     ret = itoa(buf, num, 10);
     EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    ok = atoi(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 
     memset(buf.str, 0, ret);
     _c4getn(r10);
     ret = itoa(buf, num);
     EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    ok = atoi(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 
     memset(buf.str, 0, ret);
     _c4getn(r16);
     ret = itoa(buf, num, 16);
     EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    ok = atoi(buf.first(ret), &result);
+    EXPECT_TRUE(ok) << "num=" << num;
+    EXPECT_EQ(result, num) << "num=" << num;
 #undef _c4getn
 }
 
@@ -418,8 +530,10 @@ TEST(atoi, basic)
 }
 
 template<class T>
-void test_atoi(csubstr num, T expected)
+void test_atoi(const char* num_, T expected)
 {
+    SCOPED_TRACE(num_);
+    csubstr num = to_csubstr(num_);
     T val;
     bool ok = atoi(num, &val);
     EXPECT_TRUE(ok);
