@@ -83,6 +83,11 @@ template<> struct fmt_wrapper<uint16_t> : public integral<uint16_t> { using inte
 template<> struct fmt_wrapper<uint32_t> : public integral<uint32_t> { using integral<uint32_t>::integral; };
 template<> struct fmt_wrapper<uint64_t> : public integral<uint64_t> { using integral<uint64_t>::integral; };
 
+#ifdef C4_IOS
+template<> struct fmt_wrapper<size_t> : public integral<size_t> { using integral<size_t>::integral; };
+#endif
+
+
 /** format the integral argument as a hex value */
 template<class T>
 inline fmt_wrapper<T> hex(T v)
