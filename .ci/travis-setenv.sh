@@ -67,6 +67,7 @@ echo "building with additional cmake flags: $CMFLAGS"
 export C4_EXTERN_DIR=`pwd`/build/extern
 mkdir -p $C4_EXTERN_DIR
 
+
 function c4core_run_test()
 {
     bits=$1
