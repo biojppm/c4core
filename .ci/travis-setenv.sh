@@ -61,8 +61,8 @@ fi
 
 echo "building with additional cmake flags: $CMFLAGS"
 
-# the coverage repo tokens are set in the travis environment:
-# export CODECOV_REPO_TOKEN=.......
+# the coverage repo tokens need to be set in the travis environment:
+# export CODECOV_TOKEN=.......
 # export COVERALLS_REPO_TOKEN=.......
 export C4_EXTERN_DIR=`pwd`/build/extern
 mkdir -p $C4_EXTERN_DIR
