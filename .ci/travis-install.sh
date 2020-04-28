@@ -27,7 +27,6 @@ function addclang()
     esac
     addpkg g++-multilib  # this is required for 32 bit https://askubuntu.com/questions/1057341/unable-to-find-stl-headers-in-ubuntu-18-04
     addpkg clang-tidy-$version
-    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 }
 
 # add a debian package to the list
@@ -80,7 +79,6 @@ case $CXX_ in
         ;;
 esac
 
-
 if [ "$BT" == "Coverage" ] ; then
     addpkg lcov
     addpkg libffi-dev
@@ -89,10 +87,18 @@ fi
 
 echo "additional packages: $DPKG"
 
-sudo apt-get clean
+wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+
+sudo -E apt-add-repository --yes --no-update 'deb https://apt.kitware.com/ubuntu/ bionic main'
+sudo -E add-apt-repository --yes --no-update ppa:ubuntu-toolchain-r/test
+
+sudo -E apt-get clean
 sudo -E apt-get update
+
 sudo -E apt-get install -y --force-yes \
      build-essential \
+     cmake \
      valgrind \
      linux-libc-dev:i386 \
      libc6:i386 \
@@ -110,5 +116,10 @@ if [ "$BT" == "Coverage" ]; then
          pyasn1 \
          cpp-coveralls
 fi
+
+dpkg -s cmake
+dpkg -L cmake
+which cmake
+cmake --version
 
 echo "INSTALL COMPLETE: current directory: $(pwd)"
