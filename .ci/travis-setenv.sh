@@ -54,53 +54,61 @@ if [ "$STD" != "" ] ; then
 fi
 
 if [ "$BT" == "Coverage" ] ; then
-    addcmflags -DC4CORE_COVERAGE=ON
+    # the coverage repo tokens need to be set in the travis environment:
+    # export CODECOV_TOKEN=.......
+    # export COVERALLS_REPO_TOKEN=.......
     addcmflags -DC4CORE_COVERAGE_CODECOV=ON
     addcmflags -DC4CORE_COVERAGE_COVERALLS=ON
 fi
 
 echo "building with additional cmake flags: $CMFLAGS"
 
-# the coverage repo tokens need to be set in the travis environment:
-# export CODECOV_TOKEN=.......
-# export COVERALLS_REPO_TOKEN=.......
 export C4_EXTERN_DIR=`pwd`/build/extern
 mkdir -p $C4_EXTERN_DIR
+
+
+function c4core_cfg_test()
+{
+    bits=$1
+    linktype=$2
+    #
+    build_dir=`pwd`/build/$bits-$linktype
+    install_dir=`pwd`/install/$bits-$linktype
+    mkdir -p $build_dir
+    mkdir -p $install_dir
+    #
+    case "$linktype" in
+        static) linktype="-DBUILD_SHARED_LIBS=OFF" ;;
+        dynamic) linktype="-DBUILD_SHARED_LIBS=ON" ;;
+    esac
+    cmake -S $C4CORE_DIR -B $build_dir \
+          -DCMAKE_C_COMPILER=$CC_ -DCMAKE_C_FLAGS="-std=c99 -m$bits" \
+          -DCMAKE_CXX_COMPILER=$CXX_ -DCMAKE_CXX_FLAGS="-m$bits" \
+          -DCMAKE_INSTALL_PREFIX="$install_dir" \
+          -DCMAKE_BUILD_TYPE=$BT \
+          -DC4CORE_DEV=ON \
+          $CMFLAGS \
+          $linktype
+    cmake --build $build_dir --target help | sed 1d | sort
+}
 
 function c4core_run_test()
 {
     bits=$1
     linktype=$2
-    #
-    build=`pwd`/build/$bits
-    install=`pwd`/install/$bits
-    mkdir -p $build
-    mkdir -p $install
-    case "$linktype" in
-        static) linktype="-DBUILD_SHARED_LIBS=OFF" ;;
-        dynamic) linktype="-DBUILD_SHARED_LIBS=ON" ;;
-    esac
-    cd $build
-    cmake -DCMAKE_C_COMPILER=$CC_ -DCMAKE_C_FLAGS="-std=c99 -m$bits" \
-          -DCMAKE_CXX_COMPILER=$CXX_ -DCMAKE_CXX_FLAGS="-m$bits" \
-          -DCMAKE_INSTALL_PREFIX="$install" \
-          -DCMAKE_BUILD_TYPE=$BT \
-          -DC4CORE_DEV=ON \
-          $CMFLAGS \
-          $linktype \
-          $C4CORE_DIR
-    make help | sed 1d | sort
-    make CTEST_OUTPUT_ON_FAILURE=1 test
-    cd -
+    build_dir=`pwd`/build/$bits-$linktype
+    export CTEST_OUTPUT_ON_FAILURE=1
+    cmake --build $build_dir --target test
 }
-
 
 function c4core_submit_coverage()
 {
     if [ "$BT" == "Coverage" ] ; then
-        build_dir=$1
-        coverage_service=$2
-        echo "Submiting coverage data: $build_dir --> $coverage_service"
+        bits=$1
+        linktype=$2
+        coverage_service=$3
+        build_dir=`pwd`/build/$bits-$linktype
+        echo "Submitting coverage data: $build_dir --> $coverage_service"
         cmake --build $build_dir --target c4core-coverage-submit-$coverage_service
     fi
 }
