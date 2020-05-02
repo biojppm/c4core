@@ -49,6 +49,8 @@
 
 namespace c4 {
 
+/** @file charconv.hpp Low-level conversion functions to/from strings */
+
 /** @defgroup formatting Formatting functions */
 
 /** @defgroup lowlevel_tofrom_chars Single value to/from string conversion
