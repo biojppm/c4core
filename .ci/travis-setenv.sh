@@ -3,62 +3,71 @@
 set -e
 set -x
 
-pwd
-C4CORE_DIR=$(pwd)
+PROJ_DIR=$(pwd)
+PROJ_PFX=C4CORE_
 
+pwd
 export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
 $CXX_ --version
 $CC_ --version
 cmake --version
 
-
-# add cmake flags
+# add cmake flags, with prefix
 function addcmflags()
+{
+    for f in $* ; do
+        CMFLAGS="$CMFLAGS -D${PROJ_PFX}${f}"
+    done
+}
+function addc4flags()
 {
     CMFLAGS="$CMFLAGS $*"
 }
 
+addcmflags DEV=ON
+
 case "$LINT" in
-    all       ) addcmflags -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=ON ;;
-    clang-tidy) addcmflags -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=ON  -DC4CORE_LINT_PVS_STUDIO=OFF ;;
-    pvs-studio) addcmflags -DC4CORE_LINT=ON -DC4CORE_LINT_TESTS=ON -DC4CORE_LINT_CLANG_TIDY=OFF -DC4CORE_LINT_PVS_STUDIO=ON ;;
-    *         ) addcmflags -DC4CORE_LINT=OFF ;;
+    all       ) addcmflags LINT=ON LINT_TESTS=ON LINT_CLANG_TIDY=ON  LINT_PVS_STUDIO=ON ;;
+    clang-tidy) addcmflags LINT=ON LINT_TESTS=ON LINT_CLANG_TIDY=ON  LINT_PVS_STUDIO=OFF ;;
+    pvs-studio) addcmflags LINT=ON LINT_TESTS=ON LINT_CLANG_TIDY=OFF LINT_PVS_STUDIO=ON ;;
+    *         ) addcmflags LINT=OFF ;;
 esac
 
 case "$SAN" in
-    ALL) addcmflags -DC4CORE_SANITIZE=ON ;;
-    A  ) addcmflags -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=ON  -DC4CORE_TSAN=OFF -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=OFF ;;
-    T  ) addcmflags -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=ON  -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=OFF ;;
-    M  ) addcmflags -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=OFF -DC4CORE_MSAN=ON  -DC4CORE_UBSAN=OFF ;;
-    UB ) addcmflags -DC4CORE_SANITIZE=ON -DC4CORE_ASAN=OFF -DC4CORE_TSAN=OFF -DC4CORE_MSAN=OFF -DC4CORE_UBSAN=ON ;;
-    *  ) addcmflags -DC4CORE_SANITIZE=OFF ;;
+    ALL) addcmflags SANITIZE=ON ;;
+    A  ) addcmflags SANITIZE=ON ASAN=ON  TSAN=OFF MSAN=OFF UBSAN=OFF ;;
+    T  ) addcmflags SANITIZE=ON ASAN=OFF TSAN=ON  MSAN=OFF UBSAN=OFF ;;
+    M  ) addcmflags SANITIZE=ON ASAN=OFF TSAN=OFF MSAN=ON  UBSAN=OFF ;;
+    UB ) addcmflags SANITIZE=ON ASAN=OFF TSAN=OFF MSAN=OFF UBSAN=ON ;;
+    *  ) addcmflags SANITIZE=OFF ;;
 esac
 
 case "$SAN_ONLY" in
-    ON) addcmflags -DC4CORE_SANITIZE_ONLY=ON ;;
-    * ) addcmflags -DC4CORE_SANITIZE_ONLY=OFF ;;
+    ON) addcmflags SANITIZE_ONLY=ON ;;
+    * ) addcmflags SANITIZE_ONLY=OFF ;;
 esac
 
 case "$VG" in
-    ON) addcmflags -DC4CORE_VALGRIND=ON -DC4CORE_VALGRIND_SGCHECK=OFF ;; # FIXME SGCHECK should be ON
-    * ) addcmflags -DC4CORE_VALGRIND=OFF -DC4CORE_VALGRIND_SGCHECK=OFF ;;
+    ON) addcmflags VALGRIND=ON VALGRIND_SGCHECK=OFF ;; # FIXME SGCHECK should be ON
+    * ) addcmflags VALGRIND=OFF VALGRIND_SGCHECK=OFF ;;
 esac
 
 case "$BM" in
-    ON) addcmflags -DC4CORE_BUILD_BENCHMARKS=ON ;;
-    * ) addcmflags -DC4CORE_BUILD_BENCHMARKS=OFF ;;
+    ON) addcmflags BUILD_BENCHMARKS=ON ;;
+    * ) addcmflags BUILD_BENCHMARKS=OFF ;;
 esac
 
 if [ "$STD" != "" ] ; then
-    addcmflags -DC4_CXX_STANDARD=$STD -DC4CORE_CXX_STANDARD=$STD
+    addc4flags -DC4_CXX_STANDARD=$STD
+    addcmflags CXX_STANDARD=$STD
 fi
 
 if [ "$BT" == "Coverage" ] ; then
-    # the coverage repo tokens need to be set in the travis environment:
+    # the coverage repo tokens can be set in the travis environment:
     # export CODECOV_TOKEN=.......
     # export COVERALLS_REPO_TOKEN=.......
-    addcmflags -DC4CORE_COVERAGE_CODECOV=ON
-    addcmflags -DC4CORE_COVERAGE_COVERALLS=ON
+    addcmflags COVERAGE_CODECOV=ON COVERAGE_CODECOV_SILENT=ON
+    addcmflags COVERAGE_COVERALLS=ON COVERAGE_COVERALLS_SILENT=ON
 fi
 
 echo "building with additional cmake flags: $CMFLAGS"
@@ -81,12 +90,11 @@ function c4core_cfg_test()
         static) linktype="-DBUILD_SHARED_LIBS=OFF" ;;
         dynamic) linktype="-DBUILD_SHARED_LIBS=ON" ;;
     esac
-    cmake -S $C4CORE_DIR -B $build_dir \
+    cmake -S $PROJ_DIR -B $build_dir \
           -DCMAKE_C_COMPILER=$CC_ -DCMAKE_C_FLAGS="-std=c99 -m$bits" \
           -DCMAKE_CXX_COMPILER=$CXX_ -DCMAKE_CXX_FLAGS="-m$bits" \
           -DCMAKE_INSTALL_PREFIX="$install_dir" \
           -DCMAKE_BUILD_TYPE=$BT \
-          -DC4CORE_DEV=ON \
           $CMFLAGS \
           $linktype
     cmake --build $build_dir --target help | sed 1d | sort
