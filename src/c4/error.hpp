@@ -318,7 +318,7 @@ struct srcloc
 #define C4_CHECK_MSG(cond, fmt, ...)                        \
     if(C4_UNLIKELY(!(cond)))                                    \
     {                                                           \
-        C4_ERROR("check failed: %s\n" fmt, #cond, ## __VA_ARGS__);  \
+        C4_ERROR("check failed: " #cond "\n" fmt, ## __VA_ARGS__);  \
     }
 
 
