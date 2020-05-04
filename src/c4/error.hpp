@@ -315,10 +315,10 @@ struct srcloc
 /** like C4_CHECK(), and additionally log a printf-style message.
  * @see C4_CHECK
  * @ingroup error_checking */
-#define C4_CHECK_MSG(cond, /*fmt, */...)                        \
+#define C4_CHECK_MSG(cond, fmt, ...)                        \
     if(C4_UNLIKELY(!(cond)))                                    \
     {                                                           \
-        C4_ERROR("check failed: %s\n", #cond, ## __VA_ARGS__);  \
+        C4_ERROR("check failed: %s\n" fmt, #cond, ## __VA_ARGS__);  \
     }
 
 
