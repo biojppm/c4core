@@ -665,8 +665,8 @@ struct real
     real() : buf() {}
     explicit real(T val) : buf() { set(val); }
 
-    C4_ALWAYS_INLINE void set(T val) { buf = reinterpret_cast<utype const&>(val); }
-    C4_ALWAYS_INLINE T get() const { return reinterpret_cast<T const&>(buf); }
+    C4_ALWAYS_INLINE void set(T val) { buf = (utype const&)(val); }
+    C4_ALWAYS_INLINE T get() const { return (T const&)(buf); }
 
     C4_ALWAYS_INLINE T as_real() const { return get_sign_r() * get_exp_r() * get_mant_r(); }
     C4_ALWAYS_INLINE T get_sign_r() const { return get_sign() ? T(-1) : T(1); }
