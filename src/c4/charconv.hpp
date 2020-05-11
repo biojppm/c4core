@@ -966,7 +966,7 @@ inline size_t scan_one_real(csubstr str, T *v)
     // read exponent
     if(exp_pos != csubstr::npos)
     {
-        C4_CHECK(detail::read_dec<stype>(rem.right_of(exp_pos), &exponent_v));
+        if(!C4_UNLIKELY(detail::read_dec<stype>(rem.right_of(exp_pos), &exponent_v))) return csubstr::npos;
     }
 
     *v = sign * rtype::setfrom10qnd(integral_v, num_frac_zeros, fractional_v, exponent_v);
