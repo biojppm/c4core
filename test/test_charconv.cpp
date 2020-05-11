@@ -553,10 +553,9 @@ void test_atoi(csubstr num, T expected)
 }
 
 template<class T>
-void test_atou(const char* num_, T expected)
+void test_atou(csubstr num, T expected)
 {
     INFO("num=" << num_);
-    csubstr num = to_csubstr(num_);
     T val;
     bool ok = atou(num, &val);
     CHECK_UNARY(ok);
@@ -614,6 +613,304 @@ TEST_CASE("atou.bin")
     test_atou("0b1000", 8);
     test_atou("0B1000", 8);
 }
+
+
+//-----------------------------------------------------------------------------
+
+#define _C4PARSE_T(i_or_u, type, numstr, expected)  \
+{                                                   \
+    type val;                                       \
+    bool ok = ato##i_or_u(numstr, &val);            \
+    EXPECT_TRUE(ok) << numstr;                      \
+    EXPECT_EQ(val, type(expected)) << numstr;       \
+}
+
+#define _C4PARSE_F(i_or_u, type, numstr)        \
+{                                               \
+    type val;                                   \
+    bool ok = ato##i_or_u(numstr, &val);        \
+    EXPECT_FALSE(ok) << numstr;                 \
+}
+
+TEST(atoi, empty_i8)
+{
+    _C4PARSE_F(i, int8_t, "");
+    _C4PARSE_F(i, int8_t, "...");
+    _C4PARSE_F(i, int8_t, "-");
+    _C4PARSE_F(i, int8_t, "0x");
+    _C4PARSE_F(i, int8_t, "0X");
+    _C4PARSE_F(i, int8_t, "0o");
+    _C4PARSE_F(i, int8_t, "0O");
+    _C4PARSE_F(i, int8_t, "0b");
+    _C4PARSE_F(i, int8_t, "0B");
+    _C4PARSE_F(i, int8_t, "----");
+    _C4PARSE_F(i, int8_t, "===");
+    _C4PARSE_F(i, int8_t, "???");
+}
+
+TEST(atou, empty_u8)
+{
+    _C4PARSE_F(u, uint8_t, "");
+    _C4PARSE_F(u, uint8_t, "...");
+    _C4PARSE_F(u, uint8_t, "-");
+    _C4PARSE_F(u, uint8_t, "0x");
+    _C4PARSE_F(u, uint8_t, "0X");
+    _C4PARSE_F(u, uint8_t, "0o");
+    _C4PARSE_F(u, uint8_t, "0O");
+    _C4PARSE_F(u, uint8_t, "0b");
+    _C4PARSE_F(u, uint8_t, "0B");
+    _C4PARSE_F(u, uint8_t, "----");
+    _C4PARSE_F(u, uint8_t, "===");
+    _C4PARSE_F(u, uint8_t, "???");
+}
+
+TEST(atoi, empty_i16)
+{
+    _C4PARSE_F(i, int16_t, "");
+    _C4PARSE_F(i, int16_t, "...");
+    _C4PARSE_F(i, int16_t, "-");
+    _C4PARSE_F(i, int16_t, "0x");
+    _C4PARSE_F(i, int16_t, "0X");
+    _C4PARSE_F(i, int16_t, "0o");
+    _C4PARSE_F(i, int16_t, "0O");
+    _C4PARSE_F(i, int16_t, "0b");
+    _C4PARSE_F(i, int16_t, "0B");
+    _C4PARSE_F(i, int16_t, "----");
+    _C4PARSE_F(i, int16_t, "===");
+    _C4PARSE_F(i, int16_t, "???");
+}
+
+TEST(atou, empty_u16)
+{
+    _C4PARSE_F(u, uint16_t, "");
+    _C4PARSE_F(u, uint16_t, "...");
+    _C4PARSE_F(u, uint16_t, "-");
+    _C4PARSE_F(u, uint16_t, "0x");
+    _C4PARSE_F(u, uint16_t, "0X");
+    _C4PARSE_F(u, uint16_t, "0o");
+    _C4PARSE_F(u, uint16_t, "0O");
+    _C4PARSE_F(u, uint16_t, "0b");
+    _C4PARSE_F(u, uint16_t, "0B");
+    _C4PARSE_F(u, uint16_t, "----");
+    _C4PARSE_F(u, uint16_t, "===");
+    _C4PARSE_F(u, uint16_t, "???");
+}
+
+TEST(atoi, empty_i32)
+{
+    _C4PARSE_F(i, int32_t, "");
+    _C4PARSE_F(i, int32_t, "...");
+    _C4PARSE_F(i, int32_t, "-");
+    _C4PARSE_F(i, int32_t, "0x");
+    _C4PARSE_F(i, int32_t, "0X");
+    _C4PARSE_F(i, int32_t, "0o");
+    _C4PARSE_F(i, int32_t, "0O");
+    _C4PARSE_F(i, int32_t, "0b");
+    _C4PARSE_F(i, int32_t, "0B");
+    _C4PARSE_F(i, int32_t, "----");
+    _C4PARSE_F(i, int32_t, "===");
+    _C4PARSE_F(i, int32_t, "???");
+}
+
+TEST(atou, empty_u32)
+{
+    _C4PARSE_F(u, uint32_t, "");
+    _C4PARSE_F(u, uint32_t, "...");
+    _C4PARSE_F(u, uint32_t, "-");
+    _C4PARSE_F(u, uint32_t, "0x");
+    _C4PARSE_F(u, uint32_t, "0X");
+    _C4PARSE_F(u, uint32_t, "0o");
+    _C4PARSE_F(u, uint32_t, "0O");
+    _C4PARSE_F(u, uint32_t, "0b");
+    _C4PARSE_F(u, uint32_t, "0B");
+    _C4PARSE_F(u, uint32_t, "----");
+    _C4PARSE_F(u, uint32_t, "===");
+    _C4PARSE_F(u, uint32_t, "???");
+}
+
+TEST(atoi, empty_i64)
+{
+    _C4PARSE_F(i, int64_t, "");
+    _C4PARSE_F(i, int64_t, "...");
+    _C4PARSE_F(i, int64_t, "-");
+    _C4PARSE_F(i, int64_t, "0x");
+    _C4PARSE_F(i, int64_t, "0X");
+    _C4PARSE_F(i, int64_t, "0o");
+    _C4PARSE_F(i, int64_t, "0O");
+    _C4PARSE_F(i, int64_t, "0b");
+    _C4PARSE_F(i, int64_t, "0B");
+    _C4PARSE_F(i, int64_t, "----");
+    _C4PARSE_F(i, int64_t, "===");
+    _C4PARSE_F(i, int64_t, "???");
+}
+
+TEST(atou, empty_u64)
+{
+    _C4PARSE_F(u, uint64_t, "");
+    _C4PARSE_F(u, uint64_t, "...");
+    _C4PARSE_F(u, uint64_t, "-");
+    _C4PARSE_F(u, uint64_t, "0x");
+    _C4PARSE_F(u, uint64_t, "0X");
+    _C4PARSE_F(u, uint64_t, "0o");
+    _C4PARSE_F(u, uint64_t, "0O");
+    _C4PARSE_F(u, uint64_t, "0b");
+    _C4PARSE_F(u, uint64_t, "0B");
+    _C4PARSE_F(u, uint64_t, "----");
+    _C4PARSE_F(u, uint64_t, "===");
+    _C4PARSE_F(u, uint64_t, "???");
+}
+
+#undef _C4PARSE_T
+#undef _C4PARSE_F
+
+
+//-----------------------------------------------------------------------------
+
+#define _C4PARSE_T(i_or_u, type, dec, hex, oct, bin, expected)          \
+{                                                                       \
+    bool ok;                                                            \
+    type val;                                                           \
+                                                                        \
+    ok = ato##i_or_u(dec, &val);                                        \
+    EXPECT_TRUE(ok) << "dec:" << hex;                                   \
+    EXPECT_EQ(val, type(expected)) << "dec=" << dec;                    \
+                                                                        \
+    ok = ato##i_or_u(hex, &val);                                        \
+    EXPECT_TRUE(ok) << "dec:" << dec << "  hex:" << hex;                \
+    EXPECT_EQ(val, type(expected)) << "dec=" << dec << "  hex=" << hex; \
+                                                                        \
+    ok = ato##i_or_u(oct, &val);                                        \
+    EXPECT_TRUE(ok) << "dec:" << dec << "  oct:" << oct;                \
+    EXPECT_EQ(val, type(expected)) << "dec=" << dec << "  oct=" << oct; \
+                                                                        \
+    ok = ato##i_or_u(bin, &val);                                        \
+    EXPECT_TRUE(ok) << "dec:" << dec << "  bin" << bin;                 \
+    EXPECT_EQ(val, type(expected)) << "dec=" << dec << "  bin=" << bin; \
+}
+
+#define _C4PARSE_F(i_or_u, type, numstr)        \
+{                                               \
+    type val;                                   \
+    bool ok = ato##i_or_u(numstr, &val);        \
+    EXPECT_FALSE(ok) << numstr;                 \
+}
+
+TEST(atoi, range_i8)
+{
+    _C4PARSE_T(i, int8_t, "-129", "-0x81", "-0o201", "-0b10000001",  127);
+    _C4PARSE_T(i, int8_t, "-128", "-0x80", "-0o200", "-0b10000000", -128);
+    _C4PARSE_T(i, int8_t, "-127", "-0x7f", "-0o177", "-0b01111111", -127);
+    _C4PARSE_T(i, int8_t,  "0"  ,  "0x0" ,  "0o0"  ,  "0b00000000",    0);
+    _C4PARSE_T(i, int8_t, "-0"  , "-0x0" , "-0o0"  , "-0b00000000",    0);
+    _C4PARSE_T(i, int8_t,  "127",  "0x7f",  "0o177",  "0b01111111",  127);
+    _C4PARSE_T(i, int8_t,  "128",  "0x80",  "0o200",  "0b10000000", -128);
+    _C4PARSE_T(i, int8_t,  "129",  "0x81",  "0o201",  "0b10000001", -127);
+}
+
+TEST(atou, range_u8)
+{
+    _C4PARSE_F(u, uint8_t, "-1");
+    _C4PARSE_F(u, uint8_t, "-0");
+    _C4PARSE_T(u, uint8_t,  "0"   , "0x0"  , "0o0"  , "0b000000000",    0);
+    _C4PARSE_T(u, uint8_t,  "127",  "0x7f" , "0o177", "0b001111111",  127);
+    _C4PARSE_T(u, uint8_t,  "128",  "0x80" , "0o200", "0b010000000", -128);
+    _C4PARSE_T(u, uint8_t,  "255",  "0xff" , "0o377", "0b011111111",  255);
+    _C4PARSE_T(u, uint8_t,  "256",  "0x100", "0o400", "0b100000000",    0);
+    _C4PARSE_T(u, uint8_t,  "257",  "0x101", "0o401", "0b100000001",    1);
+    _C4PARSE_T(u, uint8_t,  "258",  "0x102", "0o402", "0b100000010",    2);
+}
+
+TEST(atoi, range_i16)
+{
+    _C4PARSE_T(i, int16_t, "-32769", "-0x8001", "-0o100001", "-0b1000000000000001",  32767);
+    _C4PARSE_T(i, int16_t, "-32768", "-0x8000", "-0o100000", "-0b1000000000000000", -32768);
+    _C4PARSE_T(i, int16_t, "-32767", "-0x7fff", "-0o077777", "-0b0111111111111111", -32767);
+    _C4PARSE_T(i, int16_t, "-0"    , "-0x0"   , "-0o0"     , "-0b0"               ,      0);
+    _C4PARSE_T(i, int16_t,  "0"    ,  "0x0"   ,  "0o0"     ,  "0b0"               ,      0);
+    _C4PARSE_T(i, int16_t,  "32766",  "0x7ffe",  "0o077776",  "0b0111111111111110",  32766);
+    _C4PARSE_T(i, int16_t,  "32767",  "0x7fff",  "0o077777",  "0b0111111111111111",  32767);
+    _C4PARSE_T(i, int16_t,  "32768",  "0x8000",  "0o100000",  "0b1000000000000000", -32768);
+    _C4PARSE_T(i, int16_t,  "32769",  "0x8001",  "0o100001",  "0b1000000000000001", -32767);
+}
+
+TEST(atou, range_u16)
+{
+    _C4PARSE_F(u, uint16_t, "-1");
+    _C4PARSE_F(u, uint16_t, "-0");
+    _C4PARSE_T(u, uint16_t,  "0"    , "0x0"     , "0o0"     , "0b000000000"        ,      0);
+    _C4PARSE_T(u, uint16_t,  "65534", "0x0fffe" , "0o177776", "0b01111111111111110",  65534);
+    _C4PARSE_T(u, uint16_t,  "65535", "0x0ffff" , "0o177777", "0b01111111111111111",  65535);
+    _C4PARSE_T(u, uint16_t,  "65536", "0x10000" , "0o200000", "0b10000000000000000",      0);
+    _C4PARSE_T(u, uint16_t,  "65537", "0x10001" , "0o200001", "0b10000000000000001",      1);
+}
+
+TEST(atoi, range_i32)
+{
+    _C4PARSE_T(i, int32_t, "-2147483650", "-0x80000002", "-0o20000000002", "-0b10000000000000000000000000000010",   2147483646);
+    _C4PARSE_T(i, int32_t, "-2147483649", "-0x80000001", "-0o20000000001", "-0b10000000000000000000000000000001",   2147483647);
+    _C4PARSE_T(i, int32_t, "-2147483648", "-0x80000000", "-0o20000000000", "-0b10000000000000000000000000000000",  -2147483648);
+    _C4PARSE_T(i, int32_t, "-2147483647", "-0x7fffffff", "-0o17777777777", "-0b01111111111111111111111111111111",  -2147483647);
+    _C4PARSE_T(i, int32_t, "-2147483646", "-0x7ffffffe", "-0o17777777776", "-0b01111111111111111111111111111110",  -2147483646);
+    _C4PARSE_T(i, int32_t, "-0"         , "-0x0"       , "-0o0"          , "-0b0"                               ,            0);
+    _C4PARSE_T(i, int32_t,  "0"         ,  "0x0"       ,  "0o0"          ,  "0b0"                               ,            0);
+    _C4PARSE_T(i, int32_t,  "2147483646",  "0x7ffffffe",  "0o17777777776",  "0b01111111111111111111111111111110",   2147483646);
+    _C4PARSE_T(i, int32_t,  "2147483647",  "0x7fffffff",  "0o17777777777",  "0b01111111111111111111111111111111",   2147483647);
+    _C4PARSE_T(i, int32_t,  "2147483648",  "0x80000000",  "0o20000000000",  "0b10000000000000000000000000000000",  -2147483648);
+    _C4PARSE_T(i, int32_t,  "2147483649",  "0x80000001",  "0o20000000001",  "0b10000000000000000000000000000001",  -2147483647);
+}
+
+TEST(atou, range_u32)
+{
+    _C4PARSE_F(u, uint32_t, "-1");
+    _C4PARSE_F(u, uint32_t, "-0");
+    _C4PARSE_T(u, uint32_t,  "0"         , "0x0"        , "0o0"          , "0b0"                                ,          0);
+    _C4PARSE_T(u, uint32_t,  "4294967294", "0xfffffffe" , "0o37777777776", "0b011111111111111111111111111111110", 4294967294);
+    _C4PARSE_T(u, uint32_t,  "4294967295", "0xffffffff" , "0o37777777777", "0b011111111111111111111111111111111", 4294967295);
+    _C4PARSE_T(u, uint32_t,  "4294967296", "0x800000000", "0o40000000000", "0b100000000000000000000000000000000",          0);
+    _C4PARSE_T(u, uint32_t,  "4294967297", "0x800000001", "0o40000000001", "0b100000000000000000000000000000001",          1);
+    _C4PARSE_T(u, uint32_t,  "4294967298", "0x800000002", "0o40000000002", "0b100000000000000000000000000000010",          2);
+}
+
+TEST(atoi, range_i64)
+{
+    int64_t min = std::numeric_limits<int64_t>::min();
+    int64_t max = std::numeric_limits<int64_t>::max();
+    _C4PARSE_T(i, int64_t, "-9223372036854775810", "-0x8000000000000002", "-0o1000000000000000000002", "-0b1000000000000000000000000000000000000000000000000000000000000010", max-1);
+    _C4PARSE_T(i, int64_t, "-9223372036854775809", "-0x8000000000000001", "-0o1000000000000000000001", "-0b1000000000000000000000000000000000000000000000000000000000000001", max  );
+    _C4PARSE_T(i, int64_t, "-9223372036854775808", "-0x8000000000000000", "-0o1000000000000000000000", "-0b1000000000000000000000000000000000000000000000000000000000000000", min  );
+    _C4PARSE_T(i, int64_t, "-9223372036854775807", "-0x7fffffffffffffff", "-0o0777777777777777777777", "-0b0111111111111111111111111111111111111111111111111111111111111111", min+1);
+    _C4PARSE_T(i, int64_t, "-9223372036854775806", "-0x7ffffffffffffffe", "-0o0777777777777777777776", "-0b0111111111111111111111111111111111111111111111111111111111111110", min+2);
+    _C4PARSE_T(i, int64_t, "-9223372036854775805", "-0x7ffffffffffffffd", "-0o0777777777777777777775", "-0b0111111111111111111111111111111111111111111111111111111111111101", min+3);
+    _C4PARSE_T(i, int64_t, "-1"                  , "-0x1"               , "-0o1"                     , "-0b1"                                                               ,    -1);
+    _C4PARSE_T(i, int64_t, "-0"                  , "-0x0"               , "-0o0"                     , "-0b0"                                                               ,     0);
+    _C4PARSE_T(i, int64_t,  "0"                  ,  "0x0"               ,  "0o0"                     ,  "0b0"                                                               ,     0);
+    _C4PARSE_T(i, int64_t,  "1"                  ,  "0x1"               ,  "0o1"                     ,  "0b1"                                                               ,     1);
+    _C4PARSE_T(i, int64_t,  "9223372036854775805",  "0x7ffffffffffffffd",  "0o0777777777777777777775",  "0b0111111111111111111111111111111111111111111111111111111111111101", max-2);
+    _C4PARSE_T(i, int64_t,  "9223372036854775806",  "0x7ffffffffffffffe",  "0o0777777777777777777776",  "0b0111111111111111111111111111111111111111111111111111111111111110", max-1);
+    _C4PARSE_T(i, int64_t,  "9223372036854775807",  "0x7fffffffffffffff",  "0o0777777777777777777777",  "0b0111111111111111111111111111111111111111111111111111111111111111", max  );
+    _C4PARSE_T(i, int64_t,  "9223372036854775808",  "0x8000000000000000",  "0o1000000000000000000000",  "0b1000000000000000000000000000000000000000000000000000000000000000", min  );
+    _C4PARSE_T(i, int64_t,  "9223372036854775809",  "0x8000000000000001",  "0o1000000000000000000001",  "0b1000000000000000000000000000000000000000000000000000000000000001", min+1);
+    _C4PARSE_T(i, int64_t,  "9223372036854775810",  "0x8000000000000002",  "0o1000000000000000000002",  "0b1000000000000000000000000000000000000000000000000000000000000010", min+2);
+}
+
+TEST(atou, range_u64)
+{
+    uint64_t max = std::numeric_limits<uint64_t>::max();
+    // no range checking! B-)
+    _C4PARSE_F(u, uint64_t, "-1");
+    _C4PARSE_F(u, uint64_t, "-0");
+    _C4PARSE_T(u, uint64_t, "0"                   , "0x0"                , "0o0"                     , "0b0"                                                                ,     0);
+    _C4PARSE_T(u, uint64_t, "1"                   , "0x1"                , "0o1"                     , "0b1"                                                                ,     1);
+    _C4PARSE_T(u, uint64_t, "18446744073709551613", "0x0fffffffffffffffd", "0o1777777777777777777775", "0b01111111111111111111111111111111111111111111111111111111111111101", max-2);
+    _C4PARSE_T(u, uint64_t, "18446744073709551614", "0x0fffffffffffffffe", "0o1777777777777777777776", "0b01111111111111111111111111111111111111111111111111111111111111110", max-1);
+    _C4PARSE_T(u, uint64_t, "18446744073709551615", "0x0ffffffffffffffff", "0o1777777777777777777777", "0b01111111111111111111111111111111111111111111111111111111111111111", max  );
+    _C4PARSE_T(u, uint64_t, "18446744073709551616", "0x10000000000000000", "0o2000000000000000000000", "0b10000000000000000000000000000000000000000000000000000000000000000",     0);
+    _C4PARSE_T(u, uint64_t, "18446744073709551617", "0x10000000000000001", "0o2000000000000000000001", "0b10000000000000000000000000000000000000000000000000000000000000001",     1);
+    _C4PARSE_T(u, uint64_t, "18446744073709551618", "0x10000000000000002", "0o2000000000000000000002", "0b10000000000000000000000000000000000000000000000000000000000000010",     2);
+}
+
+#undef _C4PARSE_T
+#undef _C4PARSE_F
 
 
 //-----------------------------------------------------------------------------

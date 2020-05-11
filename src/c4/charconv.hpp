@@ -3,6 +3,7 @@
 
 /** @file charconv.hpp Low-level conversion functions to/from strings */
 
+#include "c4/language.hpp"
 #include <stdio.h>
 #include <inttypes.h>
 #include <type_traits>
@@ -354,7 +355,10 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
     *v = 0;
     for(char c : s)
     {
-        if(C4_UNLIKELY(c < '0' || c > '9')) return false;
+        if(C4_UNLIKELY(c < '0' || c > '9'))
+        {
+            return false;
+        }
         *v = (*v) * I(10) + (I(c) - I('0'));
     }
     return true;
@@ -368,10 +372,22 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         I cv;
-        if(c >= '0' && c <= '9') cv = static_cast<I>(I(c) - I('0'));
-        else if(c >= 'a' && c <= 'f') cv = I(10) + (I(c) - I('a'));
-        else if(c >= 'A' && c <= 'F') cv = I(10) + (I(c) - I('A'));
-        else return false;
+        if(c >= '0' && c <= '9')
+        {
+            cv = I(c) - I('0');
+        }
+        else if(c >= 'a' && c <= 'f')
+        {
+            cv = I(10) + (I(c) - I('a'));
+        }
+        else if(c >= 'A' && c <= 'F')
+        {
+            cv = I(10) + (I(c) - I('A'));
+        }
+        else
+        {
+            return false;
+        }
         *v = (*v) * I(16) + cv;
     }
     return true;
@@ -385,9 +401,18 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         *v <<= 1;
-        if(c == '1') *v |= 1;
-        else if(c == '0') ;
-        else return false;
+        if(c == '1')
+        {
+            *v |= 1;
+        }
+        else if(c == '0')
+        {
+            ;
+        }
+        else
+        {
+            return false;
+        }
     }
     return true;
 }
@@ -399,7 +424,10 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
     *v = 0;
     for(char c : s)
     {
-        if(C4_UNLIKELY(c < '0' || c > '7')) return false;
+        if(C4_UNLIKELY(c < '0' || c > '7'))
+        {
+            return false;
+        }
         *v = (*v) * I(8) + (I(c) - I('0'));
     }
     return true;
@@ -413,7 +441,10 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
  * hexadecimal (prefix 0x or 0X). Every character in the input string is read
  * for the conversion; it must not contain any leading or trailing
  * whitespace.
- * @return true if the conversion was successful.
+ *
+ * @return true if the conversion was successful. Note that no range
+ * checking is performed: the return status is true even if the
+ * conversion would return a value outside of the type's range.
  * @see atoi_first() if the string is not trimmed to the value to read.
  * @ingroup lowlevel_tofrom_chars
  */
@@ -422,14 +453,14 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_STATIC_ASSERT(std::is_signed<T>::value);
-    C4_ASSERT(str.str != nullptr);
-    C4_ASSERT(str.len > 0);
-    C4_ASSERT(str == str.first_int_span());
+
+    if(C4_UNLIKELY(str.len == 0)) return false;
 
     T sign = 1;
     size_t start = 0;
     if(str.str[0] == '-')
     {
+        if(C4_UNLIKELY(str.len == 1)) return false;
         ++start;
         sign = -1;
     }
@@ -451,18 +482,36 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
             char pfx = str.str[start+1];
             if(pfx == 'x' || pfx == 'X') // hexadecimal
             {
-                C4_ASSERT(str.len > start + 2);
-                if(C4_UNLIKELY( ! detail::read_hex(str.sub(start + 2), v))) return false;
+                if(C4_UNLIKELY(str.len <= start + 2))
+                {
+                    return false;
+                }
+                if(C4_UNLIKELY( ! detail::read_hex(str.sub(start + 2), v)))
+                {
+                    return false;
+                }
             }
             else if(pfx == 'b' || pfx == 'B') // binary
             {
-                C4_ASSERT(str.len > start + 2);
-                if(C4_UNLIKELY( ! detail::read_bin(str.sub(start + 2), v))) return false;
+                if(C4_UNLIKELY(str.len <= start + 2))
+                {
+                    return false;
+                }
+                if(C4_UNLIKELY( ! detail::read_bin(str.sub(start + 2), v)))
+                {
+                    return false;
+                }
             }
             else if(pfx == 'o' || pfx == 'O') // octal
             {
-                C4_ASSERT(str.len > start + 2);
-                if(C4_UNLIKELY( ! detail::read_oct(str.sub(start + 2), v))) return false;
+                if(C4_UNLIKELY(str.len <= start + 2))
+                {
+                    return false;
+                }
+                if(C4_UNLIKELY( ! detail::read_oct(str.sub(start + 2), v)))
+                {
+                    return false;
+                }
             }
             else
             {
@@ -499,7 +548,10 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
  * formatted as decimal, binary (prefix 0b or 0B), octal (prefix 0o or 0O)
  * or hexadecimal (prefix 0x or 0X). Every character in the input string is read
  * for the conversion; it must not contain any leading or trailing whitespace.
- * @return true if the conversion was successful.
+ * @return true if the conversion was successful. Note that no range
+ * checking is performed: the return status is true even if the
+ * conversion would return a value outside of the type's range. If the string
+ * has a minus character, the return status will be false.
  * @see atou_first() if the string is not trimmed to the value to read.
  * @ingroup lowlevel_tofrom_chars
  */
@@ -507,10 +559,11 @@ template<class T>
 bool atou(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
-    C4_ASSERT(str.str != nullptr);
-    C4_ASSERT(str.len > 0);
-    C4_ASSERT_MSG(str.str[0] != '-', "must be positive");
-    C4_ASSERT(str == str.first_uint_span());
+
+    if(C4_UNLIKELY(str.len == 0 || str.front() == '-'))
+    {
+        return false;
+    }
 
     if(str.str[0] != '0')
     {
@@ -520,7 +573,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
     {
         if(str.len == 1 || str.first_not_of('0') == csubstr::npos)
         {
-            *v = 0; // because the first character is 0
+            *v = 0; // because from above we know the first character is 0
             return true;
         }
         else
@@ -528,18 +581,27 @@ bool atou(csubstr str, T * C4_RESTRICT v)
             char pfx = str.str[1];
             if(pfx == 'x' || pfx == 'X') // hexadecimal
             {
-                C4_ASSERT(str.len > 2);
-                if(C4_UNLIKELY( ! detail::read_hex(str.sub(2), v))) return false;
+                if(C4_UNLIKELY(str.len <= 2))
+                {
+                    return false;
+                }
+                return detail::read_hex(str.sub(2), v);
             }
             else if(pfx == 'b' || pfx == 'B') // binary
             {
-                C4_ASSERT(str.len > 2);
-                if(C4_UNLIKELY( ! detail::read_bin(str.sub(2), v))) return false;
+                if(C4_UNLIKELY(str.len <= 2))
+                {
+                    return false;
+                }
+                return detail::read_bin(str.sub(2), v);
             }
             else if(pfx == 'o' || pfx == 'O') // octal
             {
-                C4_ASSERT(str.len > 2);
-                if(C4_UNLIKELY( ! detail::read_oct(str.sub(2), v))) return false;
+                if(C4_UNLIKELY(str.len <= 2))
+                {
+                    return false;
+                }
+                return detail::read_oct(str.sub(2), v);
             }
             else
             {
