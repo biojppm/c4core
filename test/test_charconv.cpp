@@ -1763,6 +1763,72 @@ TEST_CASE("to_chars.roundtrip_substr")
     to_chars_roundtrip(buf, "zhis iz a test");
 }
 
+TEST(to_chars, substr_enough_size)
+{
+    char orig_[] = "0123456789";
+    substr orig = orig_;
+    char result_[20];
+    substr result = result_;
+    size_t len = to_chars(result, orig);
+    EXPECT_EQ(len, orig.len);
+    EXPECT_NE(result.str, orig.str);
+    EXPECT_EQ(result.first(10), orig);
+}
+
+TEST(to_chars, substr_insufficient_size)
+{
+    char orig_[] = "0123456789";
+    substr orig = orig_;
+    char result_[11] = {};
+    substr result = result_;
+    result.len = 5;
+    size_t len = to_chars(result, orig);
+    EXPECT_EQ(len, orig.len);
+    EXPECT_NE(result.str, orig.str);
+    EXPECT_EQ(result.first(5), "01234");
+    EXPECT_EQ(substr(result_).last(5), "\0\0\0\0\0");
+}
+
+TEST(from_chars, csubstr)
+{
+    csubstr orig = "0123456789";
+    csubstr result;
+    EXPECT_NE(result.str, orig.str);
+    EXPECT_NE(result.len, orig.len);
+    bool ok = from_chars(orig, &result);
+    EXPECT_TRUE(ok);
+    EXPECT_EQ(result.str, orig.str);
+    EXPECT_EQ(result.len, orig.len);
+}
+
+TEST(from_chars, substr_enough_size)
+{
+    char buf_[128] = {};
+    substr result = buf_;
+    for(char r : result)
+    {
+        EXPECT_EQ(r, '\0');
+    }
+    bool ok = from_chars("0123456789", &result);
+    EXPECT_TRUE(ok);
+    EXPECT_EQ(result.len, 10);
+    EXPECT_EQ(result.str, buf_);
+    EXPECT_EQ(result, "0123456789");
+}
+
+TEST(from_chars, substr_insufficient_size)
+{
+    char buf_[128] = {};
+    substr buf = buf_;
+    buf.len = 0;
+    bool ok = from_chars("0123456789", &buf);
+    EXPECT_FALSE(ok);
+    for(size_t i = 0; i < 10; ++i)
+    {
+        EXPECT_EQ(buf_[i], '\0');
+    }
+}
+
 } // namespace c4
 
 #ifdef __clang__

@@ -1508,14 +1508,13 @@ inline size_t to_chars(substr buf, substr v)
 inline bool from_chars(csubstr buf, substr * C4_RESTRICT v)
 {
     C4_ASSERT(!buf.overlaps(*v));
-    bool ok = buf.len <= v->len;
-    if(ok)
+    if(buf.len <= v->len)
     {
         memcpy(v->str, buf.str, buf.len);
         v->len = buf.len;
         return true;
     }
-    memcpy(v->str, buf.str, buf.len);
+    memcpy(v->str, buf.str, v->len);
     return false;
 }
 
