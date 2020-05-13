@@ -482,6 +482,65 @@ TEST(fmt, hex)
 #undef _
 }
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+template<class T> void raw_roundtrip(const char *valstr, T const& orig)
+{
+    SCOPED_TRACE(valstr);
+    alignas(alignof(T)) char buf_[2 * (sizeof(T) + alignof(T))] = {};
+    substr buf = buf_;
+
+    fmt::const_raw_wrapper rawwrap = fmt::craw(orig);
+    ASSERT_EQ((void*)rawwrap.buf, (void*)&orig);
+    ASSERT_EQ(rawwrap.len, sizeof(orig));
+
+    for(size_t i = 0; i < alignof(T); ++i)
+    {
+        // make sure to cover unaligned buffers
+        substr sbuf = buf.sub(i);
+        size_t szwrite = c4::to_chars(sbuf, fmt::craw(orig));
+        ASSERT_LE(szwrite, sbuf.len) << i;
+        if(i == 0)
+        {
+            ASSERT_EQ(szwrite, sizeof(T)) << i;
+        }
+        else
+        {
+            ASSERT_GT(szwrite, sizeof(T)) << i;
+        }
+        T copy = {};
+        ASSERT_NE(copy, orig) << i;
+        size_t szread = c4::from_chars(sbuf, fmt::raw(copy));
+        ASSERT_EQ(szread, szwrite) << i;
+        EXPECT_EQ(copy, orig) << i;
+
+        // cover also insufficient buffers
+        sbuf = sbuf.first(sizeof(T)-1);
+        memset(buf.str, 0, buf.len);
+        szwrite = c4::to_chars(sbuf, fmt::craw(orig));
+        ASSERT_GT(szwrite, sbuf.len) << i;
+        for(char c : buf)
+        {
+            EXPECT_EQ(c, 0) << "i=" << i;
+        }
+    }
+}
+
+TEST(fmt, raw_int)
+{
+    #define _(v) raw_roundtrip(#v, v)
+
+    _(int(1));
+    _(int(2));
+    _(int(-1));
+    _(int(-2));
+
+    #undef _
+}
+
 } // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"

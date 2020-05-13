@@ -29,4 +29,40 @@ size_t sprintf(substr buf, const char *fmt, ...)
     return snum;
 }
 
+
+size_t to_chars(substr buf, fmt::const_raw_wrapper r)
+{
+    void * vptr = buf.str;
+    size_t space = buf.len;
+    auto ptr = (decltype(buf.str)) std::align(r.alignment, r.len, vptr, space);
+    if(ptr == nullptr)
+    {
+        // if it was not possible to align, return a conservative estimate
+        // of the required space
+        return r.alignment + r.len;
+    }
+    C4_CHECK(ptr >= buf.begin() && ptr <= buf.end());
+    size_t sz = (ptr - buf.str) + r.len;
+    if(sz <= buf.len)
+    {
+        memcpy(ptr, r.buf, r.len);
+    }
+    return sz;
+}
+
+
+size_t from_chars(csubstr buf, fmt::raw_wrapper *r)
+{
+    void * vptr = (void*)buf.str;
+    size_t space = buf.len;
+    auto ptr = (decltype(buf.str)) std::align(r->alignment, r->len, vptr, space);
+    C4_CHECK(ptr != nullptr);
+    C4_CHECK(ptr >= buf.begin() && ptr <= buf.end());
+    //size_t dim = (ptr - buf.str) + r->len;
+    memcpy(r->buf, ptr, r->len);
+    size_t sz = (ptr - buf.str) + r->len;
+    return sz;
+}
+
+
 } // namespace c4

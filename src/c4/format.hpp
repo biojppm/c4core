@@ -88,18 +88,20 @@ template<> struct fmt_wrapper<size_t> : public integral<size_t> { using integral
 #endif
 
 
-/** format the integral argument as a hex value */
+/** format the integral argument as an hexadecimal value */
 template<class T>
 inline fmt_wrapper<T> hex(T v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(16));
 }
+/** format the integral argument as an hexadecimal value */
 template<class T>
 inline fmt_wrapper<uintptr_t> hex(T const* v)
 {
     return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(16));
 }
+/** format the integral argument as an hexadecimal value */
 inline fmt_wrapper<uintptr_t> hex(std::nullptr_t)
 {
     return fmt_wrapper<uintptr_t>(0, uintptr_t(16));
@@ -112,29 +114,39 @@ inline fmt_wrapper<T> oct(T v)
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(8));
 }
+/** format the integral argument as an octal value */
 template<class T>
 inline fmt_wrapper<uintptr_t> oct(T const* v)
 {
     return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(8));
 }
+/** format the integral argument as an octal value */
 inline fmt_wrapper<uintptr_t> oct(std::nullptr_t)
 {
     return fmt_wrapper<uintptr_t>(0, uintptr_t(8));
 }
 
 
-/** format the integral argument as a binary 0-1 value */
+/** format the integral argument as a binary 0-1 value
+ * @overload bin
+ * @see raw() if you want to use a binary memcpy instead of formatting */
 template<class T>
 inline fmt_wrapper<T> bin(T v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(2));
 }
+/** format the integral argument as a binary 0-1 value
+ * @overload bin
+ * @see raw() if you want to use a binary memcpy instead of formatting */
 template<class T>
 inline fmt_wrapper<uintptr_t> bin(T const* v)
 {
     return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(2));
 }
+/** format the integral argument as a binary 0-1 value
+ * @overload bin
+ * @see raw() if you want to use a binary memcpy instead of formatting */
 inline fmt_wrapper<uintptr_t> bin(std::nullptr_t)
 {
     return fmt_wrapper<uintptr_t>(0, uintptr_t(2));
@@ -215,52 +227,57 @@ struct raw_wrapper_ : public blob_<T>
 using const_raw_wrapper = raw_wrapper_<cbyte>;
 using raw_wrapper = raw_wrapper_<byte>;
 
-
-/** mark a variable to be written in raw binary format
+/** mark a variable to be written in raw binary format, using memcpy
  * @see blob_ */
 inline const_raw_wrapper craw(cblob data, size_t alignment=alignof(max_align_t))
 {
     return const_raw_wrapper(data, alignment);
 }
+/** mark a variable to be written in raw binary format, using memcpy
+ * @see blob_ */
+template<class T>
+inline const_raw_wrapper craw(T const& data, size_t alignment=alignof(T))
+{
+    return const_raw_wrapper(cblob(data), alignment);
+}
 
-/** mark a variable to be read in raw binary format
- * @see blob_  */
+/** mark a variable to be read in raw binary format, using memcpy */
 inline raw_wrapper raw(blob data, size_t alignment=alignof(max_align_t))
 {
     return raw_wrapper(data, alignment);
+}
+/** mark a variable to be read in raw binary format, using memcpy */
+template<class T>
+inline raw_wrapper raw(T & data, size_t alignment=alignof(T))
+{
+    return raw_wrapper(blob(data), alignment);
 }
 
 } // namespace fmt
 
 
-/** write a variable in raw binary format */
-template<class T>
-inline size_t to_chars(substr buf, fmt::const_raw_wrapper r)
+/** write a variable in raw binary format, using memcpy */
+size_t to_chars(substr buf, fmt::const_raw_wrapper r);
+
+/** read a variable in raw binary format, using memcpy */
+size_t from_chars(csubstr buf, fmt::raw_wrapper *r);
+/** read a variable in raw binary format, using memcpy */
+inline size_t from_chars(csubstr buf, fmt::raw_wrapper r)
 {
-    void * vptr = buf.str;
-    size_t space = buf.len;
-    auto ptr = (decltype(buf.str)) std::align(r.alignment, r.len, vptr, space);
-    if(ptr == nullptr) return r.alignment + r.len;
-    C4_CHECK(ptr >= r.buf && ptr <= r.buf + r.len);
-    size_t dim = (ptr - buf.str) + r.len;
-    if(dim <= buf.len) memcpy(ptr, r.buf, r.len);
-    return dim;
+    return from_chars(buf, &r);
 }
 
-
-/** read a variable in raw binary format */
-template<class T>
-inline size_t from_chars(csubstr buf, fmt::raw_wrapper *r)
+/** read a variable in raw binary format, using memcpy */
+inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper *r)
 {
-    void * vptr = (void*)buf.str;
-    size_t space = buf.len;
-    auto ptr = (decltype(buf.str)) std::align(r->alignment, r->len, vptr, space);
-    C4_CHECK(ptr != nullptr);
-    C4_CHECK(ptr >= r->buf && ptr <= r->buf + r->len);
-    //size_t dim = (ptr - buf.str) + r->len;
-    memcpy(r->buf, ptr, r->len);
-    return r->len;
+    return from_chars(buf, r);
 }
+/** read a variable in raw binary format, using memcpy */
+inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper r)
+{
+    return from_chars(buf, &r);
+}
+
 
 /** @} */
 

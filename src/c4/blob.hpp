@@ -29,7 +29,7 @@ struct blob_
     C4_ALWAYS_INLINE blob_& operator=(blob_ const& that) noexcept = default;
 
     // need to sfinae out copy constructors! (why? isn't the above sufficient?)
-    #define _C4_REQUIRE_NOT_SAME class=typename std::enable_if< ( ! std::is_same<U, blob_>::value) && ( ! std::is_pointer<U>::value), T>::type
+    #define _C4_REQUIRE_NOT_SAME class=typename std::enable_if<( ! std::is_same<U, blob_>::value) && ( ! std::is_pointer<U>::value), T>::type
     template<class U, _C4_REQUIRE_NOT_SAME> C4_ALWAYS_INLINE blob_(U &var) noexcept : buf(reinterpret_cast<T*>(&var)), len(sizeof(U)) {}
     template<class U, _C4_REQUIRE_NOT_SAME> C4_ALWAYS_INLINE blob_& operator= (U &var) noexcept { buf = reinterpret_cast<T*>(&var); len = sizeof(U); return *this; }
     #undef _C4_REQUIRE_NOT_SAME
