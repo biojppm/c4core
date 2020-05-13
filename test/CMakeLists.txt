@@ -1,6 +1,6 @@
 c4_setup_testing()
 
-c4_add_library(c4core-libtest
+c4_add_library(c4core-_libtest
     SOURCES
         c4/test.hpp
         c4/libtest/test.cpp
@@ -8,16 +8,16 @@ c4_add_library(c4core-libtest
         c4/libtest/archetypes.hpp
         c4/libtest/supprwarn_push.hpp
         c4/libtest/supprwarn_pop.hpp
-    LIBS c4core gtest
+    LIBS c4core gtest gtest_main
     INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
     FOLDER test
     )
 
 function(c4core_test name)
     c4_add_executable(c4core-test-${name}
-        SOURCES ${ARGN} main.cpp
+        SOURCES ${ARGN}
         INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
-        LIBS c4core c4core-libtest gtest
+        LIBS c4core-_libtest
         FOLDER test)
     c4_add_test(c4core-test-${name})
 endfunction()

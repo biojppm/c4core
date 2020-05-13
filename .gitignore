@@ -2,8 +2,9 @@
 *.bck
 \#*
 *~
-.cquery_cached_index/
+.ccls-cache/
 .clangd/
+.cquery_cached_index/
 
 # Visual Studio files
 .vs/
