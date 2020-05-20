@@ -1326,7 +1326,9 @@ public:
         return erase(first, last-first);
     }
 
-    /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    /** erase a part of the string.
+     * @note @p sub must be contained by this string
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(basic_substring) erase(ro_substr sub)
     {
         C4_ASSERT(contains(sub));
@@ -1351,7 +1353,8 @@ public:
         return did_it;
     }
 
-    /** replace every occurrence of character @p value with the character @p repl
+    /** replace every occurrence of each character in @p value with
+     * the character @p repl.
      * @return the number of characters that were replaced
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(size_t) replace(ro_substr chars, C repl, size_t pos=0)
@@ -1376,9 +1379,9 @@ public:
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     size_t replace_all(rw_substr dst, ro_substr pattern, ro_substr repl, size_t pos=0) const
     {
-		C4_ASSERT( ! this  ->empty());
-		C4_ASSERT( ! pattern.empty());
-		C4_ASSERT( ! this  ->overlaps(dst));
+		C4_ASSERT( ! this  ->empty()); //!< @todo relax this precondition
+		C4_ASSERT( ! pattern.empty()); //!< @todo relax this precondition
+		C4_ASSERT( ! this  ->overlaps(dst)); //!< @todo relax this precondition
 		C4_ASSERT( ! pattern.overlaps(dst));
 		C4_ASSERT( ! repl   .overlaps(dst));
         C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
