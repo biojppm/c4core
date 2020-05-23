@@ -59,6 +59,7 @@ TEST(substr, overlaps)
     // ref
     csubstr s;
     csubstr ref = buf.select("345");
+    EXPECT_EQ(ref.len, 3);
     EXPECT_EQ(ref, "345");
 
     // all_left
@@ -138,6 +139,15 @@ TEST(substr, overlaps)
     EXPECT_EQ(s, "78");
     EXPECT_FALSE(ref.overlaps(s));
     EXPECT_FALSE(s.overlaps(ref));
+
+    // null vs null
+    csubstr n1, n2;
+    EXPECT_EQ(n1.str, nullptr);
+    EXPECT_EQ(n2.str, nullptr);
+    EXPECT_EQ(n1.len, 0);
+    EXPECT_EQ(n2.len, 0);
+    EXPECT_FALSE(n1.overlaps(n2));
+    EXPECT_FALSE(n2.overlaps(n1));
 }
 
 TEST(substr, sub)
@@ -494,6 +504,10 @@ TEST(substr, first_of)
     EXPECT_EQ(csubstr("012345").first_of("54321"), 1u);
     EXPECT_EQ(csubstr("012345").first_of("012345"), 0u);
     EXPECT_EQ(csubstr("012345").first_of("543210"), 0u);
+
+    EXPECT_EQ(csubstr("012345").first_of('0', 6u), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").first_of('5', 6u), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").first_of("012345", 6u), csubstr::npos);
 }
 
 TEST(substr, last_of)
@@ -526,6 +540,10 @@ TEST(substr, last_of)
     EXPECT_EQ(csubstr("012345").last_of("54321"), 5u);
     EXPECT_EQ(csubstr("012345").last_of("012345"), 5u);
     EXPECT_EQ(csubstr("012345").last_of("543210"), 5u);
+
+    EXPECT_EQ(csubstr("012345").last_of('0', 6u), 0u);
+    EXPECT_EQ(csubstr("012345").last_of('5', 6u), 5u);
+    EXPECT_EQ(csubstr("012345").last_of("012345", 6u), 5u);
 }
 
 TEST(substr, first_not_of)
@@ -558,6 +576,10 @@ TEST(substr, first_not_of)
     EXPECT_EQ(csubstr("012345").first_not_of("54321"), 0u);
     EXPECT_EQ(csubstr("012345").first_not_of("012345"), csubstr::npos);
     EXPECT_EQ(csubstr("012345").first_not_of("543210"), csubstr::npos);
+
+    EXPECT_EQ(csubstr("").first_not_of('0', 0u), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").first_not_of('5', 6u), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").first_not_of("012345", 6u), csubstr::npos);
 }
 
 TEST(substr, last_not_of)
@@ -590,6 +612,9 @@ TEST(substr, last_not_of)
     EXPECT_EQ(csubstr("012345").last_not_of("43210"), 5u);
     EXPECT_EQ(csubstr("012345").last_not_of("012345"), csubstr::npos);
     EXPECT_EQ(csubstr("012345").last_not_of("543210"), csubstr::npos);
+
+    EXPECT_EQ(csubstr("").last_not_of('0', 0u), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").last_not_of('5', 6u), 4);
 }
 
 TEST(substr, left_of)
@@ -3015,32 +3040,52 @@ TEST(substr, replace)
     char buf[] = "0.1.2.3.4.5.6.7.8.9";
 
     substr s = buf;
-    bool ret;
 
-    ret = s.replace('+', '.');
-    EXPECT_FALSE(ret);
+    auto ret = s.replace('+', '.');
+    EXPECT_EQ(ret, 0);
 
+    ret = s.replace('.', '.', s.len);
+    EXPECT_EQ(s, "0.1.2.3.4.5.6.7.8.9");
+    EXPECT_EQ(ret, 0);
     ret = s.replace('.', '.');
-    EXPECT_TRUE(ret);
+    EXPECT_EQ(ret, 9);
     EXPECT_EQ(s, "0.1.2.3.4.5.6.7.8.9");
 
+    ret = s.replace('.', '+', s.len);
+    EXPECT_EQ(s, "0.1.2.3.4.5.6.7.8.9");
+    EXPECT_EQ(ret, 0);
     ret = s.replace('.', '+');
-    EXPECT_TRUE(ret);
+    EXPECT_EQ(ret, 9);
     EXPECT_EQ(s, "0+1+2+3+4+5+6+7+8+9");
 
+    ret = s.replace("16", '.', s.len);
+    EXPECT_EQ(s, "0+1+2+3+4+5+6+7+8+9");
+    EXPECT_EQ(ret, 0);
     ret = s.replace("16", '.');
-    EXPECT_TRUE(ret);
+    EXPECT_EQ(ret, 2);
     EXPECT_EQ(s, "0+.+2+3+4+5+.+7+8+9");
     ret = s.replace("3+2", '_');
-    EXPECT_TRUE(ret);
+    EXPECT_EQ(ret, 11);
+    EXPECT_EQ(s, "0_._____4_5_._7_8_9");
+
+    // must accept empty string
+    ret = s.sub(0, 0).replace('0', '1');
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(s, "0_._____4_5_._7_8_9");
+    ret = s.sub(0, 0).replace("0", '1');
+    EXPECT_EQ(ret, 0);
     EXPECT_EQ(s, "0_._____4_5_._7_8_9");
 }
 
 TEST(substr, replace_all)
 {
     char buf[] = "0.1.2.3.4.5.6.7.8.9";
-
     std::string tmp, out("0+1+2+3+4+5+6+7+8+9");
+
+    // must accept empty string
+    substr(buf).sub(0, 0).replace_all(to_substr(tmp), "0", "X");
+    EXPECT_EQ(csubstr(buf), "0.1.2.3.4.5.6.7.8.9");
+
     substr r;
     auto replall = [&](csubstr pattern, csubstr repl) -> substr {
                        tmp = out;

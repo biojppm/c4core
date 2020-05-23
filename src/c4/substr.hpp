@@ -234,11 +234,15 @@ public:
     {
         CC * b =      begin(), * e =      end(),
            *tb = that.begin(), *te = that.end();
-        return (tb <= b && te >  b)
-               ||
-               (tb <  e && te >= e)
-               ||
-               (tb >= b && te <= e);
+        return (
+                (tb <= b && te >  b)
+                ||
+                (tb <  e && te >= e)
+                ||
+                (tb >= b && te <= e)
+               )
+               &&
+               (b != nullptr && tb != nullptr);
     }
 
 public:
@@ -640,7 +644,7 @@ public:
 
     size_t first_not_of(const C c, size_t start=0) const
     {
-        C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
+        C4_ASSERT((start >= 0 && start <= len) || (start == len && len == 0));
         for(size_t i = start; i < len; ++i)
         {
             if(str[i] != c) return i;
@@ -661,7 +665,7 @@ public:
 
     size_t first_not_of(ro_substr chars, size_t start=0) const
     {
-        C4_ASSERT((start >= 0 && start < len) || (start == len && len == 0));
+        C4_ASSERT((start >= 0 && start <= len) || (start == len && len == 0));
         for(size_t i = start; i < len; ++i)
         {
             bool gotit = true;
@@ -1343,7 +1347,7 @@ public:
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(size_t) replace(C value, C repl, size_t pos=0)
     {
-        C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
+        C4_ASSERT((pos >= 0 && pos <= len) || pos == npos);
         size_t did_it = 0;
         while((pos = find(value, pos)) != npos)
         {
@@ -1359,7 +1363,7 @@ public:
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(size_t) replace(ro_substr chars, C repl, size_t pos=0)
     {
-        C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
+        C4_ASSERT((pos >= 0 && pos <= len) || pos == npos);
         size_t did_it = 0;
         while((pos = first_of(chars, pos)) != npos)
         {
@@ -1379,12 +1383,11 @@ public:
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     size_t replace_all(rw_substr dst, ro_substr pattern, ro_substr repl, size_t pos=0) const
     {
-		C4_ASSERT( ! this  ->empty()); //!< @todo relax this precondition
-		C4_ASSERT( ! pattern.empty()); //!< @todo relax this precondition
-		C4_ASSERT( ! this  ->overlaps(dst)); //!< @todo relax this precondition
-		C4_ASSERT( ! pattern.overlaps(dst));
-		C4_ASSERT( ! repl   .overlaps(dst));
-        C4_ASSERT((pos >= 0 && pos < len) || pos == npos);
+        C4_ASSERT( ! pattern.empty()); //!< @todo relax this precondition
+        C4_ASSERT( ! this  ->overlaps(dst)); //!< @todo relax this precondition
+        C4_ASSERT( ! pattern.overlaps(dst));
+        C4_ASSERT( ! repl   .overlaps(dst));
+        C4_ASSERT((pos >= 0 && pos <= len) || pos == npos);
 #define _c4append(first, last)                                  \
         {                                                       \
             auto num = (last) - (first);                        \
