@@ -1,6 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include "c4/memory_resource.hpp"
 #include "c4/memory_util.hpp"
 
@@ -14,15 +11,13 @@
 
 C4_BEGIN_NAMESPACE(c4)
 
-thread_local AllocationCounts MemoryResourceCounts::s_counts = AllocationCounts();
-
 C4_BEGIN_NAMESPACE(detail)
 
 
 #ifdef C4_NO_ALLOC_DEFAULTS
-aalloc_pfn s_aalloc = nullptr;
-free_pfn s_afree = nullptr;
-arealloc_pfn s_arealloc = nullptr;
+C4CORE_EXPORT aalloc_pfn s_aalloc = nullptr;
+C4CORE_EXPORT free_pfn s_afree = nullptr;
+C4CORE_EXPORT arealloc_pfn s_arealloc = nullptr;
 #else
 
 
@@ -92,9 +87,9 @@ void* arealloc_impl(void* ptr, size_t oldsz, size_t newsz, size_t alignment)
     return tmp;
 }
 
-aalloc_pfn s_aalloc = aalloc_impl;
-afree_pfn s_afree = afree_impl;
-arealloc_pfn s_arealloc = arealloc_impl;
+C4CORE_EXPORT aalloc_pfn s_aalloc = aalloc_impl;
+C4CORE_EXPORT afree_pfn s_afree = afree_impl;
+C4CORE_EXPORT arealloc_pfn s_arealloc = arealloc_impl;
 
 #endif // C4_NO_ALLOC_DEFAULTS
 

@@ -483,10 +483,6 @@ public:
         C4_ASSERT(m_resource != this);
         name = "MemoryResourceCounts";
     }
-    virtual ~MemoryResourceCounts()
-    {
-        s_counts.update(m_counts);
-    }
 
     MemoryResource *resource() { return m_resource; }
     AllocationCounts const& counts() const { return m_counts; }
@@ -495,7 +491,6 @@ protected:
 
     MemoryResource *m_resource;
     AllocationCounts m_counts;
-    static thread_local AllocationCounts s_counts;
 
 protected:
 

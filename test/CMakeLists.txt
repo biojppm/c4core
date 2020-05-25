@@ -1,6 +1,6 @@
 c4_setup_testing()
 
-c4_add_library(c4core-_libtest
+c4_add_library(c4core-_libtest LIBRARY_TYPE STATIC
     SOURCES
         c4/test.hpp
         c4/libtest/test.cpp
