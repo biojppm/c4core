@@ -28,6 +28,7 @@
 #   define C4_TIME_TYPE double
 #endif
 
+#include "c4/export.hpp"
 #include "c4/preprocessor.hpp"
 #include "c4/platform.hpp"
 #include "c4/cpu.hpp"
