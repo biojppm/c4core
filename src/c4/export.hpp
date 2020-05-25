@@ -2,10 +2,14 @@
 #define C4_EXPORT_HPP_
 
 #ifdef _WIN32
-    #ifdef C4CORE_EXPORTS
-        #define C4CORE_EXPORT __declspec(dllexport)
+    #ifdef C4CORE_SHARED
+        #ifdef C4CORE_EXPORTS
+            #define C4CORE_EXPORT __declspec(dllexport)
+        #else
+            #define C4CORE_EXPORT __declspec(dllimport)
+        #endif
     #else
-        #define C4CORE_EXPORT __declspec(dllimport)
+        #define C4CORE_EXPORT
     #endif
 #else
     #define C4CORE_EXPORT
