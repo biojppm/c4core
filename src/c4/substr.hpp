@@ -14,12 +14,12 @@ template<class C> struct basic_substring;
 
 /** ConstantSUBSTRing: a non-owning read-only string view
  * @see to_csubstr() */
-using csubstr = basic_substring<const char>;
+using csubstr = C4CORE_EXPORT basic_substring<const char>;
 
 /** SUBSTRing: a non-owning read-write string view
  * @see to_substr()
  * @see to_csubstr() */
-using substr = basic_substring<char>;
+using substr = C4CORE_EXPORT basic_substring<char>;
 
 
 //-----------------------------------------------------------------------------
@@ -63,7 +63,7 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
  * @see to_csubstr()
  */
 template<class C>
-struct basic_substring
+struct C4CORE_EXPORT basic_substring
 {
 public:
 

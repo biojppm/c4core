@@ -37,6 +37,7 @@ c4_add_library(c4core
         c4/enum.hpp
         c4/error.cpp
         c4/error.hpp
+        c4/export.hpp
         c4/format.hpp
         c4/format.cpp
         c4/hash.hpp

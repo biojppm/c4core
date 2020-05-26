@@ -1,6 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include "c4/memory_resource.hpp"
 #include "c4/memory_util.hpp"
 
@@ -13,8 +10,6 @@
 #include <memory>
 
 C4_BEGIN_NAMESPACE(c4)
-
-thread_local AllocationCounts MemoryResourceCounts::s_counts = AllocationCounts();
 
 C4_BEGIN_NAMESPACE(detail)
 
