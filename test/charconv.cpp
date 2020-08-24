@@ -613,7 +613,7 @@ TEST(atou, bin)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-void test_ftoa(substr buf, float f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa)
+void test_ftoa(substr buf, float f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
 {
     size_t ret;
 
@@ -631,10 +631,11 @@ void test_ftoa(substr buf, float f, int precision, const char *scient, const cha
 
     memset(buf.str, 0, ret);
     ret = ftoa(buf, f, precision, FTOA_HEXA);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(hexa)) << "num=" << f;
+    if(!hexa_alternative) hexa_alternative = hexa;
+    EXPECT_TRUE(buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative)) << "num=" << f;
 }
 
-void test_dtoa(substr buf, double f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa)
+void test_dtoa(substr buf, double f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
 {
     size_t ret;
 
@@ -652,7 +653,8 @@ void test_dtoa(substr buf, double f, int precision, const char *scient, const ch
 
     memset(buf.str, 0, ret);
     ret = dtoa(buf, f, precision, FTOA_HEXA);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(hexa)) << "num=" << f;
+    if(!hexa_alternative) hexa_alternative = hexa;
+    EXPECT_TRUE(buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative)) << "num=" << f;
 }
 
 
@@ -719,8 +721,8 @@ TEST(ftoa, basic)
     {
         SCOPED_TRACE("precision 3");
         #ifdef _MSC_VER // there are differences in the hexa formatting
-        test_ftoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.032p+0");
-        test_dtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.032p+0");
+        test_ftoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
+        test_dtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
         #else
         test_ftoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0");
         test_dtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0");
