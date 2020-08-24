@@ -162,12 +162,14 @@ TEST(str2bm, scoped_bitmask)
 //-----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-template< class Enum >
+template<class Enum>
 const char* do_bm2str(Enum e, std::vector<char> *s, c4::EnumOffsetType which)
 {
     size_t len = c4::bm2str<Enum>(e, nullptr, 0, which);
+    C4_CHECK(len > 0);
     s->resize(len);
-    c4::bm2str<Enum>(e, &((*s)[0]), s->size(), which);
+    C4_CHECK(s->data() != nullptr);
+    c4::bm2str<Enum>(e, s->data(), s->size(), which);
     return s->data();
 }
 
