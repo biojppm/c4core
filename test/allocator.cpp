@@ -32,6 +32,7 @@ void test_traits_compat_construct(typename Alloc::value_type const& val, Alloc &
     using value_type = typename Alloc::value_type;
 
     value_type *mem = a.allocate(1);
+    ASSERT_NE(mem, nullptr);
     atraits::construct(a, mem, val);
     EXPECT_EQ(*mem, val);
 

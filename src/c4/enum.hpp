@@ -149,7 +149,9 @@ size_t eoffs(EnumOffsetType which)
 #   pragma clang diagnostic push
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wnull-dereference"
+#   if __GNUC__ >= 6
+#       pragma GCC diagnostic ignored "-Wnull-dereference"
+#   endif
 #endif
 
 template<class Enum>

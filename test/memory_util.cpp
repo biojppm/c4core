@@ -227,7 +227,9 @@ template<size_t F, size_t S> void check_tp()
     #   pragma clang diagnostic push
     #elif defined(__GNUC__)
     #   pragma GCC diagnostic push
-    #   pragma GCC diagnostic ignored "-Wduplicated-branches"
+    #   if __GNUC__ >= 7
+    #       pragma GCC diagnostic ignored "-Wduplicated-branches"
+    #   endif
     #endif
     size_t expected;
     if(F != 0 && S != 0) expected = F+S;

@@ -157,7 +157,9 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wconversion"
-#   pragma GCC diagnostic ignored "-Wnull-dereference"
+#   if __GNUC__ >= 6
+#       pragma GCC diagnostic ignored "-Wnull-dereference"
+#   endif
 #endif
 
 // Helper macros, undefined below
