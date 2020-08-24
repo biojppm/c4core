@@ -87,6 +87,17 @@ TEST(mem_repeatT, basic)
 
 //-----------------------------------------------------------------------------
 
+TEST(is_aligned, basic)
+{
+    EXPECT_FALSE(is_aligned<int>((int*)0x1));
+    EXPECT_FALSE(is_aligned<int>((int*)0x2));
+    EXPECT_FALSE(is_aligned<int>((int*)0x3));
+    EXPECT_TRUE(is_aligned<int>((int*)0x3));
+}
+
+
+//-----------------------------------------------------------------------------
+
 TEST(lsb, basic)
 {
     EXPECT_EQ(lsb( 0), 0);

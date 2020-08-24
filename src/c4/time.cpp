@@ -11,6 +11,13 @@
 #   include <chrono>
 #endif
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
 C4_BEGIN_NAMESPACE(c4)
 
 //-----------------------------------------------------------------------------
@@ -45,5 +52,11 @@ time_type currtime()
     return usecs;
 #endif
 }
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 C4_END_NAMESPACE(c4)

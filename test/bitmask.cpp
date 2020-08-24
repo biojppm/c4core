@@ -225,7 +225,7 @@ TEST(bm2str, scoped_bitmask)
 //-----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-template< typename Enum >
+template<typename Enum>
 void test_bm2str()
 {
     using namespace c4;
@@ -233,16 +233,16 @@ void test_bm2str()
     int combination_depth = 4;
     auto syms = esyms<Enum>();
 
-    std::vector< int > indices;
+    std::vector<int> indices;
     std::string str;
-    std::vector< char > ws;
+    std::vector<char> ws;
     I val = 0, res;
     size_t len;
 
     for(int k = 1; k <= combination_depth; ++k)
     {
         indices.clear();
-        indices.resize(k);
+        indices.resize(static_cast<size_t>(k));
         while(1)
         {
             str.clear();
@@ -251,7 +251,7 @@ void test_bm2str()
             {
                 if(!str.empty()) str += '|';
                 str += syms[i].name;
-                val |= static_cast< I >(syms[i].value);
+                val |= static_cast<I>(syms[i].value);
                 //printf("%d", i);
             }
             //len = bm2str<Enum>(val); // needed length
@@ -274,7 +274,7 @@ void test_bm2str()
             EXPECT_EQ(res, val);
 
             bool carry = true;
-            for(int i = k-1; i >= 0; --i)
+            for(size_t i = static_cast<size_t>(k-1); i != size_t(-1); --i)
             {
                 if(indices[i] + 1 < syms.size())
                 {

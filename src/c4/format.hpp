@@ -69,7 +69,7 @@ struct integral
 {
     T val;
     T radix;
-    integral(T val_, uint8_t radix_=10) : val(val_), radix(radix_) {}
+    integral(T val_, T radix_=10) : val(val_), radix(radix_) {}
 };
 
 

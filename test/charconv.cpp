@@ -214,9 +214,9 @@ TEST(itoa, prefixed_number_on_empty_buffer)
 
 TEST(utoa, prefixed_number_on_empty_buffer)
 {
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  0, "0b0"    ,  "0o0",  "0",  "0x0");
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 10, "0b1010" , "0o12", "10",  "0xa");
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 20, "0b10100", "0o24", "20", "0x14");
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  0u, "0b0"    ,  "0o0",  "0",  "0x0");
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 10u, "0b1010" , "0o12", "10",  "0xa");
+    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 20u, "0b10100", "0o24", "20", "0x14");
 }
 
 
@@ -656,7 +656,7 @@ TEST(ftoa, basic)
     C4_ASSERT(buf.len == sizeof(bufc)-1);
 
     float f = 1.1234123f;
-    double d = 1.1234123f;
+    double d = 1.1234123;
 
     {
         SCOPED_TRACE("precision 0");

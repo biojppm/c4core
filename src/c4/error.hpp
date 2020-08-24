@@ -322,7 +322,7 @@ struct srcloc
     }
 
 
-//-----------------------------------------------------------------------------
+ //-----------------------------------------------------------------------------
 // Common error conditions
 #define C4_NOT_IMPLEMENTED() C4_ERROR("NOT IMPLEMENTED")
 #define C4_NOT_IMPLEMENTED_MSG(/*msg, */...) C4_ERROR("NOT IMPLEMENTED: " ## __VA_ARGS__)

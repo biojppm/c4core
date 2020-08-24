@@ -1,6 +1,16 @@
 #include "c4/test.hpp"
 #include "c4/blob.hpp"
 
+
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wcast-align"
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+
+
 namespace c4 {
 
 template<class T>
@@ -20,5 +30,12 @@ TEST(blob, basic)
 {
     test_blob<int>();
 }
+
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 } // namespace c4

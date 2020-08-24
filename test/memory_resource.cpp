@@ -69,16 +69,16 @@ TEST(aalloc_impl, error_out_of_mem)
 
 void do_test_realloc(arealloc_pfn fn)
 {
-#define _set(dim) for(uint8_t i = 0; i < dim; ++i) { mem[i] = size_t(i); }
+#define _set(dim) for(uint8_t i = 0; i < dim; ++i) { mem[i] = static_cast<char>(i); }
 #define _check(dim) for(uint8_t i = 0; i < dim; ++i) { EXPECT_EQ(mem[i], i); }
 
     char *mem = (char*) aalloc(16, alignof(max_align_t));
-    _set(16);
-    _check(16);
+    _set(16u);
+    _check(16u);
     mem = (char*) fn(mem, 16, 20, alignof(max_align_t));
-    _check(16);
+    _check(16u);
     mem = (char*) fn(mem, 8, 20, alignof(max_align_t));
-    _check(8);
+    _check(8u);
     afree(mem);
 
 #undef _set
@@ -213,10 +213,10 @@ TEST(ScopedMemoryResourceCounts, counts)
         auto checker = AllocationCountsChecker();
         auto *mr = &checker.mr;
 
-        for(size_t sz : {16, 32, 64, 128})
+        for(size_t sz : {16u, 32u, 64u, 128u})
         {
             void *mem = mr->allocate(sz);
-            checker.check_all_delta(1, sz, sz);
+            checker.check_all_delta(1, static_cast<ssize_t>(sz), static_cast<ssize_t>(sz));
             mr->deallocate(mem, sz);
             checker.reset();
         }
@@ -233,7 +233,7 @@ TEST(ScopedMemoryResourceCounts, counts)
         for(auto& m : mem)
         {
             m.first = mr->allocate(m.second);
-            checker.check_curr_delta(1, m.second);
+            checker.check_curr_delta(1, static_cast<ssize_t>(m.second));
             checker.reset();
         }
         checker.check_curr(4, 240);

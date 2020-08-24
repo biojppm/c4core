@@ -43,9 +43,14 @@
 #elif defined(__clang__)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#   pragma clang diagnostic ignored "-Wformat-nonliteral"
+#   pragma clang diagnostic ignored "-Wdouble-promotion" // implicit conversion increases floating-point precision
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#   pragma GCC diagnostic ignored "-Wdouble-promotion" // implicit conversion increases floating-point precision
 #endif
+
 
 namespace c4 {
 
@@ -436,7 +441,7 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_int_span();
     if(trimmed.len == 0) return csubstr::npos;
-    if(atoi(trimmed, v)) return trimmed.end() - str.begin();
+    if(atoi(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
@@ -507,7 +512,7 @@ inline size_t atou_first(csubstr str, T *v)
 {
     csubstr trimmed = str.first_uint_span();
     if(trimmed.len == 0) return csubstr::npos;
-    if(atou(trimmed, v)) return trimmed.end() - str.begin();
+    if(atou(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
@@ -865,7 +870,7 @@ inline size_t atof_first(csubstr str, float * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();
     if(trimmed.len == 0) return csubstr::npos;
-    if(atof(trimmed, v)) return trimmed.end() - str.begin();
+    if(atof(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
@@ -879,7 +884,7 @@ inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();
     if(trimmed.len == 0) return csubstr::npos;
-    if(atod(trimmed, v)) return trimmed.end() - str.begin();
+    if(atod(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
@@ -947,7 +952,6 @@ inline size_t to_chars(substr buf, ty v)                                \
 }
 
 #endif
-
 
 /** this macro defines to_chars()/from_chars() pairs for intrinsic types. */ \
 #define _C4_DEFINE_TO_FROM_CHARS(ty, pri_fmt, scn_fmt)                  \
@@ -1119,7 +1123,7 @@ inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v)
     csubstr trimmed = buf.first_non_empty_span();
     if(trimmed.len == 0) return csubstr::npos;
     *v = trimmed;
-    return trimmed.end() - buf.begin();
+    return static_cast<size_t>(trimmed.end() - buf.begin());
 }
 
 
@@ -1159,7 +1163,7 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v)
     size_t len = trimmed.len > v->len ? v->len : trimmed.len;
     memcpy(v->str, trimmed.str, len);
     if(C4_UNLIKELY(trimmed.len > v->len)) return csubstr::npos;
-    return trimmed.end() - buf.begin();
+    return static_cast<size_t>(trimmed.end() - buf.begin());
 }
 
 

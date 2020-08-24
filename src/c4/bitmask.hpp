@@ -229,7 +229,8 @@ typename std::underlying_type<Enum>::type str2bm(const char *str, size_t sz)
         else if(c == '|' || c == '\0')
         {
             C4_ASSERT(num != alnum);
-            val |= detail::str2bm_read_one<Enum>(f, pc-f, alnum);
+            C4_ASSERT(pc >= f);
+            val |= detail::str2bm_read_one<Enum>(f, static_cast<size_t>(pc-f), alnum);
             started = num = alnum = false;
             if(c == '\0')
             {
@@ -245,7 +246,8 @@ typename std::underlying_type<Enum>::type str2bm(const char *str, size_t sz)
     if(f)
     {
         C4_ASSERT(num != alnum);
-        val |= detail::str2bm_read_one<Enum>(f, pc-f, alnum);
+        C4_ASSERT(pc >= f);
+        val |= detail::str2bm_read_one<Enum>(f, static_cast<size_t>(pc-f), alnum);
     }
 
     return val;
