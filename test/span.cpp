@@ -92,8 +92,8 @@ void test_fromArray()
     T arr2[20];
 
     T a = 0;
-    for(auto &v : arr1) { v = a; a += T(1); }
-    for(auto &v : arr2) { v = a; a += T(1); }
+    for(auto &v : arr1) { v = a; ++a; }
+    for(auto &v : arr2) { v = a; ++a; }
 
     {
         SpanClass s(arr1);

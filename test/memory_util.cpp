@@ -216,18 +216,30 @@ TEST(contiguous_mask11, basic)
 
 //-----------------------------------------------------------------------------
 
+
 template<size_t N> struct sz    { char buf[N]; };
 template<        > struct sz<0> {              };
-template<size_t F, size_t S > void check_tp()
+template<size_t F, size_t S> void check_tp()
 {
+    #if defined(__clang__)
+    #   pragma clang diagnostic push
+    #elif defined(__GNUC__)
+    #   pragma GCC diagnostic push
+    #   pragma GCC diagnostic ignored "-Wduplicated-branches"
+    #endif
     size_t expected;
-    if(F == 0 && S == 0) expected = 1;
-    else if(F == 0) expected = S;
-    else if(S == 0) expected = F;
-    else expected = F+S;
-
+    if(F != 0 && S != 0) expected = F+S;
+    else if(F == 0 && S != 0) expected = S;
+    else if(F != 0 && S == 0) expected = F;   // -Wduplicated-branches: false positive here
+    else /* F == 0 && S == 0)*/expected = 1;
+    #if defined(__clang__)
+    #   pragma clang diagnostic pop
+    #elif defined(__GNUC__)
+    #   pragma GCC diagnostic pop
+    #endif
     EXPECT_EQ(sizeof(tight_pair<sz<F>, sz<S>>), expected) << "F=" << F << "  S=" << S;
 }
+
 
 TEST(tight_pair, basic)
 {

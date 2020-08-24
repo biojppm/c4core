@@ -28,7 +28,7 @@
 #   pragma clang diagnostic ignored "-Wformat-nonliteral"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
-#   pragma clang diagnostic ignored "-Wformat-nonliteral"
+#   pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
 
 

@@ -8,6 +8,15 @@
 #include "c4/config.hpp"
 #include "c4/error.hpp"
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wtype-limits" // disable warnings on size_t>=0, used heavily in assertions below. These are a preparation step for providing the index type as a template parameter.
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
+
 C4_BEGIN_NAMESPACE(c4)
 
 template<class C> struct basic_substring;
@@ -1591,5 +1600,12 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
 #endif
 
 C4_END_NAMESPACE(c4)
+
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 #endif /* _C4_SUBSTR_HPP_ */

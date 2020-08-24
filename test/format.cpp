@@ -5,6 +5,13 @@
 
 #include "c4/libtest/supprwarn_push.hpp"
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
 namespace c4 {
 
 
@@ -542,5 +549,11 @@ TEST(fmt, raw_int)
 }
 
 } // namespace c4
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 #include "c4/libtest/supprwarn_pop.hpp"

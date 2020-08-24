@@ -386,12 +386,12 @@ struct AllocationCounts
         void add(size_t sz)
         {
             ++allocs;
-            size += sz;
+            size += static_cast<ssize_t>(sz);
         }
         void rem(size_t sz)
         {
             --allocs;
-            size -= sz;
+            size -= static_cast<ssize_t>(sz);
         }
         Item max(Item const& that) const
         {

@@ -93,7 +93,7 @@ size_t base64_encode(substr buf, cblob data)
     #    pragma GCC diagnostic ignored "-Wstrict-aliasing" // error: dereferencing type-punned pointer will break strict-aliasing rules
     #endif
 
-    #define c4append_(c) { if(pos < buf.len) { buf.str[pos] = static_cast<char>(c); } ++pos; }
+    #define c4append_(c) { if(pos < buf.len) { buf.str[pos] = (c); } ++pos; }
     #define c4append_idx_(char_idx) \
     {\
          C4_XASSERT((char_idx) < sizeof(detail::base64_sextet_to_char_));\

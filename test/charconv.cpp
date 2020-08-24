@@ -5,6 +5,13 @@
 #include "c4/format.hpp"
 #include "c4/libtest/supprwarn_push.hpp"
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
 namespace c4 {
 
 TEST(itoa, int8_t)
@@ -1034,5 +1041,11 @@ TEST(to_chars, roundtrip_substr)
 }
 
 } // namespace c4
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 #include "c4/libtest/supprwarn_pop.hpp"

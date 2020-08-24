@@ -49,6 +49,7 @@
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #   pragma GCC diagnostic ignored "-Wdouble-promotion" // implicit conversion increases floating-point precision
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
 
 
@@ -102,7 +103,7 @@ namespace c4 {
 
 
 /** @ingroup lowlevel_tofrom_chars */
-typedef enum {
+typedef enum : uint8_t {
     /** print the real number in floating point format (like %f) */
     FTOA_FLOAT = 0,
     /** print the real number in scientific format (like %e) */
@@ -110,7 +111,8 @@ typedef enum {
     /** print the real number in flexible format (like %g) */
     FTOA_FLEX = 2,
     /** print the real number in hexadecimal format (like %a) */
-    FTOA_HEXA = 3
+    FTOA_HEXA = 3,
+    _FTOA_COUNT
 } RealFormat_e;
 
 
@@ -122,7 +124,8 @@ inline C4_CONSTEXPR14 char to_c_fmt(RealFormat_e f)
         'g',  // FTOA_FLEX
         'a',  // FTOA_HEXA
     };
-    C4_ASSERT(f >= 0 && f < (typename std::underlying_type<RealFormat_e>::type)sizeof(fmt));
+    C4_ASSERT(sizeof(fmt) == _FTOA_COUNT);
+    C4_ASSERT(f < _FTOA_COUNT);
     return fmt[f];
 }
 
@@ -136,7 +139,8 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
         std::chars_format::general,     // FTOA_FLEX
         std::chars_format::hex,         // FTOA_HEXA
     };
-    C4_ASSERT(f >= 0 && f < (typename std::underlying_type<RealFormat_e>::type)sizeof(fmt));
+    C4_ASSERT(sizeof(fmt) == _FTOA_COUNT);
+    C4_ASSERT(f < _FTOA_COUNT);
     return fmt[f];
 }
 #endif // C4CORE_HAVE_STD_TOCHARS
@@ -148,8 +152,17 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
 
 // Helper macros, undefined below
 
-#define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = (c); } else { ++pos; } }
+#define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
 #define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
+
+#ifdef _MSC_VER
+#   pragma warning(push)
+#elif defined(__clang__)
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wconversion"
+#endif
 
 
 /** convert an integral signed decimal to a string.
@@ -296,9 +309,9 @@ size_t utoa(substr buf, T v, T radix)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
+ 
 namespace detail {
-
+   
 // TODO truncate to the length of max I
 
 template<class I>
@@ -309,7 +322,7 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         if(C4_UNLIKELY(c < '0' || c > '9')) return false;
-        *v = (*v) * I(10) + (I(c) - I('0'));
+        *v =  (*v) * I(10) + (I(c) - I('0'));
     }
     return true;
 }
@@ -322,7 +335,7 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         I cv;
-        if(c >= '0' && c <= '9') cv = I(c) - I('0');
+        if(c >= '0' && c <= '9') cv = static_cast<I>(I(c) - I('0'));
         else if(c >= 'a' && c <= 'f') cv = I(10) + (I(c) - I('a'));
         else if(c >= 'A' && c <= 'F') cv = I(10) + (I(c) - I('A'));
         else return false;
@@ -444,6 +457,14 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
     if(atoi(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#elif defined(__clang__)
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 
 //-----------------------------------------------------------------------------

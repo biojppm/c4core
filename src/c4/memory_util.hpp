@@ -39,7 +39,7 @@ void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num
 template<class T>
 bool is_aligned(T *ptr, size_t alignment=alignof(T))
 {
-    return (reinterpret_cast<uintptr_t>(ptr) & static_cast<size_t>(alignment - 1)) == 0u;
+    return (reinterpret_cast<uintptr_t>(ptr) & (alignment - 1)) == 0u;
 }
 
 
