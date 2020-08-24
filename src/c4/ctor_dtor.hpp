@@ -46,6 +46,13 @@ construct_n(U* ptr, I n) noexcept
     }
 }
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
+
 template<class U, class ...Args>
 inline void construct(U* ptr, Args&&... args)
 {
@@ -59,6 +66,13 @@ inline void construct_n(U* ptr, I n, Args&&... args)
         new ((void*)(ptr + i)) U(args...);
     }
 }
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
+
 
 //-----------------------------------------------------------------------------
 // copy-construct

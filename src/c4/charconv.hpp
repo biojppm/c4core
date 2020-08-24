@@ -150,11 +150,6 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-// Helper macros, undefined below
-
-#define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
-#define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
-
 #ifdef _MSC_VER
 #   pragma warning(push)
 #elif defined(__clang__)
@@ -162,8 +157,13 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wconversion"
+#   pragma GCC diagnostic ignored "-Wnull-dereference"
 #endif
 
+// Helper macros, undefined below
+
+#define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
+#define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
 
 /** convert an integral signed decimal to a string.
  * The resulting string is NOT zero-terminated.
@@ -389,12 +389,13 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(str.str != nullptr);
     C4_ASSERT(str.len > 0);
     C4_ASSERT(str == str.first_int_span());
 
     T sign = 1;
     size_t start = 0;
-    if(str[0] == '-')
+    if(str.str[0] == '-')
     {
         ++start;
         sign = -1;
@@ -458,14 +459,6 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
     return csubstr::npos;
 }
 
-#ifdef _MSC_VER
-#   pragma warning(pop)
-#elif defined(__clang__)
-#   pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#   pragma GCC diagnostic pop
-#endif
-
 
 //-----------------------------------------------------------------------------
 
@@ -481,6 +474,7 @@ template<class T>
 bool atou(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(str.str != nullptr);
     C4_ASSERT(str.len > 0);
     C4_ASSERT_MSG(str.str[0] != '-', "must be positive");
     C4_ASSERT(str == str.first_uint_span());
@@ -536,6 +530,15 @@ inline size_t atou_first(csubstr str, T *v)
     if(atou(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
+
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#elif defined(__clang__)
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 
 //-----------------------------------------------------------------------------

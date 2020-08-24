@@ -40,6 +40,13 @@ TEST(eoffs, scoped_bitmask)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
+
 template<class Enum>
 void test_esyms()
 {
@@ -48,12 +55,21 @@ void test_esyms()
     EXPECT_FALSE(ss.empty());
     for(auto s : ss)
     {
+        ASSERT_NE(ss.find(s.name), nullptr);
+        ASSERT_NE(ss.find(s.value), nullptr);
         EXPECT_STREQ(ss.find(s.name)->name, s.name);
         EXPECT_STREQ(ss.find(s.value)->name, s.name);
         EXPECT_EQ(ss.find(s.name)->value, s.value);
         EXPECT_EQ(ss.find(s.value)->value, s.value);
     }
 }
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
+
 
 TEST(esyms, simple_enum)
 {

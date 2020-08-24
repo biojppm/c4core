@@ -11,7 +11,7 @@
 namespace c4 {
 
 //! taken from http://stackoverflow.com/questions/15586163/c11-type-trait-to-differentiate-between-enum-class-and-regular-enum
-template< typename Enum >
+template<typename Enum>
 using is_scoped_enum = std::integral_constant<bool, std::is_enum<Enum>::value && !std::is_convertible<Enum, int>::value>;
 
 
@@ -33,7 +33,7 @@ typedef enum {
 /** A simple (proxy) container for the value-name pairs of an enum type.
  * Uses linear search for finds; this could be improved for time-critical
  * code. */
-template< class Enum >
+template<class Enum>
 class EnumSymbols
 {
 public:
@@ -53,7 +53,7 @@ public:
 
 public:
 
-    template< size_t N >
+    template<size_t N>
     EnumSymbols(Sym const (&p)[N]) : m_symbols(p), m_num(N) {}
 
     size_t size() const { return m_num; }
@@ -85,7 +85,7 @@ private:
  * @warning SPECIALIZE! This needs to be specialized for each enum
  * type. Failure to provide a specialization will cause a linker
  * error. */
-template< class Enum >
+template<class Enum>
 EnumSymbols<Enum> const esyms();
 
 
@@ -99,7 +99,7 @@ EnumSymbols<Enum> const esyms();
  * @warning Needs to be specialized for each enum class type that
  * wants to use this. When no specialization is given, will return
  * 0. */
-template< class Enum >
+template<class Enum>
 size_t eoffs_cls()
 {
     return 0;
@@ -114,14 +114,14 @@ size_t eoffs_cls()
  * @warning Needs to be specialized for each enum class type that
  * wants to use this. When no specialization is given, will return
  * 0. */
-template< class Enum >
+template<class Enum>
 size_t eoffs_pfx()
 {
     return 0;
 }
 
 
-template< class Enum >
+template<class Enum>
 size_t eoffs(EnumOffsetType which)
 {
     switch(which)
@@ -144,34 +144,50 @@ size_t eoffs(EnumOffsetType which)
 
 //-----------------------------------------------------------------------------
 /** get the enum value corresponding to a c-string */
-template< class Enum >
+
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
+
+template<class Enum>
 Enum str2e(const char* str)
 {
     auto pairs = esyms<Enum>();
     auto *p = pairs.get(str);
+    C4_CHECK_MSG(p != nullptr, "no valid enum pair name for '%s'", str);
     return p->value;
 }
 
 /** get the c-string corresponding to an enum value */
-template< class Enum >
+template<class Enum>
 const char* e2str(Enum e)
 {
     auto es = esyms<Enum>();
     auto *p = es.get(e);
+    C4_CHECK_MSG(p != nullptr, "no valid enum pair name");
     return p->name;
 }
 
 /** like e2str(), but add an offset. */
-template< class Enum >
+template<class Enum>
 const char* e2stroffs(Enum e, EnumOffsetType ot=EOFFS_PFX)
 {
     const char *s = e2str<Enum>(e) + eoffs<Enum>(ot);
     return s;
 }
 
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
+
 //-----------------------------------------------------------------------------
 /** Find a symbol by value. Returns nullptr when none is found */
-template< class Enum >
+template<class Enum>
 typename EnumSymbols<Enum>::Sym const* EnumSymbols<Enum>::find(Enum v) const
 {
     for(Sym const* p = this->m_symbols, *e = p+this->m_num; p < e; ++p)
@@ -181,7 +197,7 @@ typename EnumSymbols<Enum>::Sym const* EnumSymbols<Enum>::find(Enum v) const
 }
 
 /** Find a symbol by name. Returns nullptr when none is found */
-template< class Enum >
+template<class Enum>
 typename EnumSymbols<Enum>::Sym const* EnumSymbols<Enum>::find(const char *s) const
 {
     for(Sym const* p = this->m_symbols, *e = p+this->m_num; p < e; ++p)
@@ -191,7 +207,7 @@ typename EnumSymbols<Enum>::Sym const* EnumSymbols<Enum>::find(const char *s) co
 }
 
 /** Find a symbol by name. Returns nullptr when none is found */
-template< class Enum >
+template<class Enum>
 typename EnumSymbols<Enum>::Sym const* EnumSymbols<Enum>::find(const char *s, size_t len) const
 {
     for(Sym const* p = this->m_symbols, *e = p+this->m_num; p < e; ++p)
@@ -201,7 +217,7 @@ typename EnumSymbols<Enum>::Sym const* EnumSymbols<Enum>::find(const char *s, si
 }
 
 //-----------------------------------------------------------------------------
-template< class Enum >
+template<class Enum>
 bool EnumSymbols<Enum>::Sym::cmp(const char *s) const
 {
     if(strcmp(name, s) == 0)
@@ -218,14 +234,14 @@ bool EnumSymbols<Enum>::Sym::cmp(const char *s) const
     return false;
 }
 
-template< class Enum >
+template<class Enum>
 bool EnumSymbols<Enum>::Sym::cmp(const char *s, size_t len) const
 {
     if(strncmp(name, s, len) == 0)
         return true;
 
     size_t nlen = 0;
-    for(int i = 1; i < _EOFFS_LAST; ++i)
+    for(int i = 1; i <_EOFFS_LAST; ++i)
     {
         auto o = eoffs<Enum>((EnumOffsetType)i);
         if(o > 0)
@@ -246,7 +262,7 @@ bool EnumSymbols<Enum>::Sym::cmp(const char *s, size_t len) const
 }
 
 //-----------------------------------------------------------------------------
-template< class Enum >
+template<class Enum>
 const char* EnumSymbols<Enum>::Sym::name_offs(EnumOffsetType t) const
 {
     C4_ASSERT(eoffs<Enum>(t) < strlen(name));
