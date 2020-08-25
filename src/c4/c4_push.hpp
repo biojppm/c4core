@@ -28,8 +28,10 @@
 #   pragma warning(disable : 4503) // decorated name length exceeded, name was truncated
 #   pragma warning(disable : 4702) // unreachable code
 #   pragma warning(disable : 4714) // function marked as __forceinline not inlined
-#   pragma warning(disable : 4800) // forcing value to bool 'true' or 'false' (performance warning)
 #   pragma warning(disable : 4996) // 'strncpy', fopen, etc: This function or variable may be unsafe
+#   if C4_MSVC_VERSION >= C4_MSVC_VERSION_2019
+#       pragma warning(disable : 4800) // forcing value to bool 'true' or 'false' (performance warning)
+#   endif
 #endif
 
 #endif /* _C4_PUSH_HPP_ */

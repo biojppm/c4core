@@ -26,6 +26,14 @@
 #define BENCHMARK_TEMPLATE_CPP17(...) void shutup_extra_semicolon()
 #endif
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wdouble-promotion"
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wdouble-promotion"
+#endif
+
 
 namespace bm = benchmark;
 
@@ -39,8 +47,8 @@ namespace bm = benchmark;
 template<class T>
 void report(bm::State &st)
 {
-    st.SetBytesProcessed(st.iterations() * sizeof(T));
-    st.SetItemsProcessed(st.iterations());
+    st.SetBytesProcessed(static_cast<int64_t>(st.iterations() * sizeof(T)));
+    st.SetItemsProcessed(static_cast<int64_t>(st.iterations()));
 }
 
 /** a character buffer, easily convertable to c4::substr */
@@ -875,5 +883,11 @@ int main(int argc, char *argv[])
     bm::RunSpecifiedBenchmarks();
     return 0;
 }
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 #include <c4/c4_pop.hpp>

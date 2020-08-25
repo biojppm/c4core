@@ -23,6 +23,15 @@
 #   include <exception>
 #endif
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wformat-nonliteral"
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
+
+
 //-----------------------------------------------------------------------------
 C4_BEGIN_NAMESPACE(c4)
 
@@ -62,7 +71,7 @@ void handle_error(srcloc where, const char *fmt, ...)
         va_start(args, fmt);
         int ilen = vsnprintf(buf, sizeof(buf), fmt, args); // ss.vprintf(fmt, args);
         va_end(args);
-        msglen = ilen < (int)sizeof(buf) ? ilen : sizeof(buf)-1;
+        msglen = ilen >= 0 && ilen < (int)sizeof(buf) ? static_cast<size_t>(ilen) : sizeof(buf)-1;
     }
 
     if(s_error_flags & ON_ERROR_LOG)
@@ -171,3 +180,10 @@ bool is_debugger_attached()
 } // is_debugger_attached()
 
 C4_END_NAMESPACE(c4)
+
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif

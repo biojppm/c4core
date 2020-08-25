@@ -172,6 +172,15 @@ bm2str
 
 namespace detail {
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   if __GNUC__ >= 6
+#       pragma GCC diagnostic ignored "-Wnull-dereference"
+#   endif
+#endif
+
 template<class Enum>
 typename std::underlying_type<Enum>::type str2bm_read_one(const char *str, size_t sz, bool alnum)
 {
@@ -189,6 +198,11 @@ typename std::underlying_type<Enum>::type str2bm_read_one(const char *str, size_
     return tmp;
 }
 
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 } // namespace detail
 
 /** convert a string to a bitmask */
@@ -229,7 +243,8 @@ typename std::underlying_type<Enum>::type str2bm(const char *str, size_t sz)
         else if(c == '|' || c == '\0')
         {
             C4_ASSERT(num != alnum);
-            val |= detail::str2bm_read_one<Enum>(f, pc-f, alnum);
+            C4_ASSERT(pc >= f);
+            val |= detail::str2bm_read_one<Enum>(f, static_cast<size_t>(pc-f), alnum);
             started = num = alnum = false;
             if(c == '\0')
             {
@@ -245,7 +260,8 @@ typename std::underlying_type<Enum>::type str2bm(const char *str, size_t sz)
     if(f)
     {
         C4_ASSERT(num != alnum);
-        val |= detail::str2bm_read_one<Enum>(f, pc-f, alnum);
+        C4_ASSERT(pc >= f);
+        val |= detail::str2bm_read_one<Enum>(f, static_cast<size_t>(pc-f), alnum);
     }
 
     return val;

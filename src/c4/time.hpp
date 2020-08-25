@@ -3,6 +3,13 @@
 
 #include "c4/config.hpp"
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
 /** @def C4_TIME_TYPE the type of the value to hold time */
 
 C4_BEGIN_NAMESPACE(c4)
@@ -76,5 +83,10 @@ C4_ALWAYS_INLINE Time hours(time_type val) { return Time(val * time_type(3600.e6
 
 C4_END_NAMESPACE(c4)
 
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 #endif /* _C4_TIME_HPP_ */

@@ -8,6 +8,15 @@
 #include "c4/config.hpp"
 #include "c4/error.hpp"
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wtype-limits" // disable warnings on size_t>=0, used heavily in assertions below. These are a preparation step for providing the index type as a template parameter.
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
+
 C4_BEGIN_NAMESPACE(c4)
 
 template<class C> struct basic_substring;
@@ -113,7 +122,7 @@ public:
     template<size_t N>
     constexpr basic_substring(C (&s_)[N]) noexcept : str(s_), len(N-1) {}
     basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
-    basic_substring(C *beg_, C *end_) : str(beg_), len(end_ - beg_) { C4_ASSERT(end_ >= beg_); }
+    basic_substring(C *beg_, C *end_) : str(beg_), len(static_cast<size_t>(end_ - beg_)) { C4_ASSERT(end_ >= beg_); }
 
 	//basic_substring& operator= (C *s_) { this->assign(s_); return *this; }
 	template<size_t N>
@@ -315,7 +324,7 @@ public:
         auto e = end();
         if(ssb >= b && ssb <= e)
         {
-            return sub(0, ssb - b);
+            return sub(0, static_cast<size_t>(ssb - b));
         }
         else
         {
@@ -331,7 +340,7 @@ public:
         auto e = end();
         if(sse >= b && sse <= e)
         {
-            return sub(sse - b, e - sse);
+            return sub(static_cast<size_t>(sse - b), static_cast<size_t>(e - sse));
         }
         else
         {
@@ -1327,7 +1336,7 @@ public:
     C4_REQUIRE_RW(basic_substring) erase_range(size_t first, size_t last)
     {
         C4_ASSERT(first <= last);
-        return erase(first, last-first);
+        return erase(first, static_cast<size_t>(last-first));
     }
 
     /** erase a part of the string.
@@ -1337,7 +1346,7 @@ public:
     {
         C4_ASSERT(contains(sub));
         C4_ASSERT(sub.str >= str);
-        return erase(sub.str - str, sub.len);
+        return erase(static_cast<size_t>(sub.str - str), sub.len);
     }
 
 public:
@@ -1390,7 +1399,8 @@ public:
         C4_ASSERT((pos >= 0 && pos <= len) || pos == npos);
 #define _c4append(first, last)                                  \
         {                                                       \
-            auto num = (last) - (first);                        \
+            C4_ASSERT((last) >= (first));                       \
+            size_t num = static_cast<size_t>((last) - (first)); \
             if(sz + num <= dst.len)                             \
             {                                                   \
                 memcpy(dst.str + sz, first, num * sizeof(C));   \
@@ -1559,6 +1569,14 @@ template<typename C> inline bool operator>= (C const c, basic_substring<const C>
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wsign-conversion"
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 /** output the string to a stream */
 template<class OStream, class C>
 inline OStream& operator<< (OStream& os, basic_substring<C> s)
@@ -1575,6 +1593,19 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
 //    os->write(s.str, s.len);
 //}
 
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
+
 C4_END_NAMESPACE(c4)
+
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 #endif /* _C4_SUBSTR_HPP_ */

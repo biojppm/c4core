@@ -87,6 +87,19 @@ TEST(mem_repeatT, basic)
 
 //-----------------------------------------------------------------------------
 
+TEST(is_aligned, basic)
+{
+    EXPECT_TRUE(is_aligned<int>((int*)0x0));
+    EXPECT_FALSE(is_aligned<int>((int*)0x1));
+    EXPECT_FALSE(is_aligned<int>((int*)0x2));
+    EXPECT_FALSE(is_aligned<int>((int*)0x3));
+    EXPECT_FALSE(is_aligned<int>((int*)0x3));
+    EXPECT_TRUE(is_aligned<int>((int*)0x4));
+}
+
+
+//-----------------------------------------------------------------------------
+
 TEST(lsb, basic)
 {
     EXPECT_EQ(lsb( 0), 0);
@@ -205,18 +218,32 @@ TEST(contiguous_mask11, basic)
 
 //-----------------------------------------------------------------------------
 
+
 template<size_t N> struct sz    { char buf[N]; };
 template<        > struct sz<0> {              };
-template<size_t F, size_t S > void check_tp()
+template<size_t F, size_t S> void check_tp()
 {
+    #if defined(__clang__)
+    #   pragma clang diagnostic push
+    #elif defined(__GNUC__)
+    #   pragma GCC diagnostic push
+    #   if __GNUC__ >= 7
+    #       pragma GCC diagnostic ignored "-Wduplicated-branches"
+    #   endif
+    #endif
     size_t expected;
-    if(F == 0 && S == 0) expected = 1;
-    else if(F == 0) expected = S;
-    else if(S == 0) expected = F;
-    else expected = F+S;
-
+    if(F != 0 && S != 0) expected = F+S;
+    else if(F == 0 && S != 0) expected = S;
+    else if(F != 0 && S == 0) expected = F;   // -Wduplicated-branches: false positive here
+    else /* F == 0 && S == 0)*/expected = 1;
+    #if defined(__clang__)
+    #   pragma clang diagnostic pop
+    #elif defined(__GNUC__)
+    #   pragma GCC diagnostic pop
+    #endif
     EXPECT_EQ(sizeof(tight_pair<sz<F>, sz<S>>), expected) << "F=" << F << "  S=" << S;
 }
+
 
 TEST(tight_pair, basic)
 {

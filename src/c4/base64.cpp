@@ -92,6 +92,7 @@ size_t base64_encode(substr buf, cblob data)
     #    pragma GCC diagnostic push
     #    pragma GCC diagnostic ignored "-Wstrict-aliasing" // error: dereferencing type-punned pointer will break strict-aliasing rules
     #endif
+
     #define c4append_(c) { if(pos < buf.len) { buf.str[pos] = (c); } ++pos; }
     #define c4append_idx_(char_idx) \
     {\
@@ -134,6 +135,7 @@ size_t base64_encode(substr buf, cblob data)
 
     #undef c4append_
     #undef c4append_idx_
+
     #ifdef __clang__
     #    pragma clang diagnostic pop
     #elif defined(__GNUC__)
@@ -144,7 +146,7 @@ size_t base64_encode(substr buf, cblob data)
 
 size_t base64_decode(csubstr encoded, blob data)
 {
-    #define c4append_(c) { if(wpos < data.len) { data.buf[wpos] = (c); } ++wpos; }
+    #define c4append_(c) { if(wpos < data.len) { data.buf[wpos] = static_cast<c4::byte>(c); } ++wpos; }
     #define c4appendval_(c, shift)\
     {\
         C4_XASSERT(size_t(c) < sizeof(detail::base64_char_to_sextet_));\
@@ -155,6 +157,7 @@ size_t base64_decode(csubstr encoded, blob data)
     C4_CHECK(encoded.len % 4 == 0);
     size_t wpos = 0;
     const char *C4_RESTRICT d = encoded.str;
+    constexpr const uint32_t full_byte = 0xff;
     // process every quartet of input 6 bits --> triplet of output bytes
     for(size_t rpos = 0; rpos < encoded.len; rpos += 4, d += 4)
     {
@@ -168,9 +171,12 @@ size_t base64_decode(csubstr encoded, blob data)
         c4appendval_(d[2], 1);
         c4appendval_(d[1], 2);
         c4appendval_(d[0], 3);
-        c4append_((val >> (2 * 8)) & 0xff);
-        c4append_((val >> (1 * 8)) & 0xff);
-        c4append_((val           ) & 0xff);
+        static_assert(std::is_same<decltype(val), uint32_t>::value, "sdflkjsdflkjsdf");
+        static_assert(std::is_same<decltype(val >> 1), uint32_t>::value, "sdflkjsdflkjsdf");
+        static_assert(std::is_same<decltype((val >> 1) & full_byte), uint32_t>::value, "sdflkjsdflkjsdf");
+        c4append_((val >> (2 * 8)) & full_byte);
+        c4append_((val >> (1 * 8)) & full_byte);
+        c4append_((val           ) & full_byte);
     }
     // deal with the last quartet when it is padded
     if(d == encoded.str + encoded.len) return wpos;
@@ -181,7 +187,7 @@ size_t base64_decode(csubstr encoded, blob data)
         uint32_t val = 0;
         c4appendval_(d[1], 2);
         c4appendval_(d[0], 3);
-        c4append_((val >> (2 * 8)) & 0xff);
+        c4append_((val >> (2 * 8)) & full_byte);
     }
     else if(d[3] == '=') // 1 padding char
     {
@@ -190,8 +196,8 @@ size_t base64_decode(csubstr encoded, blob data)
         c4appendval_(d[2], 1);
         c4appendval_(d[1], 2);
         c4appendval_(d[0], 3);
-        c4append_((val >> (2 * 8)) & 0xff);
-        c4append_((val >> (1 * 8)) & 0xff);
+        c4append_((val >> (2 * 8)) & full_byte);
+        c4append_((val >> (1 * 8)) & full_byte);
     }
     return wpos;
     #undef c4append_

@@ -476,8 +476,10 @@ TEST(substr, ends_with)
 
 TEST(substr, first_of)
 {
-    EXPECT_EQ(csubstr("012345").first_of('a'), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").first_of("ab"), csubstr::npos);
+    size_t npos = csubstr::npos;
+
+    EXPECT_EQ(csubstr("012345").first_of('a'), npos);
+    EXPECT_EQ(csubstr("012345").first_of("ab"), npos);
 
     EXPECT_EQ(csubstr("012345").first_of('0'), 0u);
     EXPECT_EQ(csubstr("012345").first_of("0"), 0u);
@@ -505,15 +507,17 @@ TEST(substr, first_of)
     EXPECT_EQ(csubstr("012345").first_of("012345"), 0u);
     EXPECT_EQ(csubstr("012345").first_of("543210"), 0u);
 
-    EXPECT_EQ(csubstr("012345").first_of('0', 6u), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").first_of('5', 6u), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").first_of("012345", 6u), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").first_of('0', 6u), npos);
+    EXPECT_EQ(csubstr("012345").first_of('5', 6u), npos);
+    EXPECT_EQ(csubstr("012345").first_of("012345", 6u), npos);
 }
 
 TEST(substr, last_of)
 {
-    EXPECT_EQ(csubstr("012345").last_of('a'), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").last_of("ab"), csubstr::npos);
+    size_t npos = csubstr::npos;
+
+    EXPECT_EQ(csubstr("012345").last_of('a'), npos);
+    EXPECT_EQ(csubstr("012345").last_of("ab"), npos);
 
     EXPECT_EQ(csubstr("012345").last_of('0'), 0u);
     EXPECT_EQ(csubstr("012345").last_of("0"), 0u);
@@ -548,6 +552,8 @@ TEST(substr, last_of)
 
 TEST(substr, first_not_of)
 {
+    size_t npos = csubstr::npos;
+
     EXPECT_EQ(csubstr("012345").first_not_of('a'), 0u);
     EXPECT_EQ(csubstr("012345").first_not_of("ab"), 0u);
 
@@ -561,8 +567,8 @@ TEST(substr, first_not_of)
     EXPECT_EQ(csubstr("012345").first_not_of("3210"), 4u);
     EXPECT_EQ(csubstr("012345").first_not_of("01234"), 5u);
     EXPECT_EQ(csubstr("012345").first_not_of("43210"), 5u);
-    EXPECT_EQ(csubstr("012345").first_not_of("012345"), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").first_not_of("543210"), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").first_not_of("012345"), npos);
+    EXPECT_EQ(csubstr("012345").first_not_of("543210"), npos);
 
     EXPECT_EQ(csubstr("012345").first_not_of('5'), 0u);
     EXPECT_EQ(csubstr("012345").first_not_of("5"), 0u);
@@ -574,16 +580,18 @@ TEST(substr, first_not_of)
     EXPECT_EQ(csubstr("012345").first_not_of("5432"), 0u);
     EXPECT_EQ(csubstr("012345").first_not_of("12345"), 0u);
     EXPECT_EQ(csubstr("012345").first_not_of("54321"), 0u);
-    EXPECT_EQ(csubstr("012345").first_not_of("012345"), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").first_not_of("543210"), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").first_not_of("012345"), npos);
+    EXPECT_EQ(csubstr("012345").first_not_of("543210"), npos);
 
-    EXPECT_EQ(csubstr("").first_not_of('0', 0u), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").first_not_of('5', 6u), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").first_not_of("012345", 6u), csubstr::npos);
+    EXPECT_EQ(csubstr("").first_not_of('0', 0u), npos);
+    EXPECT_EQ(csubstr("012345").first_not_of('5', 6u), npos);
+    EXPECT_EQ(csubstr("012345").first_not_of("012345", 6u), npos);
 }
 
 TEST(substr, last_not_of)
 {
+    size_t npos = csubstr::npos;
+
     EXPECT_EQ(csubstr("012345").last_not_of('a'), 5u);
     EXPECT_EQ(csubstr("012345").last_not_of("ab"), 5u);
 
@@ -597,8 +605,8 @@ TEST(substr, last_not_of)
     EXPECT_EQ(csubstr("012345").last_not_of("5432"), 1u);
     EXPECT_EQ(csubstr("012345").last_not_of("12345"), 0u);
     EXPECT_EQ(csubstr("012345").last_not_of("54321"), 0u);
-    EXPECT_EQ(csubstr("012345").last_not_of("012345"), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").last_not_of("543210"), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").last_not_of("012345"), npos);
+    EXPECT_EQ(csubstr("012345").last_not_of("543210"), npos);
 
     EXPECT_EQ(csubstr("012345").last_not_of('0'), 5u);
     EXPECT_EQ(csubstr("012345").last_not_of("0"), 5u);
@@ -610,10 +618,10 @@ TEST(substr, last_not_of)
     EXPECT_EQ(csubstr("012345").last_not_of("3210"), 5u);
     EXPECT_EQ(csubstr("012345").last_not_of("01234"), 5u);
     EXPECT_EQ(csubstr("012345").last_not_of("43210"), 5u);
-    EXPECT_EQ(csubstr("012345").last_not_of("012345"), csubstr::npos);
-    EXPECT_EQ(csubstr("012345").last_not_of("543210"), csubstr::npos);
+    EXPECT_EQ(csubstr("012345").last_not_of("012345"), npos);
+    EXPECT_EQ(csubstr("012345").last_not_of("543210"), npos);
 
-    EXPECT_EQ(csubstr("").last_not_of('0', 0u), csubstr::npos);
+    EXPECT_EQ(csubstr("").last_not_of('0', 0u), npos);
     EXPECT_EQ(csubstr("012345").last_not_of('5', 6u), 4);
 }
 
@@ -2419,7 +2427,7 @@ TEST(substr, split)
             auto spl = n.split(':');
             auto beg = spl.begin();
             auto end = spl.end();
-            EXPECT_EQ(beg, end);
+            EXPECT_TRUE(beg == end);
         }
     }
 
@@ -2431,69 +2439,69 @@ TEST(substr, split)
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(end->size(), 0);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         auto it = beg;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "foo");
-        EXPECT_NE(it, end);
-        EXPECT_EQ(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it == beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         ++it;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "bar");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         ++it;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "baz");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         ++it;
         EXPECT_EQ(it->size(), 0);
-        EXPECT_EQ(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it == end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         it = beg;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "foo");
-        EXPECT_NE(it, end);
-        EXPECT_EQ(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it == beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         it++;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "bar");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         it++;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "baz");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         it++;
         EXPECT_EQ(it->size(), 0);
-        EXPECT_EQ(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it == end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
     }
 
     {
@@ -2504,86 +2512,86 @@ TEST(substr, split)
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(end->size(), 0);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         auto it = beg;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "foo");
-        EXPECT_NE(it, end);
-        EXPECT_EQ(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it == beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         ++it;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "bar");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         ++it;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "baz");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         ++it;
         EXPECT_EQ(it->size(), 0);
         EXPECT_EQ(*it, "");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         ++it;
         EXPECT_EQ(it->size(), 0);
-        EXPECT_EQ(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it == end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         //--------------------------
         it = beg;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "foo");
-        EXPECT_NE(it, end);
-        EXPECT_EQ(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it == beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         it++;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "bar");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         it++;
         EXPECT_EQ(it->size(), 3);
         EXPECT_EQ(*it, "baz");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         it++;
         EXPECT_EQ(it->size(), 0);
         EXPECT_EQ(*it, "");
-        EXPECT_NE(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it != end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
         it++;
         EXPECT_EQ(it->size(), 0);
-        EXPECT_EQ(it, end);
-        EXPECT_NE(it, beg);
+        EXPECT_TRUE(it == end);
+        EXPECT_TRUE(it != beg);
         EXPECT_EQ(beg->size(), 3);
         EXPECT_EQ(*beg, "foo");
-        EXPECT_NE(beg, end);
+        EXPECT_TRUE(beg != end);
     }
 
     {
@@ -2595,15 +2603,15 @@ TEST(substr, split)
         EXPECT_EQ(*s.begin(), "");
         // check that multiple calls to end() always yield the same result
         auto e = s.end();
-        EXPECT_EQ(s.end(), e);
-        EXPECT_EQ(s.end(), e);
+        EXPECT_TRUE(s.end() == e);
+        EXPECT_TRUE(s.end() == e);
         //
         auto it = s.begin();
         EXPECT_EQ(*it, "");
         EXPECT_EQ(it->empty(), true);
         EXPECT_EQ(it->size(), 0);
         ++it;
-        EXPECT_EQ(it, e);
+        EXPECT_TRUE(it == e);
     }
 
     {
@@ -2615,9 +2623,9 @@ TEST(substr, split)
         EXPECT_EQ(*s.begin(), "01");
         // check that multiple calls to end() always yield the same result
         auto e = s.end();
-        EXPECT_EQ(s.end(), e);
-        EXPECT_EQ(s.end(), e);
-        EXPECT_EQ(s.end(), e);
+        EXPECT_TRUE(s.end() == e);
+        EXPECT_TRUE(s.end() == e);
+        EXPECT_TRUE(s.end() == e);
         //
         auto it = s.begin();
         EXPECT_EQ(*it, "01");
@@ -2632,7 +2640,7 @@ TEST(substr, split)
         EXPECT_EQ(*it, "67");
         EXPECT_EQ(it->size(), 2);
         ++it;
-        EXPECT_EQ(it, s.end());
+        EXPECT_TRUE(it == s.end());
     }
 
     {

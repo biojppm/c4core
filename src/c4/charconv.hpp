@@ -38,14 +38,22 @@
 
 #ifdef _MSC_VER
 #   pragma warning(push)
-#   pragma warning(disable: 4800) //'int': forcing value to bool 'true' or 'false' (performance warning)
+#   if C4_MSVC_VERSION >= C4_MSVC_VERSION_2019
+#       pragma warning(disable: 4800) //'int': forcing value to bool 'true' or 'false' (performance warning)
+#   endif
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
 #elif defined(__clang__)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#   pragma clang diagnostic ignored "-Wformat-nonliteral"
+#   pragma clang diagnostic ignored "-Wdouble-promotion" // implicit conversion increases floating-point precision
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#   pragma GCC diagnostic ignored "-Wdouble-promotion" // implicit conversion increases floating-point precision
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
+
 
 namespace c4 {
 
@@ -97,7 +105,7 @@ namespace c4 {
 
 
 /** @ingroup lowlevel_tofrom_chars */
-typedef enum {
+typedef enum : uint8_t {
     /** print the real number in floating point format (like %f) */
     FTOA_FLOAT = 0,
     /** print the real number in scientific format (like %e) */
@@ -105,7 +113,8 @@ typedef enum {
     /** print the real number in flexible format (like %g) */
     FTOA_FLEX = 2,
     /** print the real number in hexadecimal format (like %a) */
-    FTOA_HEXA = 3
+    FTOA_HEXA = 3,
+    _FTOA_COUNT
 } RealFormat_e;
 
 
@@ -117,7 +126,8 @@ inline C4_CONSTEXPR14 char to_c_fmt(RealFormat_e f)
         'g',  // FTOA_FLEX
         'a',  // FTOA_HEXA
     };
-    C4_ASSERT(f >= 0 && f < (typename std::underlying_type<RealFormat_e>::type)sizeof(fmt));
+    C4_STATIC_ASSERT(sizeof(fmt) == _FTOA_COUNT);
+    C4_ASSERT(f < _FTOA_COUNT);
     return fmt[f];
 }
 
@@ -131,7 +141,8 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
         std::chars_format::general,     // FTOA_FLEX
         std::chars_format::hex,         // FTOA_HEXA
     };
-    C4_ASSERT(f >= 0 && f < (typename std::underlying_type<RealFormat_e>::type)sizeof(fmt));
+    C4_STATIC_ASSERT(sizeof(fmt) == _FTOA_COUNT);
+    C4_ASSERT(f < _FTOA_COUNT);
     return fmt[f];
 }
 #endif // C4CORE_HAVE_STD_TOCHARS
@@ -141,11 +152,22 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#elif defined(__clang__)
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wconversion"
+#   if __GNUC__ >= 6
+#       pragma GCC diagnostic ignored "-Wnull-dereference"
+#   endif
+#endif
+
 // Helper macros, undefined below
 
-#define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = (c); } else { ++pos; } }
+#define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
 #define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
-
 
 /** convert an integral signed decimal to a string.
  * The resulting string is NOT zero-terminated.
@@ -291,9 +313,9 @@ size_t utoa(substr buf, T v, T radix)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
+ 
 namespace detail {
-
+   
 // TODO truncate to the length of max I
 
 template<class I>
@@ -304,7 +326,7 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         if(C4_UNLIKELY(c < '0' || c > '9')) return false;
-        *v = (*v) * I(10) + (I(c) - I('0'));
+        *v =  (*v) * I(10) + (I(c) - I('0'));
     }
     return true;
 }
@@ -317,7 +339,7 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         I cv;
-        if(c >= '0' && c <= '9') cv = I(c) - I('0');
+        if(c >= '0' && c <= '9') cv = static_cast<I>(I(c) - I('0'));
         else if(c >= 'a' && c <= 'f') cv = I(10) + (I(c) - I('a'));
         else if(c >= 'A' && c <= 'F') cv = I(10) + (I(c) - I('A'));
         else return false;
@@ -371,12 +393,13 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(str.str != nullptr);
     C4_ASSERT(str.len > 0);
     C4_ASSERT(str == str.first_int_span());
 
     T sign = 1;
     size_t start = 0;
-    if(str[0] == '-')
+    if(str.str[0] == '-')
     {
         ++start;
         sign = -1;
@@ -436,7 +459,7 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_int_span();
     if(trimmed.len == 0) return csubstr::npos;
-    if(atoi(trimmed, v)) return trimmed.end() - str.begin();
+    if(atoi(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
@@ -455,6 +478,7 @@ template<class T>
 bool atou(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(str.str != nullptr);
     C4_ASSERT(str.len > 0);
     C4_ASSERT_MSG(str.str[0] != '-', "must be positive");
     C4_ASSERT(str == str.first_uint_span());
@@ -507,9 +531,18 @@ inline size_t atou_first(csubstr str, T *v)
 {
     csubstr trimmed = str.first_uint_span();
     if(trimmed.len == 0) return csubstr::npos;
-    if(atou(trimmed, v)) return trimmed.end() - str.begin();
+    if(atou(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
+
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#elif defined(__clang__)
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -865,7 +898,7 @@ inline size_t atof_first(csubstr str, float * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();
     if(trimmed.len == 0) return csubstr::npos;
-    if(atof(trimmed, v)) return trimmed.end() - str.begin();
+    if(atof(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
@@ -879,7 +912,7 @@ inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();
     if(trimmed.len == 0) return csubstr::npos;
-    if(atod(trimmed, v)) return trimmed.end() - str.begin();
+    if(atod(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
@@ -947,7 +980,6 @@ inline size_t to_chars(substr buf, ty v)                                \
 }
 
 #endif
-
 
 /** this macro defines to_chars()/from_chars() pairs for intrinsic types. */ \
 #define _C4_DEFINE_TO_FROM_CHARS(ty, pri_fmt, scn_fmt)                  \
@@ -1119,7 +1151,7 @@ inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v)
     csubstr trimmed = buf.first_non_empty_span();
     if(trimmed.len == 0) return csubstr::npos;
     *v = trimmed;
-    return trimmed.end() - buf.begin();
+    return static_cast<size_t>(trimmed.end() - buf.begin());
 }
 
 
@@ -1159,7 +1191,7 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v)
     size_t len = trimmed.len > v->len ? v->len : trimmed.len;
     memcpy(v->str, trimmed.str, len);
     if(C4_UNLIKELY(trimmed.len > v->len)) return csubstr::npos;
-    return trimmed.end() - buf.begin();
+    return static_cast<size_t>(trimmed.end() - buf.begin());
 }
 
 

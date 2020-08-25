@@ -1,5 +1,13 @@
 #include "c4/format.hpp"
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wformat-nonliteral"
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
+
 namespace c4 {
 
 size_t sprintf(substr buf, const char *fmt, ...)
@@ -42,7 +50,7 @@ size_t to_chars(substr buf, fmt::const_raw_wrapper r)
         return r.alignment + r.len;
     }
     C4_CHECK(ptr >= buf.begin() && ptr <= buf.end());
-    size_t sz = (ptr - buf.str) + r.len;
+    size_t sz = static_cast<size_t>(ptr - buf.str) + r.len;
     if(sz <= buf.len)
     {
         memcpy(ptr, r.buf, r.len);
@@ -60,9 +68,15 @@ size_t from_chars(csubstr buf, fmt::raw_wrapper *r)
     C4_CHECK(ptr >= buf.begin() && ptr <= buf.end());
     //size_t dim = (ptr - buf.str) + r->len;
     memcpy(r->buf, ptr, r->len);
-    size_t sz = (ptr - buf.str) + r->len;
+    size_t sz = static_cast<size_t>(ptr - buf.str) + r->len;
     return sz;
 }
 
 
 } // namespace c4
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif

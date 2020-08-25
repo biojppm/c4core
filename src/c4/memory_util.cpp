@@ -43,7 +43,7 @@ void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num
     // copy the missing part
     if(begin + n < end)
     {
-        ::memcpy(begin + n, begin, end - (begin + n));
+        ::memcpy(begin + n, begin, static_cast<size_t>(end - (begin + n)));
     }
 }
 

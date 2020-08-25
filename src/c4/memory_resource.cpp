@@ -62,7 +62,7 @@ void* aalloc_impl(size_t size, size_t alignment)
 #else
     C4_NOT_IMPLEMENTED_MSG("need to implement an aligned allocation for this platform");
 #endif
-    C4_ASSERT_MSG((size_t(mem) & (alignment-1)) == 0, "address %p is not aligned to %lu boundary", mem, (uint64_t)alignment);
+    C4_ASSERT_MSG((uintptr_t(mem) & (alignment-1)) == 0, "address %p is not aligned to %zu boundary", mem, alignment);
     return mem;
 }
 

@@ -40,6 +40,22 @@ TEST(eoffs, scoped_bitmask)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   if __GNUC__ >= 6
+#       pragma GCC diagnostic ignored "-Wnull-dereference"
+#   endif
+#endif
+
+template<typename Enum>
+void cmp_enum(Enum lhs, Enum rhs)
+{
+    using I = typename std::underlying_type<Enum>::type;
+    EXPECT_EQ(static_cast<I>(lhs), static_cast<I>(rhs));
+}
+
 template<class Enum>
 void test_esyms()
 {
@@ -48,12 +64,21 @@ void test_esyms()
     EXPECT_FALSE(ss.empty());
     for(auto s : ss)
     {
+        ASSERT_NE(ss.find(s.name), nullptr);
+        ASSERT_NE(ss.find(s.value), nullptr);
         EXPECT_STREQ(ss.find(s.name)->name, s.name);
         EXPECT_STREQ(ss.find(s.value)->name, s.name);
-        EXPECT_EQ(ss.find(s.name)->value, s.value);
-        EXPECT_EQ(ss.find(s.value)->value, s.value);
+        cmp_enum(ss.find(s.name)->value, s.value);
+        cmp_enum(ss.find(s.value)->value, s.value);
     }
 }
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
+
 
 TEST(esyms, simple_enum)
 {
@@ -80,6 +105,7 @@ TEST(esyms, scoped_bitmask)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+
 template<typename Enum>
 void test_e2str()
 {
@@ -90,9 +116,8 @@ void test_e2str()
     EXPECT_FALSE(ss.empty());
     for(auto const& p : ss)
     {
-        // test a round trip
-        EXPECT_EQ((I)str2e<Enum>(e2str(p.value)), (I)p.value);
-        // test the other way around
+        // test round trips
+        cmp_enum(str2e<Enum>(e2str(p.value)), p.value);
         EXPECT_STREQ(e2str(str2e<Enum>(p.name)), p.name);
     }
 }
@@ -106,23 +131,24 @@ TEST(e2str, simple_enum)
 TEST(e2str, scoped_enum)
 {
     test_e2str<MyEnumClass>();
-    EXPECT_EQ(c4::str2e<MyEnumClass>("MyEnumClass::FOO"), MyEnumClass::FOO);
-    EXPECT_EQ(c4::str2e<MyEnumClass>("FOO"), MyEnumClass::FOO);
+    cmp_enum(c4::str2e<MyEnumClass>("MyEnumClass::FOO"), MyEnumClass::FOO);
+    cmp_enum(c4::str2e<MyEnumClass>("FOO"), MyEnumClass::FOO);
 }
 
 TEST(e2str, simple_bitmask)
 {
     test_e2str<MyBitmask>();
-    EXPECT_EQ(c4::str2e<MyBitmask>("BM_FOO"), BM_FOO);
-    EXPECT_EQ(c4::str2e<MyBitmask>("FOO"), BM_FOO);
+    cmp_enum(c4::str2e<MyBitmask>("BM_FOO"), BM_FOO);
+    cmp_enum(c4::str2e<MyBitmask>("FOO"), BM_FOO);
 }
 
 TEST(e2str, scoped_bitmask)
 {
+    using I = typename std::underlying_type<MyBitmaskClass>::type;
     test_e2str<MyBitmaskClass>();
-    EXPECT_EQ(c4::str2e<MyBitmaskClass>("MyBitmaskClass::BM_FOO"), MyBitmaskClass::BM_FOO);
-    EXPECT_EQ(c4::str2e<MyBitmaskClass>("BM_FOO"), MyBitmaskClass::BM_FOO);
-    EXPECT_EQ(c4::str2e<MyBitmaskClass>("FOO"), MyBitmaskClass::BM_FOO);
+    cmp_enum(c4::str2e<MyBitmaskClass>("MyBitmaskClass::BM_FOO"), MyBitmaskClass::BM_FOO);
+    cmp_enum(c4::str2e<MyBitmaskClass>("BM_FOO"), MyBitmaskClass::BM_FOO);
+    cmp_enum(c4::str2e<MyBitmaskClass>("FOO"), MyBitmaskClass::BM_FOO);
 }
 
 #include "c4/libtest/supprwarn_pop.hpp"

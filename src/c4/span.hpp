@@ -176,7 +176,7 @@ public:
         auto e = end();
         if(ssb >= b && ssb <= e)
         {
-            return subspan(0, ssb - b);
+            return subspan(0, static_cast<size_t>(ssb - b));
         }
         else
         {
@@ -193,7 +193,7 @@ public:
         auto e = end();
         if(sse >= b && sse <= e)
         {
-            return subspan(sse - b, e - sse);
+            return subspan(static_cast<size_t>(sse - b), static_cast<size_t>(e - sse));
         }
         else
         {
@@ -368,7 +368,13 @@ class spanrs : public _span_crtp<T, I, spanrs<T, I>>
     I   m_size;
     I   m_capacity;
 
-    C4_ALWAYS_INLINE spanrs _select(T *p, I sz) const noexcept { return spanrs(p, sz, m_capacity - (p - m_ptr)); }
+    C4_ALWAYS_INLINE spanrs _select(T *p, I sz) const noexcept
+    {
+        C4_ASSERT(p >= m_ptr); 
+        size_t delta = static_cast<size_t>(p - m_ptr);
+        C4_ASSERT(m_capacity >= delta);
+        return spanrs(p, sz, static_cast<size_t>(m_capacity - delta));
+    }
 
 public:
 
@@ -436,8 +442,10 @@ class spanrsl : public _span_crtp<T, I, spanrsl<T, I>>
 
     C4_ALWAYS_INLINE spanrsl _select(T *p, I sz) const noexcept
     {
-        auto delta = p - m_ptr;
-        return spanrsl(p, sz, m_capacity - delta, m_offset + delta);
+        C4_ASSERT(p >= m_ptr);
+        size_t delta = static_cast<size_t>(p - m_ptr);
+        C4_ASSERT(m_capacity >= delta);
+        return spanrsl(p, sz, static_cast<size_t>(m_capacity - delta), m_offset + delta);
     }
 
 public:

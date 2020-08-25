@@ -5,6 +5,13 @@
 
 #include "c4/libtest/supprwarn_push.hpp"
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
 namespace c4 {
 
 
@@ -104,10 +111,11 @@ TEST(cat, tuple)
 TEST(uncat, vars)
 {
     size_t sz;
+    size_t npos = csubstr::npos;
     int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
 
     sz = uncat("1 2 3 4", v1, v2, v3, v4);
-    EXPECT_NE(sz, csubstr::npos);
+    EXPECT_NE(sz, npos);
     EXPECT_EQ(sz, 7);
     EXPECT_EQ(v1, 1);
     EXPECT_EQ(v2, 2);
@@ -542,5 +550,11 @@ TEST(fmt, raw_int)
 }
 
 } // namespace c4
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 #include "c4/libtest/supprwarn_pop.hpp"

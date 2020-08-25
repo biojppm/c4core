@@ -92,8 +92,8 @@ void test_fromArray()
     T arr2[20];
 
     T a = 0;
-    for(auto &v : arr1) { v = a; a += T(1); }
-    for(auto &v : arr2) { v = a; a += T(1); }
+    for(auto &v : arr1) { v = a; ++a; }
+    for(auto &v : arr2) { v = a; ++a; }
 
     {
         SpanClass s(arr1);
@@ -679,9 +679,11 @@ TEST(span, reverse_iter)
     int pos = szconv<int>(s.size()) - 1;
     for(rit b = s.rbegin(), e = s.rend(); b != e; ++b)
     {
-        EXPECT_EQ(*b, s[pos--]);
+        C4_ASSERT(pos >= 0);
+        EXPECT_EQ(*b, s[static_cast<size_t>(pos)]);
+        --pos;
     }
-        EXPECT_EQ(pos, -1);
+    EXPECT_EQ(pos, -1);
 }
 
 //-----------------------------------------------------------------------------
