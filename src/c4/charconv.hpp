@@ -38,7 +38,9 @@
 
 #ifdef _MSC_VER
 #   pragma warning(push)
-#   pragma warning(disable: 4800) //'int': forcing value to bool 'true' or 'false' (performance warning)
+#   if C4_MSVC_VERSION >= C4_MSVC_VERSION_2019
+#       pragma warning(disable: 4800) //'int': forcing value to bool 'true' or 'false' (performance warning)
+#   endif
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
 #elif defined(__clang__)
 #   pragma clang diagnostic push
