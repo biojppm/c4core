@@ -9,6 +9,13 @@
 #include "./enum_common.hpp"
 
 
+template<typename Enum>
+void cmp_enum(Enum lhs, Enum rhs)
+{
+    using I = typename std::underlying_type<Enum>::type;
+    EXPECT_EQ(static_cast<I>(lhs), static_cast<I>(rhs));
+}
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -76,85 +83,85 @@ TEST(str2bm, scoped_bitmask)
     std::vector<char> str;
     using bmt = MyBitmaskClass;
 
-    EXPECT_EQ(bmt::BM_NONE,        (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE"));
-    EXPECT_EQ(bmt::BM_FOO,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO"));
-    EXPECT_EQ(bmt::BM_BAR,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAR"));
-    EXPECT_EQ(bmt::BM_BAZ,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR_BAZ"));
-    EXPECT_EQ(bmt::BM_NONE,        (bmt)str2bm<bmt>("BM_NONE"));
-    EXPECT_EQ(bmt::BM_FOO,         (bmt)str2bm<bmt>("BM_FOO"));
-    EXPECT_EQ(bmt::BM_BAR,         (bmt)str2bm<bmt>("BM_BAR"));
-    EXPECT_EQ(bmt::BM_BAZ,         (bmt)str2bm<bmt>("BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("BM_FOO_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("BM_FOO_BAR_BAZ"));
-    EXPECT_EQ(bmt::BM_NONE,        (bmt)str2bm<bmt>("NONE"));
-    EXPECT_EQ(bmt::BM_FOO,         (bmt)str2bm<bmt>("FOO"));
-    EXPECT_EQ(bmt::BM_BAR,         (bmt)str2bm<bmt>("BAR"));
-    EXPECT_EQ(bmt::BM_BAZ,         (bmt)str2bm<bmt>("BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("FOO_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("FOO_BAR_BAZ"));
+    cmp_enum(bmt::BM_NONE,        (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE"));
+    cmp_enum(bmt::BM_FOO,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO"));
+    cmp_enum(bmt::BM_BAR,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAR"));
+    cmp_enum(bmt::BM_BAZ,         (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR_BAZ"));
+    cmp_enum(bmt::BM_NONE,        (bmt)str2bm<bmt>("BM_NONE"));
+    cmp_enum(bmt::BM_FOO,         (bmt)str2bm<bmt>("BM_FOO"));
+    cmp_enum(bmt::BM_BAR,         (bmt)str2bm<bmt>("BM_BAR"));
+    cmp_enum(bmt::BM_BAZ,         (bmt)str2bm<bmt>("BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("BM_FOO_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("BM_FOO_BAR_BAZ"));
+    cmp_enum(bmt::BM_NONE,        (bmt)str2bm<bmt>("NONE"));
+    cmp_enum(bmt::BM_FOO,         (bmt)str2bm<bmt>("FOO"));
+    cmp_enum(bmt::BM_BAR,         (bmt)str2bm<bmt>("BAR"));
+    cmp_enum(bmt::BM_BAZ,         (bmt)str2bm<bmt>("BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR,     (bmt)str2bm<bmt>("FOO_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ, (bmt)str2bm<bmt>("FOO_BAR_BAZ"));
 
-    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("NONE"));
-    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("BM_NONE"));
-    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE"));
-    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("0"));
-    EXPECT_EQ(bmt::BM_NONE,              (bmt)str2bm<bmt>("0x0"));
-    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("FOO"));
-    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("BM_FOO"));
-    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO"));
-    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("1"));
-    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("0x1"));
-    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("NONE|0x1"));
-    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("BM_NONE|0x1"));
-    EXPECT_EQ(bmt::BM_FOO,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE|0x1"));
-    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("BAR"));
-    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("BM_BAR"));
-    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAR"));
-    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("2"));
-    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("0x2"));
-    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("BAZ"));
-    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("BM_BAZ"));
-    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAZ"));
-    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("BM_NONE|0x2"));
-    EXPECT_EQ(bmt::BM_BAR,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE|0x2"));
-    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("4"));
-    EXPECT_EQ(bmt::BM_BAZ,               (bmt)str2bm<bmt>("0x4"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO|BM_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO|BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|BM_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO_BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|BAR"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("0x1|0x2"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("1|2"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("0x3"));
-    EXPECT_EQ(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("3"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BM_BAR|BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR|MyBitmaskClass::BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BM_BAR|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BAR|BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BAR|MyBitmaskClass::BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BM_BAR|BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR|MyBitmaskClass::BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BM_BAR|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|MyBitmaskClass::BM_BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO_BAR|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x1|BAR|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|0x2|BAZ"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|0x4"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x1|0x2|0x4"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x7"));
-    EXPECT_EQ(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x7"));
+    cmp_enum(bmt::BM_NONE,              (bmt)str2bm<bmt>("NONE"));
+    cmp_enum(bmt::BM_NONE,              (bmt)str2bm<bmt>("BM_NONE"));
+    cmp_enum(bmt::BM_NONE,              (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE"));
+    cmp_enum(bmt::BM_NONE,              (bmt)str2bm<bmt>("0"));
+    cmp_enum(bmt::BM_NONE,              (bmt)str2bm<bmt>("0x0"));
+    cmp_enum(bmt::BM_FOO,               (bmt)str2bm<bmt>("FOO"));
+    cmp_enum(bmt::BM_FOO,               (bmt)str2bm<bmt>("BM_FOO"));
+    cmp_enum(bmt::BM_FOO,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO"));
+    cmp_enum(bmt::BM_FOO,               (bmt)str2bm<bmt>("1"));
+    cmp_enum(bmt::BM_FOO,               (bmt)str2bm<bmt>("0x1"));
+    cmp_enum(bmt::BM_FOO,               (bmt)str2bm<bmt>("NONE|0x1"));
+    cmp_enum(bmt::BM_FOO,               (bmt)str2bm<bmt>("BM_NONE|0x1"));
+    cmp_enum(bmt::BM_FOO,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE|0x1"));
+    cmp_enum(bmt::BM_BAR,               (bmt)str2bm<bmt>("BAR"));
+    cmp_enum(bmt::BM_BAR,               (bmt)str2bm<bmt>("BM_BAR"));
+    cmp_enum(bmt::BM_BAR,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAR"));
+    cmp_enum(bmt::BM_BAR,               (bmt)str2bm<bmt>("2"));
+    cmp_enum(bmt::BM_BAR,               (bmt)str2bm<bmt>("0x2"));
+    cmp_enum(bmt::BM_BAZ,               (bmt)str2bm<bmt>("BAZ"));
+    cmp_enum(bmt::BM_BAZ,               (bmt)str2bm<bmt>("BM_BAZ"));
+    cmp_enum(bmt::BM_BAZ,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_BAZ"));
+    cmp_enum(bmt::BM_BAR,               (bmt)str2bm<bmt>("BM_NONE|0x2"));
+    cmp_enum(bmt::BM_BAR,               (bmt)str2bm<bmt>("MyBitmaskClass::BM_NONE|0x2"));
+    cmp_enum(bmt::BM_BAZ,               (bmt)str2bm<bmt>("4"));
+    cmp_enum(bmt::BM_BAZ,               (bmt)str2bm<bmt>("0x4"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO|BM_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO|BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|BM_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("BM_FOO_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO_BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("FOO|BAR"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("0x1|0x2"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("1|2"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("0x3"));
+    cmp_enum(bmt::BM_FOO_BAR,           (bmt)str2bm<bmt>("3"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BM_BAR|BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR|MyBitmaskClass::BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BM_BAR|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO|MyBitmaskClass::BM_BAR|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BAR|BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("BM_FOO|BAR|MyBitmaskClass::BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BM_BAR|BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR|MyBitmaskClass::BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BM_BAR|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|MyBitmaskClass::BM_BAR|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|MyBitmaskClass::BM_BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO_BAR|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("MyBitmaskClass::BM_FOO_BAR|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x1|BAR|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|0x2|BAZ"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("FOO|BAR|0x4"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x1|0x2|0x4"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x7"));
+    cmp_enum(bmt::BM_FOO_BAR_BAZ,       (bmt)str2bm<bmt>("0x7"));
 }
 
 

@@ -111,10 +111,11 @@ TEST(cat, tuple)
 TEST(uncat, vars)
 {
     size_t sz;
+    size_t npos = csubstr::npos;
     int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
 
     sz = uncat("1 2 3 4", v1, v2, v3, v4);
-    EXPECT_NE(sz, csubstr::npos);
+    EXPECT_NE(sz, npos);
     EXPECT_EQ(sz, 7);
     EXPECT_EQ(v1, 1);
     EXPECT_EQ(v2, 2);
