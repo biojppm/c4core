@@ -12,7 +12,7 @@
 
 #ifdef _MSC_VER
 #   pragma warning(push)
-#   if C4_MSVC_VERSION >= C4_MSVC_VERSION_2019
+#   if C4_MSVC_VERSION != C4_MSVC_VERSION_2017
 #       pragma warning(disable: 4800) // forcing value to bool 'true' or 'false' (performance warning)
 #   endif
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
