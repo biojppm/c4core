@@ -58,6 +58,67 @@ inline fmt_wrapper<T> fmt(T &v, Args && ...args)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+// formatting integral types as booleans
+
+/** @addtogroup generic_tofrom_chars
+ * @{ */
+
+namespace fmt {
+
+struct boolalpha_
+{
+    template<class T>
+    boolalpha_(T val_, bool strict_read_) : val(val_ ? true : false), strict_read(strict_read_) {}
+    bool val;
+    bool strict_read;
+};
+
+/** write a variable as an alphabetic boolean, ie as either true or false
+ * @param strict_read */
+template<class T>
+inline boolalpha_ boolalpha(T const& C4_RESTRICT v, bool strict_read=false)
+{
+    return boolalpha_(v, strict_read);
+}
+
+} // namespace fmt
+
+
+/** write a variable as an alphabetic boolean, ie as either true or false */
+inline size_t to_chars(substr buf, fmt::boolalpha_ fmt)
+{
+    if(fmt.val)
+    {
+        return to_chars(buf, "true");
+    }
+    return to_chars(buf, "false");
+}
+
+/** read a variable as an alphabetic boolean, ie as either true or false */
+size_t from_chars(csubstr buf, fmt::boolalpha_ *r);
+/** read a variable in raw binary format, using memcpy */
+inline size_t from_chars(csubstr buf, fmt::boolalpha_ r)
+{
+    return from_chars(buf, &r);
+}
+
+/** read a variable in raw binary format, using memcpy */
+inline size_t from_chars_first(csubstr buf, fmt::boolalpha_ *r)
+{
+    return from_chars(buf, r);
+}
+/** read a variable in raw binary format, using memcpy */
+inline size_t from_chars_first(csubstr buf, fmt::boolalpha_ r)
+{
+    return from_chars(buf, &r);
+}
+
+/** @} */
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // formatting integral types
 
 /** @addtogroup generic_tofrom_chars
