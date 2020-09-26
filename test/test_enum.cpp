@@ -3,7 +3,7 @@
 #include <c4/enum.hpp>
 #include <c4/test.hpp>
 
-#include "./enum_common.hpp"
+#include "./test_enum_common.hpp"
 #include "c4/libtest/supprwarn_push.hpp"
 
 

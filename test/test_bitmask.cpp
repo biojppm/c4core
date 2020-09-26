@@ -6,7 +6,7 @@
 
 #include <c4/test.hpp>
 
-#include "./enum_common.hpp"
+#include "./test_enum_common.hpp"
 
 
 template<typename Enum>
