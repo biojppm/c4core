@@ -106,9 +106,11 @@ public:
 
     constexpr basic_substring(basic_substring const&) = default;
     constexpr basic_substring(basic_substring     &&) = default;
+    constexpr basic_substring(std::nullptr_t) : str(nullptr), len(0) {}
 
     basic_substring& operator= (basic_substring const&) = default;
     basic_substring& operator= (basic_substring     &&) = default;
+    basic_substring& operator= (std::nullptr_t) { str = nullptr; len = 0; return *this; }
 
 public:
 
@@ -222,6 +224,9 @@ public:
     bool operator>  (ro_substr const that) const { return this->compare(that) >  0; }
     bool operator<= (ro_substr const that) const { return this->compare(that) <= 0; }
     bool operator>= (ro_substr const that) const { return this->compare(that) >= 0; }
+
+    bool operator== (std::nullptr_t) const { return str == nullptr; }
+    bool operator!= (std::nullptr_t) const { return str != nullptr; }
 
 public:
 

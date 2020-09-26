@@ -26,6 +26,45 @@ TEST(csubstr, ctor_from_char)
     EXPECT_EQ(s, "{foo: 2}");
 }
 
+TEST(csubstr, empty_vs_null)
+{
+    csubstr s;
+    EXPECT_TRUE(s.empty());
+    EXPECT_TRUE(s.len == 0);
+    EXPECT_TRUE(s.str == nullptr);
+    EXPECT_TRUE(s == nullptr);
+
+    s = "";
+    EXPECT_TRUE(s.empty());
+    EXPECT_TRUE(s.len == 0);
+    EXPECT_TRUE(s.str != nullptr);
+    EXPECT_TRUE(s != nullptr);
+
+    s = nullptr;
+    EXPECT_TRUE(s.empty());
+    EXPECT_TRUE(s.len == 0);
+    EXPECT_TRUE(s.str == nullptr);
+    EXPECT_TRUE(s == nullptr);
+
+    s = "";
+    EXPECT_TRUE(s.empty());
+    EXPECT_TRUE(s.len == 0);
+    EXPECT_TRUE(s.str != nullptr);
+    EXPECT_TRUE(s != nullptr);
+
+    s = {};
+    EXPECT_TRUE(s.empty());
+    EXPECT_TRUE(s.len == 0);
+    EXPECT_TRUE(s.str == nullptr);
+    EXPECT_TRUE(s == nullptr);
+
+    csubstr pp(nullptr);
+    EXPECT_TRUE(pp.empty());
+    EXPECT_TRUE(pp.len == 0);
+    EXPECT_TRUE(pp.str == nullptr);
+    EXPECT_TRUE(pp == nullptr);
+}
+
 TEST(substr, contains)
 {
     csubstr buf = "0123456789";
