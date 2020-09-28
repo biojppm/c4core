@@ -10,6 +10,7 @@
 #include <climits>
 #include <limits>
 #include <utility>
+#include <iterator>
 
 #if (C4_CPP >= 17)
 #   if defined(_MSC_VER)
@@ -126,7 +127,7 @@ inline C4_CONSTEXPR14 char to_c_fmt(RealFormat_e f)
         'g',  // FTOA_FLEX
         'a',  // FTOA_HEXA
     };
-    C4_STATIC_ASSERT(sizeof(fmt) == _FTOA_COUNT);
+    C4_STATIC_ASSERT(std::size(fmt) == _FTOA_COUNT);
     C4_ASSERT(f < _FTOA_COUNT);
     return fmt[f];
 }
@@ -141,7 +142,7 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
         std::chars_format::general,     // FTOA_FLEX
         std::chars_format::hex,         // FTOA_HEXA
     };
-    C4_STATIC_ASSERT((sizeof(fmt)/sizeof(std::chars_format)) == _FTOA_COUNT);
+    C4_STATIC_ASSERT(std::size(fmt) == _FTOA_COUNT);
     C4_ASSERT(f < _FTOA_COUNT);
     return fmt[f];
 }
