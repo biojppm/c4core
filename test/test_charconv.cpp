@@ -907,13 +907,13 @@ TEST(from_chars, bool)
 TEST(from_chars_first, bool)
 {
     bool result = false;
-    for(const char *s : {"1", "true", "True", "TRUE"})
+    for(const char *s : {"1", "10000", "2", "3", "10", "010", "001", "0001", "true", "True", "TRUE"})
     {
         bool ok = from_chars(to_csubstr(s), &result);
         EXPECT_TRUE(ok) << "s='" << s << "'";
         EXPECT_TRUE(result);
     }
-    for(const char *s : {"0", "false", "False", "FALSE"})
+    for(const char *s : {"0", "00", "000", "0000", "false", "False", "FALSE"})
     {
         bool ok = from_chars(to_csubstr(s), &result);
         EXPECT_TRUE(ok) << "s='" << s << "'";
