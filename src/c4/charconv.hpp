@@ -1081,19 +1081,33 @@ inline size_t to_chars(substr buf, bool v)
 /** @ingroup generic_tofrom_chars */
 inline bool from_chars(csubstr buf, bool * C4_RESTRICT v)
 {
+    if(buf == '0') { *v = false; return true; }
+    else if(buf == '1') { *v = true; return true; }
+    else if(buf == "false") { *v = false; return true; }
+    else if(buf == "true") { *v = true; return true; }
+    else if(buf == "False") { *v = false; return true; }
+    else if(buf == "True") { *v = true; return true; }
+    else if(buf == "FALSE") { *v = false; return true; }
+    else if(buf == "TRUE") { *v = true; return true; }
+    // fallback to c-style int bools
     int val = 0;
     bool ret = from_chars(buf, &val);
-    *v = (val != 0);
+    if(C4_LIKELY(ret))
+    {
+        *v = (val != 0);
+    }
     return ret;
 }
 
 /** @ingroup generic_tofrom_chars */
 inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v)
 {
-    int val = 0;
-    size_t ret = from_chars_first(buf, &val);
-    *v = (val != 0);
-    return ret;
+    csubstr trimmed = buf.first_non_empty_span();
+    if(trimmed.len == 0 || !from_chars(buf, v))
+    {
+        return csubstr::npos;
+    }
+    return trimmed.len;
 }
 
 

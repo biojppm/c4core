@@ -82,6 +82,27 @@ TEST(to_chars, fmt_basic)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+TEST(to_chars, boolalpha)
+{
+    char bufc[128];
+    substr buf(bufc);
+    
+    EXPECT_EQ(to_chars_sub(buf, true), "1");
+    EXPECT_EQ(to_chars_sub(buf, false), "0");
+    EXPECT_EQ(to_chars_sub(buf, fmt::boolalpha(true)), "true");
+    EXPECT_EQ(to_chars_sub(buf, 1), "1");
+    EXPECT_EQ(to_chars_sub(buf, fmt::boolalpha(1)), "true");
+    EXPECT_EQ(to_chars_sub(buf, fmt::boolalpha(10)), "true");
+    EXPECT_EQ(to_chars_sub(buf, fmt::boolalpha(false)), "false");
+    EXPECT_EQ(to_chars_sub(buf, fmt::boolalpha(0)), "false");
+    EXPECT_EQ(to_chars_sub(buf, fmt::boolalpha(0u)), "false");
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 TEST(cat, vars)
 {
     char buf[256];

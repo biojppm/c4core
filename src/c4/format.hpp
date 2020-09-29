@@ -87,30 +87,7 @@ inline boolalpha_ boolalpha(T const& C4_RESTRICT v, bool strict_read=false)
 /** write a variable as an alphabetic boolean, ie as either true or false */
 inline size_t to_chars(substr buf, fmt::boolalpha_ fmt)
 {
-    if(fmt.val)
-    {
-        return to_chars(buf, "true");
-    }
-    return to_chars(buf, "false");
-}
-
-/** read a variable as an alphabetic boolean, ie as either true or false */
-size_t from_chars(csubstr buf, fmt::boolalpha_ *r);
-/** read a variable in raw binary format, using memcpy */
-inline size_t from_chars(csubstr buf, fmt::boolalpha_ r)
-{
-    return from_chars(buf, &r);
-}
-
-/** read a variable in raw binary format, using memcpy */
-inline size_t from_chars_first(csubstr buf, fmt::boolalpha_ *r)
-{
-    return from_chars(buf, r);
-}
-/** read a variable in raw binary format, using memcpy */
-inline size_t from_chars_first(csubstr buf, fmt::boolalpha_ r)
-{
-    return from_chars(buf, &r);
+    return to_chars(buf, fmt.val ? "true" : "false");
 }
 
 /** @} */

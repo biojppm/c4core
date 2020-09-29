@@ -877,6 +877,55 @@ TEST(to_chars, std_string)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+TEST(to_chars, bool)
+{
+    char buf_[32];
+    substr buf(buf_);
+    csubstr result = to_chars_sub(buf, true);
+    EXPECT_EQ(result, "1");
+    result = to_chars_sub(buf, false);
+    EXPECT_EQ(result, "0");
+}
+
+TEST(from_chars, bool)
+{
+    bool result = false;
+    for(const char *s : {"1", "true", "True", "TRUE"})
+    {
+        bool ok = from_chars(to_csubstr(s), &result);
+        EXPECT_TRUE(ok) << "s='" << s << "'";
+        EXPECT_TRUE(result);
+    }
+    for(const char *s : {"0", "false", "False", "FALSE"})
+    {
+        bool ok = from_chars(to_csubstr(s), &result);
+        EXPECT_TRUE(ok) << "s='" << s << "'";
+        EXPECT_FALSE(result);
+    }
+}
+
+TEST(from_chars_first, bool)
+{
+    bool result = false;
+    for(const char *s : {"1", "true", "True", "TRUE"})
+    {
+        bool ok = from_chars(to_csubstr(s), &result);
+        EXPECT_TRUE(ok) << "s='" << s << "'";
+        EXPECT_TRUE(result);
+    }
+    for(const char *s : {"0", "false", "False", "FALSE"})
+    {
+        bool ok = from_chars(to_csubstr(s), &result);
+        EXPECT_TRUE(ok) << "s='" << s << "'";
+        EXPECT_FALSE(result);
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 // test that no characters are trimmed at the end of
 // the number due to printf-based implementations
 // needing space for the \0
