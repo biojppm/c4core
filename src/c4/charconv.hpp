@@ -126,7 +126,7 @@ inline C4_CONSTEXPR14 char to_c_fmt(RealFormat_e f)
         'g',  // FTOA_FLEX
         'a',  // FTOA_HEXA
     };
-    C4_STATIC_ASSERT(sizeof(fmt) == _FTOA_COUNT);
+    C4_STATIC_ASSERT(C4_COUNTOF(fmt) == _FTOA_COUNT);
     C4_ASSERT(f < _FTOA_COUNT);
     return fmt[f];
 }
@@ -141,7 +141,7 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
         std::chars_format::general,     // FTOA_FLEX
         std::chars_format::hex,         // FTOA_HEXA
     };
-    C4_STATIC_ASSERT(sizeof(fmt) == _FTOA_COUNT);
+    C4_STATIC_ASSERT(C4_COUNTOF(fmt) == _FTOA_COUNT);
     C4_ASSERT(f < _FTOA_COUNT);
     return fmt[f];
 }
