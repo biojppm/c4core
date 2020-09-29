@@ -17,7 +17,10 @@
 #           if (!defined(_MSVC_LANG))
 #               error _MSVC not defined
 #           endif
-#           if _MSVC_LANG >= 201703L
+#           if _MSVC_LANG >= 201705L
+#               define C4_CPP 20
+#               define C4_CPP20
+#           elif _MSVC_LANG == 201703L
 #               define C4_CPP 17
 #               define C4_CPP17
 #           elif _MSVC_LANG >= 201402L
@@ -41,7 +44,10 @@
 #           endif
 #       endif
 #   elif defined(__INTEL_COMPILER) // https://software.intel.com/en-us/node/524490
-#       ifdef __INTEL_CXX17_MODE__ // not sure about this
+#       ifdef __INTEL_CXX20_MODE__ // not sure about this
+#           define C4_CPP 20
+#           define C4_CPP20
+#       elif defined __INTEL_CXX17_MODE__ // not sure about this
 #           define C4_CPP 17
 #           define C4_CPP17
 #       elif defined __INTEL_CXX14_MODE__ // not sure about this
@@ -59,6 +65,9 @@
 #       endif
 #       if __cplusplus == 1
 #           error cannot handle __cplusplus==1
+#       elif __cplusplus >= 202002L
+#           define C4_CPP 20
+#           define C4_CPP20
 #       elif __cplusplus >= 201703L
 #           define C4_CPP 17
 #           define C4_CPP17
@@ -73,7 +82,9 @@
 #       endif
 #   endif
 #else
-#   ifdef C4_CPP == 17
+#   ifdef C4_CPP == 20
+#       define C4_CPP20
+#   elif C4_CPP == 17
 #       define C4_CPP17
 #   elif C4_CPP == 14
 #       define C4_CPP14
@@ -83,11 +94,15 @@
 #       define C4_CPP98
 #       error C++ lesser than C++11 not supported
 #   else
-#       error C4_CPP must be one of 17, 14, 11, 98
+#       error C4_CPP must be one of 20, 17, 14, 11, 98
 #   endif
 #endif
 
-#ifdef C4_CPP17
+#ifdef C4_CPP20
+#   define C4_CPP17
+#   define C4_CPP14
+#   define C4_CPP11
+#elif defined(C4_CPP17)
 #   define C4_CPP14
 #   define C4_CPP11
 #elif defined(C4_CPP14)

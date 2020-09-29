@@ -77,7 +77,14 @@ struct cref_uses_val
     enum { value = (
     std::is_scalar<T>::value
     ||
-    (std::is_pod<T>::value && sizeof(T) <= sizeof(size_t))) };
+    (
+#if C4_CPP >= 20
+        (std::is_trivially_copyable<T>::value && std::is_standard_layout<T>::value)
+#else
+        std::is_pod<T>::value
+#endif
+        &&
+        sizeof(T) <= sizeof(size_t))) };
 };
 /** utility macro to override the default behaviour for c4::fastcref<T>
  @see fastcref */
