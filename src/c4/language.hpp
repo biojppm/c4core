@@ -65,7 +65,7 @@
 #       endif
 #       if __cplusplus == 1
 #           error cannot handle __cplusplus==1
-#       elif __cplusplus >= 202002L
+#       elif __cplusplus >= 201709L
 #           define C4_CPP 20
 #           define C4_CPP20
 #       elif __cplusplus >= 201703L

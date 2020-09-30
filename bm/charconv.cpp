@@ -20,7 +20,7 @@
 // makes the program return a nonzero exit code when it finishes. So
 // we resort to the preprocessor to conditionally disable these
 // benchmarks
-#if C4_CPP >= 17
+#if C4_CPP >= 17 && defined(__cpp_lib_to_chars)
 #define BENCHMARK_TEMPLATE_CPP17(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__)
 #else
 #define BENCHMARK_TEMPLATE_CPP17(...) void shutup_extra_semicolon()
@@ -611,7 +611,7 @@ xtoa_c4_to_chars(bm::State& st)
     report<T>(st);
 }
 
-#if (C4_CPP >= 17)
+#if (C4_CPP >= 17) && defined(__cpp_lib_to_chars)
 C4FOR(T, isint)
 xtoa_std_to_chars(bm::State& st)
 {
@@ -658,8 +658,8 @@ atox_std_from_chars(bm::State& st)
     T val;
     for(auto _ : st)
     {
-        c4::csubstr buf = rans.next();
-        std::from_chars(buf.begin(), buf.end(), val);
+        c4::csubstr sbuf = rans.next();
+        std::from_chars(sbuf.begin(), sbuf.end(), val);
     }
     report<T>(st);
 }

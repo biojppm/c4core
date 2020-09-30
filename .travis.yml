@@ -25,19 +25,28 @@ matrix:
     - env: CXX_=g++-7     BT=Coverage STD=14
     - env: CXX_=g++-7     BT=Coverage STD=17
 
-    - env: CXX_=g++-9     BT=Debug   STD=11         VG=ON
-    - env: CXX_=g++-9     BT=Release STD=11         VG=ON
-    - env: CXX_=g++-9     BT=Debug   STD=14         VG=ON
-    - env: CXX_=g++-9     BT=Release STD=14         VG=ON
-    - env: CXX_=g++-9     BT=Debug   STD=17         VG=ON
-    - env: CXX_=g++-9     BT=Release STD=17         VG=ON
+    - env: CXX_=g++-10     BT=Debug   STD=11         VG=ON
+    - env: CXX_=g++-10     BT=Release STD=11         VG=ON
+    - env: CXX_=g++-10     BT=Debug   STD=14         VG=ON
+    - env: CXX_=g++-10     BT=Release STD=14         VG=ON
+    - env: CXX_=g++-10     BT=Debug   STD=17         VG=ON
+    - env: CXX_=g++-10     BT=Release STD=17         VG=ON
+    - env: CXX_=g++-10     BT=Debug   STD=20         VG=ON
+    - env: CXX_=g++-10     BT=Release STD=20         VG=ON
 
-    - env: CXX_=clang++-9 BT=Debug   STD=11 SAN=ALL VG=ON
-    - env: CXX_=clang++-9 BT=Release STD=11 SAN=ALL VG=ON
-    - env: CXX_=clang++-9 BT=Debug   STD=14 SAN=ALL VG=ON
-    - env: CXX_=clang++-9 BT=Release STD=14 SAN=ALL VG=ON
-    - env: CXX_=clang++-9 BT=Debug   STD=17 SAN=ALL VG=ON
-    - env: CXX_=clang++-9 BT=Release STD=17 SAN=ALL VG=ON
+    - env: CXX_=clang++-10 BT=Debug   STD=11 SAN=ALL VG=ON
+    - env: CXX_=clang++-10 BT=Release STD=11 SAN=ALL VG=ON
+    - env: CXX_=clang++-10 BT=Debug   STD=14 SAN=ALL VG=ON
+    - env: CXX_=clang++-10 BT=Release STD=14 SAN=ALL VG=ON
+    - env: CXX_=clang++-10 BT=Debug   STD=17 SAN=ALL VG=ON
+    - env: CXX_=clang++-10 BT=Release STD=17 SAN=ALL VG=ON
+    - env: CXX_=clang++-10 BT=Debug   STD=20 SAN=ALL VG=ON
+    - env: CXX_=clang++-10 BT=Release STD=20 SAN=ALL VG=ON
+
+    - env: CXX_=g++-9      BT=Debug
+    - env: CXX_=g++-9      BT=Release
+    - env: CXX_=clang++-9  BT=Debug
+    - env: CXX_=clang++-9  BT=Release
 
     - env: CXX_=g++-8      BT=Debug
     - env: CXX_=g++-8      BT=Release
