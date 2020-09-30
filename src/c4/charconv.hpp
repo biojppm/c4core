@@ -472,7 +472,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
     else
     {
         C4_ASSERT(str.len > start);
-        if(str.len == start+1 || str.first_not_of('0', start) == csubstr::npos)
+        if(str.len == start+1)
         {
             *v = 0; // because the first character is 0
             return true;
@@ -515,7 +515,17 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
             }
             else
             {
-                return false;
+                // we know the first character is 0
+                auto fno = str.first_not_of('0', start + 1);
+                if(fno == csubstr::npos)
+                {
+                    *v = 0;
+                    return true;
+                }
+                if(C4_UNLIKELY( ! detail::read_dec(str.sub(fno), v)))
+                {
+                    return false;
+                }
             }
         }
     }
@@ -571,9 +581,9 @@ bool atou(csubstr str, T * C4_RESTRICT v)
     }
     else
     {
-        if(str.len == 1 || str.first_not_of('0') == csubstr::npos)
+        if(str.len == 1)
         {
-            *v = 0; // because from above we know the first character is 0
+            *v = 0; // we know the first character is 0
             return true;
         }
         else
@@ -605,7 +615,14 @@ bool atou(csubstr str, T * C4_RESTRICT v)
             }
             else
             {
-                return false;
+                // we know the first character is 0
+                auto fno = str.first_not_of('0');
+                if(fno == csubstr::npos)
+                {
+                    *v = 0;
+                    return true;
+                }
+                return detail::read_dec(str.sub(fno), v);
             }
         }
     }

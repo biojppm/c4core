@@ -247,6 +247,11 @@ TEST_CASE("read_dec.fail")
     CHECK_EQ(dec, 0);
     CHECK_UNARY(atoi("00010", &dec));
     CHECK_EQ(dec, 10);
+    uint32_t udec = 1;
+    CHECK_TRUE(atou("00000", &udec));
+    CHECK_EQ(udec, 0);
+    CHECK_TRUE(atou("00010", &udec));
+    CHECK_EQ(udec, 10);
 }
 
 TEST_CASE("read_hex.fail")
@@ -256,15 +261,15 @@ TEST_CASE("read_hex.fail")
     CHECK_UNARY(detail::read_hex("00000", &dec));
     CHECK_EQ(dec, 0);
     dec = 1;
-    CHECK_UNARY(atoi("0x00000", &dec));
+    CHECK_TRUE(atoi("0x00000", &dec));
     CHECK_EQ(dec, 0);
-    CHECK_UNARY(atoi("0x00010", &dec));
+    CHECK_TRUE(atoi("0x00010", &dec));
     CHECK_EQ(dec, 16);
-    dec = 1;
-    CHECK_UNARY(atoi("0X00000", &dec));
-    CHECK_EQ(dec, 0);
-    CHECK_UNARY(atoi("0X00010", &dec));
-    CHECK_EQ(dec, 16);
+    uint32_t udec = 1;
+    CHECK_TRUE(atou("0X00000", &udec));
+    CHECK_EQ(udec, 0);
+    CHECK_TRUE(atou("0X00010", &udec));
+    CHECK_EQ(udec, 16);
 }
 
 TEST_CASE("read_oct.fail")
@@ -273,16 +278,15 @@ TEST_CASE("read_oct.fail")
     CHECK_UNARY_FALSE(detail::read_oct("zzzz", &dec));
     CHECK_UNARY(detail::read_oct("00000", &dec));
     CHECK_EQ(dec, 0);
-    dec = 1;
-    CHECK_UNARY(atoi("0o00000", &dec));
+    CHECK_TRUE(atoi("0o00000", &dec));
     CHECK_EQ(dec, 0);
-    CHECK_UNARY(atoi("0o00010", &dec));
+    CHECK_TRUE(atoi("0o00010", &dec));
     CHECK_EQ(dec, 8);
-    dec = 1;
-    CHECK_UNARY(atoi("0O00000", &dec));
-    CHECK_EQ(dec, 0);
-    CHECK_UNARY(atoi("0O00010", &dec));
-    CHECK_EQ(dec, 8);
+    uint32_t udec = 1;
+    CHECK_TRUE(atou("0O00000", &udec));
+    CHECK_EQ(udec, 0);
+    CHECK_TRUE(atou("0O00010", &udec));
+    CHECK_EQ(udec, 8);
 }
 
 TEST_CASE("read_bin.fail")
@@ -292,15 +296,15 @@ TEST_CASE("read_bin.fail")
     CHECK_UNARY(detail::read_bin("00000", &dec));
     CHECK_EQ(dec, 0);
     dec = 1;
-    CHECK_UNARY(atoi("0b00000", &dec));
+    CHECK_TRUE(atoi("0b00000", &dec));
     CHECK_EQ(dec, 0);
-    CHECK_UNARY(atoi("0b00010", &dec));
+    CHECK_TRUE(atoi("0b00010", &dec));
     CHECK_EQ(dec, 2);
-    dec = 1;
-    CHECK_UNARY(atoi("0B00000", &dec));
-    CHECK_EQ(dec, 0);
-    CHECK_UNARY(atoi("0B00010", &dec));
-    CHECK_EQ(dec, 2);
+    uint32_t udec = 1;
+    CHECK_TRUE(atou("0B00000", &udec));
+    CHECK_EQ(udec, 0);
+    CHECK_TRUE(atou("0B00010", &udec));
+    CHECK_EQ(udec, 2);
 }
 
 template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class Atoi, class I>
@@ -622,22 +626,22 @@ TEST_CASE("atou.bin")
     type val;                                               \
                                                             \
     bool ok = ato##i_or_u(numstr, &val);                    \
-    EXPECT_TRUE(ok) << numstr;                              \
-    EXPECT_EQ(val, type(expected)) << numstr;               \
+    CHECK_TRUE(ok) << numstr;                              \
+    CHECK_EQ(val, type(expected)) << numstr;               \
                                                             \
     ok = atox(numstr, &val);                                \
-    EXPECT_TRUE(ok) << numstr;                              \
-    EXPECT_EQ(val, type(expected)) << "atox:" << numstr;    \
+    CHECK_TRUE(ok) << numstr;                              \
+    CHECK_EQ(val, type(expected)) << "atox:" << numstr;    \
 }
 
 #define _C4PARSE_F(i_or_u, type, numstr)        \
 {                                               \
     type val;                                   \
     bool ok = ato##i_or_u(numstr, &val);        \
-    EXPECT_FALSE(ok) << numstr;                 \
+    CHECK_FALSE(ok) << numstr;                 \
                                                 \
     ok = atox(numstr, &val);                    \
-    EXPECT_FALSE(ok) << "atox:" << numstr;      \
+    CHECK_FALSE(ok) << "atox:" << numstr;      \
 }
 
 TEST(atoi, empty_i8)
@@ -845,46 +849,46 @@ TEST(atou, empty_u64)
                                                                         \
                                                                         \
     ok = ato##i_or_u(dec, &val);                                        \
-    EXPECT_TRUE(ok) << "dec:" << hex;                                   \
-    EXPECT_EQ(val, type(expected)) << "dec=" << dec;                    \
+    CHECK_TRUE(ok) << "dec:" << hex;                                   \
+    CHECK_EQ(val, type(expected)) << "dec=" << dec;                    \
                                                                         \
     ok = ato##i_or_u(hex, &val);                                        \
-    EXPECT_TRUE(ok) << "dec:" << dec << "  hex:" << hex;                \
-    EXPECT_EQ(val, type(expected)) << "dec=" << dec << "  hex=" << hex; \
+    CHECK_TRUE(ok) << "dec:" << dec << "  hex:" << hex;                \
+    CHECK_EQ(val, type(expected)) << "dec=" << dec << "  hex=" << hex; \
                                                                         \
     ok = ato##i_or_u(oct, &val);                                        \
-    EXPECT_TRUE(ok) << "dec:" << dec << "  oct:" << oct;                \
-    EXPECT_EQ(val, type(expected)) << "dec=" << dec << "  oct=" << oct; \
+    CHECK_TRUE(ok) << "dec:" << dec << "  oct:" << oct;                \
+    CHECK_EQ(val, type(expected)) << "dec=" << dec << "  oct=" << oct; \
                                                                         \
     ok = ato##i_or_u(bin, &val);                                        \
-    EXPECT_TRUE(ok) << "dec:" << dec << "  bin" << bin;                 \
-    EXPECT_EQ(val, type(expected)) << "dec=" << dec << "  bin=" << bin; \
+    CHECK_TRUE(ok) << "dec:" << dec << "  bin" << bin;                 \
+    CHECK_EQ(val, type(expected)) << "dec=" << dec << "  bin=" << bin; \
                                                                         \
                                                                         \
     ok = atox(dec, &val);                                               \
-    EXPECT_TRUE(ok) << "atox: dec:" << hex;                             \
-    EXPECT_EQ(val, type(expected)) << "atox: dec=" << dec;              \
+    CHECK_TRUE(ok) << "atox: dec:" << hex;                             \
+    CHECK_EQ(val, type(expected)) << "atox: dec=" << dec;              \
                                                                         \
     ok = atox(hex, &val);                                               \
-    EXPECT_TRUE(ok) << "atox: dec:" << dec << "  hex:" << hex;          \
-    EXPECT_EQ(val, type(expected)) << "atox: dec=" << dec << "  hex=" << hex; \
+    CHECK_TRUE(ok) << "atox: dec:" << dec << "  hex:" << hex;          \
+    CHECK_EQ(val, type(expected)) << "atox: dec=" << dec << "  hex=" << hex; \
                                                                         \
     ok = atox(oct, &val);                                               \
-    EXPECT_TRUE(ok) << "atox: dec:" << dec << "  oct:" << oct;          \
-    EXPECT_EQ(val, type(expected)) << "atox: dec=" << dec << "  oct=" << oct; \
+    CHECK_TRUE(ok) << "atox: dec:" << dec << "  oct:" << oct;          \
+    CHECK_EQ(val, type(expected)) << "atox: dec=" << dec << "  oct=" << oct; \
                                                                         \
     ok = atox(bin, &val);                                               \
-    EXPECT_TRUE(ok) << "atox: dec:" << dec << "  bin" << bin;           \
-    EXPECT_EQ(val, type(expected)) << "atox: dec=" << dec << "  bin=" << bin; \
+    CHECK_TRUE(ok) << "atox: dec:" << dec << "  bin" << bin;           \
+    CHECK_EQ(val, type(expected)) << "atox: dec=" << dec << "  bin=" << bin; \
 }
 
 #define _C4PARSE_F(i_or_u, type, numstr)        \
 {                                               \
     type val;                                   \
     bool ok = ato##i_or_u(numstr, &val);        \
-    EXPECT_FALSE(ok) << numstr;                 \
+    CHECK_FALSE(ok) << numstr;                 \
     ok = atox(numstr, &val);                    \
-    EXPECT_FALSE(ok) << "atox:" << numstr;      \
+    CHECK_FALSE(ok) << "atox:" << numstr;      \
 }
 
 TEST(atoi, range_i8)
@@ -1265,20 +1269,20 @@ TEST_CASE("scan_one_real.exponent_representation")
     prf( 2e-4);
     prf(12.375);
 
-    EXPECT_EQ(rfloat::num_exp_bits, 8);
-    EXPECT_EQ(rdouble::num_exp_bits, 11);
+    CHECK_EQ(rfloat::num_exp_bits, 8);
+    CHECK_EQ(rdouble::num_exp_bits, 11);
 
-    EXPECT_EQ(rfloat::exp_bias, 127);
-    EXPECT_EQ(rdouble::exp_bias, 1023);
+    CHECK_EQ(rfloat::exp_bias, 127);
+    CHECK_EQ(rdouble::exp_bias, 1023);
 
-    //EXPECT_EQ(rfloat(0.f).get_exp(), 0);
-    //EXPECT_EQ(rfloat(1.f).get_exp(), 127);
-    //EXPECT_EQ(rfloat(1.f).get_exp_r(), 1.f);
-    //EXPECT_EQ(rfloat(-1.f).get_exp(), 127);
-    //EXPECT_EQ(rfloat(-1.f).get_exp_r(), 1.f);
-    //EXPECT_EQ(rfloat(1e1f).get_exp(), 130);
-    //EXPECT_EQ(rfloat(1e1f).get_exp_r(), 8.f);
-    //EXPECT_EQ(rfloat(0.15625f).get_exp(), 124);
+    //CHECK_EQ(rfloat(0.f).get_exp(), 0);
+    //CHECK_EQ(rfloat(1.f).get_exp(), 127);
+    //CHECK_EQ(rfloat(1.f).get_exp_r(), 1.f);
+    //CHECK_EQ(rfloat(-1.f).get_exp(), 127);
+    //CHECK_EQ(rfloat(-1.f).get_exp_r(), 1.f);
+    //CHECK_EQ(rfloat(1e1f).get_exp(), 130);
+    //CHECK_EQ(rfloat(1e1f).get_exp_r(), 8.f);
+    //CHECK_EQ(rfloat(0.15625f).get_exp(), 124);
 }
 
 
@@ -1774,9 +1778,9 @@ TEST(to_chars, substr_enough_size)
     char result_[20];
     substr result = result_;
     size_t len = to_chars(result, orig);
-    EXPECT_EQ(len, orig.len);
-    EXPECT_NE(result.str, orig.str);
-    EXPECT_EQ(result.first(10), orig);
+    CHECK_EQ(len, orig.len);
+    CHECK_NE(result.str, orig.str);
+    CHECK_EQ(result.first(10), orig);
 }
 
 TEST(to_chars, substr_insufficient_size)
@@ -1787,22 +1791,22 @@ TEST(to_chars, substr_insufficient_size)
     substr result = result_;
     result.len = 5;
     size_t len = to_chars(result, orig);
-    EXPECT_EQ(len, orig.len);
-    EXPECT_NE(result.str, orig.str);
-    EXPECT_EQ(result.first(5), "01234");
-    EXPECT_EQ(substr(result_).last(5), "\0\0\0\0\0");
+    CHECK_EQ(len, orig.len);
+    CHECK_NE(result.str, orig.str);
+    CHECK_EQ(result.first(5), "01234");
+    CHECK_EQ(substr(result_).last(5), "\0\0\0\0\0");
 }
 
 TEST(from_chars, csubstr)
 {
     csubstr orig = "0123456789";
     csubstr result;
-    EXPECT_NE(result.str, orig.str);
-    EXPECT_NE(result.len, orig.len);
+    CHECK_NE(result.str, orig.str);
+    CHECK_NE(result.len, orig.len);
     bool ok = from_chars(orig, &result);
-    EXPECT_TRUE(ok);
-    EXPECT_EQ(result.str, orig.str);
-    EXPECT_EQ(result.len, orig.len);
+    CHECK_TRUE(ok);
+    CHECK_EQ(result.str, orig.str);
+    CHECK_EQ(result.len, orig.len);
 }
 
 TEST(from_chars, substr_enough_size)
@@ -1811,13 +1815,13 @@ TEST(from_chars, substr_enough_size)
     substr result = buf_;
     for(char r : result)
     {
-        EXPECT_EQ(r, '\0');
+        CHECK_EQ(r, '\0');
     }
     bool ok = from_chars("0123456789", &result);
-    EXPECT_TRUE(ok);
-    EXPECT_EQ(result.len, 10);
-    EXPECT_EQ(result.str, buf_);
-    EXPECT_EQ(result, "0123456789");
+    CHECK_TRUE(ok);
+    CHECK_EQ(result.len, 10);
+    CHECK_EQ(result.str, buf_);
+    CHECK_EQ(result, "0123456789");
 }
 
 TEST(from_chars, substr_insufficient_size)
@@ -1826,10 +1830,10 @@ TEST(from_chars, substr_insufficient_size)
     substr buf = buf_;
     buf.len = 0;
     bool ok = from_chars("0123456789", &buf);
-    EXPECT_FALSE(ok);
+    CHECK_FALSE(ok);
     for(size_t i = 0; i < 10; ++i)
     {
-        EXPECT_EQ(buf_[i], '\0');
+        CHECK_EQ(buf_[i], '\0');
     }
 }
 
