@@ -42,6 +42,7 @@
 #   pragma warning(disable:4127)   // conditional expression is constant
 #   pragma warning(disable:4189)   // local variable is initialized but not referenced
 #   pragma warning(disable:4389)   // '==': signed/unsigned mismatch
+#   pragma warning(disable:4702)   // unreachable code
 #endif
 
 #endif /* _C4_LIBTEST_SUPPRWARN_PUSH_HPP_ */

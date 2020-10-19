@@ -7,7 +7,6 @@ project(c4core
 c4_project(VERSION 0.0.1
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
-
 set(C4CORE_EXT_TO_INSTALL
     ${C4CORE_SRC_DIR}/c4/ext/debugbreak/debugbreak.h
     ${C4CORE_SRC_DIR}/c4/ext/sg14/inplace_function.h

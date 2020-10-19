@@ -1,9 +1,43 @@
 c4_setup_benchmarking()
 
+#----------------------------------------------
+
+# libraries to compare
+
+c4_require_subproject(fp
+  REMOTE
+    GIT_REPOSITORY https://github.com/jk-jeon/fp
+    GIT_TAG master
+  OVERRIDE
+    #JKJ_FP_ENABLE_SUBPROJECT ON
+    )
+
+c4_require_subproject(fast_float
+  REMOTE
+    GIT_REPOSITORY https://github.com/lemire/fast_float
+    GIT_TAG v0.1.0)
+
+# ryu requires too much code; use an include for clarity
+include(./ryu.cmake)
+
+#----------------------------------------------
+
 c4_add_executable(c4core-bm-charconv
     SOURCES bm_charconv.cpp
-    LIBS c4core benchmark
+    LIBS c4core benchmark ryu_c4 fast_float
     FOLDER bm)
+
+get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)
+if(cxx_std_17 IN_LIST known_features)
+    target_link_libraries(c4core-bm-charconv PRIVATE jkj_fp)
+endif()
 
 c4_add_target_benchmark(c4core-bm-charconv xtoa FILTER "^xtoa_")
 c4_add_target_benchmark(c4core-bm-charconv atox FILTER "^atox_")
+
+#----------------------------------------------
+
+option(C4CORE_BM_FLOAT_CMP "compare between alternative implementations for reading/writing floats" ON)
+if(C4CORE_BM_FLOAT_CMP)
+    add_subdirectory(float)
+endif()

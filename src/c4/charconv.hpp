@@ -15,6 +15,7 @@
 #include "c4/config.hpp"
 #include "c4/substr.hpp"
 #include "c4/memory_util.hpp"
+#include "c4/szconv.hpp"
 
 #if (C4_CPP >= 17)
 #   if defined(_MSC_VER)
@@ -36,6 +37,9 @@
 #else
 #   define C4CORE_HAVE_STD_TOCHARS 0
 #endif
+
+//#include <d:/proj/extern/ryu/ryu/ryu.h>
+//#include <d:/proj/extern/ryu/ryu/ryu_parse.h>
 
 #ifdef _MSC_VER
 #   pragma warning(push)
@@ -781,7 +785,6 @@ struct real
     /** @p exponent is the base-10 exponent */
     C4_ALWAYS_INLINE T setfrom10(utype integral, utype num_frac_zeros, utype fractional, stype exponent)
     {
-        utype mantissa;
         utype b = 0;
         // TODO convert exponent from base 10 to base 2, adjust integral and/or fractional as needed
         if(integral)
@@ -885,7 +888,7 @@ struct real
 
     //------------------------------------
 
-    constexpr static inline utype get_mask(int start, int end)
+    C4_CONSTEXPR14 static inline utype get_mask(int start, int end)
     {
         utype r = 0;
         constexpr const utype o = 1;
@@ -1022,7 +1025,7 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
      * So the final format ends up as "%12f%n"*/
     int iret = snprintf(fmt, sizeof(fmt), "%%" "%zu" "%s" "%%n", str.len, type_fmt);
     /* no nasty surprises, please! */
-    C4_ASSERT(iret >= 0 && size_t(iret) < sizeof(fmt));
+    C4_ASSERT(iret >= 0 && size_t(iret) < C4_COUNTOF(fmt));
 
     /* now we scan with confidence that the span length is respected */
     int num_chars;
@@ -1032,6 +1035,63 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
     C4_ASSERT(num_chars >= 0);
     return (size_t)(num_chars);
 }
+
+
+//C4_ALWAYS_INLINE bool scan_one_ryu(csubstr str, float *v)
+//{
+//    if(C4_UNLIKELY(str.len == 0)) return false;
+//    return SUCCESS == s2f_n(str.str, static_cast<int>(str.len), v);
+//}
+//
+//C4_ALWAYS_INLINE bool scan_one_ryu(csubstr str, double *v)
+//{
+//    if(C4_UNLIKELY(str.len == 0)) return false;
+//    return SUCCESS == s2d_n(str.str, static_cast<int>(str.len), v);
+//}
+//
+//C4_ALWAYS_INLINE size_t print_one_ryu(substr buf, float v)
+//{
+//    int iret = f2s_buffered_sz(v, buf.str, szconv<int>(buf.len));
+//    C4_ASSERT(iret >= 0);
+//    return (size_t)(iret);
+//}
+//
+//C4_ALWAYS_INLINE size_t print_one_ryu(substr buf, double v)
+//{
+//    int iret = d2s_buffered_sz(v, buf.str, szconv<int>(buf.len));
+//    C4_ASSERT(iret >= 0);
+//    return (size_t)(iret);
+//}
+//
+//C4_ALWAYS_INLINE size_t print_one_ryu_fixed(substr buf, float v, uint32_t precision)
+//{
+//    precision = precision > 6 ? 6 : precision;
+//    int iret = d2fixed_buffered_sz((double)v, precision, buf.str, szconv<int>(buf.len));
+//    C4_ASSERT(iret >= 0);
+//    return (size_t)(iret);
+//}
+//
+//C4_ALWAYS_INLINE size_t print_one_ryu_fixed(substr buf, double v, uint32_t precision)
+//{
+//    int iret = d2fixed_buffered_sz(v, precision, buf.str, szconv<int>(buf.len));
+//    C4_ASSERT(iret >= 0);
+//    return (size_t)(iret);
+//}
+//
+//C4_ALWAYS_INLINE size_t print_one_ryu_exp(substr buf, float v, uint32_t precision)
+//{
+//    precision = precision > 6 ? 6 : precision;
+//    int iret = d2exp_buffered_sz((float)v, precision, buf.str, szconv<int>(buf.len));
+//    C4_ASSERT(iret >= 0);
+//    return (size_t)(iret);
+//}
+//
+//C4_ALWAYS_INLINE size_t print_one_ryu_exp(substr buf, double v, uint32_t precision)
+//{
+//    int iret = d2exp_buffered_sz(v, precision, buf.str, szconv<int>(buf.len));
+//    C4_ASSERT(iret >= 0);
+//    return (size_t)(iret);
+//}
 
 } // namespace detail
 
@@ -1137,7 +1197,7 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
 #else
-    size_t ret = detail::scan_one_real(str, v);
+    size_t ret = detail::scan_one(str, "f", v);
     return ret != csubstr::npos;
 #endif
 }
@@ -1158,7 +1218,7 @@ inline bool atod(csubstr str, double * C4_RESTRICT v)
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
 #else
-    size_t ret = detail::scan_one_real(str, v);
+    size_t ret = detail::scan_one(str, "lf", v);
     return ret != csubstr::npos;
 #endif
 }
