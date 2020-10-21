@@ -126,6 +126,9 @@ template<> struct fmt_wrapper<uint64_t> : public integral<uint64_t> { using inte
 #ifdef C4_IOS
 template<> struct fmt_wrapper<size_t> : public integral<size_t> { using integral<size_t>::integral; };
 #endif
+#ifdef C4_MACOS
+template<> struct fmt_wrapper<uintptr_t> : public integral<uintptr_t> { using integral<uintptr_t>::integral; };
+#endif
 
 
 /** format the integral argument as an hexadecimal value */
@@ -204,6 +207,13 @@ inline size_t to_chars(substr buf, fmt::fmt_wrapper< uint8_t> fmt) { return utoa
 inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
 inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
 inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
+
+#ifdef C4_IOS
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<size_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
+#endif
+#ifdef C4_MACOS
+inline size_t to_chars(substr buf, fmt::fmt_wrapper<uintptr_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
+#endif
 
 /** @} */
 
