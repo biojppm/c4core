@@ -60,7 +60,7 @@
 #   elif defined(__GNUC__)
 #   endif
 
-#   include <debugbreak/debugbreak.h>
+#   include <c4/ext/debugbreak/debugbreak.h>
 #   define C4_DEBUG_BREAK() if(c4::is_debugger_attached()) { ::debug_break(); }
 
 #   ifdef __clang__

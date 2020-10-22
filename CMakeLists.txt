@@ -9,14 +9,13 @@ c4_declare_project(c4core
     MAJOR 0 MINOR 0 RELEASE 1)
 
 set(C4CORE_EXT_TO_INSTALL
-    ${C4CORE_EXT_DIR}/debugbreak/debugbreak.h
-    ${C4CORE_EXT_DIR}/sg14/inplace_function.h
+    ${C4CORE_SRC_DIR}/c4/ext/debugbreak/debugbreak.h
+    ${C4CORE_SRC_DIR}/c4/ext/sg14/inplace_function.h
 )
 
 c4_add_library(c4core
     INC_DIRS
        $<BUILD_INTERFACE:${C4CORE_SRC_DIR}> $<INSTALL_INTERFACE:include>
-       $<BUILD_INTERFACE:${C4CORE_EXT_DIR}> $<INSTALL_INTERFACE:include/c4/ext>
     SOURCE_ROOT ${C4CORE_SRC_DIR}
     SOURCES
         c4/allocator.hpp
@@ -72,7 +71,7 @@ c4_add_library(c4core
 #-------------------------------------------------------
 
 c4_install_target(c4core)
-c4_install_target_add_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/ext" "${C4CORE_EXT_DIR}")
+c4_install_target_add_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/ext" "${C4CORE_SRC_DIR}/c4/ext")
 c4_install_exports()
 
 c4_add_dev_targets()
