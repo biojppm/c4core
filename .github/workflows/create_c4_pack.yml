@@ -14,6 +14,7 @@ jobs:
     # https://github.community/t/create-matrix-with-multiple-os-and-env-for-each-one/16895/6
     runs-on: ${{matrix.os}}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest

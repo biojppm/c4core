@@ -1034,6 +1034,16 @@ C4_TEST_ROUNDTRIP_INT(uint8_t)
 C4_TEST_ROUNDTRIP_INT(uint16_t)
 C4_TEST_ROUNDTRIP_INT(uint32_t)
 C4_TEST_ROUNDTRIP_INT(uint64_t)
+using ulong = unsigned long;
+using uint = unsigned int;
+C4_TEST_ROUNDTRIP_INT(int)
+C4_TEST_ROUNDTRIP_INT(uint)
+C4_TEST_ROUNDTRIP_INT(long)
+C4_TEST_ROUNDTRIP_INT(ulong)
+// in Mac, some of the following types are not the same as above:
+C4_TEST_ROUNDTRIP_INT(size_t)
+C4_TEST_ROUNDTRIP_INT(intptr_t)
+C4_TEST_ROUNDTRIP_INT(uintptr_t)
 
 #define C4_TEST_ROUNDTRIP_REAL(ty) \
 TEST(to_chars, roundtrip_##ty)\
