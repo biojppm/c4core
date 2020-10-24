@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#if defined(C4_POSIX) || defined(C4_IOS)
+#if defined(C4_POSIX) || defined(C4_IOS) || defined(C4_MACOS)
 #   include <errno.h>
 #endif
 
@@ -37,7 +37,7 @@ void* aalloc_impl(size_t size, size_t alignment)
 #if defined(C4_WIN) || defined(C4_XBOX)
     mem = ::_aligned_malloc(size, alignment);
     C4_CHECK(mem != nullptr || size == 0);
-#elif defined(C4_POSIX) || defined(C4_IOS)
+#elif defined(C4_POSIX) || defined(C4_IOS) || defined(C4_MACOS)
     // NOTE: alignment needs to be sized in multiples of sizeof(void*)
     size_t amult = alignment;
     if(C4_UNLIKELY(alignment < sizeof(void*)))

@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 3.2)
-project(c4core)
-
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 include(./cmake/c4Project.cmake)
+project(c4core
+    DESCRIPTION "Multiplatform low-level C++ utilities"
+    HOMEPAGE_URL "https://github.com/biojppm/c4core"
+    LANGUAGES CXX)
+c4_project(VERSION 0.0.1
+    AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
-c4_declare_project(c4core
-    DESC "Multiplatform low-level C++ utilities"
-    AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>"
-    MAJOR 0 MINOR 0 RELEASE 1)
 
 set(C4CORE_EXT_TO_INSTALL
     ${C4CORE_SRC_DIR}/c4/ext/debugbreak/debugbreak.h
@@ -73,5 +73,9 @@ c4_add_library(c4core
 c4_install_target(c4core)
 c4_install_target_add_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/ext" "${C4CORE_SRC_DIR}/c4/ext")
 c4_install_exports()
+c4_pack_project()
 
 c4_add_dev_targets()
+
+c4_set_default_pack_properties(TYPE LIBRARY)
+include(CPack)
