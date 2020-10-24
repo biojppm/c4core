@@ -29,8 +29,8 @@ inline time_type exetime()
 /** do a spin loop for at least the given time */
 inline void busy_wait(time_type microsecs)
 {
-    time_type start = currtime();
-    while(currtime() - start < microsecs)
+    time_type end = currtime() + microsecs;
+    while(currtime() < end)
     {
         C4_KEEP_EMPTY_LOOP;
     }
