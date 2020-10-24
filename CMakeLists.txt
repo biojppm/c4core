@@ -73,6 +73,7 @@ c4_add_library(c4core
 c4_install_target(c4core)
 c4_install_target_add_files(c4core "${C4CORE_EXT_TO_INSTALL}" "include/c4/ext" "${C4CORE_SRC_DIR}/c4/ext")
 c4_install_exports()
+c4_pack_project()
 
 c4_add_dev_targets()
 
