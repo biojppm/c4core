@@ -11,6 +11,14 @@
 #include <limits>
 #include <utility>
 
+#include "c4/config.hpp"
+#include "c4/substr.hpp"
+#include "c4/memory_util.hpp"
+
+#if (defined(C4_WIN) || defined(C4_MACOS) || defined(C4_IOS) || (defined(C4_UNIX) && defined(C4_CPU_X86)))
+#   define C4CORE_LONG_CHARCONV
+#endif
+
 #if (C4_CPP >= 17)
 #   if defined(_MSC_VER)
 #       if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
@@ -31,10 +39,6 @@
 #else
 #   define C4CORE_HAVE_STD_TOCHARS 0
 #endif
-
-#include "c4/config.hpp"
-#include "c4/substr.hpp"
-#include "c4/memory_util.hpp"
 
 #ifdef _MSC_VER
 #   pragma warning(push)
@@ -1035,19 +1039,20 @@ inline bool from_chars(csubstr buf, ty * C4_RESTRICT v)                 \
 //_C4_DEFINE_TO_FROM_CHARS( int64_t, PRId64/*"%lld"*/, SCNd64/*"%lld"*/)
 //_C4_DEFINE_TO_FROM_CHARS(uint64_t, PRIu64/*"%llu"*/, SCNu64/*"%llu"*/)
 _C4_DEFINE_TO_FROM_CHARS(void*   , "p"             , "p"             )
-_C4_DEFINE_TO_FROM_CHARS_TOA(   float, f)
-_C4_DEFINE_TO_FROM_CHARS_TOA(  double, d)
-_C4_DEFINE_TO_FROM_CHARS_TOA(  int8_t, i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int16_t, i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int32_t, i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int64_t, i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( uint8_t, u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint16_t, u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint32_t, u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint64_t, u)
+_C4_DEFINE_TO_FROM_CHARS_TOA(   float     , f)
+_C4_DEFINE_TO_FROM_CHARS_TOA(  double     , d)
+_C4_DEFINE_TO_FROM_CHARS_TOA(  int8_t     , i)
+_C4_DEFINE_TO_FROM_CHARS_TOA( int16_t     , i)
+_C4_DEFINE_TO_FROM_CHARS_TOA( int32_t     , i)
+_C4_DEFINE_TO_FROM_CHARS_TOA( int64_t     , i)
+_C4_DEFINE_TO_FROM_CHARS_TOA( uint8_t     , u)
+_C4_DEFINE_TO_FROM_CHARS_TOA(uint16_t     , u)
+_C4_DEFINE_TO_FROM_CHARS_TOA(uint32_t     , u)
+_C4_DEFINE_TO_FROM_CHARS_TOA(uint64_t     , u)
 
-#ifdef C4_IOS
-_C4_DEFINE_TO_FROM_CHARS_TOA(size_t, u)
+#ifdef C4CORE_LONG_CHARCONV
+_C4_DEFINE_TO_FROM_CHARS_TOA(long         , i)
+_C4_DEFINE_TO_FROM_CHARS_TOA(unsigned long, u)
 #endif
 
 #undef _C4_DEFINE_TO_FROM_CHARS

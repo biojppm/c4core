@@ -54,7 +54,7 @@
 #else
 #   ifdef __clang__
 #       pragma clang diagnostic push
-#       if (__clang_major__ >= 10)
+#       if (__clang_major__ >= 10) && !defined(__apple_build_version__)
 #           pragma clang diagnostic ignored "-Wgnu-inline-cpp-without-extern" // debugbreak/debugbreak.h:50:16: error: 'gnu_inline' attribute without 'extern' in C++ treated as externally available, this changed in Clang 10 [-Werror,-Wgnu-inline-cpp-without-extern]
 #       endif
 #   elif defined(__GNUC__)
