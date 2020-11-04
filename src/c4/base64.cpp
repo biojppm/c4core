@@ -6,6 +6,7 @@
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wchar-subscripts"
+#   pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
 namespace c4 {
@@ -86,13 +87,6 @@ bool base64_valid(csubstr encoded)
 
 size_t base64_encode(substr buf, cblob data)
 {
-    #ifdef __clang__
-    #    pragma clang diagnostic push
-    #elif defined(__GNUC__)
-    #    pragma GCC diagnostic push
-    #    pragma GCC diagnostic ignored "-Wstrict-aliasing" // error: dereferencing type-punned pointer will break strict-aliasing rules
-    #endif
-
     #define c4append_(c) { if(pos < buf.len) { buf.str[pos] = (c); } ++pos; }
     #define c4append_idx_(char_idx) \
     {\
@@ -105,8 +99,9 @@ size_t base64_encode(substr buf, cblob data)
     const char *C4_RESTRICT d = data.buf;
     for(rem = data.len; rem >= 3; rem -= 3, d += 3)
     {
-        const char vb[4] = {d[2], d[1], d[0], 0};
-        uint32_t val = *reinterpret_cast<const uint32_t*>(vb);
+        //const uint32_t val = c4asuint32(d[2], d[1], d[0], 0);
+        //const uint32_t val = ((uint32_t(d[2]) << 24) | (uint32_t(d[1]) << 16) | (uint32_t(d[0]) << 8));
+        const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8) | (uint32_t(d[2])));
         c4append_idx_((val >> (3 * 6)) & sextet_mask);
         c4append_idx_((val >> (2 * 6)) & sextet_mask);
         c4append_idx_((val >> (1 * 6)) & sextet_mask);
@@ -115,8 +110,9 @@ size_t base64_encode(substr buf, cblob data)
     C4_ASSERT(rem < 3);
     if(rem == 2)
     {
-        const char vb[4] = {0, d[1], d[0], 0};
-        uint32_t val = *reinterpret_cast<const uint32_t*>(vb);
+        //const uint32_t val = c4asuint32(0, d[1], d[0], 0);
+        //const uint32_t val = ((uint32_t(d[1]) << 16) | (uint32_t(d[0]) << 8));
+        const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8));
         c4append_idx_((val >> (3 * 6)) & sextet_mask);
         c4append_idx_((val >> (2 * 6)) & sextet_mask);
         c4append_idx_((val >> (1 * 6)) & sextet_mask);
@@ -124,8 +120,8 @@ size_t base64_encode(substr buf, cblob data)
     }
     else if(rem == 1)
     {
-        const char vb[4] = {0, 0, d[0], 0};
-        uint32_t val = *reinterpret_cast<const uint32_t*>(vb);
+        //const uint32_t val = c4asuint32(0, 0, d[0], 0);
+        const uint32_t val = ((uint32_t(d[0]) << 16));
         c4append_idx_((val >> (3 * 6)) & sextet_mask);
         c4append_idx_((val >> (2 * 6)) & sextet_mask);
         c4append_('=');
@@ -135,12 +131,6 @@ size_t base64_encode(substr buf, cblob data)
 
     #undef c4append_
     #undef c4append_idx_
-
-    #ifdef __clang__
-    #    pragma clang diagnostic pop
-    #elif defined(__GNUC__)
-    #    pragma GCC diagnostic pop
-    #endif
 }
 
 
@@ -149,6 +139,7 @@ size_t base64_decode(csubstr encoded, blob data)
     #define c4append_(c) { if(wpos < data.len) { data.buf[wpos] = static_cast<c4::byte>(c); } ++wpos; }
     #define c4appendval_(c, shift)\
     {\
+        C4_XASSERT(c >= 0);\
         C4_XASSERT(size_t(c) < sizeof(detail::base64_char_to_sextet_));\
         val |= static_cast<uint32_t>(detail::base64_char_to_sextet_[(c)]) << ((shift) * 6);\
     }

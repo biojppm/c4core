@@ -3,8 +3,11 @@
 
 #include <stdlib.h>
 #include <string.h>
-#if defined(C4_POSIX) || defined(C4_IOS) || defined(C4_MACOS)
+#if defined(C4_POSIX) || defined(C4_IOS) || defined(C4_MACOS) || defined(C4_ARM)
 #   include <errno.h>
+#endif
+#if defined(C4_ARM)
+#   include <malloc.h>
 #endif
 
 #include <memory>
@@ -36,6 +39,11 @@ void* aalloc_impl(size_t size, size_t alignment)
     void *mem;
 #if defined(C4_WIN) || defined(C4_XBOX)
     mem = ::_aligned_malloc(size, alignment);
+    C4_CHECK(mem != nullptr || size == 0);
+#elif defined(C4_ARM)
+    // https://stackoverflow.com/questions/53614538/undefined-reference-to-posix-memalign-in-arm-gcc
+    // https://electronics.stackexchange.com/questions/467382/e2-studio-undefined-reference-to-posix-memalign/467753
+    mem = memalign(alignment, size);
     C4_CHECK(mem != nullptr || size == 0);
 #elif defined(C4_POSIX) || defined(C4_IOS) || defined(C4_MACOS)
     // NOTE: alignment needs to be sized in multiples of sizeof(void*)
