@@ -7,8 +7,13 @@ PROJ_DIR=$(pwd)
 
 function c4_show_info()
 {
-    echo "PROJ_PFX=$PROJ_PFX"
+    set +x
+    env | sort
     echo "PROJ_DIR=$PROJ_DIR"
+    echo "PROJ_PFX_TARGET=$PROJ_PFX_TARGET"
+    echo "PROJ_PFX_CMAKE=$PROJ_PFX_CMAKE"
+    echo "CMAKE_FLAGS=$CMAKE_FLAGS"
+    echo "NUM_JOBS_BUILD=$NUM_JOBS_BUILD"
     echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
     pwd
     ls -lFhp
@@ -21,15 +26,33 @@ function c4_show_info()
         fi
     done
     echo "CXX_=$CXX_"
-    echo "BT=$CXX_"
+    echo "BT=$BT"
     echo "LINT=$LINT"
     echo "SAN=$SAN"
     echo "SAN_ONLY=$SAN"
     echo "VG=$VG"
     echo "BM=$BM"
     echo "STD=$STD"
+    echo "ARM=$ARM"
     which cmake
     cmake --version
+    case "$CXX_" in
+        xcode)
+            # https://gist.github.com/nlutsenko/ee245fbd239087d22137
+            echo "number of cores=$(sysctl -n hw.ncpu)"
+            #defaults read com.apple.dt.xcodebuild | grep -i Number | grep -i Build
+            #defaults read com.apple.dt.Xcode | grep -i Number | grep -i Tasks
+            ;;
+        gcc*|g++*|*clang*)
+            echo "number of cores=$(nproc)"
+            $CXX_ --version
+            ;;
+    esac
+    set -x
+    git branch
+    git rev-parse HEAD
+    git tag || echo
+    git log -1 --format='%H'
 }
 
 function _c4bits()
@@ -66,31 +89,48 @@ function _c4skipbitlink()
 
 function c4_build_test()
 {
-    if _c4skipbitlink "$1" ; then return 0 ; fi
-    bits=$(_c4bits $1)
-    linktype=$(_c4linktype $1)
-    build_dir=`pwd`/build/$bits-$linktype   # see c4_cfg_test()
-    export CTEST_OUTPUT_ON_FAILURE=1
-    cmake --build $build_dir --target test-build
+    c4_build_target $* test-build
 }
 
 function c4_run_test()
 {
-    if _c4skipbitlink "$1" ; then return 0 ; fi
-    bits=$(_c4bits $1)
-    linktype=$(_c4linktype $1)
-    build_dir=`pwd`/build/$bits-$linktype   # see c4_cfg_test()
-    export CTEST_OUTPUT_ON_FAILURE=1
-    cmake --build $build_dir --target test
+    c4_run_target $* test
 }
 
-function c4_pack()
+function c4_build_target()  # runs in parallel
 {
     if _c4skipbitlink "$1" ; then return 0 ; fi
-    bits=$(_c4bits $1)
-    linktype=$(_c4linktype $1)
-    build_dir=`pwd`/build/$bits-$linktype   # see c4_cfg_test()
-    cmake --build $build_dir --target package
+    id=$1
+    target=$2
+    build_dir=`pwd`/build/$id
+    export CTEST_OUTPUT_ON_FAILURE=1
+    # watchout: the `--parallel` flag to `cmake --build` is broken:
+    # https://discourse.cmake.org/t/parallel-does-not-really-enable-parallel-compiles-with-msbuild/964/10
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/20564
+    cmake --build $build_dir --config $BT --target $target -- $(_c4_parallel_build_flags)
+}
+
+function c4_run_target()  # does not run in parallel
+{
+    if _c4skipbitlink "$1" ; then return 0 ; fi
+    id=$1
+    target=$2
+    build_dir=`pwd`/build/$id
+    export CTEST_OUTPUT_ON_FAILURE=1
+    cmake --build $build_dir --config $BT --target $target
+}
+
+function c4_package()
+{
+    if _c4skipbitlink "$1" ; then return 0 ; fi
+    id=$1
+    generator=$2
+    build_dir=`pwd`/build/$id
+    if [ -z "$generator" ] ; then
+        c4_run_target $id package
+    else
+        ( cd $build_dir ; cpack -G $generator )
+    fi
 }
 
 function c4_submit_coverage()
@@ -100,40 +140,61 @@ function c4_submit_coverage()
         return 0
     fi
     if _c4skipbitlink "$1" ; then return 0 ; fi
-    bits=$(_c4bits $1)
-    linktype=$(_c4linktype $1)
+    id=$1
     coverage_service=$2
-    build_dir=`pwd`/build/$bits-$linktype   # see c4_cfg_test()
-    if [ "$CXX_" == "xcode" ] && [ "$bits" == "32" ] ; then return 0 ; fi
+    build_dir=`pwd`/build/$id
     echo "Submitting coverage data: $build_dir --> $coverage_service"
-    cmake --build $build_dir --target c4core-coverage-submit-$coverage_service
+    cmake --build $build_dir --config $BT --target ${PROJ_PFX_TARGET}coverage-submit-$coverage_service
+}
+
+# WIP
+function c4_run_static_analysis()
+{
+    if _c4skipbitlink "$1" ; then return 0 ; fi
+    id=$1
+    linktype=$(_c4linktype $id)
+    build_dir=`pwd`/build/$id
+    # https://blog.kitware.com/static-checks-with-cmake-cdash-iwyu-clang-tidy-lwyu-cpplint-and-cppcheck/
+    pushd $PROJ_DIR
 }
 
 function c4_cfg_test()
 {
     if _c4skipbitlink "$1" ; then return 0 ; fi
-    bits=$(_c4bits $1)
-    linktype=$(_c4linktype $1)
+    id=$1
     #
-    build_dir=`pwd`/build/$bits-$linktype
-    install_dir=`pwd`/install/$bits-$linktype
+    build_dir=`pwd`/build/$id
+    install_dir=`pwd`/install/$id
     mkdir -p $build_dir
     mkdir -p $install_dir
     #
-    case "$linktype" in
-        static) _addcmkflags -DBUILD_SHARED_LIBS=OFF ;;
-        shared) _addcmkflags -DBUILD_SHARED_LIBS=ON ;;
-        *)
-            echo "ERROR: unknonwn linktype: $linktype"
+    if [ "$TOOLCHAIN" != "" ] ; then
+        toolchain_file=`pwd`/$TOOLCHAIN
+        if [ ! -f "$toolchain_file" ] ; then
+            echo "ERROR: toolchain not found: $toolchain_file"
             exit 1
-            ;;
-    esac
+        fi
+        _addcmkflags -DCMAKE_TOOLCHAIN_FILE=$toolchain_file
+    else
+        bits=$(_c4bits $id)
+        linktype=$(_c4linktype $id)
+        case "$linktype" in
+            static) _addcmkflags -DBUILD_SHARED_LIBS=OFF ;;
+            shared) _addcmkflags -DBUILD_SHARED_LIBS=ON ;;
+            *)
+                echo "ERROR: unknown linktype: $linktype"
+                exit 1
+                ;;
+        esac
+    fi
     if [ "$STD" != "" ] ; then
         _addcmkflags -DC4_CXX_STANDARD=$STD
         _addprojflags CXX_STANDARD=$STD
     fi
     #
-    _addprojflags DEV=ON
+    if [ "$DEV" != "OFF" ] ; then
+        _addprojflags DEV=ON
+    fi
     case "$LINT" in
         all       ) _addprojflags LINT=ON LINT_TESTS=ON LINT_CLANG_TIDY=ON  LINT_PVS_STUDIO=ON ;;
         clang-tidy) _addprojflags LINT=ON LINT_TESTS=ON LINT_CLANG_TIDY=ON  LINT_PVS_STUDIO=OFF ;;
@@ -168,6 +229,9 @@ function c4_cfg_test()
         _addprojflags COVERAGE_COVERALLS=ON COVERAGE_COVERALLS_SILENT=ON
     fi
     _addcmkflags -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+    if [ ! -z "$CMAKE_FLAGS" ] ; then
+        _addcmkflags $CMAKE_FLAGS
+    fi
 
     echo "building with additional cmake flags: $CMFLAGS"
 
@@ -210,16 +274,26 @@ function c4_cfg_test()
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_BUILD_TYPE=$BT -G "$g" -DCMAKE_OSX_ARCHITECTURES=$a $CMFLAGS
             ;;
-        *) # assume unix-like
+        arm*|"")
+            # for empty compiler
+            # or arm-*
+            cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
+            ;;
+        *g++*|*gcc*|*clang*)
             export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
             _c4_choose_clang_tidy $CXX_
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
                   -DCMAKE_C_COMPILER=$CC_ -DCMAKE_CXX_COMPILER=$CXX_ \
                   -DCMAKE_C_FLAGS="-std=c99 -m$bits" -DCMAKE_CXX_FLAGS="-m$bits"
+            cmake --build $build_dir --target help | sed 1d | sort
+            ;;
+        *)
+            echo "unknown compiler"
+            exit 1
             ;;
     esac
-    cmake --build $build_dir --target help | sed 1d | sort
 }
 
 function _c4_choose_clang_tidy()
@@ -259,6 +333,43 @@ function _addcmkflags()
 function _addprojflags()
 {
     for f in $* ; do
-        CMFLAGS="$CMFLAGS -D${PROJ_PFX}${f}"
+        CMFLAGS="$CMFLAGS -D${PROJ_PFX_CMAKE}${f}"
     done
+}
+
+function _c4_parallel_build_flags()
+{
+    case "$CXX_" in
+        vs2019|vs2017|vs2015)
+            # https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-command-line-reference?view=vs-2019
+            # https://stackoverflow.com/questions/2619198/how-to-get-number-of-cores-in-win32
+            if [ -z "$NUM_JOBS_BUILD" ] ; then
+                echo "/maxcpucount:$NUMBER_OF_PROCESSORS"
+            else
+                echo "/maxcpucount:$NUM_JOBS_BUILD"
+            fi
+            ;;
+        xcode)
+            # https://stackoverflow.com/questions/5417835/how-to-modify-the-number-of-parallel-compilation-with-xcode
+            # https://gist.github.com/nlutsenko/ee245fbd239087d22137
+            if [ -z "$NUM_JOBS_BUILD" ] ; then
+                echo "-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=$(sysctl -n hw.ncpu)"
+            else
+                echo "-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=$NUM_JOBS_BUILD"
+            fi
+            ;;
+        *g++*|*gcc*|*clang*)
+            if [ -z "$NUM_JOBS_BUILD" ] ; then
+                echo "-j $(nproc)"
+            else
+                echo "-j $NUM_JOBS_BUILD"
+            fi
+            ;;
+        "") # allow empty compiler
+            ;;
+        *)
+            echo "unknown compiler"
+            exit 1
+            ;;
+    esac
 }

@@ -26,5 +26,5 @@ compile_commands.json
 /Testing/
 
 # continuous integration files
-.ci/.vagrant
-.ci/macos/.vagrant
+.github/vagrant/.vagrant
+.github/vagrant/macos/.vagrant

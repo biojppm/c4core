@@ -11,6 +11,8 @@ void use_char_pointer(char const volatile* v)
 {
     C4_UNUSED(v);
 }
+#else
+void foo() {} // to avoid empty file warning from the linker
 #endif
 
 C4_END_NAMESPACE(detail)

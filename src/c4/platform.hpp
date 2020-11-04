@@ -25,6 +25,8 @@
 #   endif
 #elif defined(__unix) || defined(__linux)
 #   define C4_UNIX
+#elif defined(__arm__) || defined(__aarch64__)
+#   define C4_ARM
 #elif defined(SWIG)
 #   define C4_SWIG
 #else

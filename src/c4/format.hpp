@@ -16,6 +16,11 @@
 #       pragma warning(disable: 4800) // forcing value to bool 'true' or 'false' (performance warning)
 #   endif
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
+#elif defined(__clang__)
+#   pragma clang diagnostic push
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
 
 namespace c4 {
@@ -30,6 +35,7 @@ namespace c4 {
 size_t sprintf(substr buf, const char * fmt, ...);
 //size_t sscanf(csubstr buf, const char *fmt, ...);
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -39,8 +45,9 @@ size_t sprintf(substr buf, const char * fmt, ...);
 
 namespace fmt {
 
-/** a generic class for providing type-specific formatting settings */
-template<class T>
+/** a generic class for providing type-specific formatting settings
+ * The second template parameter type is to enable SFINAE idioms. */
+template<class T, class=T>
 struct fmt_wrapper;
 
 /** mark a variable to be written in its default custom format wrapper */
@@ -104,67 +111,94 @@ inline size_t to_chars(substr buf, fmt::boolalpha_ fmt)
 namespace fmt {
 
 /** format an integral type */
-template<class T>
-struct integral
+template<typename T>
+struct fmt_wrapper<T, typename std::enable_if<std::is_integral<T>::value, T>::type>
 {
+    using second_type = typename std::enable_if<std::is_integral<T>::value, T>::type;
     T val;
     T radix;
-    integral(T val_, T radix_=10) : val(val_), radix(radix_) {}
+    fmt_wrapper(T val_, T radix_=10) : val(val_), radix(radix_) {}
 };
 
+#if C4_CPP >= 17
+/** format an integral type, C++17 version */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if_t<std::is_integral_v<T>, size_t>
+to_chars(substr buf, fmt::fmt_wrapper<T> fmt)
+{
+    if constexpr (std::is_signed_v<T>)
+    {
+        return itoa(buf, fmt.val, fmt.radix);
+    }
+    else
+    {
+        static_assert(std::is_unsigned_v<T>);
+        return utoa(buf, fmt.val, fmt.radix);
+    }
+}
+#else
+/** format an integral signed type */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if<std::is_signed<T>::value && std::is_integral<T>::value, size_t>::type
+to_chars(substr buf, fmt::fmt_wrapper<T> fmt)
+{
+    return itoa(buf, fmt.val, fmt.radix);
+}
 
-template<> struct fmt_wrapper<  int8_t> : public integral<  int8_t> { using integral<  int8_t>::integral; };
-template<> struct fmt_wrapper< int16_t> : public integral< int16_t> { using integral< int16_t>::integral; };
-template<> struct fmt_wrapper< int32_t> : public integral< int32_t> { using integral< int32_t>::integral; };
-template<> struct fmt_wrapper< int64_t> : public integral< int64_t> { using integral< int64_t>::integral; };
-
-template<> struct fmt_wrapper< uint8_t> : public integral< uint8_t> { using integral< uint8_t>::integral; };
-template<> struct fmt_wrapper<uint16_t> : public integral<uint16_t> { using integral<uint16_t>::integral; };
-template<> struct fmt_wrapper<uint32_t> : public integral<uint32_t> { using integral<uint32_t>::integral; };
-template<> struct fmt_wrapper<uint64_t> : public integral<uint64_t> { using integral<uint64_t>::integral; };
-
-#ifdef C4CORE_LONG_CHARCONV
-template<> struct fmt_wrapper<long> : public integral<long> { using integral<long>::integral; };
-template<> struct fmt_wrapper<unsigned long> : public integral<unsigned long> { using integral<unsigned long>::integral; };
+/** format an integral unsigned type */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if<std::is_unsigned<T>::value && std::is_integral<T>::value, size_t>::type
+to_chars(substr buf, fmt::fmt_wrapper<T> fmt)
+{
+    return utoa(buf, fmt.val, fmt.radix);
+}
 #endif
 
 
-/** format the integral argument as an hexadecimal value */
+/** format the integral argument as an hexadecimal value
+ * @overload hex */
 template<class T>
 inline fmt_wrapper<T> hex(T v)
 {
-    C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(16));
 }
-/** format the integral argument as an hexadecimal value */
+/** format the integral argument as an hexadecimal value
+ * @overload hex */
 template<class T>
-inline fmt_wrapper<uintptr_t> hex(T const* v)
+inline fmt_wrapper<intptr_t> hex(T const* v)
 {
-    return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(16));
+    return fmt_wrapper<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(16));
 }
-/** format the integral argument as an hexadecimal value */
-inline fmt_wrapper<uintptr_t> hex(std::nullptr_t)
+/** format the integral argument as an hexadecimal value
+ * @overload hex */
+inline fmt_wrapper<intptr_t> hex(std::nullptr_t)
 {
-    return fmt_wrapper<uintptr_t>(0, uintptr_t(16));
+    return fmt_wrapper<intptr_t>(0, intptr_t(16));
 }
 
-/** format the integral argument as an octal value */
+/** format the integral argument as an octal value
+ * @overload oct */
 template<class T>
 inline fmt_wrapper<T> oct(T v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     return fmt_wrapper<T>(v, T(8));
 }
-/** format the integral argument as an octal value */
+/** format the integral argument as an octal value
+ * @overload oct */
 template<class T>
-inline fmt_wrapper<uintptr_t> oct(T const* v)
+inline fmt_wrapper<intptr_t> oct(T const* v)
 {
-    return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(8));
+    return fmt_wrapper<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(8));
 }
-/** format the integral argument as an octal value */
-inline fmt_wrapper<uintptr_t> oct(std::nullptr_t)
+/** format the integral argument as an octal value
+ * @overload oct */
+inline fmt_wrapper<intptr_t> oct(std::nullptr_t)
 {
-    return fmt_wrapper<uintptr_t>(0, uintptr_t(8));
+    return fmt_wrapper<intptr_t>(0, intptr_t(8));
 }
 
 
@@ -193,23 +227,7 @@ inline fmt_wrapper<uintptr_t> bin(std::nullptr_t)
     return fmt_wrapper<uintptr_t>(0, uintptr_t(2));
 }
 
-
 } // namespace fmt
-
-inline size_t to_chars(substr buf, fmt::fmt_wrapper< int8_t> fmt) { return itoa(buf, fmt.val, fmt.radix); }
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<int16_t> fmt) { return itoa(buf, fmt.val, fmt.radix); }
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<int32_t> fmt) { return itoa(buf, fmt.val, fmt.radix); }
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<int64_t> fmt) { return itoa(buf, fmt.val, fmt.radix); }
-
-inline size_t to_chars(substr buf, fmt::fmt_wrapper< uint8_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint16_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint32_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<uint64_t> fmt) { return utoa(buf, fmt.val, fmt.radix); }
-
-#ifdef C4CORE_LONG_CHARCONV
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<         long> fmt) { return itoa(buf, fmt.val, fmt.radix); }
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<unsigned long> fmt) { return utoa(buf, fmt.val, fmt.radix); }
-#endif
 
 /** @} */
 
@@ -732,6 +750,10 @@ inline csubstr formatrs(append_t, CharOwningContainer * C4_RESTRICT cont, csubst
 
 #ifdef _MSC_VER
 #   pragma warning(pop)
+#elif defined(__clang__)
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
 #endif
 
 #endif /* _C4_FORMAT_HPP_ */

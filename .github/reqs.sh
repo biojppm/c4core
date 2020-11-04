@@ -1,54 +1,202 @@
 #!/usr/bin/env bash
 
-set -e
-set -x
-
 # input environment variables:
+# OS: the operating system
 # CXX_: the compiler version. eg, g++-9 or clang++-6.0
+# BT: the build type
 # VG: whether to install valgrind
+# ARM: whether to arm cross-compiler and emulator
+# GITHUB_WORKFLOW: when run from github
+
 
 #-------------------------------------------------------------------------------
 
+function c4_install_test_requirements()
+{
+    # this is only for ubuntu ------------------
+    os=$1
+    case "$os" in
+        ubuntu*) ;;
+        win*)
+            if [ "$API" == "ON" ] ; then
+                choco install swig
+                which swig
+            fi
+            return 0
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
+    # gather all the requirements ------------------
+
+    APT_PKG=""
+    PIP_PKG=""
+
+    if [ "$GITHUB_WORKFLOW" != "" ] ; then
+        sudo dpkg --add-architecture i386
+    else
+        # travis requires build-essential + cmake
+        _add_apt build-essential
+        _add_apt cmake
+    fi
+
+    _add_apt linux-libc-dev:i386
+    _add_apt libc6:i386
+    _add_apt libc6-dev:i386
+    _add_apt libc6-dbg:i386
+
+    _c4_gather_compilers "$CXX_"
+
+    #_add_apt iwyu
+    #_add_apt cppcheck
+    #_add_pip cpplint
+    if [ "$VG" == "ON" ] ; then
+        _add_apt valgrind
+    fi
+
+    if [ "$BT" == "Coverage" ]; then
+        _add_apt lcov
+        _add_apt libffi-dev
+        _add_apt libssl-dev
+        _add_pip requests[security]
+        _add_pip pyopenssl
+        _add_pip ndg-httpsclient
+        _add_pip pyasn1
+        _add_pip cpp-coveralls
+    fi
+
+    if [ "$PIP_PKG" != "" ]; then
+        _add_apt python3-setuptools
+        _add_apt python3-pip
+    fi
+
+    case "$CXX_" in
+        arm*)
+            _add_apt gcc-arm-embedded
+            _add_apt g++-arm-linux-gnueabihf
+            _add_apt qemu
+            # this is going to be deprecated:
+            # https://askubuntu.com/questions/1243252/how-to-install-arm-none-eabi-gdb-on-ubuntu-20-04-lts-focal-fossa
+            sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
+            ;;
+    esac
+
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+    sudo -E apt-add-repository --yes 'deb https://apt.kitware.com/ubuntu/ bionic main'
+    sudo -E add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+
+    echo "apt packages: $APT_PKG"
+    echo "pip packages: $PIP_PKG"
+
+    # now install the requirements ------------------
+
+    if [ "$APT_PKG" != "" ] ; then
+        #sudo -E apt-get clean
+        sudo -E apt-get update
+        sudo -E apt-get install -y --force-yes $APT_PKG
+    fi
+
+    if [ "$PIP_PKG" != "" ]; then
+        sudo pip3 install $PIP_PKG
+    fi
+
+    echo 'INSTALL COMPLETE!'
+}
+
+
+#-------------------------------------------------------------------------------
+
+function _c4_gather_compilers()
+{
+    cxx=$1
+    case $cxx in
+        g++-10     ) _c4_addgcc 10 ;;
+        g++-9      ) _c4_addgcc 9  ;;
+        g++-8      ) _c4_addgcc 8  ;;
+        g++-7      ) _c4_addgcc 7  ;;
+        g++-6      ) _c4_addgcc 6  ;;
+        g++-5      ) _c4_addgcc 5  ;;
+        #g++-4.9    ) _c4_addgcc 4.9 ;;  # https://askubuntu.com/questions/1036108/install-gcc-4-9-at-ubuntu-18-04
+        clang++-10 ) _c4_addclang 10  ;;
+        clang++-9  ) _c4_addclang 9   ;;
+        clang++-8  ) _c4_addclang 8   ;;
+        clang++-7  ) _c4_addclang 7   ;;
+        clang++-6.0) _c4_addclang 6.0 ;;
+        clang++-5.0) _c4_addclang 5.0 ;;
+        clang++-4.0) _c4_addclang 4.0 ;;
+        clang++-3.9) _c4_addclang 3.9 ;;
+        all)
+            all="g++-10 g++-9 g++-8 g++-7 g++-6 g++-5 g++-4.9 clang++-10 clang++-9 clang++-8 clang++-7 clang++-6.0 clang++-5.0 clang++-4.0 clang++-3.9"
+            echo "installing all compilers: $all"
+            for cxx in $all ; do
+                _c4_gather_compilers $cxx
+            done
+            ;;
+        "")
+            # use default compiler
+            ;;
+        arm*)
+            ;;
+        *)
+            echo "unknown compiler: $cxx"
+            exit 1
+            ;;
+    esac
+}
+
 # add a gcc compiler
-function addgcc()
+function _c4_addgcc()
 {
     version=$1
-    addpkg g++-$version
-    addpkg g++-$version-multilib
+    _add_apt g++-$version
+    _add_apt g++-$version-multilib
 }
 
 # add a clang compiler
-function addclang()
+function _c4_addclang()
 {
     version=$1
     case $version in
         # in 18.04, clang9 and later require PPAs
-        9 | 10 ) addpkg clang-$version "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-$version main" ;;
-        *      ) addpkg clang-$version ;;
+        9 | 10 ) _add_apt clang-$version "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-$version main" ;;
+        *      ) _add_apt clang-$version ;;
     esac
-    addpkg g++-multilib  # this is required for 32 bit https://askubuntu.com/questions/1057341/unable-to-find-stl-headers-in-ubuntu-18-04
-    addpkg clang-tidy-$version
+    _add_apt g++-multilib  # this is required for 32 bit https://askubuntu.com/questions/1057341/unable-to-find-stl-headers-in-ubuntu-18-04
+    _add_apt clang-tidy-$version
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
 }
 
+
+#-------------------------------------------------------------------------------
+
+# add a pip package to the list
+function _add_pip()
+{
+    pkgs=$*
+    PIP_PKG="$PIP_PKG $pkgs"
+    echo "adding to pip packages: $pkgs"
+}
+
 # add a debian package to the list
-function addpkg()
+function _add_apt()
 {
     pkgs=$1
     sourceslist=$2
-    DPKG="$DPKG $pkgs"
-    echo "adding to packages: $pkgs"
-    #echo "DPKG=$DPKG"
-    addsrc "$sourceslist" "# for packages: $pkgs"
+    APT_PKG="$APT_PKG $pkgs"
+    echo "adding to apt packages: $pkgs"
+    _add_src "$sourceslist" "# for packages: $pkgs"
+    #echo "APT_PKG=$APT_PKG"
 }
 
 # add an apt source
-function addsrc()
+function _add_src()
 {
     sourceslist=$1
     comment=$2
     if [ ! -z "$sourceslist" ] ; then
-        echo "adding source: $sourceslist"
+        echo "adding apt source: $sourceslist"
         sudo bash -c "cat >> /etc/apt/sources.list <<EOF
 $comment
 $sourceslist
@@ -56,99 +204,3 @@ EOF"
         #cat /etc/apt/sources.list
     fi
 }
-
-
-#-------------------------------------------------------------------------------
-
-function c4_gather_compilers()
-{
-    cxx=$1
-    case $cxx in
-        g++-10     ) addgcc 10 ;;
-        g++-9      ) addgcc 9  ;;
-        g++-8      ) addgcc 8  ;;
-        g++-7      ) addgcc 7  ;;
-        g++-6      ) addgcc 6  ;;
-        g++-5      ) addgcc 5  ;;
-        g++-4.9    ) addgcc 4.9 ;;
-        clang++-10 ) addclang 10  ;;
-        clang++-9  ) addclang 9   ;;
-        clang++-8  ) addclang 8   ;;
-        clang++-7  ) addclang 7   ;;
-        clang++-6.0) addclang 6.0 ;;
-        clang++-5.0) addclang 5.0 ;;
-        clang++-4.0) addclang 4.0 ;;
-        clang++-3.9) addclang 3.9 ;;
-        *)
-            all="g++-10 g++-9 g++-8 g++-7 g++-6 g++-5 g++-4.9 clang++-10 clang++-9 clang++-8 clang++-7 clang++-6.0 clang++-5.0 clang++-4.0 clang++-3.9"
-            echo "installing all compilers: $all"
-            for cxx in $all ; do
-                c4_gather_compilers $cxx
-            done
-            ;;
-    esac
-}
-
-function c4_gather_packages()
-{
-    # travis requires build-essential + cmake
-    if [ "$GITHUB_WORKFLOW" == "" ] ; then
-        addpkg build-essential
-        addpkg cmake
-    else
-        sudo dpkg --add-architecture i386
-    fi
-
-    c4_gather_compilers "$CXX_"
-
-    if [ "$VG" == "ON" ] ; then
-        addpkg valgrind
-    fi
-
-    echo "additional packages: $DPKG"
-
-    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-    sudo -E apt-add-repository --yes 'deb https://apt.kitware.com/ubuntu/ bionic main'
-    sudo -E add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-}
-
-function c4_install_everything()
-{
-    #sudo -E apt-get clean
-    sudo -E apt-get update
-
-    sudo -E apt-get install -y --force-yes \
-         linux-libc-dev:i386 \
-         libc6:i386 \
-         libc6-dev:i386 \
-         libc6-dbg:i386 \
-         $DPKG
-
-    if [ "$BT" == "Coverage" ]; then
-        sudo -E apt-get install -y --force-yes \
-             lcov \
-             libffi-dev \
-             libssl-dev \
-             python3-pip \
-             python3-setuptools
-        sudo pip3 install \
-             requests[security] \
-             pyopenssl \
-             ndg-httpsclient \
-             pyasn1 \
-             cpp-coveralls
-    fi
-
-    which cmake
-    cmake --version
-    $CXX_ --version
-    which $CXX_
-}
-
-#-------------------------------------------------------------------------------
-
-c4_gather_packages
-c4_install_everything
-
-
-echo "INSTALL COMPLETE: current directory: $(pwd)"

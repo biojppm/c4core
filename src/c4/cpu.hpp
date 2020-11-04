@@ -62,6 +62,9 @@
 #       elif defined(__ARM_ARCH_5TEJ__) \
         || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 5)
 #           define C4_CPU_ARMV5
+#       elif defined(__ARM_ARCH_4T__) \
+        || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 5)
+#           define C4_CPU_ARMV4
 #       else
 #           error "unknown CPU architecture: ARM"
 #       endif

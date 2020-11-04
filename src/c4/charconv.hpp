@@ -15,10 +15,6 @@
 #include "c4/substr.hpp"
 #include "c4/memory_util.hpp"
 
-#if (defined(C4_WIN) || defined(C4_MACOS) || defined(C4_IOS) || (defined(C4_UNIX) && defined(C4_CPU_X86)))
-#   define C4CORE_LONG_CHARCONV
-#endif
-
 #if (C4_CPP >= 17)
 #   if defined(_MSC_VER)
 #       if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
@@ -150,6 +146,30 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
     return fmt[f];
 }
 #endif // C4CORE_HAVE_STD_TOCHARS
+
+/** in some platforms, int,unsigned int
+ *  are not the same as int8_t...int64_t and
+ *  long,unsigned long are not the same as uint8_t...uint64_t */
+template<class T>
+struct is_fixed_length
+{
+    enum : bool {
+        /** true if T is one of the fixed length signed types */
+        value_i = (std::is_integral<T>::value
+                   && (std::is_same<T, int8_t>::value
+                       || std::is_same<T, int16_t>::value
+                       || std::is_same<T, int32_t>::value
+                       || std::is_same<T, int64_t>::value)),
+        /** true if T is one of the fixed length unsigned types */
+        value_u = (std::is_integral<T>::value
+                   && (std::is_same<T, uint8_t>::value
+                       || std::is_same<T, uint16_t>::value
+                       || std::is_same<T, uint32_t>::value
+                       || std::is_same<T, uint64_t>::value)),
+        /** true if T is one of the fixed length signed or unsigned types */
+        value = value_i || value_u
+    };
+};
 
 
 //-----------------------------------------------------------------------------
@@ -317,9 +337,9 @@ size_t utoa(substr buf, T v, T radix)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
- 
+
 namespace detail {
-   
+
 // TODO truncate to the length of max I
 
 template<class I>
@@ -945,6 +965,57 @@ inline size_t from_chars_first(csubstr buf, ty *C4_RESTRICT v)  \
     return ato##id##_first(buf, v);                             \
 }
 
+// on some platforms, (unsigned) int and (unsigned) long
+// are not any of the fixed length types above
+#define _C4_DEFINE_TO_FROM_CHARS_TOA_NOTFIXEDLENGTH(for_signedness, id) \
+                                                                        \
+/** @ingroup generic_tofrom_chars */                                    \
+template<class T>                                                       \
+inline                                                                  \
+typename std::enable_if< for_signedness && ! is_fixed_length<T>::value_##id, size_t>::type \
+to_chars(substr buf, T v)                                               \
+{                                                                       \
+    return id##toa(buf, v);                                             \
+}                                                                       \
+                                                                        \
+/** @ingroup generic_tofrom_chars */                                    \
+template<class T>                                                       \
+inline                                                                  \
+typename std::enable_if< for_signedness && ! is_fixed_length<T>::value_##id, bool>::type  \
+from_chars(csubstr buf, T *C4_RESTRICT v)                               \
+{                                                                       \
+    return ato##id(buf, v);                                             \
+}                                                                       \
+                                                                        \
+/** @ingroup generic_tofrom_chars */                                    \
+template<class T>                                                       \
+inline                                                                  \
+typename std::enable_if< for_signedness && ! is_fixed_length<T>::value_##id, size_t>::type \
+from_chars_first(csubstr buf, T *C4_RESTRICT v)                         \
+{                                                                       \
+    return ato##id##_first(buf, v);                                     \
+}
+
+
+_C4_DEFINE_TO_FROM_CHARS_TOA(   float, f)
+_C4_DEFINE_TO_FROM_CHARS_TOA(  double, d)
+
+_C4_DEFINE_TO_FROM_CHARS_TOA(  int8_t, i)
+_C4_DEFINE_TO_FROM_CHARS_TOA( int16_t, i)
+_C4_DEFINE_TO_FROM_CHARS_TOA( int32_t, i)
+_C4_DEFINE_TO_FROM_CHARS_TOA( int64_t, i)
+_C4_DEFINE_TO_FROM_CHARS_TOA( uint8_t, u)
+_C4_DEFINE_TO_FROM_CHARS_TOA(uint16_t, u)
+_C4_DEFINE_TO_FROM_CHARS_TOA(uint32_t, u)
+_C4_DEFINE_TO_FROM_CHARS_TOA(uint64_t, u)
+
+_C4_DEFINE_TO_FROM_CHARS_TOA_NOTFIXEDLENGTH(std::is_signed<T>::value  , i)
+_C4_DEFINE_TO_FROM_CHARS_TOA_NOTFIXEDLENGTH(std::is_unsigned<T>::value, u)
+
+#undef _C4_DEFINE_TO_FROM_CHARS_TOA
+#undef _C4_DEFINE_TO_FROM_CHARS_TOA_NOTFIXEDLENGTH
+
+
 #ifdef _MSC_VER
 
 #define _C4_DEFINE_TO_CHARS(ty, pri_fmt)                                \
@@ -1027,6 +1098,7 @@ inline bool from_chars(csubstr buf, ty * C4_RESTRICT v)                 \
     return (num != csubstr::npos);                                      \
 }
 
+_C4_DEFINE_TO_FROM_CHARS(void*   , "p"             , "p"             )
 //_C4_DEFINE_TO_FROM_CHARS(double  , "lg"            , "lg"            )
 //_C4_DEFINE_TO_FROM_CHARS(float   , "g"             , "g"             )
 //_C4_DEFINE_TO_FROM_CHARS(char    , "c"             , "c"             )
@@ -1038,25 +1110,8 @@ inline bool from_chars(csubstr buf, ty * C4_RESTRICT v)                 \
 //_C4_DEFINE_TO_FROM_CHARS(uint32_t, PRIu32/*"%u"  */, SCNu32/*"%u"  */)
 //_C4_DEFINE_TO_FROM_CHARS( int64_t, PRId64/*"%lld"*/, SCNd64/*"%lld"*/)
 //_C4_DEFINE_TO_FROM_CHARS(uint64_t, PRIu64/*"%llu"*/, SCNu64/*"%llu"*/)
-_C4_DEFINE_TO_FROM_CHARS(void*   , "p"             , "p"             )
-_C4_DEFINE_TO_FROM_CHARS_TOA(   float     , f)
-_C4_DEFINE_TO_FROM_CHARS_TOA(  double     , d)
-_C4_DEFINE_TO_FROM_CHARS_TOA(  int8_t     , i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int16_t     , i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int32_t     , i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int64_t     , i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( uint8_t     , u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint16_t     , u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint32_t     , u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint64_t     , u)
-
-#ifdef C4CORE_LONG_CHARCONV
-_C4_DEFINE_TO_FROM_CHARS_TOA(long         , i)
-_C4_DEFINE_TO_FROM_CHARS_TOA(unsigned long, u)
-#endif
 
 #undef _C4_DEFINE_TO_FROM_CHARS
-#undef _C4_DEFINE_TO_FROM_CHARS_TOA
 
 
 //-----------------------------------------------------------------------------
