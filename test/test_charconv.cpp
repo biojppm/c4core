@@ -1,44 +1,50 @@
-#include "c4/test.hpp"
+#include <iostream>
+#include "c4/std/std.hpp"
 #include "c4/charconv.hpp"
-#include "c4/std/string.hpp"
-#include "c4/std/vector.hpp"
 #include "c4/format.hpp"
+
 #include "c4/libtest/supprwarn_push.hpp"
 
 #ifdef __clang__
 #   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wfloat-equal"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wuseless-cast"
+#   pragma GCC diagnostic ignored "-Wfloat-equal"
 #endif
+
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
+#include "doctest/doctest.h"
 
 namespace c4 {
 
-TEST(itoa, int8_t)
+TEST_CASE("itoa.int8_t")
 {
     char bufc[64];
     substr buf = bufc;
     int8_t val = -128;
     size_t ret = itoa(buf, val);
-    EXPECT_EQ(buf.first(ret), "-128");
+    CHECK_EQ(buf.first(ret), "-128");
     val = 127;
     ret = itoa(buf, val);
-    EXPECT_EQ(buf.first(ret), "127");
+    CHECK_EQ(buf.first(ret), "127");
 }
 
-TEST(itoa, int16_t)
+TEST_CASE("itoa.int16_t")
 {
     char bufc[64];
     substr buf = bufc;
     int16_t val = -32768;
     size_t ret = itoa(buf, val);
-    EXPECT_EQ(buf.first(ret), "-32768");
+    CHECK_EQ(buf.first(ret), "-32768");
     val = 32767;
     ret = itoa(buf, val);
-    EXPECT_EQ(buf.first(ret), "32767");
+    CHECK_EQ(buf.first(ret), "32767");
 }
 
-TEST(itoa, shortbuf)
+TEST_CASE("itoa.shortbuf")
 {
     char buf0_[1];
     char buf1_[2];
@@ -50,56 +56,56 @@ TEST(itoa, shortbuf)
     substr buf2 = buf2_;
     substr buf3 = buf3_;
     substr buf4 = buf4_;
-    EXPECT_EQ(buf0.len, 0);
-    EXPECT_EQ(buf1.len, 1);
-    EXPECT_EQ(buf2.len, 2);
-    EXPECT_EQ(buf3.len, 3);
-    EXPECT_EQ(buf4.len, 4);
+    CHECK_EQ(buf0.len, 0);
+    CHECK_EQ(buf1.len, 1);
+    CHECK_EQ(buf2.len, 2);
+    CHECK_EQ(buf3.len, 3);
+    CHECK_EQ(buf4.len, 4);
 
-#define _chktoa(fn, in, expected_)                                      \
-    {                                                                   \
-        csubstr expected = expected_;                                   \
-        auto rdx = decltype(in)(16);                                    \
-                                                                        \
-        buf0.fill('?');                                                 \
-        size_t ret0 = fn(buf0, in, rdx);                                \
-        EXPECT_EQ(ret0, expected.len);                                  \
-                                                                        \
-        buf1.fill('?');                                                 \
-        EXPECT_EQ(buf1, "?");                                           \
-        size_t ret1 = fn(buf1, in, rdx);                                \
-        EXPECT_EQ(ret1, expected.len);                                  \
-        if(ret1 <= buf1.len && buf1.len >= expected.len)                \
-        {                                                               \
-            EXPECT_EQ(buf1.first(ret1), expected);                      \
-        }                                                               \
-                                                                        \
-        buf2.fill('?');                                                 \
-        EXPECT_EQ(buf2, "??");                                          \
-        size_t ret2 = fn(buf2, in, rdx);                                \
-        EXPECT_EQ(ret2, expected.len);                                  \
-        if(ret2 <= buf2.len && buf2.len >= expected.len)                \
-        {                                                               \
-            EXPECT_EQ(buf2.first(ret2), expected);                      \
-        }                                                               \
-                                                                        \
-        buf3.fill('?');                                                 \
-        EXPECT_EQ(buf3, "???");                                         \
-        size_t ret3 = fn(buf3, in, rdx);                                \
-        EXPECT_EQ(ret3, expected.len);                                  \
-        if(ret3 <= buf3.len && buf3.len >= expected.len)                \
-        {                                                               \
-            EXPECT_EQ(buf3.first(ret3), expected);                      \
-        }                                                               \
-                                                                        \
-        buf4.fill('?');                                                 \
-        EXPECT_EQ(buf4, "????");                                        \
-        size_t ret4 = fn(buf4, in, rdx);                                \
-        EXPECT_EQ(ret4, expected.len);                                  \
-        if(ret4 <= buf4.len && buf4.len >= expected.len)                \
-        {                                                               \
-            EXPECT_EQ(buf4.first(ret4), expected);                      \
-        }                                                               \
+#define _chktoa(fn, in, expected_)                          \
+    {                                                       \
+        csubstr expected = expected_;                       \
+        auto rdx = decltype(in)(16);                        \
+                                                            \
+        buf0.fill('?');                                     \
+        size_t ret0 = fn(buf0, in, rdx);                    \
+        CHECK_EQ(ret0, expected.len);                       \
+                                                            \
+        buf1.fill('?');                                     \
+        CHECK_EQ(buf1, "?");                                \
+        size_t ret1 = fn(buf1, in, rdx);                    \
+        CHECK_EQ(ret1, expected.len);                       \
+        if(ret1 <= buf1.len && buf1.len >= expected.len)    \
+        {                                                   \
+            CHECK_EQ(buf1.first(ret1), expected);           \
+        }                                                   \
+                                                            \
+        buf2.fill('?');                                     \
+        CHECK_EQ(buf2, "??");                               \
+        size_t ret2 = fn(buf2, in, rdx);                    \
+        CHECK_EQ(ret2, expected.len);                       \
+        if(ret2 <= buf2.len && buf2.len >= expected.len)    \
+        {                                                   \
+            CHECK_EQ(buf2.first(ret2), expected);           \
+        }                                                   \
+                                                            \
+        buf3.fill('?');                                     \
+        CHECK_EQ(buf3, "???");                              \
+        size_t ret3 = fn(buf3, in, rdx);                    \
+        CHECK_EQ(ret3, expected.len);                       \
+        if(ret3 <= buf3.len && buf3.len >= expected.len)    \
+        {                                                   \
+            CHECK_EQ(buf3.first(ret3), expected);           \
+        }                                                   \
+                                                            \
+        buf4.fill('?');                                     \
+        CHECK_EQ(buf4, "????");                             \
+        size_t ret4 = fn(buf4, in, rdx);                    \
+        CHECK_EQ(ret4, expected.len);                       \
+        if(ret4 <= buf4.len && buf4.len >= expected.len)    \
+        {                                                   \
+            CHECK_EQ(buf4.first(ret4), expected);           \
+        }                                                   \
     }
 
     _chktoa(itoa, 0, "0x0");
@@ -147,45 +153,46 @@ void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I nu
     buf[1] = 'a';\
     buf[2] = '\0';
 
+    INFO("num=" << num);
     _c4clbuf();
     ret = rfn(emp, num, 2);
-    EXPECT_EQ(ret, ss2.len) << "num=" << num;
-    EXPECT_EQ(buf.first(2), "aa");
+    CHECK_EQ(ret, ss2.len);
+    CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 2);
-    EXPECT_EQ(buf.first(ret), ss2) << "num=" << num;
+    CHECK_EQ(buf.first(ret), ss2);
 
     _c4clbuf();
     ret = rfn(emp, num, 8);
-    EXPECT_EQ(ret, ss8.len) << "num=" << num;
-    EXPECT_EQ(buf.first(2), "aa");
+    CHECK_EQ(ret, ss8.len);
+    CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 8);
-    EXPECT_EQ(buf.first(ret), ss8) << "num=" << num;
+    CHECK_EQ(buf.first(ret), ss8);
 
     _c4clbuf();
     ret = rfn(emp, num, 10);
-    EXPECT_EQ(ret, ss10.len) << "num=" << num;
-    EXPECT_EQ(buf.first(2), "aa");
+    CHECK_EQ(ret, ss10.len);
+    CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 10);
-    EXPECT_EQ(buf.first(ret), ss10) << "num=" << num;
+    CHECK_EQ(buf.first(ret), ss10);
 
     _c4clbuf();
     ret = fn(emp, num);
-    EXPECT_EQ(ret, ss10.len) << "num=" << num;
-    EXPECT_EQ(buf.first(2), "aa");
+    CHECK_EQ(ret, ss10.len);
+    CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = fn(buf, num);
-    EXPECT_EQ(buf.first(ret), ss10) << "num=" << num;
+    CHECK_EQ(buf.first(ret), ss10);
 
     _c4clbuf();
     ret = rfn(emp, num, 16);
-    EXPECT_EQ(ret, ss16.len) << "num=" << num;
-    EXPECT_EQ(buf.first(2), "aa");
+    CHECK_EQ(ret, ss16.len);
+    CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 16);
-    EXPECT_EQ(buf.first(ret), ss16) << "num=" << num;
+    CHECK_EQ(buf.first(ret), ss16);
 
 #undef _c4clbuf
 }
@@ -210,7 +217,7 @@ size_t call_utoa_radix(substr s, unsigned num, unsigned radix)
     return utoa(s, num, radix);
 }
 
-TEST(itoa, prefixed_number_on_empty_buffer)
+TEST_CASE("itoa.prefixed_number_on_empty_buffer")
 {
     test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,   0,      "0b0",   "0o0",   "0",   "0x0");
     test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -10,  "-0b1010", "-0o12", "-10",  "-0xa");
@@ -219,7 +226,7 @@ TEST(itoa, prefixed_number_on_empty_buffer)
     test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  20,  "0b10100",  "0o24",  "20",  "0x14");
 }
 
-TEST(utoa, prefixed_number_on_empty_buffer)
+TEST_CASE("utoa.prefixed_number_on_empty_buffer")
 {
     test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  0u, "0b0"    ,  "0o0",  "0",  "0x0");
     test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 10u, "0b1010" , "0o12", "10",  "0xa");
@@ -232,71 +239,71 @@ TEST(utoa, prefixed_number_on_empty_buffer)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-TEST(read_dec, fail)
+TEST_CASE("read_dec.fail")
 {
     int dec = 1;
-    EXPECT_FALSE(detail::read_dec("zzzz", &dec));
-    EXPECT_TRUE(detail::read_dec("00000", &dec));
-    EXPECT_EQ(dec, 0);
+    CHECK_UNARY_FALSE(detail::read_dec("zzzz", &dec));
+    CHECK_UNARY(detail::read_dec("00000", &dec));
+    CHECK_EQ(dec, 0);
     dec = 1;
-    EXPECT_TRUE(atoi("00000", &dec));
-    EXPECT_EQ(dec, 0);
-    EXPECT_TRUE(atoi("00010", &dec));
-    EXPECT_EQ(dec, 10);
+    CHECK_UNARY(atoi("00000", &dec));
+    CHECK_EQ(dec, 0);
+    CHECK_UNARY(atoi("00010", &dec));
+    CHECK_EQ(dec, 10);
 }
 
-TEST(read_hex, fail)
+TEST_CASE("read_hex.fail")
 {
     int dec = 1;
-    EXPECT_FALSE(detail::read_hex("zzzz", &dec));
-    EXPECT_TRUE(detail::read_hex("00000", &dec));
-    EXPECT_EQ(dec, 0);
+    CHECK_UNARY_FALSE(detail::read_hex("zzzz", &dec));
+    CHECK_UNARY(detail::read_hex("00000", &dec));
+    CHECK_EQ(dec, 0);
     dec = 1;
-    EXPECT_TRUE(atoi("0x00000", &dec));
-    EXPECT_EQ(dec, 0);
-    EXPECT_TRUE(atoi("0x00010", &dec));
-    EXPECT_EQ(dec, 16);
+    CHECK_UNARY(atoi("0x00000", &dec));
+    CHECK_EQ(dec, 0);
+    CHECK_UNARY(atoi("0x00010", &dec));
+    CHECK_EQ(dec, 16);
     dec = 1;
-    EXPECT_TRUE(atoi("0X00000", &dec));
-    EXPECT_EQ(dec, 0);
-    EXPECT_TRUE(atoi("0X00010", &dec));
-    EXPECT_EQ(dec, 16);
+    CHECK_UNARY(atoi("0X00000", &dec));
+    CHECK_EQ(dec, 0);
+    CHECK_UNARY(atoi("0X00010", &dec));
+    CHECK_EQ(dec, 16);
 }
 
-TEST(read_oct, fail)
+TEST_CASE("read_oct.fail")
 {
     int dec;
-    EXPECT_FALSE(detail::read_oct("zzzz", &dec));
-    EXPECT_TRUE(detail::read_oct("00000", &dec));
-    EXPECT_EQ(dec, 0);
+    CHECK_UNARY_FALSE(detail::read_oct("zzzz", &dec));
+    CHECK_UNARY(detail::read_oct("00000", &dec));
+    CHECK_EQ(dec, 0);
     dec = 1;
-    EXPECT_TRUE(atoi("0o00000", &dec));
-    EXPECT_EQ(dec, 0);
-    EXPECT_TRUE(atoi("0o00010", &dec));
-    EXPECT_EQ(dec, 8);
+    CHECK_UNARY(atoi("0o00000", &dec));
+    CHECK_EQ(dec, 0);
+    CHECK_UNARY(atoi("0o00010", &dec));
+    CHECK_EQ(dec, 8);
     dec = 1;
-    EXPECT_TRUE(atoi("0O00000", &dec));
-    EXPECT_EQ(dec, 0);
-    EXPECT_TRUE(atoi("0O00010", &dec));
-    EXPECT_EQ(dec, 8);
+    CHECK_UNARY(atoi("0O00000", &dec));
+    CHECK_EQ(dec, 0);
+    CHECK_UNARY(atoi("0O00010", &dec));
+    CHECK_EQ(dec, 8);
 }
 
-TEST(read_bin, fail)
+TEST_CASE("read_bin.fail")
 {
     int dec;
-    EXPECT_FALSE(detail::read_bin("zzzz", &dec));
-    EXPECT_TRUE(detail::read_bin("00000", &dec));
-    EXPECT_EQ(dec, 0);
+    CHECK_UNARY_FALSE(detail::read_bin("zzzz", &dec));
+    CHECK_UNARY(detail::read_bin("00000", &dec));
+    CHECK_EQ(dec, 0);
     dec = 1;
-    EXPECT_TRUE(atoi("0b00000", &dec));
-    EXPECT_EQ(dec, 0);
-    EXPECT_TRUE(atoi("0b00010", &dec));
-    EXPECT_EQ(dec, 2);
+    CHECK_UNARY(atoi("0b00000", &dec));
+    CHECK_EQ(dec, 0);
+    CHECK_UNARY(atoi("0b00010", &dec));
+    CHECK_EQ(dec, 2);
     dec = 1;
-    EXPECT_TRUE(atoi("0B00000", &dec));
-    EXPECT_EQ(dec, 0);
-    EXPECT_TRUE(atoi("0B00010", &dec));
-    EXPECT_EQ(dec, 2);
+    CHECK_UNARY(atoi("0B00000", &dec));
+    CHECK_EQ(dec, 0);
+    CHECK_UNARY(atoi("0B00010", &dec));
+    CHECK_EQ(dec, 2);
 }
 
 template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class Atoi, class I>
@@ -306,45 +313,47 @@ void test_toa_radix(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, Atoi aifn, substr buf, I n
     bool ok;
     I result;
 
+    INFO("num=" << num);
+
     // binary
     memset(buf.str, 0, buf.len);
     ret = rfn(buf, num, 2);
-    EXPECT_EQ(buf.first(ret), to_csubstr(r2)) << "num=" << num;
+    CHECK_EQ(buf.first(ret), to_csubstr(r2));
     ok = aifn(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_UNARY(ok);
+    CHECK_EQ(result, num);
 
     // octal
     memset(buf.str, 0, ret);
     ret = rfn(buf, num, 8);
-    EXPECT_EQ(buf.first(ret), to_csubstr(r8)) << "num=" << num;
+    CHECK_EQ(buf.first(ret), to_csubstr(r8));
     ok = aifn(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_UNARY(ok);
+    CHECK_EQ(result, num);
 
     // decimal, explicit
     memset(buf.str, 0, ret);
     ret = rfn(buf, num, 10);
-    EXPECT_EQ(buf.first(ret), to_csubstr(r10)) << "num=" << num;
+    CHECK_EQ(buf.first(ret), to_csubstr(r10));
     ok = aifn(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_UNARY(ok);
+    CHECK_EQ(result, num);
 
     // decimal, implicit
     memset(buf.str, 0, ret);
     ret = fn(buf, num);
-    EXPECT_EQ(buf.first(ret), to_csubstr(r10)) << "num=" << num;
+    CHECK_EQ(buf.first(ret), to_csubstr(r10));
     ok = aifn(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_UNARY(ok);
+    CHECK_EQ(result, num);
 
     // hexadecimal
     memset(buf.str, 0, ret);
     ret = rfn(buf, num, 16);
-    EXPECT_EQ(buf.first(ret), to_csubstr(r16)) << "num=" << num;
+    CHECK_EQ(buf.first(ret), to_csubstr(r16));
     ok = aifn(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_UNARY(ok);
+    CHECK_EQ(result, num);
 }
 
 void test_utoa_radix(substr buf, unsigned num, const char *r2, const char *r8, const char *r10, const char *r16)
@@ -356,7 +365,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
 {
     size_t ret;
 
-    ASSERT_GE(num, 0);
+    REQUIRE_GE(num, 0);
     test_toa_radix(&call_itoa, &call_itoa_radix, &atoi<int>, buf, num, r2, r8, r10, r16);
 
     if(num == 0) return;
@@ -377,46 +386,46 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     memset(buf.str, 0, buf.len);
     _c4getn(r2);
     ret = itoa(buf, num, 2);
-    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    CHECK_MESSAGE(buf.first(ret) == nbuf, "num=" << num);
     ok = atoi(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_MESSAGE(ok, "num=" << num);
+    CHECK_MESSAGE(result == num, "num=" << num);
 
     memset(buf.str, 0, ret);
     _c4getn(r8);
     ret = itoa(buf, num, 8);
-    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    CHECK_MESSAGE(buf.first(ret) == nbuf, "num=" << num);
     ok = atoi(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_MESSAGE(ok, "num=" << num);
+    CHECK_MESSAGE(result == num, "num=" << num);
 
     memset(buf.str, 0, ret);
     _c4getn(r10);
     ret = itoa(buf, num, 10);
-    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    CHECK_MESSAGE(buf.first(ret) == nbuf, "num=" << num);
     ok = atoi(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_MESSAGE(ok, "num=" << num);
+    CHECK_MESSAGE(result == num, "num=" << num);
 
     memset(buf.str, 0, ret);
     _c4getn(r10);
     ret = itoa(buf, num);
-    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    CHECK_MESSAGE(buf.first(ret) == nbuf, "num=" << num);
     ok = atoi(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_MESSAGE(ok, "num=" << num);
+    CHECK_MESSAGE(result == num, "num=" << num);
 
     memset(buf.str, 0, ret);
     _c4getn(r16);
     ret = itoa(buf, num, 16);
-    EXPECT_EQ(buf.first(ret), nbuf) << "num=" << num;
+    CHECK_MESSAGE(buf.first(ret) == nbuf, "num=" << num);
     ok = atoi(buf.first(ret), &result);
-    EXPECT_TRUE(ok) << "num=" << num;
-    EXPECT_EQ(result, num) << "num=" << num;
+    CHECK_MESSAGE(ok, "num=" << num);
+    CHECK_MESSAGE(result == num, "num=" << num);
 #undef _c4getn
 }
 
-TEST(itoa, radix_basic)
+TEST_CASE("itoa.radix_basic")
 {
     char bufc[100] = {0};
     substr buf(bufc);
@@ -453,7 +462,7 @@ TEST(itoa, radix_basic)
     test_itoa_radix(buf, 256, "0b100000000", "0o400", "256", "0x100");
 }
 
-TEST(utoa, radix_basic)
+TEST_CASE("utoa.radix_basic")
 {
     char bufc[100] = {0};
     substr buf(bufc);
@@ -495,7 +504,7 @@ TEST(utoa, radix_basic)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-TEST(atoi, basic)
+TEST_CASE("atoi.basic")
 {
     char bufc[100] = {0};
     substr buf(bufc);
@@ -504,7 +513,7 @@ TEST(atoi, basic)
     size_t ret;
 
 #define _woof(val) \
-    ret = itoa(buf, val); EXPECT_LT(ret, buf.len); EXPECT_EQ(buf.sub(0, ret), #val)
+    ret = itoa(buf, val); CHECK_LT(ret, buf.len); CHECK_EQ(buf.sub(0, ret), #val)
     _woof(0);
     _woof(1);
     _woof(2);
@@ -539,24 +548,26 @@ TEST(atoi, basic)
 template<class T>
 void test_atoi(const char* num_, T expected)
 {
-    SCOPED_TRACE(num_);
+    INFO("num=" << num_);
     csubstr num = to_csubstr(num_);
     T val;
     bool ok = atoi(num, &val);
-    EXPECT_TRUE(ok);
-    EXPECT_EQ(val, expected) << num;
+    CHECK_UNARY(ok);
+    CHECK_EQ(val, expected);
 }
 
 template<class T>
-void test_atou(csubstr num, T expected)
+void test_atou(const char* num_, T expected)
 {
+    INFO("num=" << num_);
+    csubstr num = to_csubstr(num_);
     T val;
     bool ok = atou(num, &val);
-    EXPECT_TRUE(ok);
-    EXPECT_EQ(val, expected) << num;
+    CHECK_UNARY(ok);
+    CHECK_EQ(val, expected);
 }
 
-TEST(atoi, bin)
+TEST_CASE("atoi.bin")
 {
     test_atoi("0b0", 0);
     test_atoi("0B0", 0);
@@ -582,7 +593,7 @@ TEST(atoi, bin)
     test_atoi("0B1000", 8);
 }
 
-TEST(atou, bin)
+TEST_CASE("atou.bin")
 {
     test_atou("0b0", 0);
     test_atou("0B0", 0);
@@ -617,52 +628,62 @@ void test_ftoa(substr buf, float f, int precision, const char *scient, const cha
 {
     size_t ret;
 
+    INFO("num=" << f);
+
     memset(buf.str, 0, buf.len);
     ret = ftoa(buf, f, precision, FTOA_SCIENT);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(scient)) << "num=" << f;
+    CHECK_EQ(buf.left_of(ret), to_csubstr(scient));
 
     memset(buf.str, 0, ret);
     ret = ftoa(buf, f, precision, FTOA_FLOAT);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(flt)) << "num=" << f;
+    CHECK_EQ(buf.left_of(ret), to_csubstr(flt));
 
     memset(buf.str, 0, ret);
     ret = ftoa(buf, f, precision+1, FTOA_FLEX);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(flex)) << "num=" << f;
+    CHECK_EQ(buf.left_of(ret), to_csubstr(flex));
 
     memset(buf.str, 0, ret);
     ret = ftoa(buf, f, precision, FTOA_HEXA);
     if(!hexa_alternative) hexa_alternative = hexa;
     std::string report;
     from_chars(buf.left_of(ret), &report);
-    EXPECT_TRUE(buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative)) << "num=" << f << "   ret='" << report << "'  hexa='" << hexa << "'  hexa_alternative='" << hexa_alternative << "'";
+    bool ok = buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative);
+    CHECK_MESSAGE(ok, "num=" << f << "   ret='" << report
+                  << "'  hexa='" << hexa
+                  << "'  hexa_alternative='" << hexa_alternative << "'");
 }
 
 void test_dtoa(substr buf, double f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
 {
     size_t ret;
 
+    INFO("num=" << f);
+
     memset(buf.str, 0, buf.len);
     ret = dtoa(buf, f, precision, FTOA_SCIENT);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(scient)) << "num=" << f;
+    CHECK_EQ(buf.left_of(ret), to_csubstr(scient));
 
     memset(buf.str, 0, ret);
     ret = dtoa(buf, f, precision, FTOA_FLOAT);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(flt)) << "num=" << f;
+    CHECK_EQ(buf.left_of(ret), to_csubstr(flt));
 
     memset(buf.str, 0, ret);
     ret = dtoa(buf, f, precision+1, FTOA_FLEX);
-    EXPECT_EQ(buf.left_of(ret), to_csubstr(flex)) << "num=" << f;
+    CHECK_EQ(buf.left_of(ret), to_csubstr(flex));
 
     memset(buf.str, 0, ret);
     ret = dtoa(buf, f, precision, FTOA_HEXA);
     if(!hexa_alternative) hexa_alternative = hexa;
     std::string report;
     from_chars(buf.left_of(ret), &report);
-    EXPECT_TRUE(buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative)) << "num=" << f << "   ret='" << report << "'  hexa='" << hexa << "'  hexa_alternative='" << hexa_alternative << "'";
+    bool ok = buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative);
+    CHECK_MESSAGE(ok, "num=" << f << "   ret='" << report
+                  << "'  hexa='" << hexa
+                  << "'  hexa_alternative='" << hexa_alternative << "'");
 }
 
 
-TEST(ftoa, basic)
+TEST_CASE("ftoa.basic")
 {
     char bufc[128];
     substr buf(bufc);
@@ -672,31 +693,31 @@ TEST(ftoa, basic)
     double d = 1.1234123;
 
     {
-        SCOPED_TRACE("precision 0");
+        INFO("precision 0");
         test_ftoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
         test_dtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
     }
 
     {
-        SCOPED_TRACE("precision 1");
+        INFO("precision 1");
         test_ftoa(buf, f, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
         test_dtoa(buf, d, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
     }
 
     {
-        SCOPED_TRACE("precision 2");
+        INFO("precision 2");
         test_ftoa(buf, f, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
         test_dtoa(buf, d, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
     }
 
     {
-        SCOPED_TRACE("precision 3");
+        INFO("precision 3");
         test_ftoa(buf, f, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
         test_dtoa(buf, d, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
     }
 
     {
-        SCOPED_TRACE("precision 4");
+        INFO("precision 4");
         test_ftoa(buf, f, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
         test_dtoa(buf, d, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
     }
@@ -705,25 +726,25 @@ TEST(ftoa, basic)
     d = 1.01234123;
 
     {
-        SCOPED_TRACE("precision 0");
+        INFO("precision 0");
         test_ftoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
         test_dtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
     }
 
     {
-        SCOPED_TRACE("precision 1");
+        INFO("precision 1");
         test_ftoa(buf, f, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
         test_dtoa(buf, d, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
     }
 
     {
-        SCOPED_TRACE("precision 2");
+        INFO("precision 2");
         test_ftoa(buf, f, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
         test_dtoa(buf, d, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
     }
 
     {
-        SCOPED_TRACE("precision 3");
+        INFO("precision 3");
         #if defined(_MSC_VER) || defined(C4_MACOS) || defined(C4_IOS) // there are differences in the hexa formatting
         test_ftoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
         test_dtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
@@ -734,7 +755,7 @@ TEST(ftoa, basic)
     }
 
     {
-        SCOPED_TRACE("precision 4");
+        INFO("precision 4");
         test_ftoa(buf, f, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
         test_dtoa(buf, d, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
     }
@@ -750,15 +771,15 @@ TEST(ftoa, basic)
         csubstr buf(buf_);                              \
         float f;                                        \
         size_t fret = detail::scan_one_real(buf, &f);   \
-        EXPECT_EQ(fret, buf.len);                       \
-        EXPECT_NEAR(f, float(expected), float(eps));    \
+        CHECK_EQ(fret, buf.len);                       \
+        CHECK_NEAR(f, float(expected), float(eps));    \
         double d;                                       \
         size_t dret = detail::scan_one_real(buf, &d);   \
-        EXPECT_EQ(dret, buf.len);                       \
-        EXPECT_NEAR(d, double(expected), float(eps));   \
+        CHECK_EQ(dret, buf.len);                       \
+        CHECK_NEAR(d, double(expected), float(eps));   \
     }
 
-TEST(scan_one_real, zeros)
+TEST_CASE("scan_one_real.zeros")
 {
     __( "0", 0.0, 0.0);
     __("-0", 0.0, 0.0);
@@ -854,7 +875,7 @@ TEST(scan_one_real, zeros)
     __("+0000.0000", 0.0, 0.0);
 }
 
-TEST(scan_one_real, hexadecimal)
+TEST_CASE("scan_one_real.hexadecimal")
 {
 
 }
@@ -866,14 +887,14 @@ TEST(scan_one_real, hexadecimal)
 //-----------------------------------------------------------------------------
 
 
-TEST(to_chars, std_string)
+TEST_CASE("to_chars.std_string")
 {
     std::string foo("foo");
     char buf_[32];
     substr buf(buf_);
     size_t result = to_chars(buf, foo);
-    EXPECT_EQ(result, 3);
-    EXPECT_EQ(buf.first(3), "foo");
+    CHECK_EQ(result, 3);
+    CHECK_EQ(buf.first(3), "foo");
 }
 
 
@@ -881,47 +902,51 @@ TEST(to_chars, std_string)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-TEST(to_chars, bool)
+TEST_CASE("to_chars.bool")
 {
     char buf_[32];
     substr buf(buf_);
     csubstr result = to_chars_sub(buf, true);
-    EXPECT_EQ(result, "1");
+    CHECK_EQ(result, "1");
     result = to_chars_sub(buf, false);
-    EXPECT_EQ(result, "0");
+    CHECK_EQ(result, "0");
 }
 
-TEST(from_chars, bool)
+TEST_CASE("from_chars.bool")
 {
     bool result = false;
     for(const char *s : {"1", "true", "True", "TRUE"})
     {
+        INFO("s='" << s << "'");
         bool ok = from_chars(to_csubstr(s), &result);
-        EXPECT_TRUE(ok) << "s='" << s << "'";
-        EXPECT_TRUE(result);
+        CHECK_UNARY(ok);
+        CHECK_UNARY(result);
     }
     for(const char *s : {"0", "false", "False", "FALSE"})
     {
+        INFO("s='" << s << "'");
         bool ok = from_chars(to_csubstr(s), &result);
-        EXPECT_TRUE(ok) << "s='" << s << "'";
-        EXPECT_FALSE(result);
+        CHECK_UNARY(ok);
+        CHECK_UNARY_FALSE(result);
     }
 }
 
-TEST(from_chars_first, bool)
+TEST_CASE("from_chars_first.bool")
 {
     bool result = false;
     for(const char *s : {"1", "10000", "2", "3", "10", "010", "001", "0001", "true", "True", "TRUE"})
     {
+        INFO("s='" << s << "'");
         bool ok = from_chars(to_csubstr(s), &result);
-        EXPECT_TRUE(ok) << "s='" << s << "'";
-        EXPECT_TRUE(result);
+        CHECK_UNARY(ok);
+        CHECK_UNARY(result);
     }
     for(const char *s : {"0", "00", "000", "0000", "false", "False", "FALSE"})
     {
+        INFO("s='" << s << "'");
         bool ok = from_chars(to_csubstr(s), &result);
-        EXPECT_TRUE(ok) << "s='" << s << "'";
-        EXPECT_FALSE(result);
+        CHECK_UNARY(ok);
+        CHECK_UNARY_FALSE(result);
     }
 }
 
@@ -940,29 +965,29 @@ void test_trimmed_fit(T v, csubstr expected)
     char buf2_[128] = {};
     substr buf(buf_);
     substr buf2(buf_);
-    ASSERT_GE(buf.len, expected.len);
-    ASSERT_GE(buf2.len, expected.len);
+    REQUIRE_GE(buf.len, expected.len);
+    REQUIRE_GE(buf2.len, expected.len);
     csubstr result = to_chars_sub(buf, v);
-    EXPECT_EQ(result, expected);
+    CHECK_EQ(result, expected);
     csubstr result2 = to_chars_sub(buf2.sub(result.len), v);
-    EXPECT_EQ(result2, result);
+    CHECK_EQ(result2, result);
     std::string str;
     catrs(&str, v);
-    EXPECT_EQ(result, to_csubstr(str));
+    CHECK_EQ(result, to_csubstr(str));
 }
 
-TEST(to_chars, trimmed_fit_int)
+TEST_CASE("to_chars.trimmed_fit_int")
 {
     test_trimmed_fit(12345678, "12345678");
 }
 
-TEST(to_chars, trimmed_fit_float)
+TEST_CASE("to_chars.trimmed_fit_float")
 {
     test_trimmed_fit(0.375f, "0.375");
     test_trimmed_fit(12.375f, "12.375");
 }
 
-TEST(to_chars, trimmed_fit_double)
+TEST_CASE("to_chars.trimmed_fit_double")
 {
     test_trimmed_fit(0.375, "0.375");
     test_trimmed_fit(12.375, "12.375");
@@ -977,11 +1002,12 @@ template<class T>
 void to_chars_roundtrip(substr buf, T const& val, csubstr expected)
 {
     T cp;
+    INFO("val=" << val);
     csubstr res = to_chars_sub(buf, val);
-    EXPECT_EQ(res, expected);
+    CHECK_EQ(res, expected);
     bool ok = from_chars(res, &cp);
-    EXPECT_TRUE(ok) << "val=" << val;
-    EXPECT_EQ(cp, val) << "val=" << val;
+    CHECK_UNARY(ok);
+    CHECK_EQ(cp, val);
 }
 
 template<size_t N>
@@ -989,17 +1015,18 @@ void to_chars_roundtrip(char (&buf)[N], csubstr val)
 {
     char cp_[N];
     substr cp(cp_);
-    ASSERT_LE(val.len, N);
+    INFO("val=" << val);
+    REQUIRE_LE(val.len, N);
     csubstr res = to_chars_sub(buf, val);
-    EXPECT_EQ(res.len, val.len);
-    EXPECT_EQ(res, val);
+    CHECK_EQ(res.len, val.len);
+    CHECK_EQ(res, val);
     bool ok = from_chars(res, &cp);
-    EXPECT_TRUE(ok);
-    EXPECT_EQ(cp, val);
+    CHECK_UNARY(ok);
+    CHECK_EQ(cp, val);
 }
 
 
-TEST(to_chars, roundtrip_bool)
+TEST_CASE("to_chars.roundtrip_bool")
 {
     char buf[128];
     to_chars_roundtrip<bool>(buf, false, "0");
@@ -1007,7 +1034,7 @@ TEST(to_chars, roundtrip_bool)
 }
 
 
-TEST(to_chars, roundtrip_char)
+TEST_CASE("to_chars.roundtrip_char")
 {
     char buf[128];
     to_chars_roundtrip<char>(buf, 'a', "a");
@@ -1017,7 +1044,7 @@ TEST(to_chars, roundtrip_char)
 }
 
 #define C4_TEST_ROUNDTRIP_INT(ty) \
-TEST(to_chars, roundtrip_##ty)\
+TEST_CASE("to_chars.roundtrip_" #ty)\
 {\
     char buf[128];\
     to_chars_roundtrip<ty>(buf, 0, "0");\
@@ -1046,7 +1073,7 @@ C4_TEST_ROUNDTRIP_INT(intptr_t)
 C4_TEST_ROUNDTRIP_INT(uintptr_t)
 
 #define C4_TEST_ROUNDTRIP_REAL(ty) \
-TEST(to_chars, roundtrip_##ty)\
+TEST_CASE("to_chars.roundtrip_" #ty)\
 {\
     char buf[128];\
     to_chars_roundtrip<ty>(buf, ty(0.0), "0");\
@@ -1058,7 +1085,7 @@ TEST(to_chars, roundtrip_##ty)\
 C4_TEST_ROUNDTRIP_REAL(float)
 C4_TEST_ROUNDTRIP_REAL(double)
 
-TEST(to_chars, roundtrip_substr)
+TEST_CASE("to_chars.roundtrip_substr")
 {
     char buf[128];
     to_chars_roundtrip(buf, "");
