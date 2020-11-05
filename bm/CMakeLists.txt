@@ -1,7 +1,7 @@
 c4_setup_benchmarking()
 
 c4_add_executable(c4core-bm-charconv
-    SOURCES charconv.cpp
+    SOURCES bm_charconv.cpp
     LIBS c4core benchmark
     FOLDER bm)
 
