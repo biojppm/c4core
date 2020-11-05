@@ -8,7 +8,7 @@ c4_add_library(c4core-_libtest LIBRARY_TYPE STATIC
         c4/libtest/archetypes.hpp
         c4/libtest/supprwarn_push.hpp
         c4/libtest/supprwarn_pop.hpp
-    LIBS c4core gtest gtest_main
+    LIBS c4core gtest gtest_main doctest
     INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
     FOLDER test
     )
