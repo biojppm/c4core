@@ -1,6 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include "c4/test.hpp"
 
 #include "c4/type_name.hpp"
@@ -20,31 +17,31 @@ cspan<char> cstr(const char (&s)[N])
     return o;
 }
 
-TEST(type_name, intrinsic_types)
+TEST_CASE("type_name.intrinsic_types")
 {
-    C4_EXPECT_EQ(type_name<int>(), cstr("int"));
-    C4_EXPECT_EQ(type_name<float>(), cstr("float"));
-    C4_EXPECT_EQ(type_name<double>(), cstr("double"));
+    CHECK_EQ(type_name<int>(), cstr("int"));
+    CHECK_EQ(type_name<float>(), cstr("float"));
+    CHECK_EQ(type_name<double>(), cstr("double"));
 }
-TEST(type_name, classes)
+TEST_CASE("type_name.classes")
 {
-    C4_EXPECT_EQ(type_name<SomeTypeName>(), cstr("SomeTypeName"));
-    C4_EXPECT_EQ(type_name<::SomeTypeName>(), cstr("SomeTypeName"));
+    CHECK_EQ(type_name<SomeTypeName>(), cstr("SomeTypeName"));
+    CHECK_EQ(type_name<::SomeTypeName>(), cstr("SomeTypeName"));
 }
-TEST(type_name, structs)
+TEST_CASE("type_name.structs")
 {
-    C4_EXPECT_EQ(type_name<SomeStructName>(), cstr("SomeStructName"));
-    C4_EXPECT_EQ(type_name<::SomeStructName>(), cstr("SomeStructName"));
+    CHECK_EQ(type_name<SomeStructName>(), cstr("SomeStructName"));
+    CHECK_EQ(type_name<::SomeStructName>(), cstr("SomeStructName"));
 }
-TEST(type_name, inside_namespace)
+TEST_CASE("type_name.inside_namespace")
 {
-    C4_EXPECT_EQ(type_name<SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
-    C4_EXPECT_EQ(type_name<c4::SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
-    C4_EXPECT_EQ(type_name<::c4::SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
+    CHECK_EQ(type_name<SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
+    CHECK_EQ(type_name<c4::SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
+    CHECK_EQ(type_name<::c4::SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
 
-    C4_EXPECT_EQ(type_name<SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
-    C4_EXPECT_EQ(type_name<c4::SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
-    C4_EXPECT_EQ(type_name<::c4::SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
+    CHECK_EQ(type_name<SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
+    CHECK_EQ(type_name<c4::SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
+    CHECK_EQ(type_name<::c4::SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
 }
 
 C4_END_NAMESPACE(c4)

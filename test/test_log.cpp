@@ -1,6 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include "c4/log.hpp"
 
 #include "c4/libtest/supprwarn_push.hpp"
@@ -57,6 +54,14 @@ TEST(LogBuffer, basic)
 
     b.catsep('_', s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10]);
     _CHECK(b, "now_we_have_11_strings_to_cat_one_after_the_other");
+
+    // can be a full string
+    b.catsep("____", s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10]);
+    _CHECK(b, "now____we____have____11____strings____to____cat____one____after____the____other");
+
+    // or just a general object
+    b.catsep(22, s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10]);
+    _CHECK(b, "now22we22have221122strings22to22cat22one22after22the22other");
 
 }
 

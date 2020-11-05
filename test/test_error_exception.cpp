@@ -1,7 +1,7 @@
 #include "c4/error.hpp"
 #include "c4/test.hpp"
-#include <stdexcept>
 #include <string>
+#include <stdexcept>
 
 
 C4_BEGIN_HIDDEN_NAMESPACE
@@ -30,12 +30,12 @@ inline c4::ScopedErrorSettings tmp_err()
 void test_exception(int which)
 {
     if(which == 0) return;
-    EXPECT_FALSE(got_an_exception);
-    EXPECT_EQ(c4::get_error_callback() == error_callback_throwing_exception, false);
+    CHECK_FALSE(got_an_exception);
+    CHECK_EQ(c4::get_error_callback() == error_callback_throwing_exception, false);
     {
         auto tmp = tmp_err();
-        EXPECT_EQ(got_an_error, false);
-        EXPECT_EQ(c4::get_error_callback() == error_callback_throwing_exception, true);
+        CHECK_EQ(got_an_error, false);
+        CHECK_EQ(c4::get_error_callback() == error_callback_throwing_exception, true);
         try
         {
             if     (which == 1) { C4_ERROR("err1"); }
@@ -47,22 +47,22 @@ void test_exception(int which)
         catch(int i)
         {
             got_an_exception = true;
-            EXPECT_EQ(got_an_error, true);
-            EXPECT_EQ(i, which);
+            CHECK_EQ(got_an_error, true);
+            CHECK_EQ(i, which);
             throw;
         }
         catch(std::runtime_error const& e)
         {
             got_an_exception = true;
-            EXPECT_EQ(got_an_error, true);
-            EXPECT_STREQ(e.what(), "unknown error");
+            CHECK_EQ(got_an_error, true);
+            CHECK_STREQ(e.what(), "unknown error");
             throw;
         }
         // if we get here it means no exception was thrown
         // so the test failed
-        ADD_FAILURE();
+        FAIL("an exception was thrown");
     }
-    EXPECT_EQ(c4::get_error_callback() == error_callback_throwing_exception, false);
+    CHECK_EQ(c4::get_error_callback() == error_callback_throwing_exception, false);
 }
 
 
@@ -72,34 +72,34 @@ void test_exception(int which)
 //
 // (*) Note that you can also configure c4core to throw an exception on error.
 
-TEST(error, exception_from_callback)
+TEST_CASE("error.exception_from_callback")
 {
     // works!
     got_an_exception = false;
-    EXPECT_THROW(test_exception(-1), std::runtime_error);
-    EXPECT_TRUE(got_an_exception);
+    CHECK_THROWS_AS(test_exception(-1), std::runtime_error);
+    CHECK(got_an_exception);
 
     got_an_exception = false;
-    EXPECT_NO_THROW(test_exception(0));
-    EXPECT_FALSE(got_an_exception);
+    CHECK_NOTHROW(test_exception(0));
+    CHECK_FALSE(got_an_exception);
 
     got_an_exception = false;
-    EXPECT_THROW(test_exception(1), int);
-    EXPECT_TRUE(got_an_exception);
+    CHECK_THROWS_AS(test_exception(1), int);
+    CHECK(got_an_exception);
 
     got_an_exception = false;
-    EXPECT_THROW(test_exception(2), int);
-    EXPECT_TRUE(got_an_exception);
+    CHECK_THROWS_AS(test_exception(2), int);
+    CHECK(got_an_exception);
 
     got_an_exception = false;
-    EXPECT_THROW(test_exception(3), int);
-    EXPECT_TRUE(got_an_exception);
+    CHECK_THROWS_AS(test_exception(3), int);
+    CHECK(got_an_exception);
 
     got_an_exception = false;
-    EXPECT_THROW(test_exception(4), int);
-    EXPECT_TRUE(got_an_exception);
+    CHECK_THROWS_AS(test_exception(4), int);
+    CHECK(got_an_exception);
 
     got_an_exception = false;
-    EXPECT_THROW(test_exception(6), std::runtime_error);
-    EXPECT_TRUE(got_an_exception);
+    CHECK_THROWS_AS(test_exception(6), std::runtime_error);
+    CHECK(got_an_exception);
 }

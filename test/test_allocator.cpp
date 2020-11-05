@@ -1,6 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include "c4/allocator.hpp"
 #include "c4/test.hpp"
 #include "c4/libtest/supprwarn_push.hpp"
@@ -32,60 +29,60 @@ void test_traits_compat_construct(typename Alloc::value_type const& val, Alloc &
     using value_type = typename Alloc::value_type;
 
     value_type *mem = a.allocate(1);
-    ASSERT_NE(mem, nullptr);
+    REQUIRE_NE(mem, nullptr);
     atraits::construct(a, mem, val);
-    EXPECT_EQ(*mem, val);
+    CHECK_EQ(*mem, val);
 
     atraits::destroy(a, mem);
     a.deallocate(mem, 1);
 }
 
-TEST(allocator, traits_compat_construct)
+TEST_CASE("allocator.traits_compat_construct")
 {
     allocator<int> a;
     test_traits_compat_construct(1, a);
 }
 
-TEST(small_allocator, traits_compat_construct)
+TEST_CASE("small_allocator.traits_compat_construct")
 {
     small_allocator<int> a;
     test_traits_compat_construct(1, a);
 }
 
-TEST(allocator_mr_global, traits_compat_construct)
+TEST_CASE("allocator_mr_global.traits_compat_construct")
 {
     allocator_mr<int> a;
     test_traits_compat_construct(1, a);
 }
 
-TEST(allocator_mr_linear, traits_compat_construct)
+TEST_CASE("allocator_mr_linear.traits_compat_construct")
 {
     MemoryResourceLinear mr(1024);
     allocator_mr<int> a(&mr);
     test_traits_compat_construct(1, a);
 }
 
-TEST(allocator_mr_linear_arr, traits_compat_construct)
+TEST_CASE("allocator_mr_linear_arr.traits_compat_construct")
 {
     MemoryResourceLinearArr<1024> mr;
     allocator_mr<int> a(&mr);
     test_traits_compat_construct(1, a);
 }
 
-TEST(small_allocator_mr_global, traits_compat_construct)
+TEST_CASE("small_allocator_mr_global.traits_compat_construct")
 {
     small_allocator_mr<int> a;
     test_traits_compat_construct(1, a);
 }
 
-TEST(small_allocator_mr_linear, traits_compat_construct)
+TEST_CASE("small_allocator_mr_linear.traits_compat_construct")
 {
     MemoryResourceLinear mr(1024);
     small_allocator_mr<int> a(&mr);
     test_traits_compat_construct(1, a);
 }
 
-TEST(small_allocator_mr_linear_arr, traits_compat_construct)
+TEST_CASE("small_allocator_mr_linear_arr.traits_compat_construct")
 {
     MemoryResourceLinearArr<1024> mr;
     small_allocator_mr<int> a(&mr);
@@ -113,7 +110,7 @@ void do_std_containers_test(Alloc alloc)
         _string v(alloc);
         v.reserve(256);
         v = "adskjhsdfkjdflkjsdfkjhsdfkjh";
-        EXPECT_EQ(v, "adskjhsdfkjdflkjsdfkjhsdfkjh");
+        CHECK_EQ(v, "adskjhsdfkjdflkjsdfkjhsdfkjh");
     }
 
     clear_mr(alloc);
@@ -127,7 +124,7 @@ void do_std_containers_test(Alloc alloc)
         _vector_int vi(arr, arr+C4_COUNTOF(arr), alloc);
         for(int i : vi)
         {
-            EXPECT_EQ(i, 42);
+            CHECK_EQ(i, 42);
         }
     }
 
@@ -136,12 +133,12 @@ void do_std_containers_test(Alloc alloc)
     {
         AllocChar a = alloc;
         _vector_string v({"foo", "bar", "baz", "bat", "bax"}, a);
-        EXPECT_EQ(v.size(), 5);
-        EXPECT_EQ(v[0], "foo");
-        EXPECT_EQ(v[1], "bar");
-        EXPECT_EQ(v[2], "baz");
-        EXPECT_EQ(v[3], "bat");
-        EXPECT_EQ(v[4], "bax");
+        CHECK_EQ(v.size(), 5);
+        CHECK_EQ(v[0], "foo");
+        CHECK_EQ(v[1], "bar");
+        CHECK_EQ(v[2], "baz");
+        CHECK_EQ(v[3], "bat");
+        CHECK_EQ(v[4], "bax");
     }
 
     clear_mr(alloc);
@@ -162,26 +159,26 @@ void do_std_containers_test(Alloc alloc)
     {
         AllocPair a = alloc;
         _map_string_int v(a);
-        EXPECT_EQ(v.size(), 0);
+        CHECK_EQ(v.size(), 0);
         v["foo"] = 0;
         v["bar"] = 1;
         v["baz"] = 2;
         v["bat"] = 3;
-        EXPECT_EQ(v.size(), 4);
-        EXPECT_EQ(v["foo"], 0);
-        EXPECT_EQ(v["bar"], 1);
-        EXPECT_EQ(v["baz"], 2);
-        EXPECT_EQ(v["bat"], 3);
+        CHECK_EQ(v.size(), 4);
+        CHECK_EQ(v["foo"], 0);
+        CHECK_EQ(v["bar"], 1);
+        CHECK_EQ(v["baz"], 2);
+        CHECK_EQ(v["bat"], 3);
     }
 }
 
-TEST(allocator_global, std_containers)
+TEST_CASE("allocator_global.std_containers")
 {
     allocator<int> a;
     do_std_containers_test(a);
 }
 
-TEST(small_allocator_global, std_containers)
+TEST_CASE("small_allocator_global.std_containers")
 {
     /* this is failing, investigate
     small_allocator<int> a;
@@ -189,27 +186,27 @@ TEST(small_allocator_global, std_containers)
     */
 }
 
-TEST(allocator_mr_global, std_containers)
+TEST_CASE("allocator_mr_global.std_containers")
 {
     allocator_mr<int> a;
     do_std_containers_test(a);
 }
 
-TEST(allocator_mr_linear, std_containers)
+TEST_CASE("allocator_mr_linear.std_containers")
 {
     MemoryResourceLinear mr(1024);
     allocator_mr<int> a(&mr);
     do_std_containers_test(a);
 }
 
-TEST(allocator_mr_linear_arr, std_containers)
+TEST_CASE("allocator_mr_linear_arr.std_containers")
 {
     MemoryResourceLinearArr<1024> mr;
     allocator_mr<int> a(&mr);
     do_std_containers_test(a);
 }
 
-TEST(small_allocator_mr_global, std_containers)
+TEST_CASE("small_allocator_mr_global.std_containers")
 {
     /* this is failing, investigate
     small_allocator_mr<int> a;
@@ -217,7 +214,7 @@ TEST(small_allocator_mr_global, std_containers)
     */
 }
 
-TEST(small_allocator_mr_linear, std_containers)
+TEST_CASE("small_allocator_mr_linear.std_containers")
 {
     /* this is failing, investigate
     MemoryResourceLinear mr(1024);
@@ -226,7 +223,7 @@ TEST(small_allocator_mr_linear, std_containers)
     */
 }
 
-TEST(small_allocator_mr_linear_arr, std_containers)
+TEST_CASE("small_allocator_mr_linear_arr.std_containers")
 {
     /* this is failing, investigate
     MemoryResourceLinearArr<1024> mr;

@@ -1,11 +1,10 @@
 #include "c4/std/std.hpp"
 #include "c4/substr.hpp"
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
-#include "doctest/doctest.h"
+#include <c4/test.hpp>
 
 #include "c4/libtest/supprwarn_push.hpp"
+#include <iostream>
 
 namespace c4 {
 

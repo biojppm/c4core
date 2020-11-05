@@ -9,14 +9,14 @@ std::vector<char> ctor(const char (&s)[N])
     return std::vector<char>(s, s+N-1);
 }
 
-TEST(std_vector, to_substr)
+TEST_CASE("std_vector.to_substr")
 {
     std::vector<char> s = ctor("barnabe");
     auto ss = to_substr(s);
-    EXPECT_EQ(ss.str, s.data());
-    EXPECT_EQ(ss.len, s.size());
+    CHECK_EQ(ss.str, s.data());
+    CHECK_EQ(ss.len, s.size());
     ss[0] = 'B';
-    EXPECT_EQ(s[0], 'B');
+    CHECK_EQ(s[0], 'B');
 }
 
 } // namespace c4

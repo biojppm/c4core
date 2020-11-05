@@ -5,7 +5,8 @@
 #include "c4/memory_resource.hpp"
 #include "c4/allocator.hpp"
 #include "c4/char_traits.hpp"
-
+#include <vector>
+#include <string>
 #include <array>
 
 C4_BEGIN_NAMESPACE(c4)
@@ -31,18 +32,18 @@ inline void check_archetype(int64_t ) {}
 inline void check_archetype(uint64_t) {}
 inline void check_archetype(float   ) {}
 inline void check_archetype(double  ) {}
-inline void check_archetype(char     a, char     ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(wchar_t  a, wchar_t  ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(int8_t   a, int8_t   ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(uint8_t  a, uint8_t  ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(int16_t  a, int16_t  ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(uint16_t a, uint16_t ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(int32_t  a, int32_t  ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(uint32_t a, uint32_t ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(int64_t  a, int64_t  ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(uint64_t a, uint64_t ref) { EXPECT_EQ(a, ref); }
-inline void check_archetype(float    a, float    ref) { EXPECT_FLOAT_EQ(a, ref); }
-inline void check_archetype(double   a, double   ref) { EXPECT_DOUBLE_EQ(a, ref); }
+inline void check_archetype(char     a, char     ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(wchar_t  a, wchar_t  ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(int8_t   a, int8_t   ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(uint8_t  a, uint8_t  ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(int16_t  a, int16_t  ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(uint16_t a, uint16_t ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(int32_t  a, int32_t  ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(uint32_t a, uint32_t ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(int64_t  a, int64_t  ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(uint64_t a, uint64_t ref) { CHECK_EQ(a, ref); }
+inline void check_archetype(float    a, float    ref) { CHECK_EQ((double)a, doctest::Approx((double)ref)); }
+inline void check_archetype(double   a, double   ref) { CHECK_EQ(a, doctest::Approx(ref)); }
 
 
 //-----------------------------------------------------------------------------
@@ -231,12 +232,12 @@ struct IdOwner
 
     void check() const
     {
-        EXPECT_TRUE(id > 0);
+        CHECK_UNARY(id > 0);
     }
     void check(IdOwner const& that) const
     {
         check();
-        EXPECT_NE(id, that.id);
+        CHECK_NE(id, that.id);
     }
 
     IdOwner(int v = 0) { id = ++s_current; val = v; }
@@ -502,7 +503,6 @@ _C4_DECLARE_ARCHETYPE_PROTO_TPL1(class T, InsidePtr<T>,
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-#ifdef C4_QUICKTEST
 #   define CALL_FOR_SCALAR_ARCHETYPES(mcr)      \
     mcr(int  , int)                             \
     mcr(uint64_t , uint64_t)
@@ -511,45 +511,18 @@ _C4_DECLARE_ARCHETYPE_PROTO_TPL1(class T, InsidePtr<T>,
     CALL_FOR_SCALAR_ARCHETYPES(mcr)                                     \
     mcr(MemOwnerAlloc_std_string   , archetypes::MemOwnerAlloc<std::string>)
 
-using scalars = ::testing::Types<int, uint64_t>;
 
-using containees = ::testing::Types<
+
+using scalars_quick = std::tuple<int, uint64_t>;
+using scalars = std::tuple<
+    char, wchar_t, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double
+>;
+using containees_quick = std::tuple<
     int,
     uint64_t,
     archetypes::MemOwnerAlloc<std::string>
 >;
-
-#else // C4_QUICKTEST
-#   define CALL_FOR_SCALAR_ARCHETYPES(mcr)         \
-    mcr(char     , char    )                       \
-    mcr(wchar_t  , wchar_t )                       \
-    mcr(int8_t   , int8_t  )                       \
-    mcr(uint8_t  , uint8_t )                       \
-    mcr(int16_t  , int16_t )                       \
-    mcr(uint16_t , uint16_t)                       \
-    mcr(int32_t  , int32_t )                       \
-    mcr(uint32_t , uint32_t)                       \
-    mcr(int64_t  , int64_t )                       \
-    mcr(uint64_t , uint64_t)                       \
-    mcr(float    , float   )                       \
-    mcr(double   , double  )
-
-#   define CALL_FOR_CONTAINEE_ARCHETYPES(mcr)                           \
-    CALL_FOR_SCALAR_ARCHETYPES(mcr)                                     \
-    mcr(exvec3_int                 , archetypes::exvec3<int>               ) \
-    mcr(exvec3_float               , archetypes::exvec3<float>             ) \
-    mcr(IdOwner                    , archetypes::IdOwner                   ) \
-    mcr(MemOwner_int               , archetypes::MemOwner<int>             ) \
-    mcr(MemOwner_std_string        , archetypes::MemOwner<std::string>     ) \
-    mcr(MemOwnerAlloc_int          , archetypes::MemOwnerAlloc<int>        ) \
-    mcr(MemOwnerAlloc_std_string   , archetypes::MemOwnerAlloc<std::string>) \
-    mcr(InsidePtr_int              , archetypes::InsidePtr<int>            ) \
-    mcr(InsidePtr_std_string       , archetypes::InsidePtr<std::string>    )
-
-using scalars = ::testing::Types<
-    char, wchar_t, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double
->;
-using containees = ::testing::Types<
+using containees = std::tuple<
     char, wchar_t, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double,
     archetypes::exvec3<int>,
     archetypes::exvec3<float>,
@@ -561,7 +534,6 @@ using containees = ::testing::Types<
     archetypes::InsidePtr<int>,
     archetypes::InsidePtr<std::string>
 >;
-#endif // C4_QUICKTEST
 
 
 #ifdef __clang__

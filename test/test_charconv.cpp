@@ -1,4 +1,3 @@
-#include <iostream>
 #include "c4/std/std.hpp"
 #include "c4/charconv.hpp"
 #include "c4/format.hpp"
@@ -14,9 +13,7 @@
 #   pragma GCC diagnostic ignored "-Wfloat-equal"
 #endif
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
-#include "doctest/doctest.h"
+#include <c4/test.hpp>
 
 namespace c4 {
 
