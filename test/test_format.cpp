@@ -373,6 +373,7 @@ TEST(printf, basic)
     EXPECT_EQ(buf.first(ret), "1 2 3 4");
 }
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -380,15 +381,33 @@ TEST(catrs, basic)
 {
     std::vector<char> buf;
 
+    catrs(&buf);
+    EXPECT_EQ(to_csubstr(buf), "");
+
     catrs(&buf, 1, 2, 3, 4);
     EXPECT_EQ(to_csubstr(buf), "1234");
     catrs(&buf, 5, 6, 7, 8);
     EXPECT_EQ(to_csubstr(buf), "5678");
 }
 
+TEST(catrs, basic_return)
+{
+    auto bufv = catrs<std::vector<char>>(9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+    EXPECT_EQ(to_csubstr(bufv), "9876543210");
+    bufv = catrs<std::vector<char>>();
+    EXPECT_EQ(to_csubstr(bufv), "");
+    EXPECT_TRUE(bufv.empty());
+
+    auto bufs = catrs<std::string>(9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+    EXPECT_EQ(to_csubstr(bufs), "9876543210");
+}
+
 TEST(catrs, basic_append)
 {
     std::vector<char> buf;
+
+    catrs(append, &buf);
+    EXPECT_EQ(to_csubstr(buf), "");
 
     catrs(append, &buf, 1, 2, 3, 4);
     EXPECT_EQ(to_csubstr(buf), "1234");
@@ -398,9 +417,47 @@ TEST(catrs, basic_append)
     EXPECT_EQ(to_csubstr(buf), "123456789012345678");
 }
 
+template<class... Args>
+void catrs_perfect_fwd(Args && ...args)
+{
+    catrs(std::forward<Args>(args)...);
+}
+
+TEST(catrs, perfect_fwd)
+{
+    std::vector<char> buf;
+    catrs_perfect_fwd(&buf, 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1234");
+    catrs_perfect_fwd(&buf, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5678");
+}
+
+template<class... Args>
+void catrs_const_fwd(Args const& ...args)
+{
+    catrs(args...);
+}
+
+TEST(catrs, const_fwd)
+{
+    std::vector<char> buf;
+    catrs_const_fwd(&buf, 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1234");
+    catrs_const_fwd(&buf, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5678");
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 TEST(catseprs, basic)
 {
     std::vector<char> buf;
+
+    catseprs(&buf, ' ');
+    EXPECT_EQ(to_csubstr(buf), "");
 
     catseprs(&buf, ' ', 1, 2, 3, 4);
     EXPECT_EQ(to_csubstr(buf), "1 2 3 4");
@@ -421,26 +478,101 @@ TEST(catseprs, basic)
     EXPECT_EQ(to_csubstr(buf), "1///2///3///4");
     catseprs(&buf, "///", 5, 6, 7, 8);
     EXPECT_EQ(to_csubstr(buf), "5///6///7///8");
+
+    catseprs(&buf, 5678, 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1567825678356784");
+    catseprs(&buf, 1234, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5123461234712348");
+}
+
+TEST(catseprs, basic_return)
+{
+    auto bufv = catseprs<std::vector<char>>('a', 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+    EXPECT_EQ(to_csubstr(bufv), "9a8a7a6a5a4a3a2a1a0");
+
+    auto bufs = catseprs<std::string      >('a', 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+    EXPECT_EQ(to_csubstr(bufs), "9a8a7a6a5a4a3a2a1a0");
 }
 
 TEST(catseprs, basic_append)
 {
     std::vector<char> buf;
 
-    catseprs(append, &buf, ' ', 1, 2, 3, 4);
+    auto ret = catseprs(append, &buf, ' ');
+    EXPECT_EQ(to_csubstr(buf), "");
+    EXPECT_EQ(ret, "");
+
+    ret = catseprs(append, &buf, ' ', 1, 2, 3, 4);
     EXPECT_EQ(to_csubstr(buf), "1 2 3 4");
-    catseprs(append, &buf, ' ', 5, 6, 7, 8);
+    EXPECT_EQ(ret, "1 2 3 4");
+    ret = catseprs(append, &buf, ' ', 5, 6, 7, 8);
     EXPECT_EQ(to_csubstr(buf), "1 2 3 45 6 7 8");
-    catseprs(append, &buf, ' ', 9, 0, 1, 2, 3, 4, 5, 6, 7, 8);
+    EXPECT_EQ(ret, "5 6 7 8");
+    ret = catseprs(append, &buf, ' ', 9, 0, 1, 2, 3, 4, 5, 6, 7, 8);
     EXPECT_EQ(to_csubstr(buf), "1 2 3 45 6 7 89 0 1 2 3 4 5 6 7 8");
+    EXPECT_EQ(ret, "9 0 1 2 3 4 5 6 7 8");
+
+    ret = catseprs(append, &buf, ' ');
+    EXPECT_EQ(to_csubstr(buf), "1 2 3 45 6 7 89 0 1 2 3 4 5 6 7 8");
+    EXPECT_EQ(ret, "");
 }
+
+template<class... Args>
+void catseprs_perfect_fwd(Args && ...args)
+{
+    catseprs(std::forward<Args>(args)...);
+}
+
+template<class... Args>
+void catseprs_const_fwd(Args const& ...args)
+{
+    catseprs(args...);
+}
+
+TEST(catseprs, perfect_fwd)
+{
+    std::vector<char> buf;
+    catseprs_perfect_fwd(&buf, '.', 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1.2.3.4");
+    catseprs_perfect_fwd(&buf, 0, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5060708");
+}
+
+TEST(catseprs, const_fwd)
+{
+    std::vector<char> buf;
+    catseprs_const_fwd(&buf, '.', 1, 2, 3, 4);
+    EXPECT_EQ(to_csubstr(buf), "1.2.3.4");
+    catseprs_const_fwd(&buf, 0, 5, 6, 7, 8);
+    EXPECT_EQ(to_csubstr(buf), "5060708");
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 TEST(formatrs, basic)
 {
     std::vector<char> buf;
 
+    formatrs(&buf, "");
+    EXPECT_TRUE(buf.empty());
+
     formatrs(&buf, "{} goes with food, {} goes with heat, {} anytime", "wine", "beer", "coffee");
     EXPECT_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat, coffee anytime");
+
+    formatrs(&buf, "");
+    EXPECT_TRUE(buf.empty());
+}
+
+TEST(formatrs, basic_return)
+{
+    auto bufv = formatrs<std::vector<char>>("{} goes with food, {} goes with heat, {} anytime", "wine", "beer", "coffee");
+    EXPECT_EQ(to_csubstr(bufv), "wine goes with food, beer goes with heat, coffee anytime");
+
+    auto bufs = formatrs<std::string>("{} goes with food, {} goes with heat, {} anytime", "wine", "beer", "coffee");
+    EXPECT_EQ(to_csubstr(bufs), "wine goes with food, beer goes with heat, coffee anytime");
 }
 
 TEST(formatrs, basic_append)
@@ -457,6 +589,37 @@ TEST(formatrs, basic_append)
     formatrs(append, &buf, ". And water. {} glass of {}cl in the morning clears you up for the day", 1, 40);
     EXPECT_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat, coffee anytime. And water. 1 glass of 40cl in the morning clears you up for the day");
 }
+
+template<class... Args>
+void formatrs_perfect_fwd(Args && ...args)
+{
+    formatrs(std::forward<Args>(args)...);
+}
+
+template<class... Args>
+void formatrs_const_fwd(Args const& ...args)
+{
+    formatrs(args...);
+}
+
+TEST(formatrs, perfect_fwd)
+{
+    std::vector<char> buf;
+    formatrs_perfect_fwd(&buf, "{} like {}", 'I', "champagne");
+    EXPECT_EQ(to_csubstr(buf), "I like champagne");
+    formatrs_perfect_fwd(&buf, "{} is {} and {}", "Champagne", "happy", "bubbly");
+    EXPECT_EQ(to_csubstr(buf), "Champagne is happy and bubbly");
+}
+
+TEST(formatrs, const_fwd)
+{
+    std::vector<char> buf;
+    formatrs_const_fwd(&buf, "{} like {}", 'I', "champagne");
+    EXPECT_EQ(to_csubstr(buf), "I like champagne");
+    formatrs_const_fwd(&buf, "{} is {} and {}", "Champagne", "happy", "bubbly");
+    EXPECT_EQ(to_csubstr(buf), "Champagne is happy and bubbly");
+}
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

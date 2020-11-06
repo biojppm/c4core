@@ -561,9 +561,9 @@ size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_
  * @see catsep(). uncatsep() is the inverse of catsep().
  * @ingroup formatting_functions */
 template<class... Args>
-substr format_sub(substr buf, csubstr fmt, Args && ...args)
+substr format_sub(substr buf, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
-    size_t sz = c4::format(buf, fmt, std::forward<Args>(args)...);
+    size_t sz = c4::format(buf, fmt, args...);
     C4_CHECK(sz <= buf.len);
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
@@ -642,6 +642,19 @@ retry:
     }
 }
 
+/** like cat(), but creates and returns a new container sized as needed to contain
+ * the result.
+ *
+ * @see cat()
+ * @ingroup formatting_functions */
+template<class CharOwningContainer, class... Args>
+inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
+{
+    CharOwningContainer cont;
+    catrs(&cont, args...);
+    return cont;
+}
+
 /** like cat(), but receives a container, and appends to it instead of
  * overwriting it. The container is resized as needed to contain the result.
  *
@@ -671,6 +684,16 @@ retry:
  * @see catsep()
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class Sep, class... Args>
+inline void catseprs(CharOwningContainer * C4_RESTRICT, Sep const& C4_RESTRICT)
+{
+    return;
+}
+
+/** like catsep(), but receives a container, and resizes it as needed to contain the result.
+ * The container is overwritten. To append to the container use the append overload.
+ * @see catsep()
+ * @ingroup formatting_functions */
+template<class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
 retry:
@@ -683,19 +706,32 @@ retry:
     }
 }
 
-/**
+/** like catsep(), but create a container with the result.
  * @overload catseprs
+ * @return the requested container
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class Sep, class... Args>
 inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
     CharOwningContainer cont;
-    catseprs(&cont, std::cref(sep), std::forward<Args>(args)...);
+    catseprs(&cont, std::cref(sep), args...);
     return cont;
 }
 
 /** like catsep(), but receives a container, and appends the arguments, resizing the
  * container as needed to contain the result. The buffer is appended to.
+ * @return a csubstr of the appended part
+ * @ingroup formatting_functions */
+template<class CharOwningContainer, class Sep, class... Args>
+inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT, Sep const& C4_RESTRICT)
+{
+    csubstr s;
+    return s;
+}
+
+/** like catsep(), but receives a container, and appends the arguments, resizing the
+ * container as needed to contain the result. The buffer is appended to.
+ * @return a csubstr of the appended part
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class Sep, class... Args>
 inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
@@ -740,7 +776,7 @@ template<class CharOwningContainer, class... Args>
 inline CharOwningContainer formatrs(csubstr fmt, Args const&  C4_RESTRICT ...args)
 {
     CharOwningContainer cont;
-    formatrs(&cont, fmt, std::forward<Args>(args)...);
+    formatrs(&cont, fmt, args...);
     return cont;
 }
 
