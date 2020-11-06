@@ -1,4 +1,4 @@
-c4_setup_testing()
+c4_setup_testing(GTEST)
 
 c4_add_library(c4core-_libtest LIBRARY_TYPE STATIC
     SOURCES
