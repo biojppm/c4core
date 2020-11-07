@@ -1574,6 +1574,10 @@ template<typename C> inline bool operator>= (C const c, basic_substring<const C>
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** @define C4_SUBSTR_NO_OSTREAM_LSHIFT doctest does not deal well with
+ * template operator<<
+ * @see https://github.com/onqtam/doctest/pull/431 */
+#ifndef C4_SUBSTR_NO_OSTREAM_LSHIFT
 #ifdef __clang__
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wsign-conversion"
@@ -1603,6 +1607,7 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic pop
 #endif
+#endif // !C4_SUBSTR_NO_OSTREAM_LSHIFT
 
 C4_END_NAMESPACE(c4)
 

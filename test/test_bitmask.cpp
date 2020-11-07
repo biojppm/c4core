@@ -1,4 +1,3 @@
-#include <iostream>
 #include <vector>
 
 #include <c4/bitmask.hpp>
@@ -8,12 +7,11 @@
 
 #include "./test_enum_common.hpp"
 
-
 template<typename Enum>
 void cmp_enum(Enum lhs, Enum rhs)
 {
     using I = typename std::underlying_type<Enum>::type;
-    EXPECT_EQ(static_cast<I>(lhs), static_cast<I>(rhs));
+    CHECK_EQ(static_cast<I>(lhs), static_cast<I>(rhs));
 }
 
 
@@ -22,62 +20,62 @@ void cmp_enum(Enum lhs, Enum rhs)
 //-----------------------------------------------------------------------------
 
 
-TEST(str2bm, simple_bitmask)
+TEST_CASE("str2bm.simple_bitmask")
 {
     using namespace c4;
     std::vector<char> str;
 
-    EXPECT_EQ(BM_NONE,              str2bm<MyBitmask>("BM_NONE"));
-    EXPECT_EQ(BM_NONE,              str2bm<MyBitmask>("NONE"));
-    EXPECT_EQ(BM_NONE,              str2bm<MyBitmask>("0"));
-    EXPECT_EQ(BM_NONE,              str2bm<MyBitmask>("0x0"));
+    CHECK_EQ(BM_NONE,              str2bm<MyBitmask>("BM_NONE"));
+    CHECK_EQ(BM_NONE,              str2bm<MyBitmask>("NONE"));
+    CHECK_EQ(BM_NONE,              str2bm<MyBitmask>("0"));
+    CHECK_EQ(BM_NONE,              str2bm<MyBitmask>("0x0"));
 
-    EXPECT_EQ(BM_FOO,               str2bm<MyBitmask>("BM_FOO"));
-    EXPECT_EQ(BM_FOO,               str2bm<MyBitmask>("FOO"));
-    EXPECT_EQ(BM_FOO,               str2bm<MyBitmask>("1"));
-    EXPECT_EQ(BM_FOO,               str2bm<MyBitmask>("0x1"));
-    EXPECT_EQ(BM_FOO,               str2bm<MyBitmask>("BM_NONE|0x1"));
+    CHECK_EQ(BM_FOO,               str2bm<MyBitmask>("BM_FOO"));
+    CHECK_EQ(BM_FOO,               str2bm<MyBitmask>("FOO"));
+    CHECK_EQ(BM_FOO,               str2bm<MyBitmask>("1"));
+    CHECK_EQ(BM_FOO,               str2bm<MyBitmask>("0x1"));
+    CHECK_EQ(BM_FOO,               str2bm<MyBitmask>("BM_NONE|0x1"));
 
-    EXPECT_EQ(BM_BAR,               str2bm<MyBitmask>("BM_BAR"));
-    EXPECT_EQ(BM_BAR,               str2bm<MyBitmask>("BAR"));
-    EXPECT_EQ(BM_BAR,               str2bm<MyBitmask>("2"));
-    EXPECT_EQ(BM_BAR,               str2bm<MyBitmask>("0x2"));
-    EXPECT_EQ(BM_BAR,               str2bm<MyBitmask>("BM_NONE|0x2"));
+    CHECK_EQ(BM_BAR,               str2bm<MyBitmask>("BM_BAR"));
+    CHECK_EQ(BM_BAR,               str2bm<MyBitmask>("BAR"));
+    CHECK_EQ(BM_BAR,               str2bm<MyBitmask>("2"));
+    CHECK_EQ(BM_BAR,               str2bm<MyBitmask>("0x2"));
+    CHECK_EQ(BM_BAR,               str2bm<MyBitmask>("BM_NONE|0x2"));
 
-    EXPECT_EQ(BM_BAZ,               str2bm<MyBitmask>("BM_BAZ"));
-    EXPECT_EQ(BM_BAZ,               str2bm<MyBitmask>("BAZ"));
-    EXPECT_EQ(BM_BAZ,               str2bm<MyBitmask>("4"));
-    EXPECT_EQ(BM_BAZ,               str2bm<MyBitmask>("0x4"));
+    CHECK_EQ(BM_BAZ,               str2bm<MyBitmask>("BM_BAZ"));
+    CHECK_EQ(BM_BAZ,               str2bm<MyBitmask>("BAZ"));
+    CHECK_EQ(BM_BAZ,               str2bm<MyBitmask>("4"));
+    CHECK_EQ(BM_BAZ,               str2bm<MyBitmask>("0x4"));
 
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("BM_FOO|BM_BAR"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("BM_FOO|BAR"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("FOO|BM_BAR"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("BM_FOO_BAR"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("FOO_BAR"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("FOO|BAR"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("0x1|0x2"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("1|2"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("0x3"));
-    EXPECT_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("3"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("BM_FOO|BM_BAR"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("BM_FOO|BAR"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("FOO|BM_BAR"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("BM_FOO_BAR"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("FOO_BAR"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("FOO|BAR"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("0x1|0x2"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("1|2"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("0x3"));
+    CHECK_EQ(BM_FOO_BAR,           str2bm<MyBitmask>("3"));
 
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("BM_FOO|BM_BAR|BM_BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("BM_FOO|BM_BAR|BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("BM_FOO|BAR|BM_BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BM_BAR|BM_BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BM_BAR|BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BAR|BM_BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BAR|BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO_BAR|BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("BM_FOO_BAR|BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("0x1|BAR|BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|0x2|BAZ"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BAR|0x4"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("0x1|0x2|0x4"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("0x7"));
-    EXPECT_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("7"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("BM_FOO|BM_BAR|BM_BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("BM_FOO|BM_BAR|BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("BM_FOO|BAR|BM_BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BM_BAR|BM_BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BM_BAR|BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BAR|BM_BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BAR|BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO_BAR|BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("BM_FOO_BAR|BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("0x1|BAR|BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|0x2|BAZ"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("FOO|BAR|0x4"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("0x1|0x2|0x4"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("0x7"));
+    CHECK_EQ(BM_FOO_BAR_BAZ,       str2bm<MyBitmask>("7"));
 }
 
-TEST(str2bm, scoped_bitmask)
+TEST_CASE("str2bm.scoped_bitmask")
 {
     using namespace c4;
     std::vector<char> str;
@@ -180,54 +178,54 @@ const char* do_bm2str(Enum e, std::vector<char> *s, c4::EnumOffsetType which)
     return s->data();
 }
 
-TEST(bm2str, simple_bitmask)
+TEST_CASE("bm2str.simple_bitmask")
 {
     using namespace c4;
     std::vector<char> str;
 
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_NONE,        &str, EOFFS_NONE), "BM_NONE");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO,         &str, EOFFS_NONE), "BM_FOO");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_BAR,         &str, EOFFS_NONE), "BM_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_BAZ,         &str, EOFFS_NONE), "BM_BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR,     &str, EOFFS_NONE), "BM_FOO_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR_BAZ, &str, EOFFS_NONE), "BM_FOO_BAR_BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_NONE,        &str, EOFFS_CLS ), "BM_NONE");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO,         &str, EOFFS_CLS ), "BM_FOO");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_BAR,         &str, EOFFS_CLS ), "BM_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_BAZ,         &str, EOFFS_CLS ), "BM_BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR,     &str, EOFFS_CLS ), "BM_FOO_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR_BAZ, &str, EOFFS_CLS ), "BM_FOO_BAR_BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_NONE,        &str, EOFFS_PFX ), "NONE");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO,         &str, EOFFS_PFX ), "FOO");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_BAR,         &str, EOFFS_PFX ), "BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_BAZ,         &str, EOFFS_PFX ), "BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR,     &str, EOFFS_PFX ), "FOO_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR_BAZ, &str, EOFFS_PFX ), "FOO_BAR_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_NONE,        &str, EOFFS_NONE), "BM_NONE");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO,         &str, EOFFS_NONE), "BM_FOO");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_BAR,         &str, EOFFS_NONE), "BM_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_BAZ,         &str, EOFFS_NONE), "BM_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR,     &str, EOFFS_NONE), "BM_FOO_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR_BAZ, &str, EOFFS_NONE), "BM_FOO_BAR_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_NONE,        &str, EOFFS_CLS ), "BM_NONE");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO,         &str, EOFFS_CLS ), "BM_FOO");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_BAR,         &str, EOFFS_CLS ), "BM_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_BAZ,         &str, EOFFS_CLS ), "BM_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR,     &str, EOFFS_CLS ), "BM_FOO_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR_BAZ, &str, EOFFS_CLS ), "BM_FOO_BAR_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_NONE,        &str, EOFFS_PFX ), "NONE");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO,         &str, EOFFS_PFX ), "FOO");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_BAR,         &str, EOFFS_PFX ), "BAR");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_BAZ,         &str, EOFFS_PFX ), "BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR,     &str, EOFFS_PFX ), "FOO_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmask>(BM_FOO_BAR_BAZ, &str, EOFFS_PFX ), "FOO_BAR_BAZ");
 }
 
-TEST(bm2str, scoped_bitmask)
+TEST_CASE("bm2str.scoped_bitmask")
 {
     using namespace c4;
     std::vector<char> str;
 
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_NONE,        &str, EOFFS_NONE), "MyBitmaskClass::BM_NONE");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO,         &str, EOFFS_NONE), "MyBitmaskClass::BM_FOO");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAR,         &str, EOFFS_NONE), "MyBitmaskClass::BM_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAZ,         &str, EOFFS_NONE), "MyBitmaskClass::BM_BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR,     &str, EOFFS_NONE), "MyBitmaskClass::BM_FOO_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR_BAZ, &str, EOFFS_NONE), "MyBitmaskClass::BM_FOO_BAR_BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_NONE,        &str, EOFFS_CLS ), "BM_NONE");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO,         &str, EOFFS_CLS ), "BM_FOO");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAR,         &str, EOFFS_CLS ), "BM_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAZ,         &str, EOFFS_CLS ), "BM_BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR,     &str, EOFFS_CLS ), "BM_FOO_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR_BAZ, &str, EOFFS_CLS ), "BM_FOO_BAR_BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_NONE,        &str, EOFFS_PFX ), "NONE");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO,         &str, EOFFS_PFX ), "FOO");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAR,         &str, EOFFS_PFX ), "BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAZ,         &str, EOFFS_PFX ), "BAZ");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR,     &str, EOFFS_PFX ), "FOO_BAR");
-    EXPECT_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR_BAZ, &str, EOFFS_PFX ), "FOO_BAR_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_NONE,        &str, EOFFS_NONE), "MyBitmaskClass::BM_NONE");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO,         &str, EOFFS_NONE), "MyBitmaskClass::BM_FOO");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAR,         &str, EOFFS_NONE), "MyBitmaskClass::BM_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAZ,         &str, EOFFS_NONE), "MyBitmaskClass::BM_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR,     &str, EOFFS_NONE), "MyBitmaskClass::BM_FOO_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR_BAZ, &str, EOFFS_NONE), "MyBitmaskClass::BM_FOO_BAR_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_NONE,        &str, EOFFS_CLS ), "BM_NONE");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO,         &str, EOFFS_CLS ), "BM_FOO");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAR,         &str, EOFFS_CLS ), "BM_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAZ,         &str, EOFFS_CLS ), "BM_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR,     &str, EOFFS_CLS ), "BM_FOO_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR_BAZ, &str, EOFFS_CLS ), "BM_FOO_BAR_BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_NONE,        &str, EOFFS_PFX ), "NONE");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO,         &str, EOFFS_PFX ), "FOO");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAR,         &str, EOFFS_PFX ), "BAR");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_BAZ,         &str, EOFFS_PFX ), "BAZ");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR,     &str, EOFFS_PFX ), "FOO_BAR");
+    CHECK_STREQ(do_bm2str<MyBitmaskClass>(MyBitmaskClass::BM_FOO_BAR_BAZ, &str, EOFFS_PFX ), "FOO_BAR_BAZ");
 }
 
 //-----------------------------------------------------------------------------
@@ -269,18 +267,18 @@ void test_bm2str()
             //printf(": %s (%zu) %s\n", str.c_str(), (uint64_t)val, ws.data());
 
             res = str2bm<Enum>(str.data());
-            EXPECT_EQ(res, val);
+            CHECK_EQ(res, val);
 
             len = bm2str<Enum>(res); // needed length
             ws.resize(len);
             bm2str<Enum>(val, &ws[0], len);
             res = str2bm<Enum>(ws.data());
-            EXPECT_EQ(res, val);
+            CHECK_EQ(res, val);
 
             // write a string with the bitmask as an int
             c4::catrs(&ws, val);
             res = str2bm<Enum>(str.data());
-            EXPECT_EQ(res, val);
+            CHECK_EQ(res, val);
 
             bool carry = true;
             for(size_t i = static_cast<size_t>(k-1); i != size_t(-1); --i)

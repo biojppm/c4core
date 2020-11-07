@@ -5,77 +5,29 @@
 #include "c4/memory_resource.hpp"
 #include "c4/allocator.hpp"
 #include "c4/substr.hpp"
+#include <cstdio>
+#include <iostream>
 
 // FIXME - these are just dumb placeholders
 #define C4_LOGF_ERR(...) fprintf(stderr, __VA_ARGS__)
 #define C4_LOGF_WARN(...) fprintf(stderr, __VA_ARGS__)
 #define C4_LOGP(msg, ...) printf(msg)
 
-#ifdef __clang__
-#   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wdeprecated-declarations" //  warning : 'mbsrtowcs' is deprecated: This function or variable may be unsafe. Consider using sscanf_s instead
-#endif
+#define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
+#include <doctest/doctest.h>
 
-#include <gtest/gtest.h>
-
-#ifdef __clang__
-#   pragma clang diagnostic pop
-#endif
-
-#define C4_EXPECT(expr) EXPECT_TRUE(expr) << C4_PRETTY_FUNC << "\n"
-#define C4_EXPECT_FALSE(expr) EXPECT_FALSE(expr) << C4_PRETTY_FUNC << "\n"
-
-#define C4_EXPECT_NE(expr1, expr2) EXPECT_NE(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-#define C4_EXPECT_EQ(expr1, expr2) EXPECT_EQ(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-#define C4_EXPECT_LT(expr1, expr2) EXPECT_LT(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-#define C4_EXPECT_GT(expr1, expr2) EXPECT_GT(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-#define C4_EXPECT_GE(expr1, expr2) EXPECT_GE(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-#define C4_EXPECT_LE(expr1, expr2) EXPECT_LE(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-
-#define C4_EXPECT_STREQ(expr1, expr2) EXPECT_STREQ(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-#define C4_EXPECT_STRNE(expr1, expr2) EXPECT_STRNE(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-
-#define C4_EXPECT_STRCASEEQ(expr1, expr2) EXPECT_STRCASEEQ(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-#define C4_EXPECT_STRCASENE(expr1, expr2) EXPECT_STRCASENE(expr1, expr2) << C4_PRETTY_FUNC << "\n"
-
-
-#define C4_TEST(ts, tn) TEST_F(::c4::TestFixture, ts##_##tn)
+#define CHECK_STREQ(lhs, rhs) CHECK_EQ(c4::to_csubstr(lhs), c4::to_csubstr(rhs))
+#define CHECK_FLOAT_EQ(lhs, rhs) CHECK((double)(lhs) == doctest::Approx((double)(rhs)))
 
 
 C4_BEGIN_NAMESPACE(c4)
 
-inline void PrintTo(const  substr& s, ::std::ostream* os) { *os << s; }
-inline void PrintTo(const csubstr& s, ::std::ostream* os) { *os << s; }
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-class TestFixture : public ::testing::Test
+template<class C>
+inline std::ostream& operator<< (std::ostream& stream, c4::basic_substring<C> s)
 {
-protected:
-    // You can remove any or all of the following functions if its body
-    // is empty.
-
-    // You can do set-up work for each test here.
-    TestFixture() {}
-
-    // You can do clean-up work that doesn't throw exceptions here.
-    virtual ~TestFixture() {}
-
-    // If the constructor and destructor are not enough for setting up
-    // and cleaning up each test, you can define the following methods:
-
-    // Code here will be called immediately after the constructor (right
-    // before each test).
-    virtual void SetUp() {}
-
-    // Code here will be called immediately after each test (right
-    // before the destructor).
-    virtual void TearDown() {}
-
-    // Objects declared here can be used by all tests in the test case for Foo.
-};
+    stream.write(s.str, std::streamsize(s.len));
+    return stream;
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -92,7 +44,7 @@ struct TestErrorOccurs
     }
     ~TestErrorOccurs()
     {
-        EXPECT_EQ(num_errors, expected_errors);
+        CHECK_EQ(num_errors, expected_errors);
         num_errors = 0;
     }
 
@@ -104,6 +56,7 @@ struct TestErrorOccurs
         ++num_errors;
     }
 };
+
 #define C4_EXPECT_ERROR_OCCURS(...) \
   auto _testerroroccurs##__LINE__ = TestErrorOccurs(__VA_ARGS__)
 
@@ -169,7 +122,8 @@ struct Counting
         ~check_num()
         {
             size_t del = what - initial;
-            EXPECT_EQ(del, must_be_num) << "# of " << name << " calls: expected " << must_be_num << ", but got " << del;
+            INFO("# of " << name << " calls: expected " << must_be_num << ", but got " << del);
+            CHECK_EQ(del, must_be_num);
         }
     };
 
@@ -316,36 +270,36 @@ public:
     /** check value of curr allocations and size */
     void check_curr(ssize_t expected_allocs, ssize_t expected_size) const
     {
-        EXPECT_EQ(mr.counts().curr.allocs, expected_allocs);
-        EXPECT_EQ(mr.counts().curr.size, expected_size);
+        CHECK_EQ(mr.counts().curr.allocs, expected_allocs);
+        CHECK_EQ(mr.counts().curr.size, expected_size);
     }
     /** check delta of curr allocations and size since construction or last reset() */
     void check_curr_delta(ssize_t expected_allocs, ssize_t expected_size) const
     {
         AllocationCounts delta = mr.counts() - first;
-        EXPECT_EQ(delta.curr.allocs, expected_allocs);
-        EXPECT_EQ(delta.curr.size, expected_size);
+        CHECK_EQ(delta.curr.allocs, expected_allocs);
+        CHECK_EQ(delta.curr.size, expected_size);
     }
 
     /** check value of total allocations and size */
     void check_total(ssize_t expected_allocs, ssize_t expected_size) const
     {
-        EXPECT_EQ(mr.counts().total.allocs, expected_allocs);
-        EXPECT_EQ(mr.counts().total.size, expected_size);
+        CHECK_EQ(mr.counts().total.allocs, expected_allocs);
+        CHECK_EQ(mr.counts().total.size, expected_size);
     }
     /** check delta of total allocations and size since construction or last reset() */
     void check_total_delta(ssize_t expected_allocs, ssize_t expected_size) const
     {
         AllocationCounts delta = mr.counts() - first;
-        EXPECT_EQ(delta.total.allocs, expected_allocs);
-        EXPECT_EQ(delta.total.size, expected_size);
+        CHECK_EQ(delta.total.allocs, expected_allocs);
+        CHECK_EQ(delta.total.size, expected_size);
     }
 
     /** check value of max allocations and size */
     void check_max(ssize_t expected_max_allocs, ssize_t expected_max_size) const
     {
-        EXPECT_EQ(mr.counts().max.allocs, expected_max_allocs);
-        EXPECT_EQ(mr.counts().max.size, expected_max_size);
+        CHECK_EQ(mr.counts().max.allocs, expected_max_allocs);
+        CHECK_EQ(mr.counts().max.size, expected_max_size);
     }
 
     /** check that since construction or the last reset():
@@ -363,4 +317,4 @@ public:
 
 C4_END_NAMESPACE(c4)
 
-#endif // _C4_TEST_HPP_
+#endif // _C4_LIBTEST_TEST_HPP_

@@ -1,6 +1,3 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
 #include "c4/config.hpp"
 #include <string>
 
@@ -30,51 +27,51 @@ template< class T > struct ufonix { T a; };
 using F = ufonix< uint32_t >;
 C4_END_HIDDEN_NAMESPACE
 
-TEST(TestSizeStructs, min_remainder)
+TEST_CASE("TestSizeStructs.min_remainder")
 {
-    EXPECT_EQ(min_remainder(4, 6), 2);
-    EXPECT_EQ(min_remainder(6, 6), 0);
-    EXPECT_EQ(min_remainder(8, 6), 0);
+    CHECK_EQ(min_remainder(4, 6), 2);
+    CHECK_EQ(min_remainder(6, 6), 0);
+    CHECK_EQ(min_remainder(8, 6), 0);
 }
 
-TEST(TestSizeStructs, mult_remainder)
+TEST_CASE("TestSizeStructs.mult_remainder")
 {
-    EXPECT_EQ(mult_remainder(6, 1), 0);
-    EXPECT_EQ(mult_remainder(6, 2), 0);
-    EXPECT_EQ(mult_remainder(6, 3), 0);
-    EXPECT_EQ(mult_remainder(6, 4), 2);
-    EXPECT_EQ(mult_remainder(6, 5), 4);
-    EXPECT_EQ(mult_remainder(6, 6), 0);
-    EXPECT_EQ(mult_remainder(6, 7), 1);
+    CHECK_EQ(mult_remainder(6, 1), 0);
+    CHECK_EQ(mult_remainder(6, 2), 0);
+    CHECK_EQ(mult_remainder(6, 3), 0);
+    CHECK_EQ(mult_remainder(6, 4), 2);
+    CHECK_EQ(mult_remainder(6, 5), 4);
+    CHECK_EQ(mult_remainder(6, 6), 0);
+    CHECK_EQ(mult_remainder(6, 7), 1);
 }
-TEST(TestSizeStructs, Padded)
+TEST_CASE("TestSizeStructs.Padded")
 {
-    EXPECT_EQ(sizeof(F), sizeof(uint32_t));
-    EXPECT_EQ((sizeof(Padded< F, 0 >)), sizeof(F));
-    EXPECT_EQ((sizeof(Padded< F, 1 >)), sizeof(F)+1);
-    EXPECT_EQ((sizeof(Padded< F, 2 >)), sizeof(F)+2);
-    EXPECT_EQ((sizeof(Padded< F, 3 >)), sizeof(F)+3);
+    CHECK_EQ(sizeof(F), sizeof(uint32_t));
+    CHECK_EQ((sizeof(Padded< F, 0 >)), sizeof(F));
+    CHECK_EQ((sizeof(Padded< F, 1 >)), sizeof(F)+1);
+    CHECK_EQ((sizeof(Padded< F, 2 >)), sizeof(F)+2);
+    CHECK_EQ((sizeof(Padded< F, 3 >)), sizeof(F)+3);
 }
-TEST(TestSizeStructs, MinSized)
+TEST_CASE("TestSizeStructs.MinSized")
 {
-    EXPECT_EQ((sizeof(MinSized< F, 14 >)), 14);
-    EXPECT_EQ((sizeof(MinSized< F, 15 >)), 15);
-    EXPECT_EQ((sizeof(MinSized< F, 16 >)), 16);
-    EXPECT_EQ((sizeof(MinSized< F, 17 >)), 17);
+    CHECK_EQ((sizeof(MinSized< F, 14 >)), 14);
+    CHECK_EQ((sizeof(MinSized< F, 15 >)), 15);
+    CHECK_EQ((sizeof(MinSized< F, 16 >)), 16);
+    CHECK_EQ((sizeof(MinSized< F, 17 >)), 17);
 }
-TEST(TestSizeStructs, MultSized)
+TEST_CASE("TestSizeStructs.MultSized")
 {
     using G = ufonix< char[8] >;
-    EXPECT_EQ((sizeof(MultSized< G, 7 >)), 14);
-    EXPECT_EQ((sizeof(MultSized< G, 6 >)), 12);
-    EXPECT_EQ((sizeof(MultSized< G, 5 >)), 10);
-    EXPECT_EQ((sizeof(MultSized< G, 4 >)), 8);
+    CHECK_EQ((sizeof(MultSized< G, 7 >)), 14);
+    CHECK_EQ((sizeof(MultSized< G, 6 >)), 12);
+    CHECK_EQ((sizeof(MultSized< G, 5 >)), 10);
+    CHECK_EQ((sizeof(MultSized< G, 4 >)), 8);
 }
-TEST(TestSizeStructs, UbufSized)
+TEST_CASE("TestSizeStructs.UbufSized")
 {
-    EXPECT_EQ((sizeof(UbufSized<ufonix<char[63]>>)), 64);
-    EXPECT_EQ((sizeof(UbufSized<ufonix<char[64]>>)), 64);
-    EXPECT_EQ((sizeof(UbufSized<ufonix<char[65]>>)), 80);
+    CHECK_EQ((sizeof(UbufSized<ufonix<char[63]>>)), 64);
+    CHECK_EQ((sizeof(UbufSized<ufonix<char[64]>>)), 64);
+    CHECK_EQ((sizeof(UbufSized<ufonix<char[65]>>)), 80);
 }
 
 C4_END_NAMESPACE(c4)

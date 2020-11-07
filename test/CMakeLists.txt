@@ -1,14 +1,26 @@
-c4_setup_testing(GTEST)
+c4_setup_testing(DOCTEST)
+
+# doctest does not deal well with template operator<< for substr
+# see https://github.com/onqtam/doctest/pull/431
+target_compile_definitions(c4core PUBLIC -DC4_SUBSTR_NO_OSTREAM_LSHIFT)
+if(C4CORE_SANITIZE)
+    foreach(s asan tsan msan ubsan)
+        if(TARGET c4core-${s})
+            target_compile_definitions(c4core-${s} PUBLIC -DC4_SUBSTR_NO_OSTREAM_LSHIFT)
+        endif()
+    endforeach()
+endif()
 
 c4_add_library(c4core-_libtest LIBRARY_TYPE STATIC
     SOURCES
         c4/test.hpp
+        c4/main.cpp
         c4/libtest/test.cpp
         c4/libtest/archetypes.cpp
         c4/libtest/archetypes.hpp
         c4/libtest/supprwarn_push.hpp
         c4/libtest/supprwarn_pop.hpp
-    LIBS c4core gtest gtest_main
+    LIBS c4core doctest
     INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
     FOLDER test
     )

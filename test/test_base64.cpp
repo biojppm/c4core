@@ -1,6 +1,6 @@
+#include "c4/test.hpp"
 #include "c4/std/string.hpp"
 #include "c4/std/vector.hpp"
-#include "c4/test.hpp"
 #include "c4/format.hpp"
 #include "c4/base64.hpp"
 
@@ -19,13 +19,13 @@ void test_base64_str(T const& val, csubstr expected, U *ws)
     substr buf(buf_);
 
     csubstr encoded = to_chars_sub(buf, fmt::cbase64(val));
-    EXPECT_TRUE(base64_valid(encoded));
-    EXPECT_EQ(encoded, expected);
-    EXPECT_EQ(encoded.len % 4, 0);
+    CHECK(base64_valid(encoded));
+    CHECK_EQ(encoded, expected);
+    CHECK_EQ(encoded.len % 4, 0);
 
     auto req = fmt::base64(*ws);
     size_t written = from_chars(encoded, &req);
-    EXPECT_EQ(ws->first(written), val);
+    CHECK_EQ(ws->first(written), val);
 }
 
 template<class T>
@@ -35,14 +35,14 @@ void test_base64(T const& val, csubstr expected, T *ws)
     substr buf(buf_);
 
     csubstr encoded = to_chars_sub(buf, fmt::cbase64(val));
-    EXPECT_TRUE(base64_valid(encoded));
-    EXPECT_EQ(encoded, expected);
-    EXPECT_EQ(encoded.len % 4, 0);
+    CHECK(base64_valid(encoded));
+    CHECK_EQ(encoded, expected);
+    CHECK_EQ(encoded.len % 4, 0);
 
     auto req = fmt::base64(*ws);
     size_t written = from_chars(encoded, &req);
-    EXPECT_EQ(written, sizeof(T));
-    EXPECT_EQ(*ws, val);
+    CHECK_EQ(written, sizeof(T));
+    CHECK_EQ(*ws, val);
 }
 
 template<class T>
@@ -103,25 +103,25 @@ base64_test_pair<int> base64_int_pairs[] = {
 #undef __
 };
 
-TEST(base64, str)
+TEST_CASE("base64.str")
 {
     char buf_[512];
     substr buf(buf_);
 
     for(auto p : base64_str_pairs)
     {
-        SCOPED_TRACE(p.val);
+        INFO(p.val);
         test_base64_str(p.val, p.encoded, &buf);
     }
 }
 
-TEST(base64, int)
+TEST_CASE("base64.int")
 {
     int val;
 
     for(auto p : base64_int_pairs)
     {
-        SCOPED_TRACE(p.val);
+        INFO(p.val);
         test_base64(p.val, p.encoded, &val);
     }
 }
