@@ -810,11 +810,72 @@ TEST_CASE("substr.compare_vs_char")
     CHECK_LT(csubstr("aaa"), 'b');
     CHECK_LT(csubstr("aaa"), "b");
 
+    CHECK_LE(csubstr("aaa"), 'b');
+    CHECK_LE(csubstr("aaa"), "b");
+
     CHECK_NE(csubstr("bbb"), 'a');
     CHECK_NE(csubstr("bbb"), "a");
 
     CHECK_GT(csubstr("bbb"), 'a');
     CHECK_GT(csubstr("bbb"), "a");
+
+    CHECK_GE(csubstr("bbb"), 'a');
+    CHECK_GE(csubstr("bbb"), "a");
+}
+
+TEST_CASE("substr.mixed_cmp")
+{
+    // c++20 introduced new comparison rules and clang10 fails:
+    //
+    // error: ISO C++20 considers use of overloaded operator '==' (with operand
+    // types 'const c4::basic_substring<char>' and 'const
+    // c4::basic_substring<char>') to be ambiguous despite there being a unique
+    // best viable function [-Werror,-Wambiguous-reversed-operator]
+
+    char sa_[] = "a";
+    char sb_[] = "b";
+    csubstr csa = "a"; substr sa = sa_;
+    csubstr csb = "b"; substr sb = sb_;
+
+    CHECK_EQ(csa, csa);
+    CHECK_EQ(sa, sa); // this fails
+    CHECK_EQ(csa, sa);
+    CHECK_EQ(sa, csa);
+
+    CHECK_NE(sa, sb);
+    CHECK_NE(csa, csb);
+    CHECK_NE(csa, sb);
+    CHECK_NE(sa, csb);
+
+    CHECK_LT(sa,  sb);
+    CHECK_LT(csa, csb);
+    CHECK_LT(csa,  sb);
+    CHECK_LT(sa, csb);
+
+    CHECK_LE(sa, sb);
+    CHECK_LE(csa, csb);
+    CHECK_LE(csa,  sb);
+    CHECK_LE(sa, csb);
+
+    CHECK_LE(sa, sa);
+    CHECK_LE(csa, csa);
+    CHECK_LE(csa, sa);
+    CHECK_LE(sa, csa);
+
+    CHECK_GT(sb, sa);
+    CHECK_GT(csb, csa);
+    CHECK_GT(csb,  sa);
+    CHECK_GT( sb, csa);
+
+    CHECK_GE(sb,  sa);
+    CHECK_GE(csb, csa);
+    CHECK_GE(csb,  sa);
+    CHECK_GE( sb, csa);
+
+    CHECK_GE(sb,  sb);
+    CHECK_GE(csb, csb);
+    CHECK_GE(csb,  sb);
+    CHECK_GE( sb, csb);
 }
 
 TEST_CASE("substr.eqne")
@@ -842,7 +903,6 @@ TEST_CASE("substr.substr2csubstr")
     CHECK_EQ(sc, s);
     const substr cs(b);
     const csubstr csc(b);
-
 }
 
 template <class ...Args>
