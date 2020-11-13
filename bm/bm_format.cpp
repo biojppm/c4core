@@ -41,10 +41,25 @@ void report(bm::State &st, size_t sz)
 }
 
 
+#define _c4argbundle_fmt "hello here you have some numbers: "\
+    "1={}, 2={}, 3={}, 4={}, 5={}, 6={}, 7={}, 8={}, 9={}, size_t(283482349)={}, "\
+    "\" \"=\"{}\", \"haha\"=\"{}\", std::string(\"hehe\")=\"{}\", "\
+    "str=\"{}\""
+
+#define _c4argbundle_fmt_printf "hello here you have some numbers: "\
+    "1=%d, 2=%d, 3=%d, 4=%d, 5=%d, 6=%d, 7=%d, 8=%d, 9=%d, size_t(283482349)=%zu, "\
+    "\" \"=\"%s\", \"haha\"=\"%s\", std::string(\"hehe\")=\"%s\", "\
+    "str=\"%s\""
+
 #define _c4argbundle \
     1, 2, 3, 4, 5, 6, 7, 8, 9, size_t(283482349),\
     " ", "haha", std::string("hehe"),\
     std::string("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkj")
+
+#define _c4argbundle_printf \
+    1, 2, 3, 4, 5, 6, 7, 8, 9, size_t(283482349),\
+    " ", "haha", std::string("hehe").c_str(),\
+    std::string("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkj").c_str()
 
 #define _c4argbundle_lshift \
     1 << 2 << 3 << 4 << 5 << 6 << 7 << 8 << 9 << size_t(283482349)\
@@ -121,11 +136,69 @@ void cat_stdsstream(bm::State &st)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+void format_c4_format(bm::State &st)
+{
+    char buf_[512];
+    c4::substr buf(buf_);
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        sz = format(buf, _c4argbundle_fmt, _c4argbundle);
+    }
+    report(st, sz);
+}
+
+void format_c4_formatrs_reuse(bm::State &st)
+{
+    std::string buf;
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        c4::formatrs(&buf, _c4argbundle_fmt, _c4argbundle);
+        sz = buf.size();
+    }
+    report(st, sz);
+}
+
+void format_c4_formatrs_no_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        auto buf = c4::formatrs<std::string>(_c4argbundle_fmt, _c4argbundle);
+        sz = buf.size();
+    }
+    report(st, sz);
+}
+
+void format_snprintf(bm::State &st)
+{
+    char buf_[512];
+    c4::substr buf(buf_);
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        sz = (size_t) snprintf(buf.str, buf.len, _c4argbundle_fmt_printf, _c4argbundle_printf);
+    }
+    report(st, sz);
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 C4BM(cat_c4cat_substr);
 C4BM(cat_c4catrs_reuse);
 C4BM(cat_c4catrs_no_reuse);
 C4BM(cat_stdsstream_reuse);
 C4BM(cat_stdsstream);
+
+
+C4BM(format_c4_format);
+C4BM(format_c4_formatrs_reuse);
+C4BM(format_c4_formatrs_no_reuse);
+C4BM(format_snprintf);
 
 
 //-----------------------------------------------------------------------------
@@ -141,3 +214,5 @@ int main(int argc, char *argv[])
 
 
 #include <c4/c4_pop.hpp>
+
+
