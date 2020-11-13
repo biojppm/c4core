@@ -7,10 +7,7 @@ c4_setup_benchmarking()
 c4_require_subproject(fp
   REMOTE
     GIT_REPOSITORY https://github.com/jk-jeon/fp
-    GIT_TAG master
-  OVERRIDE
-    #JKJ_FP_ENABLE_SUBPROJECT ON
-    )
+    GIT_TAG master)
 
 c4_require_subproject(fast_float
   REMOTE
@@ -44,8 +41,16 @@ if(cxx_std_17 IN_LIST known_features)
     target_link_libraries(c4core-bm-charconv PRIVATE jkj_fp)
 endif()
 
-c4_add_target_benchmark(c4core-bm-charconv xtoa FILTER "^xtoa_")
-c4_add_target_benchmark(c4core-bm-charconv atox FILTER "^atox_")
+
+function(c4core_charconv_benchmark pfx)
+    foreach(case ${ARGN})
+        c4_add_target_benchmark(c4core-bm-charconv ${pfx}-${case} FILTER "^${pfx}.*${case}.*")
+    endforeach()
+endfunction()
+
+c4core_charconv_benchmark(xtoa uint8 int8 uint16 int16 uint32 int32 uint64 int64 float double)
+c4core_charconv_benchmark(atox uint8 int8 uint16 int16 uint32 int32 uint64 int64 float double)
+
 
 #----------------------------------------------
 
