@@ -20,6 +20,18 @@ c4_require_subproject(fast_float
 # ryu requires too much code; use an include for clarity
 include(./ryu.cmake)
 
+
+#----------------------------------------------
+
+c4_add_executable(c4core-bm-format
+    SOURCES bm_format.cpp
+    LIBS c4core benchmark
+    FOLDER bm)
+
+c4_add_target_benchmark(c4core-bm-format cat FILTER "cat.*")
+c4_add_target_benchmark(c4core-bm-format uncat FILTER "uncat.*")
+
+
 #----------------------------------------------
 
 c4_add_executable(c4core-bm-charconv
