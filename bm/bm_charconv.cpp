@@ -102,19 +102,6 @@ void report(bm::State &st)
 }
 
 
-/** a character buffer, easily convertible to c4::substr */
-template<size_t Dim=128>
-struct sbuf
-{
-    char buf_[Dim];
-    c4::substr buf;
-    sbuf() : buf_(), buf(buf_) {}
-    inline operator c4::substr& () { return buf; }
-    char* begin() { return buf.begin(); }
-    char* end() { return buf.end(); }
-};
-
-
 /** generate in place a random sequence of values: integral version*/
 C4FOR(T, isint)
 generate_n(T *begin, T *end)
@@ -144,7 +131,7 @@ generate_n(T *begin, T *end)
 constexpr const size_t kNumValues = 16384;
 
 
-/** holds a ring buffer with input values for xtoa benchmarks */
+/** a ring buffer with input values for xtoa benchmarks */
 template<class T>
 struct random_values
 {
@@ -159,7 +146,7 @@ struct random_values
 };
 
 
-/** holds a ring buffer with input strings atox benchmarks */
+/** a ring buffer with input strings for atox benchmarks */
 struct random_strings
 {
     std::vector<std::string> v;
@@ -181,6 +168,29 @@ struct random_strings
     }
 };
 
+template<class T>
+random_strings mkstrings()
+{
+    random_strings rs;
+    rs.init_as<T>();
+    return rs;
+}
+
+
+/** a character buffer, easily convertible to c4::substr */
+template<size_t Dim=128>
+struct sbuf
+{
+    char buf_[Dim];
+    c4::substr buf;
+    sbuf() : buf_(), buf(buf_) {}
+    inline operator c4::substr& () { return buf; }
+    char* begin() { return buf.begin(); }
+    char* end() { return buf.end(); }
+};
+
+using string_buffer = sbuf<>;
+
 
 // some of the benchmarks do not need to be templates,
 // but it helps in the naming scheme.
@@ -194,9 +204,9 @@ struct random_strings
 //-----------------------------------------------------------------------------
 
 C4FOR(T, isiint)
-xtoa_c4_xtoa(bm::State& st)
+xtoa_c4_itoa(bm::State& st)
 {
-    sbuf<> buf;
+    string_buffer buf;
     T i = -10;
     for(auto _ : st)
     {
@@ -206,9 +216,9 @@ xtoa_c4_xtoa(bm::State& st)
 }
 
 C4FOR(T, isuint)
-xtoa_c4_xtoa(bm::State& st)
+xtoa_c4_utoa(bm::State& st)
 {
-    sbuf<> buf;
+    string_buffer buf;
     T i = 0;
     for(auto _ : st)
     {
@@ -219,25 +229,37 @@ xtoa_c4_xtoa(bm::State& st)
 }
 
 C4FOR(T, isfloat)
-xtoa_c4_xtoa(bm::State& st)
+xtoa_c4_ftoa(bm::State& st)
 {
-    sbuf<> buf;
-    random_values<T> rans;
+    string_buffer buf;
+    random_values<T> values;
     for(auto _ : st)
     {
-        c4::ftoa(buf, rans.next());
+        c4::ftoa(buf, values.next());
     }
     report<T>(st);
 }
 
 C4FOR(T, isdouble)
-xtoa_c4_xtoa(bm::State& st)
+xtoa_c4_dtoa(bm::State& st)
 {
-    sbuf<> buf;
-    random_values<T> rans;
+    string_buffer buf;
+    random_values<T> values;
     for(auto _ : st)
     {
-        c4::dtoa(buf, rans.next());
+        c4::dtoa(buf, values.next());
+    }
+    report<T>(st);
+}
+
+template<class T>
+void xtoa_c4_xtoa(bm::State& st)
+{
+    string_buffer buf;
+    random_values<T> values;
+    for(auto _ : st)
+    {
+        c4::xtoa(buf, values.next());
     }
     report<T>(st);
 }
@@ -246,53 +268,61 @@ xtoa_c4_xtoa(bm::State& st)
 //-----------------------------------------------------------------------------
 
 C4FOR(T, isiint)
-atox_c4_atox(bm::State& st)
+atox_c4_atoi(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        c4::atoi(rans.next(), &val);
+        c4::atoi(strings.next(), &val);
     }
     report<T>(st);
 }
 
 C4FOR(T, isuint)
-atox_c4_atox(bm::State& st)
+atox_c4_atou(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        c4::atou(rans.next(), &val);
+        c4::atou(strings.next(), &val);
     }
     report<T>(st);
 }
 
 C4FOR(T, isfloat)
-atox_c4_atox(bm::State& st)
+atox_c4_atof(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        c4::atof(rans.next(), &val);
+        c4::atof(strings.next(), &val);
     }
     report<T>(st);
 }
 
 C4FOR(T, isdouble)
-atox_c4_atox(bm::State& st)
+atox_c4_atod(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        c4::atod(rans.next(), &val);
+        c4::atod(strings.next(), &val);
+    }
+    report<T>(st);
+}
+
+template<class T>
+void atox_c4_atox(bm::State& st)
+{
+    random_strings strings = mkstrings<T>();
+    T val; C4_UNUSED(val);
+    for(auto _ : st)
+    {
+        c4::atox(strings.next(), &val);
     }
     report<T>(st);
 }
@@ -303,12 +333,11 @@ atox_c4_atox(bm::State& st)
 C4FOR(T, isint)
 atox_std_atoi(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = (T) std::atoi(rans.next().data());
+        val = (T) std::atoi(strings.next().data());
     }
     report<T>(st);
 }
@@ -316,12 +345,11 @@ atox_std_atoi(bm::State& st)
 C4FOR(T, isint)
 atox_std_atol(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = (T) std::atol(rans.next().data());
+        val = (T) std::atol(strings.next().data());
     }
     report<T>(st);
 }
@@ -329,12 +357,11 @@ atox_std_atol(bm::State& st)
 C4FOR(T, isreal)
 atox_std_atof(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = (T) std::atof(rans.next().data());
+        val = (T) std::atof(strings.next().data());
     }
     report<T>(st);
 }
@@ -345,12 +372,11 @@ atox_std_atof(bm::State& st)
 C4FOR(T, isint)
 atox_std_strtol(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = rans.next();
+        auto s = strings.next();
         val = (T) std::strtol(s.begin(), nullptr, 10);
     }
     report<T>(st);
@@ -359,12 +385,11 @@ atox_std_strtol(bm::State& st)
 C4FOR(T, isint)
 atox_std_strtoll(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = rans.next();
+        auto s = strings.next();
         val = (T) std::strtoll(s.begin(), nullptr, 10);
     }
     report<T>(st);
@@ -373,12 +398,11 @@ atox_std_strtoll(bm::State& st)
 C4FOR(T, isint)
 atox_std_strtoul(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = rans.next();
+        auto s = strings.next();
         val = (T) std::strtoul(s.begin(), nullptr, 10);
     }
     report<T>(st);
@@ -387,12 +411,11 @@ atox_std_strtoul(bm::State& st)
 C4FOR(T, isint)
 atox_std_strtoull(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = rans.next();
+        auto s = strings.next();
         val = (T) std::strtoull(s.begin(), nullptr, 10);
     }
     report<T>(st);
@@ -401,12 +424,11 @@ atox_std_strtoull(bm::State& st)
 C4FOR(T, isreal)
 atox_std_strtof(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = rans.next();
+        auto s = strings.next();
         val = (T) std::strtof(s.begin(), nullptr);
     }
     report<T>(st);
@@ -415,12 +437,11 @@ atox_std_strtof(bm::State& st)
 C4FOR(T, isreal)
 atox_std_strtod(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = rans.next();
+        auto s = strings.next();
         val = (T) std::strtod(s.begin(), nullptr);
     }
     report<T>(st);
@@ -429,12 +450,11 @@ atox_std_strtod(bm::State& st)
 C4FOR(T, isreal)
 atox_std_stof(bm::State &st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = std::stof(rans.next_s());
+        val = std::stof(strings.next_s());
     }
     report<T>(st);
 }
@@ -442,12 +462,11 @@ atox_std_stof(bm::State &st)
 C4FOR(T, isreal)
 atox_std_stod(bm::State &st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = std::stod(rans.next_s());
+        val = std::stod(strings.next_s());
     }
     report<T>(st);
 }
@@ -458,12 +477,11 @@ atox_std_stod(bm::State &st)
 C4FOR(T, isfloat)
 atox_ryu_s2f(bm::State &st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = rans.next_s();
+        std::string const& s = strings.next_s();
         s2f_n(s.data(), (int) s.size(), &val);
     }
     report<T>(st);
@@ -472,12 +490,11 @@ atox_ryu_s2f(bm::State &st)
 C4FOR(T, isdouble)
 atox_ryu_s2d(bm::State &st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = rans.next_s();
+        std::string const& s = strings.next_s();
         s2d_n(s.data(), (int) s.size(), &val);
     }
     report<T>(st);
@@ -486,11 +503,11 @@ atox_ryu_s2d(bm::State &st)
 C4FOR(T, isfloat)
 xtoa_ryu_f2s(bm::State &st)
 {
-    sbuf<> buf;
-    random_values<T> rans;
+    string_buffer buf;
+    random_values<T> values;
     for(auto _ : st)
     {
-        f2s_buffered_n(rans.next(), buf.buf.str);
+        f2s_buffered_n(values.next(), buf.buf.str);
     }
     report<T>(st);
 }
@@ -498,11 +515,11 @@ xtoa_ryu_f2s(bm::State &st)
 C4FOR(T, isdouble)
 xtoa_ryu_d2s(bm::State &st)
 {
-    sbuf<> buf;
-    random_values<T> rans;
+    string_buffer buf;
+    random_values<T> values;
     for(auto _ : st)
     {
-        d2s_buffered_n(rans.next(), buf.buf.str);
+        d2s_buffered_n(values.next(), buf.buf.str);
     }
     report<T>(st);
 }
@@ -521,12 +538,11 @@ xtoa_ryu_d2s(bm::State &st)
 C4FOR(T, isreal)
 atox_fp_from_chars_limited(bm::State &st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = rans.next_s();
+        std::string const& s = strings.next_s();
         val = jkj::fp::from_chars_limited<T>(s.data(), s.data()+s.size()).to_float();
     }
     report<T>(st);
@@ -535,12 +551,11 @@ atox_fp_from_chars_limited(bm::State &st)
 C4FOR(T, isreal)
 atox_fp_from_chars_unlimited(bm::State &st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = rans.next_s();
+        std::string const& s = strings.next_s();
         val = jkj::fp::from_chars_unlimited<T>(s.data(), s.data()+s.size()).to_float();
     }
     report<T>(st);
@@ -553,12 +568,11 @@ atox_fp_from_chars_unlimited(bm::State &st)
 template<class T>
 void atox_fast_float(bm::State &st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = rans.next_s();
+        std::string const& s = strings.next_s();
         fast_float::from_chars(s.data(), s.data()+s.size(), val);
     }
     report<T>(st);
@@ -601,27 +615,15 @@ constexpr const char fmtspec< int64_t>::r[] = "%" SCNi64;
 constexpr const char fmtspec< float  >::r[] = "%g"      ;
 constexpr const char fmtspec< double >::r[] = "%lg"     ;
 
-template<class T>
-C4_ALWAYS_INLINE void sprintf(c4::substr buf, T val)
-{
-    ::snprintf(buf.str, buf.len, fmtspec<T>::w, val);
-}
-
-template<class T>
-C4_ALWAYS_INLINE void sscanf(c4::csubstr buf, T * val)
-{
-    ::sscanf(buf.str, fmtspec<T>::r, val);
-}
-
 C4FOR(T, isint)
 xtoa_sprintf(bm::State& st)
 {
-    sbuf<> buf;
+    string_buffer buf;
     T i = 0;
     for(auto _ : st)
     {
         ++i;
-        sprintf(buf, i);
+        ::snprintf(buf.buf.str, buf.buf.len, fmtspec<T>::w, i);
     }
     report<T>(st);
 }
@@ -629,11 +631,11 @@ xtoa_sprintf(bm::State& st)
 C4FOR(T, isreal)
 xtoa_sprintf(bm::State& st)
 {
-    sbuf<> buf;
-    random_values<T> rans;
+    string_buffer buf;
+    random_values<T> values;
     for(auto _ : st)
     {
-        sprintf(buf, rans.next());
+        ::snprintf(buf.buf.str, buf.buf.len, fmtspec<T>::w, values.next());
     }
     report<T>(st);
 }
@@ -641,12 +643,11 @@ xtoa_sprintf(bm::State& st)
 template<class T>
 void atox_scanf(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        sscanf(rans.next(), &val);
+        ::sscanf(strings.next().str, fmtspec<T>::r, &val);
     }
     report<T>(st);
 }
@@ -655,7 +656,7 @@ void atox_scanf(bm::State& st)
 //-----------------------------------------------------------------------------
 
 template<class StreamType, class T>
-std::string xtoa_sstream_(T const& C4_RESTRICT val)
+C4_ALWAYS_INLINE std::string xtoa_sstream_(T const& C4_RESTRICT val)
 {
     StreamType ss;
     ss << val;
@@ -677,10 +678,10 @@ xtoa_sstream(bm::State& st)
 C4FOR2(T, StreamType, isreal)
 xtoa_sstream(bm::State& st)
 {
-    random_values<T> rans;
+    random_values<T> values;
     for(auto _ : st)
     {
-        std::string out = xtoa_sstream_<StreamType>(rans.next());
+        std::string out = xtoa_sstream_<StreamType>(values.next());
         C4_UNUSED(out);
     }
     report<T>(st);
@@ -689,7 +690,7 @@ xtoa_sstream(bm::State& st)
 //-----------------------------------------------------------------------------
 
 template<class StreamType, class T>
-T atox_sstream_(std::string const& C4_RESTRICT str)
+C4_ALWAYS_INLINE T atox_sstream_(std::string const& C4_RESTRICT str)
 {
     T val;
     StreamType ss(str);
@@ -700,12 +701,11 @@ T atox_sstream_(std::string const& C4_RESTRICT str)
 template<class T, class StreamType>
 void atox_sstream(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = atox_sstream_<StreamType, T>(rans.next_s());
+        val = atox_sstream_<StreamType, T>(strings.next_s());
     }
     report<T>(st);
 }
@@ -714,7 +714,7 @@ void atox_sstream(bm::State& st)
 //-----------------------------------------------------------------------------
 
 template<class StreamType, class T>
-std::string xtoa_sstream_reuse_(StreamType &ss, T const& C4_RESTRICT val)
+C4_ALWAYS_INLINE std::string xtoa_sstream_reuse_(StreamType &ss, T const& C4_RESTRICT val)
 {
     ss.clear();
     ss.str("");
@@ -738,11 +738,11 @@ xtoa_sstream_reuse(bm::State& st)
 C4FOR2(T, StreamType, isreal)
 xtoa_sstream_reuse(bm::State& st)
 {
-    random_values<T> rans;
+    random_values<T> values;
     StreamType ss;
     for(auto _ : st)
     {
-        std::string out = xtoa_sstream_reuse_(ss, rans.next());
+        std::string out = xtoa_sstream_reuse_(ss, values.next());
         C4_UNUSED(out);
     }
     report<T>(st);
@@ -752,7 +752,7 @@ xtoa_sstream_reuse(bm::State& st)
 //-----------------------------------------------------------------------------
 
 template<class StreamType, class T>
-T atox_sstream_reuse_(StreamType &ss, std::string const& C4_RESTRICT s)
+C4_ALWAYS_INLINE T atox_sstream_reuse_(StreamType &ss, std::string const& C4_RESTRICT s)
 {
     T val;
     ss.clear();
@@ -764,13 +764,12 @@ T atox_sstream_reuse_(StreamType &ss, std::string const& C4_RESTRICT s)
 template<class T, class StreamType>
 void atox_sstream_reuse(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     StreamType ss;
     for(auto _ : st)
     {
-        val = atox_sstream_reuse_<StreamType, T>(ss, rans.next_s());
+        val = atox_sstream_reuse_<StreamType, T>(ss, strings.next_s());
     }
     report<T>(st);
 }
@@ -793,10 +792,10 @@ xtoa_std_to_string(bm::State& st)
 C4FOR(T, isreal)
 xtoa_std_to_string(bm::State& st)
 {
-    random_values<T> rans;
+    random_values<T> values;
     for(auto _ : st)
     {
-        std::string out = std::to_string(rans.next());
+        std::string out = std::to_string(values.next());
         C4_UNUSED(out);
     }
     report<T>(st);
@@ -808,7 +807,7 @@ xtoa_std_to_string(bm::State& st)
 C4FOR(T, isint)
 xtoa_c4_to_chars(bm::State& st)
 {
-    sbuf<> buf;
+    string_buffer buf;
     T i = 0;
     for(auto _ : st)
     {
@@ -820,11 +819,23 @@ xtoa_c4_to_chars(bm::State& st)
 C4FOR(T, isreal)
 xtoa_c4_to_chars(bm::State& st)
 {
-    sbuf<> buf;
-    random_values<T> rans;
+    string_buffer buf;
+    random_values<T> values;
     for(auto _ : st)
     {
-        c4::to_chars(buf, rans.next());
+        c4::to_chars(buf, values.next());
+    }
+    report<T>(st);
+}
+
+template<class T>
+void atox_c4_from_chars(bm::State& st)
+{
+    random_strings strings = mkstrings<T>();
+    T val;
+    for(auto _ : st)
+    {
+        c4::from_chars(strings.next(), &val);
     }
     report<T>(st);
 }
@@ -833,7 +844,7 @@ xtoa_c4_to_chars(bm::State& st)
 C4FOR(T, isint)
 xtoa_std_to_chars(bm::State& st)
 {
-    sbuf<> buf;
+    string_buffer buf;
     T i = 0;
     for(auto _ : st)
     {
@@ -845,11 +856,11 @@ xtoa_std_to_chars(bm::State& st)
 C4FOR(T, isreal)
 xtoa_std_to_chars(bm::State& st)
 {
-    sbuf<> buf;
-    random_values<T> rans;
+    string_buffer buf;
+    random_values<T> values;
     for(auto _ : st)
     {
-        std::to_chars(buf.begin(), buf.end(), rans.next());
+        std::to_chars(buf.begin(), buf.end(), values.next());
     }
     report<T>(st);
 }
@@ -857,12 +868,11 @@ xtoa_std_to_chars(bm::State& st)
 C4FOR(T, isint)
 atox_std_from_chars(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val;
     for(auto _ : st)
     {
-        c4::csubstr buf = rans.next();
+        c4::csubstr buf = strings.next();
         std::from_chars(buf.begin(), buf.end(), val);
     }
     report<T>(st);
@@ -871,12 +881,11 @@ atox_std_from_chars(bm::State& st)
 C4FOR(T, isreal)
 atox_std_from_chars(bm::State& st)
 {
-    random_strings rans;
-    rans.init_as<T>();
+    random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = rans.next_s();
+        std::string const& s = strings.next_s();
         std::from_chars(s.data(), s.data()+s.size(), val);
     }
     report<T>(st);
@@ -886,6 +895,7 @@ atox_std_from_chars(bm::State& st)
 
 //-----------------------------------------------------------------------------
 
+C4BM_TEMPLATE(xtoa_c4_utoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint8_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint8_t);
@@ -896,6 +906,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream,  uint8_t, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream,  uint8_t, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_itoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int8_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int8_t);
@@ -906,6 +917,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream,   int8_t, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream,   int8_t, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_utoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint16_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint16_t);
@@ -916,6 +928,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream, uint16_t, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream, uint16_t, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_itoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int16_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int16_t);
@@ -926,6 +939,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream,  int16_t, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream,  int16_t, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_utoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint32_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint32_t);
@@ -936,6 +950,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream, uint32_t, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream, uint32_t, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_itoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int32_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int32_t);
@@ -946,6 +961,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream,  int32_t, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream,  int32_t, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_utoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint64_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint64_t);
@@ -956,6 +972,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream, uint64_t, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream, uint64_t, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_itoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int64_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int64_t);
@@ -966,6 +983,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,  int64_t, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream,  int64_t, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream,  int64_t, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_ftoa,  float);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  float);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  float);
 C4BM_TEMPLATE(xtoa_ryu_f2s,  float);
@@ -977,6 +995,7 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,  float, std::stringstream);
 C4BM_TEMPLATE(xtoa_sstream,  float, std::ostringstream);
 C4BM_TEMPLATE(xtoa_sstream,  float, std::stringstream);
 
+C4BM_TEMPLATE(xtoa_c4_dtoa,  double);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  double);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  double);
 C4BM_TEMPLATE(xtoa_ryu_d2s,  double);
@@ -994,7 +1013,9 @@ C4BM_TEMPLATE(xtoa_sstream,  double, std::stringstream);
 //-----------------------------------------------------------------------------
 
 
+C4BM_TEMPLATE(atox_c4_atou,  uint8_t);
 C4BM_TEMPLATE(atox_c4_atox,  uint8_t);
+C4BM_TEMPLATE(atox_c4_from_chars, uint8_t);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint8_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint8_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint8_t);
@@ -1004,7 +1025,9 @@ C4BM_TEMPLATE(atox_sstream,   uint8_t, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint8_t, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint8_t, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atoi,   int8_t);
 C4BM_TEMPLATE(atox_c4_atox,   int8_t);
+C4BM_TEMPLATE(atox_c4_from_chars, int8_t);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, int8_t);
 C4BM_TEMPLATE(atox_std_atoi,   int8_t);
 C4BM_TEMPLATE(atox_std_strtol,   int8_t);
@@ -1014,7 +1037,9 @@ C4BM_TEMPLATE(atox_sstream,   int8_t, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   int8_t, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   int8_t, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atou, uint16_t);
 C4BM_TEMPLATE(atox_c4_atox, uint16_t);
+C4BM_TEMPLATE(atox_c4_from_chars, uint16_t);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint16_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint16_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint16_t);
@@ -1024,7 +1049,9 @@ C4BM_TEMPLATE(atox_sstream,   uint16_t, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint16_t, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint16_t, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atoi,  int16_t);
 C4BM_TEMPLATE(atox_c4_atox,  int16_t);
+C4BM_TEMPLATE(atox_c4_from_chars, int16_t);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, int16_t);
 C4BM_TEMPLATE(atox_std_atoi,   int16_t);
 C4BM_TEMPLATE(atox_std_strtol,   int16_t);
@@ -1034,7 +1061,9 @@ C4BM_TEMPLATE(atox_sstream,   int16_t, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   int16_t, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   int16_t, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atou, uint32_t);
 C4BM_TEMPLATE(atox_c4_atox, uint32_t);
+C4BM_TEMPLATE(atox_c4_from_chars, uint32_t);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint32_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint32_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint32_t);
@@ -1044,7 +1073,9 @@ C4BM_TEMPLATE(atox_sstream,   uint32_t, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint32_t, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint32_t, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atoi,  int32_t);
 C4BM_TEMPLATE(atox_c4_atox,  int32_t);
+C4BM_TEMPLATE(atox_c4_from_chars, int32_t);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, int32_t);
 C4BM_TEMPLATE(atox_std_atoi,   int32_t);
 C4BM_TEMPLATE(atox_std_strtol,   int32_t);
@@ -1054,7 +1085,9 @@ C4BM_TEMPLATE(atox_sstream,   int32_t, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   int32_t, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   int32_t, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atou, uint64_t);
 C4BM_TEMPLATE(atox_c4_atox, uint64_t);
+C4BM_TEMPLATE(atox_c4_from_chars, uint64_t);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_std_atol,   uint64_t);
 C4BM_TEMPLATE(atox_std_strtoull,   uint64_t);
@@ -1064,7 +1097,9 @@ C4BM_TEMPLATE(atox_sstream,   uint64_t, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint64_t, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint64_t, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atoi,  int64_t);
 C4BM_TEMPLATE(atox_c4_atox,  int64_t);
+C4BM_TEMPLATE(atox_c4_from_chars, int64_t);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_std_atol,   int64_t);
 C4BM_TEMPLATE(atox_std_strtoll,   int64_t);
@@ -1074,7 +1109,9 @@ C4BM_TEMPLATE(atox_sstream,   int64_t, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   int64_t, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   int64_t, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atof,  float);
 C4BM_TEMPLATE(atox_c4_atox,  float);
+C4BM_TEMPLATE(atox_c4_from_chars, float);
 C4BM_TEMPLATE(atox_ryu_s2f,  float);
 C4BM_TEMPLATE(atox_fast_float,  float);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, float);
@@ -1089,7 +1126,9 @@ C4BM_TEMPLATE(atox_sstream,   float, std::stringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   float, std::istringstream);
 C4BM_TEMPLATE(atox_sstream_reuse,   float, std::stringstream);
 
+C4BM_TEMPLATE(atox_c4_atod,  double);
 C4BM_TEMPLATE(atox_c4_atox,  double);
+C4BM_TEMPLATE(atox_c4_from_chars, double);
 C4BM_TEMPLATE(atox_ryu_s2d,  double);
 C4BM_TEMPLATE(atox_fast_float,  double);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, double);
