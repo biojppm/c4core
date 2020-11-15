@@ -20,8 +20,9 @@ c4_add_executable(c4core-bm-format
     LIBS c4core benchmark
     FOLDER bm)
 
-c4_add_target_benchmark(c4core-bm-format cat FILTER "cat.*")
-c4_add_target_benchmark(c4core-bm-format uncat FILTER "uncat.*")
+c4_add_target_benchmark(c4core-bm-format cat FILTER "^cat_.*")
+c4_add_target_benchmark(c4core-bm-format catsep FILTER "^catsep_.*")
+c4_add_target_benchmark(c4core-bm-format format FILTER "^format_.*")
 
 
 #----------------------------------------------
@@ -39,7 +40,7 @@ endif()
 
 function(c4core_charconv_benchmark pfx)
     foreach(case ${ARGN})
-        c4_add_target_benchmark(c4core-bm-charconv ${pfx}-${case} FILTER "^${pfx}.*${case}.*")
+        c4_add_target_benchmark(c4core-bm-charconv ${pfx}-${case} FILTER "^${pfx}.*<${case}.*")
     endforeach()
 endfunction()
 

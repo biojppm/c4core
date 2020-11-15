@@ -83,6 +83,18 @@ void cat_c4cat_substr(bm::State &st)
     report(st, sz);
 }
 
+void catsep_c4cat_substr(bm::State &st)
+{
+    char buf_[256];
+    c4::substr buf(buf_);
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        sz = catsep(buf, _c4argbundle);
+    }
+    report(st, sz);
+}
+
 void cat_c4catrs_reuse(bm::State &st)
 {
     std::string buf;
@@ -90,6 +102,18 @@ void cat_c4catrs_reuse(bm::State &st)
     for(auto _ : st)
     {
         c4::catrs(&buf, _c4argbundle);
+        sz = buf.size();
+    }
+    report(st, sz);
+}
+
+void catsep_c4catrs_reuse(bm::State &st)
+{
+    std::string buf;
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        c4::catseprs(&buf, _c4argbundle);
         sz = buf.size();
     }
     report(st, sz);
@@ -106,27 +130,184 @@ void cat_c4catrs_no_reuse(bm::State &st)
     report(st, sz);
 }
 
+void catsep_c4catrs_no_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        auto buf = c4::catseprs<std::string>(_c4argbundle);
+        sz = buf.size();
+    }
+    report(st, sz);
+}
+
+//-----------------------------------------------------------------------------
+void cat_std_stringstream_impl(std::stringstream &)
+{
+}
+void catsep_std_stringstream_impl(std::stringstream &)
+{
+}
+
+template<class Arg, class... Args>
+void cat_std_stringstream_impl(std::stringstream &ss, Arg const& a, Args const& ...args)
+{
+    ss << a;
+    cat_std_stringstream_impl(ss, args...);
+}
+
+template<class Arg, class... Args>
+void catsep_std_stringstream_impl(std::stringstream &ss, Arg const& a, Args const& ...args)
+{
+    ss << ' ' << a;
+    cat_std_stringstream_impl(ss, args...);
+}
+
 void cat_stdsstream_reuse(bm::State &st)
 {
     size_t sz = 0;
     std::stringstream ss;
     for(auto _ : st)
     {
+        ss.clear();
         ss.str("");
-        ss << _c4argbundle_lshift;
+        cat_std_stringstream_impl(ss, _c4argbundle);
         sz = ss.str().size();
     }
     report(st, sz);
 }
 
-void cat_stdsstream(bm::State &st)
+void catsep_stdsstream_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    std::stringstream ss;
+    for(auto _ : st)
+    {
+        ss.clear();
+        ss.str("");
+        catsep_std_stringstream_impl(ss, _c4argbundle);
+        sz = ss.str().size();
+    }
+    report(st, sz);
+}
+
+void cat_stdsstream_no_reuse(bm::State &st)
 {
     size_t sz = 0;
     for(auto _ : st)
     {
         std::stringstream ss;
-        ss << _c4argbundle_lshift;
+        cat_std_stringstream_impl(ss, _c4argbundle);
         sz = ss.str().size();
+    }
+    report(st, sz);
+}
+
+void catsep_stdsstream_no_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        std::stringstream ss;
+        catsep_std_stringstream_impl(ss, _c4argbundle);
+        sz = ss.str().size();
+    }
+    report(st, sz);
+}
+
+
+//-----------------------------------------------------------------------------
+
+template<class T>
+C4_ALWAYS_INLINE typename std::enable_if<std::is_arithmetic<T>::value, std::string>::type
+std_to_string(T const& a)
+{
+    return std::to_string(a);
+}
+
+template<class T>
+C4_ALWAYS_INLINE typename std::enable_if<std::is_same<T, std::string>::value, std::string const&>::type
+std_to_string(std::string const& a)
+{
+    return a;
+}
+
+template<class T>
+C4_ALWAYS_INLINE typename std::enable_if< ! std::is_arithmetic<T>::value, std::string>::type
+std_to_string(T const& a)
+{
+    return std::string(a);
+}
+
+C4_ALWAYS_INLINE void cat_std_string_impl(std::string *)
+{
+}
+
+C4_ALWAYS_INLINE void catsep_std_string_impl(std::string *)
+{
+}
+
+template<class Arg, class... Args>
+void cat_std_string_impl(std::string *s, Arg const& a, Args const& ...args)
+{
+    *s += std_to_string(a);
+    cat_std_string_impl(s, args...);
+}
+
+template<class Arg, class... Args>
+void catsep_std_string_impl(std::string *s, Arg const& a, Args const& ...args)
+{
+    *s += ' ';
+    *s += std_to_string(a);
+    cat_std_string_impl(s, args...);
+}
+
+void cat_std_to_string_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    std::string s;
+    for(auto _ : st)
+    {
+        s.clear();
+        cat_std_string_impl(&s, _c4argbundle);
+        sz = s.size();
+    }
+    report(st, sz);
+}
+
+void catsep_std_to_string_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    std::string s;
+    for(auto _ : st)
+    {
+        s.clear();
+        catsep_std_string_impl(&s, _c4argbundle);
+        sz = s.size();
+    }
+    report(st, sz);
+}
+
+void cat_std_to_string_no_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        std::string s;
+        cat_std_string_impl(&s, _c4argbundle);
+        sz = s.size();
+    }
+    report(st, sz);
+}
+
+void catsep_std_to_string_no_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        std::string s;
+        catsep_std_string_impl(&s, _c4argbundle);
+        sz = s.size();
     }
     report(st, sz);
 }
@@ -191,8 +372,19 @@ void format_snprintf(bm::State &st)
 C4BM(cat_c4cat_substr);
 C4BM(cat_c4catrs_reuse);
 C4BM(cat_c4catrs_no_reuse);
+C4BM(cat_std_to_string_reuse);
+C4BM(cat_std_to_string_no_reuse);
 C4BM(cat_stdsstream_reuse);
-C4BM(cat_stdsstream);
+C4BM(cat_stdsstream_no_reuse);
+
+
+C4BM(catsep_c4cat_substr);
+C4BM(catsep_c4catrs_reuse);
+C4BM(catsep_c4catrs_no_reuse);
+C4BM(catsep_std_to_string_reuse);
+C4BM(catsep_std_to_string_no_reuse);
+C4BM(catsep_stdsstream_reuse);
+C4BM(catsep_stdsstream_no_reuse);
 
 
 C4BM(format_c4_format);
