@@ -17,29 +17,54 @@
 #include "c4/memory_util.hpp"
 #include "c4/szconv.hpp"
 
-#if (C4_CPP >= 17)
-#   if defined(_MSC_VER)
-#       if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
-#           define C4CORE_HAVE_STD_TOCHARS 1
-#           include <charconv>
-#       else
-#           define C4CORE_HAVE_STD_TOCHARS 0
+#if 1
+#   include "c4/ext/fast_float/include/fast_float/fast_float.h"
+#   define C4CORE_HAVE_FAST_FLOAT 1
+#   define C4CORE_HAVE_STD_FROMCHARS 0
+#   if (C4_CPP >= 17)
+#       if defined(_MSC_VER)
+#           if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
+#               include <charconv>
+#               define C4CORE_HAVE_STD_TOCHARS 1
+#           else
+#               define C4CORE_HAVE_STD_TOCHARS 0
+#           endif
+#       else  // VS2017 and lower do not have these macros
+#           if __has_include(<charconv>) && __cpp_lib_to_chars
+#               define C4CORE_HAVE_STD_TOCHARS 1
+#               include <charconv>
+#           else
+#               define C4CORE_HAVE_STD_TOCHARS 0
+#           endif
 #       endif
 #   else
-#       // VS2017 and lower do not have these macros
+#       define C4CORE_HAVE_STD_TOCHARS 0
+#   endif
+#elif (C4_CPP >= 17)
+#   if defined(_MSC_VER)
+#       if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
+#           include <charconv>
+#           define C4CORE_HAVE_STD_TOCHARS 1
+#           define C4CORE_HAVE_STD_FROMCHARS 1
+#       else
+#           define C4CORE_HAVE_STD_TOCHARS 0
+#           define C4CORE_HAVE_STD_FROMCHARS 0
+#       endif
+#   else  // VS2017 and lower do not have these macros
 #       if __has_include(<charconv>) && __cpp_lib_to_chars
 #           define C4CORE_HAVE_STD_TOCHARS 1
+#           define C4CORE_HAVE_STD_FROMCHARS 1
 #           include <charconv>
 #       else
 #           define C4CORE_HAVE_STD_TOCHARS 0
+#           define C4CORE_HAVE_STD_FROMCHARS 0
 #       endif
 #   endif
 #else
 #   define C4CORE_HAVE_STD_TOCHARS 0
+#   define C4CORE_HAVE_STD_FROMCHARS 0
 #endif
 
-//#include <d:/proj/extern/ryu/ryu/ryu.h>
-//#include <d:/proj/extern/ryu/ryu/ryu_parse.h>
 
 #ifdef _MSC_VER
 #   pragma warning(push)
@@ -775,7 +800,7 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 } // namespace detail
 
 
-#if C4CORE_HAVE_STD_TOCHARS
+#if C4CORE_HAVE_STD_FROMCHARS
 template<class T>
 size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
@@ -871,7 +896,11 @@ inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatti
 inline bool atof(csubstr str, float * C4_RESTRICT v)
 {
     C4_ASSERT(str == str.first_real_span());
-#if C4CORE_HAVE_STD_TOCHARS
+#if C4CORE_HAVE_FAST_FLOAT
+    fast_float::from_chars_result result;
+    result = fast_float::from_chars(str.str, str.str + str.len, *v);
+    return result.ec == std::errc();
+#elif C4CORE_HAVE_STD_FROMCHARS
     std::from_chars_result result;
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
@@ -892,7 +921,11 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
 inline bool atod(csubstr str, double * C4_RESTRICT v)
 {
     C4_ASSERT(str == str.first_real_span());
-#if C4CORE_HAVE_STD_TOCHARS
+#if C4CORE_HAVE_FAST_FLOAT
+    fast_float::from_chars_result result;
+    result = fast_float::from_chars(str.str, str.str + str.len, *v);
+    return result.ec == std::errc();
+#elif C4CORE_HAVE_STD_FROMCHARS
     std::from_chars_result result;
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
@@ -929,7 +962,6 @@ inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
     if(atod(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
-
 
 
 //-----------------------------------------------------------------------------

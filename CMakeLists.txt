@@ -7,11 +7,6 @@ project(c4core
 c4_project(VERSION 0.0.1
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
-set(C4CORE_EXT_TO_INSTALL
-    ${C4CORE_SRC_DIR}/c4/ext/debugbreak/debugbreak.h
-    ${C4CORE_SRC_DIR}/c4/ext/sg14/inplace_function.h
-)
-
 c4_add_library(c4core
     INC_DIRS
        $<BUILD_INTERFACE:${C4CORE_SRC_DIR}> $<INSTALL_INTERFACE:include>
@@ -64,6 +59,19 @@ c4_add_library(c4core
         c4/windows_pop.hpp
         c4/windows_push.hpp
         c4/c4core.natvis
+)
+
+set(C4CORE_EXT_TO_INSTALL
+    ${C4CORE_SRC_DIR}/c4/ext/debugbreak/debugbreak.h
+    ${C4CORE_SRC_DIR}/c4/ext/rng/rng.hpp
+    ${C4CORE_SRC_DIR}/c4/ext/sg14/inplace_function.h
+    ${C4CORE_SRC_DIR}/c4/ext/fast_float/include/fast_float/ascii_number.h
+    ${C4CORE_SRC_DIR}/c4/ext/fast_float/include/fast_float/decimal_to_binary.h
+    ${C4CORE_SRC_DIR}/c4/ext/fast_float/include/fast_float/fast_float.h
+    ${C4CORE_SRC_DIR}/c4/ext/fast_float/include/fast_float/fast_table.h
+    ${C4CORE_SRC_DIR}/c4/ext/fast_float/include/fast_float/float_common.h
+    ${C4CORE_SRC_DIR}/c4/ext/fast_float/include/fast_float/parse_number.h
+    ${C4CORE_SRC_DIR}/c4/ext/fast_float/include/fast_float/simple_decimal_conversion.h
 )
 
 

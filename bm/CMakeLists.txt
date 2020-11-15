@@ -9,11 +9,6 @@ c4_require_subproject(fp
     GIT_REPOSITORY https://github.com/jk-jeon/fp
     GIT_TAG master)
 
-c4_require_subproject(fast_float
-  REMOTE
-    GIT_REPOSITORY https://github.com/lemire/fast_float
-    GIT_TAG v0.1.0)
-
 # ryu requires too much code; use an include for clarity
 include(./ryu.cmake)
 
