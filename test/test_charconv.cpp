@@ -132,8 +132,8 @@ TEST_CASE("itoa.shortbuf")
 }
 
 
-template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class I>
-void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I num, const char *r2, const char *r8, const char *r10, const char *r16)
+template<class I>
+void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
     char bufc[64];
     size_t ret;
@@ -195,42 +195,22 @@ void test_prefixed_number_on_empty_buffer(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, I nu
 #undef _c4clbuf
 }
 
-// need these functions for overload disambiguation
-size_t call_itoa(substr s, int num)
-{
-    return itoa(s, num);
-}
-size_t call_itoa_radix(substr s, int num, int radix)
-{
-    return itoa(s, num, radix);
-}
-
-// need these functions for overload disambiguation
-size_t call_utoa(substr s, unsigned num)
-{
-    return utoa(s, num);
-}
-size_t call_utoa_radix(substr s, unsigned num, unsigned radix)
-{
-    return utoa(s, num, radix);
-}
 
 TEST_CASE("itoa.prefixed_number_on_empty_buffer")
 {
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,   0,      "0b0",   "0o0",   "0",   "0x0");
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -10,  "-0b1010", "-0o12", "-10",  "-0xa");
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  10,   "0b1010",  "0o12",  "10",   "0xa");
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix, -20, "-0b10100", "-0o24", "-20", "-0x14");
-    test_prefixed_number_on_empty_buffer(&call_itoa, &call_itoa_radix,  20,  "0b10100",  "0o24",  "20",  "0x14");
+    test_prefixed_number_on_empty_buffer(&itoa<int>, &itoa<int>,   0,      "0b0",   "0o0",   "0",   "0x0");
+    test_prefixed_number_on_empty_buffer(&itoa<int>, &itoa<int>, -10,  "-0b1010", "-0o12", "-10",  "-0xa");
+    test_prefixed_number_on_empty_buffer(&itoa<int>, &itoa<int>,  10,   "0b1010",  "0o12",  "10",   "0xa");
+    test_prefixed_number_on_empty_buffer(&itoa<int>, &itoa<int>, -20, "-0b10100", "-0o24", "-20", "-0x14");
+    test_prefixed_number_on_empty_buffer(&itoa<int>, &itoa<int>,  20,  "0b10100",  "0o24",  "20",  "0x14");
 }
 
 TEST_CASE("utoa.prefixed_number_on_empty_buffer")
 {
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix,  0u, "0b0"    ,  "0o0",  "0",  "0x0");
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 10u, "0b1010" , "0o12", "10",  "0xa");
-    test_prefixed_number_on_empty_buffer(&call_utoa, &call_utoa_radix, 20u, "0b10100", "0o24", "20", "0x14");
+    test_prefixed_number_on_empty_buffer(&utoa<unsigned>, &utoa<unsigned>,  0u, "0b0"    ,  "0o0",  "0",  "0x0");
+    test_prefixed_number_on_empty_buffer(&utoa<unsigned>, &utoa<unsigned>, 10u, "0b1010" , "0o12", "10",  "0xa");
+    test_prefixed_number_on_empty_buffer(&utoa<unsigned>, &utoa<unsigned>, 20u, "0b10100", "0o24", "20", "0x14");
 }
-
 
 
 //-----------------------------------------------------------------------------
@@ -308,8 +288,8 @@ TEST_CASE("read_bin.fail")
     CHECK_EQ(udec, 2);
 }
 
-template<class ItoaOrUtoa, class ItoaOrUtoaRdx, class Atoi, class I>
-void test_toa_radix(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, Atoi aifn, substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
+template<class I>
+void test_toa_radix(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), bool (*aifn)(csubstr, I*), substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
     size_t ret;
     bool ok;
@@ -360,7 +340,7 @@ void test_toa_radix(ItoaOrUtoa fn, ItoaOrUtoaRdx rfn, Atoi aifn, substr buf, I n
 
 void test_utoa_radix(substr buf, unsigned num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
-    test_toa_radix(&call_utoa, &call_utoa_radix, &atou<unsigned>, buf, num, r2, r8, r10, r16);
+    test_toa_radix(&utoa<unsigned>, &utoa<unsigned>, &atou<unsigned>, buf, num, r2, r8, r10, r16);
 }
 
 void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const char *r10, const char *r16)
@@ -368,7 +348,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     size_t ret;
 
     REQUIRE_GE(num, 0);
-    test_toa_radix(&call_itoa, &call_itoa_radix, &atoi<int>, buf, num, r2, r8, r10, r16);
+    test_toa_radix(&itoa<int>, &itoa<int>, &atoi<int>, buf, num, r2, r8, r10, r16);
 
     if(num == 0) return;
     // test negative values
@@ -893,70 +873,40 @@ TEST_CASE("atou.range_u64")
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-void test_ftoa(substr buf, float f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
+template<class T>
+using rtoa_fn_t = size_t (*)(substr, T, int, RealFormat_e);
+
+template<class Real>
+void test_rtoa(substr buf, Real f, rtoa_fn_t<Real> rtoa_fn, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
 {
     size_t ret;
 
-    INFO("num=" << f);
+    INFO("num=" << f << " precision=" << precision
+         << "'  hexa='" << hexa << "'  hexa_alternative='" << hexa_alternative << "'");
 
     memset(buf.str, 0, buf.len);
-    ret = ftoa(buf, f, precision, FTOA_SCIENT);
+    ret = rtoa_fn(buf, f, precision, FTOA_SCIENT);
     REQUIRE_LE(ret, buf.len);
     CHECK_EQ(buf.left_of(ret), to_csubstr(scient));
 
     memset(buf.str, 0, ret);
-    ret = ftoa(buf, f, precision, FTOA_FLOAT);
+    ret = rtoa_fn(buf, f, precision, FTOA_FLOAT);
     REQUIRE_LE(ret, buf.len);
     CHECK_EQ(buf.left_of(ret), to_csubstr(flt));
 
     memset(buf.str, 0, ret);
-    ret = ftoa(buf, f, precision+1, FTOA_FLEX);
+    ret = rtoa_fn(buf, f, precision+1, FTOA_FLEX);
     REQUIRE_LE(ret, buf.len);
     CHECK_EQ(buf.left_of(ret), to_csubstr(flex));
 
     memset(buf.str, 0, ret);
-    ret = ftoa(buf, f, precision, FTOA_HEXA);
+    ret = rtoa_fn(buf, f, precision, FTOA_HEXA);
     REQUIRE_LE(ret, buf.len);
     if(!hexa_alternative) hexa_alternative = hexa;
     std::string report;
     from_chars(buf.left_of(ret), &report);
     bool ok = buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative);
-    CHECK_MESSAGE(ok, "num=" << f << "   ret='" << report
-                  << "'  hexa='" << hexa
-                  << "'  hexa_alternative='" << hexa_alternative << "'");
-}
-
-void test_dtoa(substr buf, double f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
-{
-    size_t ret;
-
-    INFO("num=" << f);
-
-    memset(buf.str, 0, buf.len);
-    ret = dtoa(buf, f, precision, FTOA_SCIENT);
-    REQUIRE_LE(ret, buf.len);
-    CHECK_EQ(buf.left_of(ret), to_csubstr(scient));
-
-    memset(buf.str, 0, ret);
-    ret = dtoa(buf, f, precision, FTOA_FLOAT);
-    REQUIRE_LE(ret, buf.len);
-    CHECK_EQ(buf.left_of(ret), to_csubstr(flt));
-
-    memset(buf.str, 0, ret);
-    ret = dtoa(buf, f, precision+1, FTOA_FLEX);
-    REQUIRE_LE(ret, buf.len);
-    CHECK_EQ(buf.left_of(ret), to_csubstr(flex));
-
-    memset(buf.str, 0, ret);
-    ret = dtoa(buf, f, precision, FTOA_HEXA);
-    REQUIRE_LE(ret, buf.len);
-    if(!hexa_alternative) hexa_alternative = hexa;
-    std::string report;
-    from_chars(buf.left_of(ret), &report);
-    bool ok = buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative);
-    CHECK_MESSAGE(ok, "num=" << f << "   ret='" << report
-                  << "'  hexa='" << hexa
-                  << "'  hexa_alternative='" << hexa_alternative << "'");
+    CHECK_MESSAGE(ok, "ret='" << report);
 }
 
 
@@ -969,73 +919,38 @@ TEST_CASE("ftoa.basic")
     float f = 1.1234123f;
     double d = 1.1234123;
 
-    {
-        INFO("precision 0");
-        test_ftoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
-        test_dtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    test_rtoa(buf, d, &dtoa, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
 
-    {
-        INFO("precision 1");
-        test_ftoa(buf, f, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
-        test_dtoa(buf, d, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
+    test_rtoa(buf, d, &dtoa, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
 
-    {
-        INFO("precision 2");
-        test_ftoa(buf, f, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
-        test_dtoa(buf, d, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
+    test_rtoa(buf, d, &dtoa, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
 
-    {
-        INFO("precision 3");
-        test_ftoa(buf, f, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
-        test_dtoa(buf, d, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
+    test_rtoa(buf, d, &dtoa, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
 
-    {
-        INFO("precision 4");
-        test_ftoa(buf, f, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
-        test_dtoa(buf, d, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
+    test_rtoa(buf, d, &dtoa, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
 
     f = 1.01234123f;
     d = 1.01234123;
 
-    {
-        INFO("precision 0");
-        test_ftoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
-        test_dtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    test_rtoa(buf, d, &dtoa, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
 
-    {
-        INFO("precision 1");
-        test_ftoa(buf, f, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
-        test_dtoa(buf, d, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
+    test_rtoa(buf, d, &dtoa, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
 
-    {
-        INFO("precision 2");
-        test_ftoa(buf, f, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
-        test_dtoa(buf, d, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
+    test_rtoa(buf, d, &dtoa, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
 
-    {
-        INFO("precision 3");
-        #if defined(_MSC_VER) || defined(C4_MACOS) || defined(C4_IOS) // there are differences in the hexa formatting
-        test_ftoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
-        test_dtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
-        #else
-        test_ftoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0");
-        test_dtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0");
-        #endif
-    }
+    test_rtoa(buf, f, &ftoa, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
+    test_rtoa(buf, d, &dtoa, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
 
-    {
-        INFO("precision 4");
-        test_ftoa(buf, f, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
-        test_dtoa(buf, d, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
-    }
+    test_rtoa(buf, f, &ftoa, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
+    test_rtoa(buf, d, &dtoa, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
 }
 
 
