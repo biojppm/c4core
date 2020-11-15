@@ -225,8 +225,8 @@ template<class T> size_t xtoa(substr s, T v);
 
 // Helper macros, undefined below
 
-#define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
-#define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
+#define _c4append(c) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
+#define _c4appendrdx(i) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
 
 /** convert an integral signed decimal to a string.
  * The resulting string is NOT zero-terminated.
