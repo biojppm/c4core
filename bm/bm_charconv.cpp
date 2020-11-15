@@ -655,121 +655,88 @@ void atox_scanf(bm::State& st)
 
 //-----------------------------------------------------------------------------
 
-template<class StreamType, class T>
-C4_ALWAYS_INLINE std::string xtoa_sstream_(T const& C4_RESTRICT val)
-{
-    StreamType ss;
-    ss << val;
-    return ss.str();
-}
-
-C4FOR2(T, StreamType, isint)
+C4FOR(T, isint)
 xtoa_sstream(bm::State& st)
 {
     T i = 0;
+    std::string out; C4_UNUSED(out);
     for(auto _ : st)
     {
-        std::string out = xtoa_sstream_<StreamType>(++i);
-        C4_UNUSED(out);
+        std::stringstream ss;
+        ss << ++i;
+        out = ss.str();
     }
     report<T>(st);
 }
 
-C4FOR2(T, StreamType, isreal)
+C4FOR(T, isreal)
 xtoa_sstream(bm::State& st)
 {
     random_values<T> values;
+    std::string out; C4_UNUSED(out);
     for(auto _ : st)
     {
-        std::string out = xtoa_sstream_<StreamType>(values.next());
-        C4_UNUSED(out);
+        std::stringstream ss;
+        ss << values.next();
+        out = ss.str();
     }
     report<T>(st);
 }
 
-//-----------------------------------------------------------------------------
-
-template<class StreamType, class T>
-C4_ALWAYS_INLINE T atox_sstream_(std::string const& C4_RESTRICT str)
+C4FOR(T, isint)
+xtoa_sstream_reuse(bm::State& st)
 {
-    T val;
-    StreamType ss(str);
-    ss >> val;
-    return val;
+    std::stringstream ss;
+    std::string out; C4_UNUSED(out);
+    T i = 0;
+    for(auto _ : st)
+    {
+        ss.clear();
+        ss.str("");
+        ss << ++i;
+    }
+    report<T>(st);
 }
 
-template<class T, class StreamType>
+C4FOR(T, isreal)
+xtoa_sstream_reuse(bm::State& st)
+{
+    random_values<T> values;
+    std::stringstream ss;
+    std::string out; C4_UNUSED(out);
+    for(auto _ : st)
+    {
+        ss.clear();
+        ss.str("");
+        ss << values.next();
+    }
+    report<T>(st);
+}
+
+template<class T>
 void atox_sstream(bm::State& st)
 {
     random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = atox_sstream_<StreamType, T>(strings.next_s());
+        std::stringstream ss(strings.next_s());
+        ss >> val;
     }
     report<T>(st);
 }
 
-
-//-----------------------------------------------------------------------------
-
-template<class StreamType, class T>
-C4_ALWAYS_INLINE std::string xtoa_sstream_reuse_(StreamType &ss, T const& C4_RESTRICT val)
-{
-    ss.clear();
-    ss.str("");
-    ss << val;
-    return ss.str();
-}
-
-C4FOR2(T, StreamType, isint)
-xtoa_sstream_reuse(bm::State& st)
-{
-    T i = 0;
-    StreamType ss;
-    for(auto _ : st)
-    {
-        std::string out = xtoa_sstream_reuse_(ss, ++i);
-        C4_UNUSED(out);
-    }
-    report<T>(st);
-}
-
-C4FOR2(T, StreamType, isreal)
-xtoa_sstream_reuse(bm::State& st)
-{
-    random_values<T> values;
-    StreamType ss;
-    for(auto _ : st)
-    {
-        std::string out = xtoa_sstream_reuse_(ss, values.next());
-        C4_UNUSED(out);
-    }
-    report<T>(st);
-}
-
-
-//-----------------------------------------------------------------------------
-
-template<class StreamType, class T>
-C4_ALWAYS_INLINE T atox_sstream_reuse_(StreamType &ss, std::string const& C4_RESTRICT s)
-{
-    T val;
-    ss.clear();
-    ss.str(s);
-    ss >> val;
-    return val;
-}
-
-template<class T, class StreamType>
+template<class T>
 void atox_sstream_reuse(bm::State& st)
 {
     random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);
-    StreamType ss;
+    std::stringstream ss;
     for(auto _ : st)
     {
-        val = atox_sstream_reuse_<StreamType, T>(ss, strings.next_s());
+        ss.clear();
+        ss.str(strings.next_s());
+        ss >> val;
     }
     report<T>(st);
 }
@@ -865,20 +832,7 @@ xtoa_std_to_chars(bm::State& st)
     report<T>(st);
 }
 
-C4FOR(T, isint)
-atox_std_from_chars(bm::State& st)
-{
-    random_strings strings = mkstrings<T>();
-    T val;
-    for(auto _ : st)
-    {
-        c4::csubstr buf = strings.next();
-        std::from_chars(buf.begin(), buf.end(), val);
-    }
-    report<T>(st);
-}
-
-C4FOR(T, isreal)
+template<class T>
 atox_std_from_chars(bm::State& st)
 {
     random_strings strings = mkstrings<T>();
@@ -901,10 +855,8 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  uint8_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint8_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  uint8_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint8_t);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream,  uint8_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream,  uint8_t, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t);
+C4BM_TEMPLATE(xtoa_sstream,  uint8_t);
 
 C4BM_TEMPLATE(xtoa_c4_itoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,   int8_t);
@@ -912,10 +864,8 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  int8_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int8_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  int8_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int8_t);
-C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream,   int8_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream,   int8_t, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t);
+C4BM_TEMPLATE(xtoa_sstream,   int8_t);
 
 C4BM_TEMPLATE(xtoa_c4_utoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint16_t);
@@ -923,10 +873,8 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  uint16_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint16_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  uint16_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint16_t);
-C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream, uint16_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream, uint16_t, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t);
+C4BM_TEMPLATE(xtoa_sstream, uint16_t);
 
 C4BM_TEMPLATE(xtoa_c4_itoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int16_t);
@@ -934,10 +882,8 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  int16_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int16_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  int16_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int16_t);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream,  int16_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream,  int16_t, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t);
+C4BM_TEMPLATE(xtoa_sstream,  int16_t);
 
 C4BM_TEMPLATE(xtoa_c4_utoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint32_t);
@@ -945,10 +891,8 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  uint32_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint32_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  uint32_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint32_t);
-C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream, uint32_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream, uint32_t, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t);
+C4BM_TEMPLATE(xtoa_sstream, uint32_t);
 
 C4BM_TEMPLATE(xtoa_c4_itoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int32_t);
@@ -956,10 +900,8 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  int32_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int32_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  int32_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int32_t);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream,  int32_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream,  int32_t, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t);
+C4BM_TEMPLATE(xtoa_sstream,  int32_t);
 
 C4BM_TEMPLATE(xtoa_c4_utoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint64_t);
@@ -967,10 +909,8 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  uint64_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint64_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  uint64_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint64_t);
-C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream, uint64_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream, uint64_t, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t);
+C4BM_TEMPLATE(xtoa_sstream, uint64_t);
 
 C4BM_TEMPLATE(xtoa_c4_itoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int64_t);
@@ -978,10 +918,8 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  int64_t);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int64_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  int64_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int64_t);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  int64_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  int64_t, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream,  int64_t, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream,  int64_t, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse,  int64_t);
+C4BM_TEMPLATE(xtoa_sstream,  int64_t);
 
 C4BM_TEMPLATE(xtoa_c4_ftoa,  float);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  float);
@@ -990,10 +928,8 @@ C4BM_TEMPLATE(xtoa_ryu_f2s,  float);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  float);
 C4BM_TEMPLATE(xtoa_std_to_string,  float);
 C4BM_TEMPLATE(xtoa_sprintf,  float);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  float, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  float, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream,  float, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream,  float, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse,  float);
+C4BM_TEMPLATE(xtoa_sstream,  float);
 
 C4BM_TEMPLATE(xtoa_c4_dtoa,  double);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  double);
@@ -1002,16 +938,13 @@ C4BM_TEMPLATE(xtoa_ryu_d2s,  double);
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  double);
 C4BM_TEMPLATE(xtoa_std_to_string,  double);
 C4BM_TEMPLATE(xtoa_sprintf,  double);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  double, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream_reuse,  double, std::stringstream);
-C4BM_TEMPLATE(xtoa_sstream,  double, std::ostringstream);
-C4BM_TEMPLATE(xtoa_sstream,  double, std::stringstream);
+C4BM_TEMPLATE(xtoa_sstream_reuse,  double);
+C4BM_TEMPLATE(xtoa_sstream,  double);
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
 
 C4BM_TEMPLATE(atox_c4_atou,  uint8_t);
 C4BM_TEMPLATE(atox_c4_atox,  uint8_t);
@@ -1020,10 +953,8 @@ C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint8_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint8_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint8_t);
 C4BM_TEMPLATE(atox_scanf,   uint8_t);
-C4BM_TEMPLATE(atox_sstream,   uint8_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   uint8_t, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   uint8_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   uint8_t, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   uint8_t);
+C4BM_TEMPLATE(atox_sstream_reuse,   uint8_t);
 
 C4BM_TEMPLATE(atox_c4_atoi,   int8_t);
 C4BM_TEMPLATE(atox_c4_atox,   int8_t);
@@ -1032,10 +963,8 @@ C4BM_TEMPLATE_CPP17(atox_std_from_chars, int8_t);
 C4BM_TEMPLATE(atox_std_atoi,   int8_t);
 C4BM_TEMPLATE(atox_std_strtol,   int8_t);
 C4BM_TEMPLATE(atox_scanf,   int8_t);
-C4BM_TEMPLATE(atox_sstream,   int8_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   int8_t, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   int8_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   int8_t, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   int8_t);
+C4BM_TEMPLATE(atox_sstream_reuse,   int8_t);
 
 C4BM_TEMPLATE(atox_c4_atou, uint16_t);
 C4BM_TEMPLATE(atox_c4_atox, uint16_t);
@@ -1044,10 +973,8 @@ C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint16_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint16_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint16_t);
 C4BM_TEMPLATE(atox_scanf,   uint16_t);
-C4BM_TEMPLATE(atox_sstream,   uint16_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   uint16_t, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   uint16_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   uint16_t, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   uint16_t);
+C4BM_TEMPLATE(atox_sstream_reuse,   uint16_t);
 
 C4BM_TEMPLATE(atox_c4_atoi,  int16_t);
 C4BM_TEMPLATE(atox_c4_atox,  int16_t);
@@ -1056,10 +983,8 @@ C4BM_TEMPLATE_CPP17(atox_std_from_chars, int16_t);
 C4BM_TEMPLATE(atox_std_atoi,   int16_t);
 C4BM_TEMPLATE(atox_std_strtol,   int16_t);
 C4BM_TEMPLATE(atox_scanf,   int16_t);
-C4BM_TEMPLATE(atox_sstream,   int16_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   int16_t, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   int16_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   int16_t, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   int16_t);
+C4BM_TEMPLATE(atox_sstream_reuse,   int16_t);
 
 C4BM_TEMPLATE(atox_c4_atou, uint32_t);
 C4BM_TEMPLATE(atox_c4_atox, uint32_t);
@@ -1068,10 +993,8 @@ C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint32_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint32_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint32_t);
 C4BM_TEMPLATE(atox_scanf,   uint32_t);
-C4BM_TEMPLATE(atox_sstream,   uint32_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   uint32_t, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   uint32_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   uint32_t, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   uint32_t);
+C4BM_TEMPLATE(atox_sstream_reuse,   uint32_t);
 
 C4BM_TEMPLATE(atox_c4_atoi,  int32_t);
 C4BM_TEMPLATE(atox_c4_atox,  int32_t);
@@ -1080,10 +1003,8 @@ C4BM_TEMPLATE_CPP17(atox_std_from_chars, int32_t);
 C4BM_TEMPLATE(atox_std_atoi,   int32_t);
 C4BM_TEMPLATE(atox_std_strtol,   int32_t);
 C4BM_TEMPLATE(atox_scanf,   int32_t);
-C4BM_TEMPLATE(atox_sstream,   int32_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   int32_t, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   int32_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   int32_t, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   int32_t);
+C4BM_TEMPLATE(atox_sstream_reuse,   int32_t);
 
 C4BM_TEMPLATE(atox_c4_atou, uint64_t);
 C4BM_TEMPLATE(atox_c4_atox, uint64_t);
@@ -1092,10 +1013,8 @@ C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_std_atol,   uint64_t);
 C4BM_TEMPLATE(atox_std_strtoull,   uint64_t);
 C4BM_TEMPLATE(atox_scanf,   uint64_t);
-C4BM_TEMPLATE(atox_sstream,   uint64_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   uint64_t, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   uint64_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   uint64_t, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   uint64_t);
+C4BM_TEMPLATE(atox_sstream_reuse,   uint64_t);
 
 C4BM_TEMPLATE(atox_c4_atoi,  int64_t);
 C4BM_TEMPLATE(atox_c4_atox,  int64_t);
@@ -1104,10 +1023,8 @@ C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_std_atol,   int64_t);
 C4BM_TEMPLATE(atox_std_strtoll,   int64_t);
 C4BM_TEMPLATE(atox_scanf,   int64_t);
-C4BM_TEMPLATE(atox_sstream,   int64_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   int64_t, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   int64_t, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   int64_t, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   int64_t);
+C4BM_TEMPLATE(atox_sstream_reuse,   int64_t);
 
 C4BM_TEMPLATE(atox_c4_atof,  float);
 C4BM_TEMPLATE(atox_c4_atox,  float);
@@ -1121,10 +1038,8 @@ C4BM_TEMPLATE(atox_std_atof,   float);
 C4BM_TEMPLATE(atox_std_strtof,   float);
 C4BM_TEMPLATE(atox_std_stof,   float);
 C4BM_TEMPLATE(atox_scanf,   float);
-C4BM_TEMPLATE(atox_sstream,   float, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   float, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   float, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   float, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   float);
+C4BM_TEMPLATE(atox_sstream_reuse,   float);
 
 C4BM_TEMPLATE(atox_c4_atod,  double);
 C4BM_TEMPLATE(atox_c4_atox,  double);
@@ -1138,10 +1053,8 @@ C4BM_TEMPLATE(atox_std_atof,   double);
 C4BM_TEMPLATE(atox_std_strtod,   double);
 C4BM_TEMPLATE(atox_std_stod,   double);
 C4BM_TEMPLATE(atox_scanf,   double);
-C4BM_TEMPLATE(atox_sstream,   double, std::istringstream);
-C4BM_TEMPLATE(atox_sstream,   double, std::stringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   double, std::istringstream);
-C4BM_TEMPLATE(atox_sstream_reuse,   double, std::stringstream);
+C4BM_TEMPLATE(atox_sstream,   double);
+C4BM_TEMPLATE(atox_sstream_reuse,   double);
 
 
 //-----------------------------------------------------------------------------
