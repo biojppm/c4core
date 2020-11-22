@@ -833,7 +833,7 @@ xtoa_std_to_chars(bm::State& st)
 }
 
 template<class T>
-atox_std_from_chars(bm::State& st)
+void atox_std_from_chars(bm::State& st)
 {
     random_strings strings = mkstrings<T>();
     T val; C4_UNUSED(val);

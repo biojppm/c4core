@@ -37,16 +37,15 @@
 // itanium is bi-endian - check byte order below
 
 #elif defined(__arm__) || defined(_M_ARM) \
-    || defined(__TARGET_ARCH_ARM) || defined(__aarch64__)
-#   if defined(__aarch64__)
+    || defined(__TARGET_ARCH_ARM) || defined(__aarch64__) || defined(_M_ARM64)
+#   if defined(__aarch64__) || defined(_M_ARM64)
 #       define C4_CPU_ARM64
 #       define C4_CPU_ARMV8
 #       define C4_WORDSIZE 8
 #   else
 #       define C4_CPU_ARM
 #       define C4_WORDSIZE 4
-#       if defined(__ARM_ARCH_8__) \
-        || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 8)
+#       if defined(__ARM_ARCH_8__) || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 8)
 #           define C4_CPU_ARMV8
 #       elif defined(__ARM_ARCH_7__) || defined(_ARM_ARCH_7)      \
         || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) \

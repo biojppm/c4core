@@ -82,7 +82,7 @@ double doit(const char *s)
 #define C4_TO_REAL(s) doit(s)
 
 #elif C4FLOAT_FASTFLOAT_F
-#include <fast_float/fast_float.h>
+#include <c4/ext/fast_float.hpp>
 #include <cstring>
 float doit(const char *s)
 {
@@ -93,7 +93,7 @@ float doit(const char *s)
 #define C4_TO_REAL(s) doit(s)
 
 #elif C4FLOAT_FASTFLOAT_D
-#include <fast_float/fast_float.h>
+#include <c4/ext/fast_float.hpp>
 #include <cstring>
 double doit(const char *s)
 {

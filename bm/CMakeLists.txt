@@ -29,7 +29,8 @@ c4_add_target_benchmark(c4core-bm-format format FILTER "^format_.*")
 
 c4_add_executable(c4core-bm-charconv
     SOURCES bm_charconv.cpp
-    LIBS c4core benchmark ryu_c4 fast_float
+    LIBS c4core benchmark ryu_c4
+    INC_DIRS ${C4CORE_SRC_DIR}/c4/ext/fast_float/include
     FOLDER bm)
 
 get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)

@@ -6,4 +6,4 @@
 	url = https://github.com/biojppm/debugbreak
 [submodule "src/c4/ext/fast_float"]
 	path = src/c4/ext/fast_float
-	url = https://github.com/lemire/fast_float
+	url = https://github.com/biojppm/fast_float

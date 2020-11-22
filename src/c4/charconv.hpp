@@ -17,8 +17,8 @@
 #include "c4/memory_util.hpp"
 #include "c4/szconv.hpp"
 
-#if 1
-#   include "c4/ext/fast_float/include/fast_float/fast_float.h"
+#ifndef C4CORE_NO_FAST_FLOAT
+#   include "c4/ext/fast_float.hpp"
 #   define C4CORE_HAVE_FAST_FLOAT 1
 #   define C4CORE_HAVE_STD_FROMCHARS 0
 #   if (C4_CPP >= 17)
@@ -178,8 +178,8 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
 #endif // C4CORE_HAVE_STD_TOCHARS
 
 /** in some platforms, int,unsigned int
- *  are not the same as int8_t...int64_t and
- *  long,unsigned long are not the same as uint8_t...uint64_t */
+ *  are not any of int8_t...int64_t and
+ *  long,unsigned long are not any of uint8_t...uint64_t */
 template<class T>
 struct is_fixed_length
 {
@@ -800,7 +800,7 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
 } // namespace detail
 
 
-#if C4CORE_HAVE_STD_FROMCHARS
+#if C4CORE_HAVE_STD_TOCHARS
 template<class T>
 size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
@@ -831,14 +831,13 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
     //
     // When the result can't fit in the given buffer,
     // std::to_chars() returns the end pointer it was originally
-    // given, which is useless because here we want to known
+    // given, which is useless because here we would like to know
     // _exactly_ how many characters the buffer must have to fit
     // the result.
     //
-    // So we fall back on printf in this case.
-    char fmt[16];
-    detail::get_real_format_str(fmt, precision, formatting, detail::get_length_modifier<T>());
-    size_t ret = detail::print_one(buf, fmt, v);
+    // So we take the pessimistic view, and assume as many digits
+    // as could ever be required:
+    size_t ret = static_cast<size_t>(std::numeric_limits<T>::max_digits10);
     return ret > buf.len ? ret : buf.len + 1;
 }
 #endif // C4CORE_HAVE_STD_TOCHARS
