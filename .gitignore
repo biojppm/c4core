@@ -4,6 +4,7 @@
 *~
 .ccls-cache/
 .clangd/
+.cache/
 .cquery_cached_index/
 
 # Visual Studio files

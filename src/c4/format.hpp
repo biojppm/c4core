@@ -646,6 +646,7 @@ retry:
  * the result.
  *
  * @see cat()
+ * @overload catrs
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class... Args>
 inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
@@ -661,6 +662,7 @@ inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
  * @return the region newly appended to the original container
  * @see cat()
  * @see catrs()
+ * @overload catrs
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class... Args>
 inline csubstr catrs(append_t, CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
@@ -757,7 +759,7 @@ retry:
  * @see format()
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class... Args>
-inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const&  C4_RESTRICT ...args)
+inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
 retry:
     substr buf = to_substr(*cont);
@@ -773,7 +775,7 @@ retry:
  * @overload formatrs
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class... Args>
-inline CharOwningContainer formatrs(csubstr fmt, Args const&  C4_RESTRICT ...args)
+inline CharOwningContainer formatrs(csubstr fmt, Args const& C4_RESTRICT ...args)
 {
     CharOwningContainer cont;
     formatrs(&cont, fmt, args...);

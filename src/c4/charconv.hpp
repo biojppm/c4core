@@ -3,6 +3,7 @@
 
 /** @file charconv.hpp Low-level conversion functions to/from strings */
 
+#include "c4/language.hpp"
 #include <stdio.h>
 #include <inttypes.h>
 #include <type_traits>
@@ -14,27 +15,56 @@
 #include "c4/config.hpp"
 #include "c4/substr.hpp"
 #include "c4/memory_util.hpp"
+#include "c4/szconv.hpp"
 
-#if (C4_CPP >= 17)
-#   if defined(_MSC_VER)
-#       if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
-#           define C4CORE_HAVE_STD_TOCHARS 1
-#           include <charconv>
-#       else
-#           define C4CORE_HAVE_STD_TOCHARS 0
+#ifndef C4CORE_NO_FAST_FLOAT
+#   include "c4/ext/fast_float.hpp"
+#   define C4CORE_HAVE_FAST_FLOAT 1
+#   define C4CORE_HAVE_STD_FROMCHARS 0
+#   if (C4_CPP >= 17)
+#       if defined(_MSC_VER)
+#           if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
+#               include <charconv>
+#               define C4CORE_HAVE_STD_TOCHARS 1
+#           else
+#               define C4CORE_HAVE_STD_TOCHARS 0
+#           endif
+#       else  // VS2017 and lower do not have these macros
+#           if __has_include(<charconv>) && __cpp_lib_to_chars
+#               define C4CORE_HAVE_STD_TOCHARS 1
+#               include <charconv>
+#           else
+#               define C4CORE_HAVE_STD_TOCHARS 0
+#           endif
 #       endif
 #   else
-#       // VS2017 and lower do not have these macros
+#       define C4CORE_HAVE_STD_TOCHARS 0
+#   endif
+#elif (C4_CPP >= 17)
+#   if defined(_MSC_VER)
+#       if (C4_MSVC_VERSION >= C4_MSVC_VERSION_2019)
+#           include <charconv>
+#           define C4CORE_HAVE_STD_TOCHARS 1
+#           define C4CORE_HAVE_STD_FROMCHARS 1
+#       else
+#           define C4CORE_HAVE_STD_TOCHARS 0
+#           define C4CORE_HAVE_STD_FROMCHARS 0
+#       endif
+#   else  // VS2017 and lower do not have these macros
 #       if __has_include(<charconv>) && __cpp_lib_to_chars
 #           define C4CORE_HAVE_STD_TOCHARS 1
+#           define C4CORE_HAVE_STD_FROMCHARS 1
 #           include <charconv>
 #       else
 #           define C4CORE_HAVE_STD_TOCHARS 0
+#           define C4CORE_HAVE_STD_FROMCHARS 0
 #       endif
 #   endif
 #else
 #   define C4CORE_HAVE_STD_TOCHARS 0
+#   define C4CORE_HAVE_STD_FROMCHARS 0
 #endif
+
 
 #ifdef _MSC_VER
 #   pragma warning(push)
@@ -90,14 +120,14 @@ namespace c4 {
  * template<class T> substr to_chars_sub(substr buf, T const& C4_RESTRICT val);
  *
  *
- * // read a value from the string, which must be
+ * // Read a value from the string, which must be
  * // trimmed to the value (ie, no leading/trailing whitespace).
- * // return true if the conversion succeeded
+ * // return true if the conversion succeeded.
  * template<class T> bool from_chars(csubstr buf, T * C4_RESTRICT val);
  *
  *
- * // read the first valid sequence of characters from the string
- * // and convert it using from_chars().
+ * // Read the first valid sequence of characters from the string,
+ * // skipping leading whitespace, and convert it using from_chars().
  * // Return the number of characters read for converting.
  * template<class T> size_t from_first_chars(csubstr buf, T * C4_RESTRICT val);
  * @endcode
@@ -148,8 +178,8 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
 #endif // C4CORE_HAVE_STD_TOCHARS
 
 /** in some platforms, int,unsigned int
- *  are not the same as int8_t...int64_t and
- *  long,unsigned long are not the same as uint8_t...uint64_t */
+ *  are not any of int8_t...int64_t and
+ *  long,unsigned long are not any of uint8_t...uint64_t */
 template<class T>
 struct is_fixed_length
 {
@@ -172,6 +202,11 @@ struct is_fixed_length
 };
 
 
+// generic versions
+template<class T> bool atox(csubstr s, T *v);
+template<class T> size_t xtoa(substr s, T v);
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -190,8 +225,8 @@ struct is_fixed_length
 
 // Helper macros, undefined below
 
-#define _c4append(c) { if(pos < buf.len) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
-#define _c4appendrdx(i) { if(pos < buf.len) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
+#define _c4append(c) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
+#define _c4appendrdx(i) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
 
 /** convert an integral signed decimal to a string.
  * The resulting string is NOT zero-terminated.
@@ -349,8 +384,11 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
     *v = 0;
     for(char c : s)
     {
-        if(C4_UNLIKELY(c < '0' || c > '9')) return false;
-        *v =  (*v) * I(10) + (I(c) - I('0'));
+        if(C4_UNLIKELY(c < '0' || c > '9'))
+        {
+            return false;
+        }
+        *v = (*v) * I(10) + (I(c) - I('0'));
     }
     return true;
 }
@@ -363,10 +401,22 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         I cv;
-        if(c >= '0' && c <= '9') cv = static_cast<I>(I(c) - I('0'));
-        else if(c >= 'a' && c <= 'f') cv = I(10) + (I(c) - I('a'));
-        else if(c >= 'A' && c <= 'F') cv = I(10) + (I(c) - I('A'));
-        else return false;
+        if(c >= '0' && c <= '9')
+        {
+            cv = I(c) - I('0');
+        }
+        else if(c >= 'a' && c <= 'f')
+        {
+            cv = I(10) + (I(c) - I('a'));
+        }
+        else if(c >= 'A' && c <= 'F')
+        {
+            cv = I(10) + (I(c) - I('A'));
+        }
+        else
+        {
+            return false;
+        }
         *v = (*v) * I(16) + cv;
     }
     return true;
@@ -380,9 +430,18 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v)
     for(char c : s)
     {
         *v <<= 1;
-        if(c == '1') *v |= 1;
-        else if(c == '0') ;
-        else return false;
+        if(c == '1')
+        {
+            *v |= 1;
+        }
+        else if(c == '0')
+        {
+            ;
+        }
+        else
+        {
+            return false;
+        }
     }
     return true;
 }
@@ -394,7 +453,10 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
     *v = 0;
     for(char c : s)
     {
-        if(C4_UNLIKELY(c < '0' || c > '7')) return false;
+        if(C4_UNLIKELY(c < '0' || c > '7'))
+        {
+            return false;
+        }
         *v = (*v) * I(8) + (I(c) - I('0'));
     }
     return true;
@@ -408,7 +470,10 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
  * hexadecimal (prefix 0x or 0X). Every character in the input string is read
  * for the conversion; it must not contain any leading or trailing
  * whitespace.
- * @return true if the conversion was successful.
+ *
+ * @return true if the conversion was successful. Note that no range
+ * checking is performed: the return status is true even if the
+ * conversion would return a value outside of the type's range.
  * @see atoi_first() if the string is not trimmed to the value to read.
  * @ingroup lowlevel_tofrom_chars
  */
@@ -417,14 +482,14 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_STATIC_ASSERT(std::is_signed<T>::value);
-    C4_ASSERT(str.str != nullptr);
-    C4_ASSERT(str.len > 0);
-    C4_ASSERT(str == str.first_int_span());
+
+    if(C4_UNLIKELY(str.len == 0)) return false;
 
     T sign = 1;
     size_t start = 0;
     if(str.str[0] == '-')
     {
+        if(C4_UNLIKELY(str.len == 1)) return false;
         ++start;
         sign = -1;
     }
@@ -436,7 +501,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
     else
     {
         C4_ASSERT(str.len > start);
-        if(str.len == start+1 || str.first_not_of('0', start) == csubstr::npos)
+        if(str.len == start+1)
         {
             *v = 0; // because the first character is 0
             return true;
@@ -446,22 +511,50 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
             char pfx = str.str[start+1];
             if(pfx == 'x' || pfx == 'X') // hexadecimal
             {
-                C4_ASSERT(str.len > start + 2);
-                if(C4_UNLIKELY( ! detail::read_hex(str.sub(start + 2), v))) return false;
+                if(C4_UNLIKELY(str.len <= start + 2))
+                {
+                    return false;
+                }
+                if(C4_UNLIKELY( ! detail::read_hex(str.sub(start + 2), v)))
+                {
+                    return false;
+                }
             }
             else if(pfx == 'b' || pfx == 'B') // binary
             {
-                C4_ASSERT(str.len > start + 2);
-                if(C4_UNLIKELY( ! detail::read_bin(str.sub(start + 2), v))) return false;
+                if(C4_UNLIKELY(str.len <= start + 2))
+                {
+                    return false;
+                }
+                if(C4_UNLIKELY( ! detail::read_bin(str.sub(start + 2), v)))
+                {
+                    return false;
+                }
             }
             else if(pfx == 'o' || pfx == 'O') // octal
             {
-                C4_ASSERT(str.len > start + 2);
-                if(C4_UNLIKELY( ! detail::read_oct(str.sub(start + 2), v))) return false;
+                if(C4_UNLIKELY(str.len <= start + 2))
+                {
+                    return false;
+                }
+                if(C4_UNLIKELY( ! detail::read_oct(str.sub(start + 2), v)))
+                {
+                    return false;
+                }
             }
             else
             {
-                if(C4_UNLIKELY( ! detail::read_dec(str.sub(start), v))) return false;
+                // we know the first character is 0
+                auto fno = str.first_not_of('0', start + 1);
+                if(fno == csubstr::npos)
+                {
+                    *v = 0;
+                    return true;
+                }
+                if(C4_UNLIKELY( ! detail::read_dec(str.sub(fno), v)))
+                {
+                    return false;
+                }
             }
         }
     }
@@ -494,7 +587,10 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
  * formatted as decimal, binary (prefix 0b or 0B), octal (prefix 0o or 0O)
  * or hexadecimal (prefix 0x or 0X). Every character in the input string is read
  * for the conversion; it must not contain any leading or trailing whitespace.
- * @return true if the conversion was successful.
+ * @return true if the conversion was successful. Note that no range
+ * checking is performed: the return status is true even if the
+ * conversion would return a value outside of the type's range. If the string
+ * has a minus character, the return status will be false.
  * @see atou_first() if the string is not trimmed to the value to read.
  * @ingroup lowlevel_tofrom_chars
  */
@@ -502,20 +598,21 @@ template<class T>
 bool atou(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
-    C4_ASSERT(str.str != nullptr);
-    C4_ASSERT(str.len > 0);
-    C4_ASSERT_MSG(str.str[0] != '-', "must be positive");
-    C4_ASSERT(str == str.first_uint_span());
+
+    if(C4_UNLIKELY(str.len == 0 || str.front() == '-'))
+    {
+        return false;
+    }
 
     if(str.str[0] != '0')
     {
-        return detail::read_dec(str, v);
+        if(C4_UNLIKELY( ! detail::read_dec(str, v))) return false;
     }
     else
     {
-        if(str.len == 1 || str.first_not_of('0') == csubstr::npos)
+        if(str.len == 1)
         {
-            *v = 0; // because the first character is 0
+            *v = 0; // we know the first character is 0
             return true;
         }
         else
@@ -523,22 +620,42 @@ bool atou(csubstr str, T * C4_RESTRICT v)
             char pfx = str.str[1];
             if(pfx == 'x' || pfx == 'X') // hexadecimal
             {
-                C4_ASSERT(str.len > 2);
+                if(C4_UNLIKELY(str.len <= 2))
+                {
+                    return false;
+                }
                 return detail::read_hex(str.sub(2), v);
             }
             else if(pfx == 'b' || pfx == 'B') // binary
             {
-                C4_ASSERT(str.len > 2);
+                if(C4_UNLIKELY(str.len <= 2))
+                {
+                    return false;
+                }
                 return detail::read_bin(str.sub(2), v);
             }
             else if(pfx == 'o' || pfx == 'O') // octal
             {
-                C4_ASSERT(str.len > 2);
+                if(C4_UNLIKELY(str.len <= 2))
+                {
+                    return false;
+                }
                 return detail::read_oct(str.sub(2), v);
+            }
+            else
+            {
+                // we know the first character is 0
+                auto fno = str.first_not_of('0');
+                if(fno == csubstr::npos)
+                {
+                    *v = 0;
+                    return true;
+                }
+                return detail::read_dec(str.sub(fno), v);
             }
         }
     }
-    return detail::read_dec(str, v);
+    return true;
 }
 
 
@@ -638,109 +755,6 @@ size_t print_one(substr str, const char* full_fmt, T v)
 #endif
 }
 
-template<class T> struct real_buf;
-template<> struct real_buf<float> { using type = uint32_t; };
-template<> struct real_buf<double> { using type = uint64_t; };
-
-template<class T>
-struct real_type_info
-{
-    C4_STATIC_ASSERT(std::is_floating_point<T>::value);
-    using itype = typename real_buf<T>::type;
-    itype buf = {};
-
-    constexpr static inline int get_exponent_bits() noexcept
-    {
-        using nl = std::numeric_limits<T>;
-        return msb11<int, nl::max_exponent - nl::min_exponent>::value;
-    }
-
-    enum : int {
-        num_bits  = sizeof(T) * CHAR_BIT,
-        num_frac_bits = std::numeric_limits<T>::digits - 1,
-        num_exp_bits = get_exponent_bits(),
-        frac_start = 0, frac_end = num_frac_bits,
-        exp_start = frac_end, exp_end = exp_start + num_exp_bits,
-        sign_bit = num_bits - 1,
-    };
-    enum : itype {
-        one = 1,
-        frac_mask = contiguous_mask11<itype, frac_start, frac_end>::value,
-        exp_mask = contiguous_mask11<itype, exp_start, exp_end>::value,
-    };
-};
-
-template<class T>
-inline size_t scan_one_real(csubstr str, T *v)
-{
-    C4_STATIC_ASSERT(std::is_floating_point<T>::value);
-    C4_ASSERT(str.len > 0);
-    C4_ASSERT(str == str.first_real_span());
-
-    using rtype = real_type_info<T>;
-    using itype = typename real_type_info<T>::itype;
-
-    size_t pos = 0; // the current buffer position
-    rtype r; // the result, initialized to zero
-    if(str[0] == '-')
-    {
-        r.buf |= (rtype::one << rtype::sign_bit);
-        ++pos;
-    }
-    else if(str[0] == '+')
-    {
-        // no need to clear the sign bit
-        ++pos; // other than counting the position
-    }
-
-    if(str.str[pos] == '0')
-    {
-        C4_ASSERT(str.len > pos);
-        if(str.len == pos+1)
-        {
-            *v = T(0);
-            return pos+1;
-        }
-        else if(str.str[pos + 1] == 'x' || str.str[pos + 1] == 'X')
-        {   // hexadecimal
-            C4_ASSERT(str.len > 2);
-            pos += 2;
-            return pos;
-        }
-        while(str.str[++pos] == '0') {;} // skip leading zeroes
-        if(str.len == pos+1)
-        {
-            *v = T(0);
-            return pos+1;
-        }
-    }
-
-    csubstr rem = str.sub(pos);
-    size_t exp_pos = rem.first_of_any("e", "E").pos;
-    //csubstr exponent = rem.right_of(exp_pos);
-    csubstr mantissa = rem.left_of(exp_pos);
-    size_t dot_pos = mantissa.first_of('.');
-    csubstr integral = mantissa.left_of(dot_pos);
-    csubstr fractional = mantissa.right_of(dot_pos);
-
-    itype integral_v = 0;
-    itype fractional_v = 0;
-    //itype exponent_v = 0;
-    for(char c : integral)
-    {
-        C4_ASSERT(c >= '0' && c <= '9');
-        integral_v = integral_v * itype(10) + (itype(c) - itype('0'));
-    }
-    for(char c : fractional)
-    {
-        C4_ASSERT(c >= '0' && c <= '9');
-        fractional_v = fractional_v * itype(10) + (itype(c) - itype('0'));
-    }
-
-    C4_NOT_IMPLEMENTED();
-    return pos;
-}
-
 
 template<typename T> constexpr        const char* get_length_modifier();
 template<>           constexpr inline const char* get_length_modifier<float>() { return ""; }
@@ -772,7 +786,7 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
      * So the final format ends up as "%12f%n"*/
     int iret = snprintf(fmt, sizeof(fmt), "%%" "%zu" "%s" "%%n", str.len, type_fmt);
     /* no nasty surprises, please! */
-    C4_ASSERT(iret >= 0 && size_t(iret) < sizeof(fmt));
+    C4_ASSERT(iret >= 0 && size_t(iret) < C4_COUNTOF(fmt));
 
     /* now we scan with confidence that the span length is respected */
     int num_chars;
@@ -817,14 +831,13 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
     //
     // When the result can't fit in the given buffer,
     // std::to_chars() returns the end pointer it was originally
-    // given, which is useless because here we want to known
+    // given, which is useless because here we would like to know
     // _exactly_ how many characters the buffer must have to fit
     // the result.
     //
-    // So we fall back on printf in this case.
-    char fmt[16];
-    detail::get_real_format_str(fmt, precision, formatting, detail::get_length_modifier<T>());
-    size_t ret = detail::print_one(buf, fmt, v);
+    // So we take the pessimistic view, and assume as many digits
+    // as could ever be required:
+    size_t ret = static_cast<size_t>(std::numeric_limits<T>::max_digits10);
     return ret > buf.len ? ret : buf.len + 1;
 }
 #endif // C4CORE_HAVE_STD_TOCHARS
@@ -856,6 +869,7 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
  * The string will in general be NOT null-terminated.
  * For FTOA_FLEX, \p precision is the number of significand digits. Otherwise
  * \p precision is the number of decimals.
+ *
  * @return the number of characters written.
  * @ingroup lowlevel_tofrom_chars
  */
@@ -881,12 +895,16 @@ inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatti
 inline bool atof(csubstr str, float * C4_RESTRICT v)
 {
     C4_ASSERT(str == str.first_real_span());
-#if C4CORE_HAVE_STD_TOCHARS
+#if C4CORE_HAVE_FAST_FLOAT
+    fast_float::from_chars_result result;
+    result = fast_float::from_chars(str.str, str.str + str.len, *v);
+    return result.ec == std::errc();
+#elif C4CORE_HAVE_STD_FROMCHARS
     std::from_chars_result result;
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
 #else
-    size_t ret = detail::scan_one(str, "g", v);
+    size_t ret = detail::scan_one(str, "f", v);
     return ret != csubstr::npos;
 #endif
 }
@@ -902,12 +920,16 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
 inline bool atod(csubstr str, double * C4_RESTRICT v)
 {
     C4_ASSERT(str == str.first_real_span());
-#if C4CORE_HAVE_STD_TOCHARS
+#if C4CORE_HAVE_FAST_FLOAT
+    fast_float::from_chars_result result;
+    result = fast_float::from_chars(str.str, str.str + str.len, *v);
+    return result.ec == std::errc();
+#elif C4CORE_HAVE_STD_FROMCHARS
     std::from_chars_result result;
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
 #else
-    size_t ret = detail::scan_one(str, "lg", v);
+    size_t ret = detail::scan_one(str, "lf", v);
     return ret != csubstr::npos;
 #endif
 }
@@ -939,6 +961,34 @@ inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
     if(atod(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+// generic versions
+C4_ALWAYS_INLINE bool atox(csubstr s,  uint8_t *v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s, uint16_t *v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s, uint32_t *v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s, uint64_t *v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,   int8_t *v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,  int16_t *v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,  int32_t *v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,  int64_t *v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,    float *v) { return atof(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,   double *v) { return atod(s, v); }
+
+C4_ALWAYS_INLINE size_t xtoa(substr s,  uint8_t v) { return utoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint16_t v) { return utoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint32_t v) { return utoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint64_t v) { return utoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,   int8_t v) { return itoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int16_t v) { return itoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int32_t v) { return itoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int64_t v) { return itoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,    float v) { return ftoa(s, v); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,   double v) { return dtoa(s, v); }
 
 
 //-----------------------------------------------------------------------------
@@ -1245,14 +1295,13 @@ inline size_t to_chars(substr buf, substr v)
 inline bool from_chars(csubstr buf, substr * C4_RESTRICT v)
 {
     C4_ASSERT(!buf.overlaps(*v));
-    bool ok = buf.len <= v->len;
-    if(ok)
+    if(buf.len <= v->len)
     {
         memcpy(v->str, buf.str, buf.len);
         v->len = buf.len;
         return true;
     }
-    memcpy(v->str, buf.str, buf.len);
+    memcpy(v->str, buf.str, v->len);
     return false;
 }
 
