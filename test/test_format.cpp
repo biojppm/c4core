@@ -343,6 +343,10 @@ TEST_CASE("unformat.vars")
     CHECK_EQ(v2, 2);
     CHECK_EQ(v3, 3);
     CHECK_EQ(v4, 4);
+
+    sz = unformat("1 and 2 and 3 and 4" , "3", v1);
+    CHECK_EQ(sz, 0);
+    CHECK_EQ(v1, 1);
 }
 
 #ifdef C4_TUPLE_TO_STR
@@ -716,8 +720,8 @@ template<class T> void test_raw_roundtrip(const char *valstr, T const& orig)
         }
         T copy = {};
         REQUIRE_NE(copy, orig);
-        size_t szread = c4::from_chars(sbuf, fmt::raw(copy));
-        REQUIRE_EQ(szread, szwrite);
+        bool ok = c4::from_chars_first(sbuf, fmt::raw(copy));
+        REQUIRE_EQ(ok, true);
         CHECK_EQ(copy, orig);
 
         // cover also insufficient buffers

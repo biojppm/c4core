@@ -59,7 +59,7 @@ size_t to_chars(substr buf, fmt::const_raw_wrapper r)
 }
 
 
-size_t from_chars(csubstr buf, fmt::raw_wrapper *r)
+bool from_chars(csubstr buf, fmt::raw_wrapper *r)
 {
     void * vptr = (void*)buf.str;
     size_t space = buf.len;
@@ -68,8 +68,7 @@ size_t from_chars(csubstr buf, fmt::raw_wrapper *r)
     C4_CHECK(ptr >= buf.begin() && ptr <= buf.end());
     //size_t dim = (ptr - buf.str) + r->len;
     memcpy(r->buf, ptr, r->len);
-    size_t sz = static_cast<size_t>(ptr - buf.str) + r->len;
-    return sz;
+    return true;
 }
 
 

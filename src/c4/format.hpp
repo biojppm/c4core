@@ -324,9 +324,9 @@ inline raw_wrapper raw(T & data, size_t alignment=alignof(T))
 size_t to_chars(substr buf, fmt::const_raw_wrapper r);
 
 /** read a variable in raw binary format, using memcpy */
-size_t from_chars(csubstr buf, fmt::raw_wrapper *r);
+bool from_chars(csubstr buf, fmt::raw_wrapper *r);
 /** read a variable in raw binary format, using memcpy */
-inline size_t from_chars(csubstr buf, fmt::raw_wrapper r)
+inline bool from_chars(csubstr buf, fmt::raw_wrapper r)
 {
     return from_chars(buf, &r);
 }
