@@ -101,10 +101,22 @@ struct lsb11
 // most significant bit
 
 /** most significant bit; this function is constexpr-14 because of the local
- * variable */
+ * variable
+ * @todo implement faster version
+ * @see https://stackoverflow.com/questions/2589096/find-most-significant-bit-left-most-that-is-set-in-a-bit-array
+ */
 template<class I>
 C4_CONSTEXPR14 I msb(I v)
 {
+    // TODO:
+    //
+    //int n;
+    //if(input_num & uint64_t(0xffffffff00000000)) input_num >>= 32, n |= 32;
+    //if(input_num & uint64_t(        0xffff0000)) input_num >>= 16, n |= 16;
+    //if(input_num & uint64_t(            0xff00)) input_num >>=  8, n |=  8;
+    //if(input_num & uint64_t(              0xf0)) input_num >>=  4, n |=  4;
+    //if(input_num & uint64_t(               0xc)) input_num >>=  2, n |=  2;
+    //if(input_num & uint64_t(               0x2)) input_num >>=  1, n |=  1;
     if(!v) return static_cast<I>(-1);
     I b = 0;
     while(v != 0)
