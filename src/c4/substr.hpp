@@ -245,15 +245,18 @@ public:
 public:
 
     /** true if *this is a substring of that (ie, from the same buffer) */
-    inline bool is_contained(ro_substr const that) const
+    inline bool is_sub(ro_substr const that) const
     {
-        return that.contains(*this);
+        return that.is_super(*this);
     }
 
     /** true if that is a substring of *this (ie, from the same buffer) */
-    inline bool contains(ro_substr const that) const
+    inline bool is_super(ro_substr const that) const
     {
-        if(C4_UNLIKELY(len == 0)) return that.len == 0 && that.str == str && str != nullptr;
+        if(C4_UNLIKELY(len == 0))
+        {
+            return that.len == 0 && that.str == str && str != nullptr;
+        }
         return that.begin() >= begin() && that.end() <= end();
     }
 
@@ -275,8 +278,16 @@ public:
 
 public:
 
-    /** return [first,first+num[ */
-    basic_substring sub(size_t first, size_t num=npos) const
+    /** return [first,len[ */
+    basic_substring sub(size_t first) const
+    {
+        C4_ASSERT(first >= 0 && first <= len);
+        return basic_substring(str + first, len - first);
+    }
+
+    /** return [first,first+num[. If num==npos, return first
+     * if*/
+    basic_substring sub(size_t first, size_t num) const
     {
         C4_ASSERT(first >= 0 && first <= len);
         size_t rnum = num != npos ? num : len - first;
@@ -337,7 +348,7 @@ public:
 
     basic_substring left_of(ro_substr const ss) const
     {
-        C4_ASSERT(contains(ss) || ss.empty());
+        C4_ASSERT(this->is_super(ss) || ss.empty());
         auto ssb = ss.begin();
         auto b = begin();
         auto e = end();
@@ -353,7 +364,7 @@ public:
 
     basic_substring right_of(ro_substr const ss) const
     {
-        C4_ASSERT(contains(ss) || ss.empty());
+        C4_ASSERT(is_super(ss) || ss.empty());
         auto sse = ss.end();
         auto b = begin();
         auto e = end();
@@ -1363,7 +1374,7 @@ public:
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(basic_substring) erase(ro_substr sub)
     {
-        C4_ASSERT(contains(sub));
+        C4_ASSERT(is_super(sub));
         C4_ASSERT(sub.str >= str);
         return erase(static_cast<size_t>(sub.str - str), sub.len);
     }

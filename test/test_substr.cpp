@@ -67,7 +67,7 @@ TEST_CASE("csubstr.empty_vs_null")
     CHECK_UNARY(pp == nullptr);
 }
 
-TEST_CASE("substr.contains")
+TEST_CASE("substr.is_sub")
 {
     csubstr buf = "0123456789";
 
@@ -75,22 +75,22 @@ TEST_CASE("substr.contains")
     csubstr s;
     csubstr ref = buf.select("345");
     CHECK_EQ(ref, "345");
-    CHECK_UNARY(buf.contains(ref));
-    CHECK_UNARY(ref.is_contained(buf));
-    CHECK_FALSE(ref.contains(buf));
-    CHECK_FALSE(buf.is_contained(ref));
+    CHECK_UNARY(buf.is_super(ref));
+    CHECK_UNARY(ref.is_sub(buf));
+    CHECK_FALSE(ref.is_super(buf));
+    CHECK_FALSE(buf.is_sub(ref));
 
     buf.clear();
     ref.clear();
-    CHECK_FALSE(buf.contains(ref));
-    CHECK_FALSE(ref.contains(buf));
-    CHECK_FALSE(ref.is_contained(buf));
-    CHECK_FALSE(buf.is_contained(ref));
+    CHECK_FALSE(buf.is_super(ref));
+    CHECK_FALSE(ref.is_super(buf));
+    CHECK_FALSE(ref.is_sub(buf));
+    CHECK_FALSE(buf.is_sub(ref));
 
     buf = "";
     ref = buf;
-    CHECK_FALSE(buf.contains("a"));
-    CHECK_UNARY(buf.contains(ref));
+    CHECK_FALSE(buf.is_super("a"));
+    CHECK_UNARY(buf.is_super(ref));
 }
 
 TEST_CASE("substr.overlaps")
@@ -679,11 +679,11 @@ TEST_CASE("substr.left_of")
     CHECK_EQ(s.left_of(5, /*include_pos*/false), "01234");
     CHECK_EQ(s.left_of(6, /*include_pos*/false), "012345");
 
-    CHECK_UNARY(s.contains(s.left_of(0, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.left_of(1, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.left_of(2, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.left_of(3, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.left_of(4, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.left_of(0, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.left_of(1, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.left_of(2, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.left_of(3, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.left_of(4, /*include_pos*/false)));
 
 
     CHECK_EQ(s.left_of(0, /*include_pos*/true), "0");
@@ -693,11 +693,11 @@ TEST_CASE("substr.left_of")
     CHECK_EQ(s.left_of(4, /*include_pos*/true), "01234");
     CHECK_EQ(s.left_of(5, /*include_pos*/true), "012345");
 
-    CHECK_UNARY(s.contains(s.left_of(0, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.left_of(1, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.left_of(2, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.left_of(3, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.left_of(4, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.left_of(0, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.left_of(1, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.left_of(2, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.left_of(3, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.left_of(4, /*include_pos*/true)));
 
 
     CHECK_EQ(s.sub(5), "5");
@@ -714,12 +714,12 @@ TEST_CASE("substr.left_of")
     CHECK_EQ(s.left_of(s.sub(1)), "0");
     CHECK_EQ(s.left_of(s.sub(0)), "");
 
-    CHECK_UNARY(s.contains(s.left_of(s.sub(5))));
-    CHECK_UNARY(s.contains(s.left_of(s.sub(4))));
-    CHECK_UNARY(s.contains(s.left_of(s.sub(3))));
-    CHECK_UNARY(s.contains(s.left_of(s.sub(2))));
-    CHECK_UNARY(s.contains(s.left_of(s.sub(1))));
-    CHECK_UNARY(s.contains(s.left_of(s.sub(0))));
+    CHECK_UNARY(s.is_super(s.left_of(s.sub(5))));
+    CHECK_UNARY(s.is_super(s.left_of(s.sub(4))));
+    CHECK_UNARY(s.is_super(s.left_of(s.sub(3))));
+    CHECK_UNARY(s.is_super(s.left_of(s.sub(2))));
+    CHECK_UNARY(s.is_super(s.left_of(s.sub(1))));
+    CHECK_UNARY(s.is_super(s.left_of(s.sub(0))));
 }
 
 TEST_CASE("substr.right_of")
@@ -733,12 +733,12 @@ TEST_CASE("substr.right_of")
     CHECK_EQ(s.right_of(4, /*include_pos*/false), "5");
     CHECK_EQ(s.right_of(5, /*include_pos*/false), "");
 
-    CHECK_UNARY(s.contains(s.right_of(0, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.right_of(1, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.right_of(2, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.right_of(3, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.right_of(4, /*include_pos*/false)));
-    CHECK_UNARY(s.contains(s.right_of(5, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.right_of(0, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.right_of(1, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.right_of(2, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.right_of(3, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.right_of(4, /*include_pos*/false)));
+    CHECK_UNARY(s.is_super(s.right_of(5, /*include_pos*/false)));
 
 
     CHECK_EQ(s.right_of(0, /*include_pos*/true), "012345");
@@ -749,13 +749,13 @@ TEST_CASE("substr.right_of")
     CHECK_EQ(s.right_of(5, /*include_pos*/true), "5");
     CHECK_EQ(s.right_of(6, /*include_pos*/true), "");
 
-    CHECK_UNARY(s.contains(s.right_of(0, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.right_of(1, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.right_of(2, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.right_of(3, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.right_of(4, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.right_of(5, /*include_pos*/true)));
-    CHECK_UNARY(s.contains(s.right_of(6, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.right_of(0, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.right_of(1, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.right_of(2, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.right_of(3, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.right_of(4, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.right_of(5, /*include_pos*/true)));
+    CHECK_UNARY(s.is_super(s.right_of(6, /*include_pos*/true)));
 
 
     CHECK_EQ(s.sub(0, 0), "");
@@ -774,13 +774,13 @@ TEST_CASE("substr.right_of")
     CHECK_EQ(s.right_of(s.sub(0, 5)), "5");
     CHECK_EQ(s.right_of(s.sub(0, 6)), "");
 
-    CHECK_UNARY(s.contains(s.right_of(s.sub(0, 0))));
-    CHECK_UNARY(s.contains(s.right_of(s.sub(0, 1))));
-    CHECK_UNARY(s.contains(s.right_of(s.sub(0, 2))));
-    CHECK_UNARY(s.contains(s.right_of(s.sub(0, 3))));
-    CHECK_UNARY(s.contains(s.right_of(s.sub(0, 4))));
-    CHECK_UNARY(s.contains(s.right_of(s.sub(0, 5))));
-    CHECK_UNARY(s.contains(s.right_of(s.sub(0, 6))));
+    CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 0))));
+    CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 1))));
+    CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 2))));
+    CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 3))));
+    CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 4))));
+    CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 5))));
+    CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 6))));
 }
 
 TEST_CASE("substr.compare")

@@ -1256,7 +1256,7 @@ inline size_t from_chars_first(csubstr buf, char * C4_RESTRICT v)
 /** @ingroup generic_tofrom_chars */
 inline size_t to_chars(substr buf, csubstr v)
 {
-    C4_ASSERT(!buf.contains(v) && !v.contains(buf));
+    C4_ASSERT(!buf.overlaps(v));
     size_t len = buf.len < v.len ? buf.len : v.len;
     memcpy(buf.str, v.str, len);
     return v.len;
