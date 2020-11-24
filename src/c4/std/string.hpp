@@ -1,6 +1,8 @@
 #ifndef _C4_STD_STRING_HPP_
 #define _C4_STD_STRING_HPP_
 
+/** @file string.hpp */
+
 #include "c4/substr.hpp"
 
 #include <string>

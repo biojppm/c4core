@@ -1,6 +1,8 @@
 #ifndef _C4_BITMASK_HPP_
 #define _C4_BITMASK_HPP_
 
+/** @file bitmask.hpp bitmask utilities */
+
 #include <cstring>
 #include <type_traits>
 

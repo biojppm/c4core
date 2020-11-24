@@ -59,9 +59,16 @@ template<class T, class I=C4_SIZE_TYPE> using cspanrsl = spanrsl<const T, I>;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** a crtp base for implementing span */
+/** a crtp base for implementing span
+ * @see span
+ * @see cspan
+ * @see spanrs
+ * @see cspanrs
+ * @see spanrsl
+ * @see cspanrsl
+ */
 template<class T, class I, class SpanImpl>
-class _span_crtp
+class span_crtp
 {
 // some utility defines, undefined at the end of this class
 #define _c4this  ((SpanImpl      *)this)
@@ -152,7 +159,7 @@ public:
         return _c4cthis->_select(_c4cptr + _c4csz - num, num);
     }
 
-    bool is_subspan(_span_crtp const& ss) const noexcept
+    bool is_subspan(span_crtp const& ss) const noexcept
     {
         if(_c4cptr == nullptr) return false;
         auto *b = begin(), *e = end();
@@ -169,7 +176,7 @@ public:
 
     /** COMPLement Left: return the complement to the left of the beginning of the given subspan.
      * If ss does not begin inside this, returns an empty substring. */
-    SpanImpl compll(_span_crtp const& ss) const C4_NOEXCEPT_X
+    SpanImpl compll(span_crtp const& ss) const C4_NOEXCEPT_X
     {
         auto ssb = ss.begin();
         auto b = begin();
@@ -186,7 +193,7 @@ public:
 
     /** COMPLement Right: return the complement to the right of the end of the given subspan.
      * If ss does not end inside this, returns an empty substring. */
-    SpanImpl complr(_span_crtp const& ss) const C4_NOEXCEPT_X
+    SpanImpl complr(span_crtp const& ss) const C4_NOEXCEPT_X
     {
         auto sse = ss.end();
         auto b = begin();
@@ -201,12 +208,12 @@ public:
         }
     }
 
-    C4_ALWAYS_INLINE bool same_span(_span_crtp const& that) const noexcept
+    C4_ALWAYS_INLINE bool same_span(span_crtp const& that) const noexcept
     {
         return size() == that.size() && data() == that.data();
     }
     template<class I2, class Impl2>
-    C4_ALWAYS_INLINE bool same_span(_span_crtp<T, I2, Impl2> const& that) const C4_NOEXCEPT_X
+    C4_ALWAYS_INLINE bool same_span(span_crtp<T, I2, Impl2> const& that) const C4_NOEXCEPT_X
     {
         I tsz = szconv<I>(that.size()); // x-asserts that the size does not overflow
         return size() == tsz && data() == that.data();
@@ -224,8 +231,8 @@ public:
 template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator==
 (
-    _span_crtp<T, Il, _Impll> const& l,
-    _span_crtp<T, Ir, _Implr> const& r
+    span_crtp<T, Il, _Impll> const& l,
+    span_crtp<T, Ir, _Implr> const& r
 )
 {
 #if C4_CPP >= 14
@@ -238,8 +245,8 @@ inline constexpr bool operator==
 template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator!=
 (
-    _span_crtp<T, Il, _Impll> const& l,
-    _span_crtp<T, Ir, _Implr> const& r
+    span_crtp<T, Il, _Impll> const& l,
+    span_crtp<T, Ir, _Implr> const& r
 )
 {
     return ! (l == r);
@@ -249,8 +256,8 @@ inline constexpr bool operator!=
 template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator<
 (
-    _span_crtp<T, Il, _Impll> const& l,
-    _span_crtp<T, Ir, _Implr> const& r
+    span_crtp<T, Il, _Impll> const& l,
+    span_crtp<T, Ir, _Implr> const& r
 )
 {
     return std::lexicographical_compare(l.begin(), l.end(), r.begin(), r.end());
@@ -259,8 +266,8 @@ inline constexpr bool operator<
 template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator<=
 (
-    _span_crtp<T, Il, _Impll> const& l,
-    _span_crtp<T, Ir, _Implr> const& r
+    span_crtp<T, Il, _Impll> const& l,
+    span_crtp<T, Ir, _Implr> const& r
 )
 {
     return ! (l > r);
@@ -270,8 +277,8 @@ inline constexpr bool operator<=
 template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator>
 (
-    _span_crtp<T, Il, _Impll> const& l,
-    _span_crtp<T, Ir, _Implr> const& r
+    span_crtp<T, Il, _Impll> const& l,
+    span_crtp<T, Ir, _Implr> const& r
 )
 {
     return r < l;
@@ -281,8 +288,8 @@ inline constexpr bool operator>
 template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator>=
 (
-    _span_crtp<T, Il, _Impll> const& l,
-    _span_crtp<T, Ir, _Implr> const& r
+    span_crtp<T, Il, _Impll> const& l,
+    span_crtp<T, Ir, _Implr> const& r
 )
 {
     return ! (l < r);
@@ -297,9 +304,9 @@ inline constexpr bool operator>=
  * @ingroup contiguous_containers
  * @ingroup nonowning_containers */
 template<class T, class I>
-class span : public _span_crtp<T, I, span<T, I>>
+class span : public span_crtp<T, I, span<T, I>>
 {
-    friend class _span_crtp<T, I, span<T, I>>;
+    friend class span_crtp<T, I, span<T, I>>;
 
     T * m_ptr;
     I   m_size;
@@ -360,9 +367,9 @@ public:
  * @ingroup nonowning_containers
  */
 template<class T, class I>
-class spanrs : public _span_crtp<T, I, spanrs<T, I>>
+class spanrs : public span_crtp<T, I, spanrs<T, I>>
 {
-    friend class _span_crtp<T, I, spanrs<T, I>>;
+    friend class span_crtp<T, I, spanrs<T, I>>;
 
     T * m_ptr;
     I   m_size;
@@ -431,9 +438,9 @@ public:
  * @ingroup nonowning_containers
  */
 template<class T, class I>
-class spanrsl : public _span_crtp<T, I, spanrsl<T, I>>
+class spanrsl : public span_crtp<T, I, spanrsl<T, I>>
 {
-    friend class _span_crtp<T, I, spanrsl<T, I>>;
+    friend class span_crtp<T, I, spanrsl<T, I>>;
 
     T * m_ptr;      ///< the current ptr. the original ptr is (m_ptr - m_offset).
     I   m_size;     ///< the current size. the original size is unrecoverable.

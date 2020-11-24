@@ -1,6 +1,8 @@
 #ifndef _C4_STD_TUPLE_HPP_
 #define _C4_STD_TUPLE_HPP_
 
+/** @file tuple.hpp */
+
 #include "c4/format.hpp"
 #include <tuple>
 

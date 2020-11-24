@@ -1,6 +1,8 @@
 #ifndef _C4_TYPENAME_HPP_
 #define _C4_TYPENAME_HPP_
 
+/** @file type_name.hpp compile-time type name */
+
 #include "c4/span.hpp"
 
 /// @cond dev
@@ -27,16 +29,8 @@ _c4t _c4tn()
 
 C4_BEGIN_NAMESPACE(c4)
 
-template<class T>
-C4_CONSTEXPR14 cspan<char> type_name();
-
-template<class T>
-C4_CONSTEXPR14 C4_ALWAYS_INLINE cspan<char> type_name(T const&)
-{
-    return type_name<T>();
-}
-
-/** adapted from this answer: http://stackoverflow.com/a/20170989/5875572 */
+/** compile-time type name
+ * @see http://stackoverflow.com/a/20170989/5875572 */
 template<class T>
 C4_CONSTEXPR14 cspan<char> type_name()
 {
@@ -116,6 +110,14 @@ C4_CONSTEXPR14 cspan<char> type_name()
     cspan<char> o(p.str + tstart, p.sz - tstart - tend);
 
     return o;
+}
+
+/** compile-time type name
+ * @overload */
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE cspan<char> type_name(T const&)
+{
+    return type_name<T>();
 }
 
 C4_END_NAMESPACE(c4)

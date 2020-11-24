@@ -1,6 +1,8 @@
 #ifndef _C4_SUBSTR_HPP_
 #define _C4_SUBSTR_HPP_
 
+/** @file substr.hpp read+write string views */
+
 #include <string.h>
 #include <ctype.h>
 #include <type_traits>
@@ -21,15 +23,19 @@ C4_BEGIN_NAMESPACE(c4)
 
 template<class C> struct basic_substring;
 
+#ifndef _DOXYGEN_
+using csubstr = basic_substring<const char>;
+using substr = basic_substring<char>;
+#else
 /** ConstantSUBSTRing: a non-owning read-only string view
+ * @see to_substr()
  * @see to_csubstr() */
 using csubstr = C4CORE_EXPORT basic_substring<const char>;
-
 /** SUBSTRing: a non-owning read-write string view
  * @see to_substr()
  * @see to_csubstr() */
 using substr = C4CORE_EXPORT basic_substring<char>;
-
+#endif
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
