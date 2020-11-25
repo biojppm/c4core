@@ -251,6 +251,25 @@ TEST_CASE("read_hex.fail")
     CHECK_EQ(udec, 0);
     CHECK(atou("0X00010", &udec));
     CHECK_EQ(udec, 16);
+
+    dec = -1;
+    CHECK(!atoi("0x", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("0X", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("-0x", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("-0X", &dec));
+    CHECK_EQ(dec, -1);
+    udec = (uint32_t)-1;
+    CHECK(!atou("0x", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("0X", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("-0xff", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("-0Xff", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
 }
 
 TEST_CASE("read_oct.fail")
@@ -268,6 +287,25 @@ TEST_CASE("read_oct.fail")
     CHECK_EQ(udec, 0);
     CHECK(atou("0O00010", &udec));
     CHECK_EQ(udec, 8);
+
+    dec = -1;
+    CHECK(!atoi("0o", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("0O", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("-0o", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("-0O", &dec));
+    CHECK_EQ(dec, -1);
+    udec = (uint32_t)-1;
+    CHECK(!atou("0o", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("0O", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("-0o7777", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("-0o7777", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
 }
 
 TEST_CASE("read_bin.fail")
@@ -286,6 +324,26 @@ TEST_CASE("read_bin.fail")
     CHECK_EQ(udec, 0);
     CHECK(atou("0B00010", &udec));
     CHECK_EQ(udec, 2);
+
+    dec = -1;
+    CHECK(!atoi("0b", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("0B", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("-0b", &dec));
+    CHECK_EQ(dec, -1);
+    CHECK(!atoi("-0B", &dec));
+    CHECK_EQ(dec, -1);
+    udec = (uint32_t)-1;
+    CHECK(!atou("0b", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("0B", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("-0b1111111111111111", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
+    CHECK(!atou("-0o1111111111111111", &udec));
+    CHECK_EQ(udec, (uint32_t)-1);
 }
 
 template<class I>
@@ -695,6 +753,16 @@ TEST_CASE_TEMPLATE("atoi.false_parse", T, int8_t, int16_t, int32_t, int64_t, int
     Fi(int8_t, "----");
     Fi(int8_t, "===");
     Fi(int8_t, "???");
+
+    int dec = -1;
+    CHECK(!atoi("-", &dec));
+    CHECK_EQ(dec, -1);
+    dec = -1;
+    CHECK(!atoi("--", &dec));
+    CHECK_NE(dec, -1); // this descends into read_dec(), so the value does change
+    dec = -1;
+    CHECK(!atoi("-X", &dec));
+    CHECK_NE(dec, -1); // this descends into read_dec(), so the value does change
 }
 
 TEST_CASE_TEMPLATE("atou.false_parse", T, uint8_t, uint16_t, uint32_t, uint64_t, unsigned int, unsigned long, uintptr_t)

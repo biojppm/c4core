@@ -483,24 +483,32 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_STATIC_ASSERT(std::is_signed<T>::value);
 
-    if(C4_UNLIKELY(str.len == 0)) return false;
+    if(C4_UNLIKELY(str.len == 0))
+    {
+        return false;
+    }
 
     T sign = 1;
     size_t start = 0;
     if(str.str[0] == '-')
     {
-        if(C4_UNLIKELY(str.len == 1)) return false;
+        if(C4_UNLIKELY(str.len == 1))
+        {
+            return false;
+        }
         ++start;
         sign = -1;
     }
 
     if(str.str[start] != '0')
     {
-        if(C4_UNLIKELY( ! detail::read_dec(str.sub(start), v))) return false;
+        if(C4_UNLIKELY( ! detail::read_dec(str.sub(start), v)))
+        {
+            return false;
+        }
     }
     else
     {
-        C4_ASSERT(str.len > start);
         if(str.len == start+1)
         {
             *v = 0; // because the first character is 0
@@ -606,7 +614,10 @@ bool atou(csubstr str, T * C4_RESTRICT v)
 
     if(str.str[0] != '0')
     {
-        if(C4_UNLIKELY( ! detail::read_dec(str, v))) return false;
+        if(C4_UNLIKELY( ! detail::read_dec(str, v)))
+        {
+            return false;
+        }
     }
     else
     {
