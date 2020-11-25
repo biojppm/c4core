@@ -39,7 +39,9 @@ function(use_static_libc target)
             MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     else()
         # https://stackoverflow.com/questions/38694058/cmake-linking-statically-against-libgcc-and-libstdc-into-a-shared-library
-        target_link_libraries(${target} PUBLIC -static-libgcc -static-libstdc++)
+        # see also:
+        # https://github.com/fastfloat/fast_float/pull/41#issuecomment-733346131
+        target_link_libraries(${target} PUBLIC -static -static-libgcc -static-libstdc++)
     endif()
 endfunction()
 

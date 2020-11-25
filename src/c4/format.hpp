@@ -540,7 +540,7 @@ inline size_t format(substr buf, csubstr fmt)
 template<class Arg, class... Args>
 size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    auto pos = fmt.find("{}");
+    auto pos = fmt.find("{}"); // @todo use _find_fmt()
     if(C4_UNLIKELY(pos == csubstr::npos))
     {
         return format(buf, fmt);
@@ -556,7 +556,7 @@ size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_
     return out;
 }
 
-/** like format but return a substr instead of a size
+/** like format() but return a substr instead of a size
  * @see format()
  * @see catsep(). uncatsep() is the inverse of catsep().
  * @ingroup formatting_functions */
