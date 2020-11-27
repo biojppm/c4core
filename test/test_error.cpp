@@ -51,6 +51,10 @@ TEST_CASE("Error.outside_of_c4_namespace")
 //-----------------------------------------------------------------------------
 // WIP: new error handling code
 
+
+#include <string>    // temporary; just for the exception example
+#include <iostream>  // temporary; just for the exception example
+
 namespace c4 {
 
 #define C4_ERR_FMT_BUFFER_SIZE 256
@@ -163,12 +167,13 @@ struct ErrorCallbacksBridge
 };
 
 
+void fputi(int val, FILE *f);
+
 void _errmsg(locref loc)
 {
-    fputc('\n', stderr);
     fputs(loc.file, stderr);
     fputc(':', stderr);
-    fprintf(stderr, "%d", loc.line);
+    fputi(loc.line, stderr);
     fputs(": ", stderr);
     fflush(stderr);
 }
@@ -184,6 +189,7 @@ struct ErrorBehaviorAbort : public ErrorCallbacksBridgeFull<ErrorBehaviorAbort>
 {
     static void msg_begin(locref loc)
     {
+        fputc('\n', stderr);
         _errmsg(loc);
     }
     static void msg_part(const char *part, size_t part_size)
@@ -219,6 +225,9 @@ TEST_CASE("ErrorBehaviorAbort.default_obj")
 }
 
 
+void fputi(int val, FILE *f);
+void _append(std::string *s, int line);
+
 /** example implementation using vanilla c++ std::runtime_error */
 struct ErrorBehaviorRuntimeError : public ErrorCallbacksBridgeFull<ErrorBehaviorRuntimeError>
 {
@@ -230,7 +239,7 @@ struct ErrorBehaviorRuntimeError : public ErrorCallbacksBridgeFull<ErrorBehavior
         exc_msg = '\n';
         exc_msg += loc.file;
         exc_msg += ':';
-        exc_msg += std::to_string(loc.line);
+        _append(&exc_msg, loc.line);
         exc_msg += ": ";
     }
     void msg_part(const char *part, size_t part_size)
@@ -239,6 +248,7 @@ struct ErrorBehaviorRuntimeError : public ErrorCallbacksBridgeFull<ErrorBehavior
     }
     void msg_end()
     {
+        std::cerr << exc_msg << "\n";
     }
     void err(locref)
     {
@@ -246,7 +256,6 @@ struct ErrorBehaviorRuntimeError : public ErrorCallbacksBridgeFull<ErrorBehavior
     }
     void warn(locref)
     {
-        std::cerr << exc_msg << "\n";
     }
 };
 
@@ -319,7 +328,31 @@ C4_ALWAYS_INLINE void new_handle_warning(locref loc, const char (&msg)[N])
 
 #include <c4/substr.hpp>
 
+#include <c4/charconv.hpp>
+namespace c4 {
 
+void fputi(int val, FILE *f)
+{
+    char buf[16];
+    size_t ret = c4::itoa(buf, val);
+    ret = ret < sizeof(buf) ? ret : sizeof(buf);
+    fwrite(buf, 1u, ret, f);
+}
+
+// to avoid using std::to_string()
+void _append(std::string *s, int line)
+{
+    auto sz = s->size();
+    s->resize(sz + 16);
+    auto ret = itoa(substr(&((*s)[0]) + sz, 16u), line);
+    s->resize(sz + ret);
+    if(ret >= sz)
+    {
+        itoa(substr(&((*s)[0]) + sz, 16u), line);
+    }
+}
+
+} // namespace c4
 template<class ErrorBehavior>
 struct ScopedErrorBehavior
 {

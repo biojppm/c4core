@@ -376,6 +376,8 @@ size_t utoa(substr buf, T v, T radix)
 
 /** read a decimal integer from a string. This is the
  * lowest level (and the fastest) function to do this task.
+ * @note does not accept negative numbers
+ * @note The string must be trimmed. Whitespace is not accepted.
  * @return true if the conversion was successful
  * @ingroup lowlevel_tofrom_chars */
 template<class I>
@@ -396,8 +398,9 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
 
 /** read an hexadecimal integer from a string. This is the
  * lowest level (and the fastest) function to do this task.
- * @note The string must be trimmed. Whitespace is not accepted.
- * @note This function does not accept leading 0x or 0X.
+ * @note does not accept negative numbers
+ * @note does not accept leading 0x or 0X
+ * @note the string must be trimmed. Whitespace is not accepted.
  * @return true if the conversion was successful
  * @ingroup lowlevel_tofrom_chars */
 template<class I>
@@ -431,8 +434,9 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
 
 /** read a binary integer from a string. This is the
  * lowest level (and the fastest) function to do this task.
- * @note The string must be trimmed. Whitespace is not accepted.
- * @note This function will not accept leading 0b or 0B.
+ * @note does not accept negative numbers
+ * @note does not accept leading 0b or 0B
+ * @note the string must be trimmed. Whitespace is not accepted.
  * @return true if the conversion was successful
  * @ingroup lowlevel_tofrom_chars */
 template<class I>
@@ -461,8 +465,9 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v)
 
 /** read an octal integer from a string. This is the
  * lowest level (and the fastest) function to do this task.
- * @note The string must be trimmed. Whitespace is not accepted.
- * @note This function will not accept leading 0o or 0O.
+ * @note does not accept negative numbers
+ * @note does not accept leading 0o or 0O
+ * @note the string must be trimmed. Whitespace is not accepted.
  * @return true if the conversion was successful
  * @ingroup lowlevel_tofrom_chars */
 template<class I>
