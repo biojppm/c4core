@@ -220,8 +220,9 @@ TEST_CASE("utoa.prefixed_number_on_empty_buffer")
 TEST_CASE("read_dec.fail")
 {
     int dec = 1;
-    CHECK_UNARY_FALSE(detail::read_dec("zzzz", &dec));
-    CHECK_UNARY(detail::read_dec("00000", &dec));
+    CHECK_UNARY_FALSE(read_dec("2 2", &dec));
+    CHECK_UNARY_FALSE(read_dec("zzzz", &dec));
+    CHECK_UNARY(read_dec("00000", &dec));
     CHECK_EQ(dec, 0);
     dec = 1;
     CHECK_UNARY(atoi("00000", &dec));
@@ -238,8 +239,9 @@ TEST_CASE("read_dec.fail")
 TEST_CASE("read_hex.fail")
 {
     int dec = 1;
-    CHECK_UNARY_FALSE(detail::read_hex("zzzz", &dec));
-    CHECK_UNARY(detail::read_hex("00000", &dec));
+    CHECK_UNARY_FALSE(read_hex("2 2", &dec));
+    CHECK_UNARY_FALSE(read_hex("zzzz", &dec));
+    CHECK_UNARY(read_hex("00000", &dec));
     CHECK_EQ(dec, 0);
     dec = 1;
     CHECK(atoi("0x00000", &dec));
@@ -275,8 +277,9 @@ TEST_CASE("read_hex.fail")
 TEST_CASE("read_oct.fail")
 {
     int dec;
-    CHECK_UNARY_FALSE(detail::read_oct("zzzz", &dec));
-    CHECK_UNARY(detail::read_oct("00000", &dec));
+    CHECK_UNARY_FALSE(read_oct("2 2", &dec));
+    CHECK_UNARY_FALSE(read_oct("zzzz", &dec));
+    CHECK_UNARY(read_oct("00000", &dec));
     CHECK_EQ(dec, 0);
     CHECK(atoi("0o00000", &dec));
     CHECK_EQ(dec, 0);
@@ -311,8 +314,9 @@ TEST_CASE("read_oct.fail")
 TEST_CASE("read_bin.fail")
 {
     int dec;
-    CHECK_UNARY_FALSE(detail::read_bin("zzzz", &dec));
-    CHECK_UNARY(detail::read_bin("00000", &dec));
+    CHECK_UNARY_FALSE(read_bin("1 0", &dec));
+    CHECK_UNARY_FALSE(read_bin("zzzz", &dec));
+    CHECK_UNARY(read_bin("00000", &dec));
     CHECK_EQ(dec, 0);
     dec = 1;
     CHECK(atoi("0b00000", &dec));

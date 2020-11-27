@@ -373,10 +373,11 @@ size_t utoa(substr buf, T v, T radix)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-namespace detail {
 
-// TODO truncate to the length of max I
-
+/** read a decimal integer from a string. This is the
+ * lowest level (and the fastest) function to do this task.
+ * @return true if the conversion was successful
+ * @ingroup lowlevel_tofrom_chars */
 template<class I>
 C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
 {
@@ -393,6 +394,12 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
     return true;
 }
 
+/** read an hexadecimal integer from a string. This is the
+ * lowest level (and the fastest) function to do this task.
+ * @note The string must be trimmed. Whitespace is not accepted.
+ * @note This function does not accept leading 0x or 0X.
+ * @return true if the conversion was successful
+ * @ingroup lowlevel_tofrom_chars */
 template<class I>
 C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
 {
@@ -422,6 +429,12 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
     return true;
 }
 
+/** read a binary integer from a string. This is the
+ * lowest level (and the fastest) function to do this task.
+ * @note The string must be trimmed. Whitespace is not accepted.
+ * @note This function will not accept leading 0b or 0B.
+ * @return true if the conversion was successful
+ * @ingroup lowlevel_tofrom_chars */
 template<class I>
 C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v)
 {
@@ -446,6 +459,12 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v)
     return true;
 }
 
+/** read an octal integer from a string. This is the
+ * lowest level (and the fastest) function to do this task.
+ * @note The string must be trimmed. Whitespace is not accepted.
+ * @note This function will not accept leading 0o or 0O.
+ * @return true if the conversion was successful
+ * @ingroup lowlevel_tofrom_chars */
 template<class I>
 C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
 {
@@ -462,8 +481,10 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
     return true;
 }
 
-} // namespace detail
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 /** Convert a trimmed string to a signed integral value. The value can be
  * formatted as decimal, binary (prefix 0b or 0B), octal (prefix 0o or 0O) or
@@ -471,9 +492,10 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
  * for the conversion; it must not contain any leading or trailing
  * whitespace.
  *
- * @return true if the conversion was successful. Note that no range
- * checking is performed: the return status is true even if the
- * conversion would return a value outside of the type's range.
+ * @return true if the conversion was successful.
+ * @note no range checking is performed: the return status is true even if the
+ * conversion would return a value outside of the type's range, in which case
+ * it wraps around, just like the underlying type
  * @see atoi_first() if the string is not trimmed to the value to read.
  * @ingroup lowlevel_tofrom_chars
  */
@@ -502,7 +524,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
 
     if(str.str[start] != '0')
     {
-        if(C4_UNLIKELY( ! detail::read_dec(str.sub(start), v)))
+        if(C4_UNLIKELY( ! read_dec(str.sub(start), v)))
         {
             return false;
         }
@@ -523,7 +545,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
                 {
                     return false;
                 }
-                if(C4_UNLIKELY( ! detail::read_hex(str.sub(start + 2), v)))
+                if(C4_UNLIKELY( ! read_hex(str.sub(start + 2), v)))
                 {
                     return false;
                 }
@@ -534,7 +556,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
                 {
                     return false;
                 }
-                if(C4_UNLIKELY( ! detail::read_bin(str.sub(start + 2), v)))
+                if(C4_UNLIKELY( ! read_bin(str.sub(start + 2), v)))
                 {
                     return false;
                 }
@@ -545,7 +567,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
                 {
                     return false;
                 }
-                if(C4_UNLIKELY( ! detail::read_oct(str.sub(start + 2), v)))
+                if(C4_UNLIKELY( ! read_oct(str.sub(start + 2), v)))
                 {
                     return false;
                 }
@@ -559,7 +581,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
                     *v = 0;
                     return true;
                 }
-                if(C4_UNLIKELY( ! detail::read_dec(str.sub(fno), v)))
+                if(C4_UNLIKELY( ! read_dec(str.sub(fno), v)))
                 {
                     return false;
                 }
@@ -614,7 +636,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
 
     if(str.str[0] != '0')
     {
-        if(C4_UNLIKELY( ! detail::read_dec(str, v)))
+        if(C4_UNLIKELY( ! read_dec(str, v)))
         {
             return false;
         }
@@ -635,7 +657,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
                 {
                     return false;
                 }
-                return detail::read_hex(str.sub(2), v);
+                return read_hex(str.sub(2), v);
             }
             else if(pfx == 'b' || pfx == 'B') // binary
             {
@@ -643,7 +665,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
                 {
                     return false;
                 }
-                return detail::read_bin(str.sub(2), v);
+                return read_bin(str.sub(2), v);
             }
             else if(pfx == 'o' || pfx == 'O') // octal
             {
@@ -651,7 +673,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
                 {
                     return false;
                 }
-                return detail::read_oct(str.sub(2), v);
+                return read_oct(str.sub(2), v);
             }
             else
             {
@@ -662,7 +684,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
                     *v = 0;
                     return true;
                 }
-                return detail::read_dec(str.sub(fno), v);
+                return read_dec(str.sub(fno), v);
             }
         }
     }

@@ -4,6 +4,7 @@
 #include <c4/substr.hpp>
 #include <c4/std/std.hpp>
 #include <c4/charconv.hpp>
+#include <c4/format.hpp>
 #include <inttypes.h>
 #include <stdio.h>
 #include <algorithm>
@@ -166,6 +167,38 @@ struct random_strings
             c4::catrs(&v[i], tmp.v[i]);
         }
     }
+
+    template<class T>
+    void init_as_hex()
+    {
+        random_values<T> tmp(v.size());
+        generate_n<T>(&tmp.v.front(), &tmp.v.back());
+        for(size_t i = 0; i < v.size(); ++i)
+        {
+            c4::catrs(&v[i], c4::fmt::hex(tmp.v[i]));
+        }
+    }
+    template<class T>
+    void init_as_oct()
+    {
+        random_values<T> tmp(v.size());
+        generate_n<T>(&tmp.v.front(), &tmp.v.back());
+        for(size_t i = 0; i < v.size(); ++i)
+        {
+            c4::catrs(&v[i], c4::fmt::oct(tmp.v[i]));
+        }
+    }
+    template<class T>
+    void init_as_bin()
+    {
+        random_values<T> tmp(v.size());
+        generate_n<T>(&tmp.v.front(), &tmp.v.back());
+        for(size_t i = 0; i < v.size(); ++i)
+        {
+            c4::catrs(&v[i], c4::fmt::bin(tmp.v[i]));
+        }
+    }
+
 };
 
 template<class T>
@@ -202,6 +235,57 @@ using string_buffer = sbuf<>;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
+C4FOR(T, isint)
+atox_c4_read_dec(bm::State& st)
+{
+    random_strings strings = mkstrings<T>();
+    T val;
+    for(auto _ : st)
+    {
+        c4::read_dec(strings.next(), &val);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isint)
+atox_c4_read_hex(bm::State& st)
+{
+    random_strings strings;
+    strings.init_as_hex<T>();
+    T val;
+    for(auto _ : st)
+    {
+        c4::read_hex(strings.next(), &val);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isint)
+atox_c4_read_oct(bm::State& st)
+{
+    random_strings strings;
+    strings.init_as_oct<T>();
+    T val;
+    for(auto _ : st)
+    {
+        c4::read_oct(strings.next(), &val);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isint)
+atox_c4_read_bin(bm::State& st)
+{
+    random_strings strings;
+    strings.init_as_bin<T>();
+    T val;
+    for(auto _ : st)
+    {
+        c4::read_bin(strings.next(), &val);
+    }
+    report<T>(st);
+}
 
 C4FOR(T, isiint)
 xtoa_c4_itoa(bm::State& st)
@@ -946,6 +1030,10 @@ C4BM_TEMPLATE(xtoa_sstream,  double);
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+C4BM_TEMPLATE(atox_c4_read_dec, uint8_t);
+C4BM_TEMPLATE(atox_c4_read_hex, uint8_t);
+C4BM_TEMPLATE(atox_c4_read_oct, uint8_t);
+C4BM_TEMPLATE(atox_c4_read_bin, uint8_t);
 C4BM_TEMPLATE(atox_c4_atou,  uint8_t);
 C4BM_TEMPLATE(atox_c4_atox,  uint8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint8_t);
@@ -956,6 +1044,10 @@ C4BM_TEMPLATE(atox_scanf,   uint8_t);
 C4BM_TEMPLATE(atox_sstream,   uint8_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint8_t);
 
+C4BM_TEMPLATE(atox_c4_read_dec, int8_t);
+C4BM_TEMPLATE(atox_c4_read_hex, int8_t);
+C4BM_TEMPLATE(atox_c4_read_oct, int8_t);
+C4BM_TEMPLATE(atox_c4_read_bin, int8_t);
 C4BM_TEMPLATE(atox_c4_atoi,   int8_t);
 C4BM_TEMPLATE(atox_c4_atox,   int8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int8_t);
@@ -966,6 +1058,10 @@ C4BM_TEMPLATE(atox_scanf,   int8_t);
 C4BM_TEMPLATE(atox_sstream,   int8_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   int8_t);
 
+C4BM_TEMPLATE(atox_c4_read_dec, uint16_t);
+C4BM_TEMPLATE(atox_c4_read_hex, uint16_t);
+C4BM_TEMPLATE(atox_c4_read_oct, uint16_t);
+C4BM_TEMPLATE(atox_c4_read_bin, uint16_t);
 C4BM_TEMPLATE(atox_c4_atou, uint16_t);
 C4BM_TEMPLATE(atox_c4_atox, uint16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint16_t);
@@ -976,6 +1072,10 @@ C4BM_TEMPLATE(atox_scanf,   uint16_t);
 C4BM_TEMPLATE(atox_sstream,   uint16_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint16_t);
 
+C4BM_TEMPLATE(atox_c4_read_dec, int16_t);
+C4BM_TEMPLATE(atox_c4_read_hex, int16_t);
+C4BM_TEMPLATE(atox_c4_read_oct, int16_t);
+C4BM_TEMPLATE(atox_c4_read_bin, int16_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int16_t);
 C4BM_TEMPLATE(atox_c4_atox,  int16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int16_t);
@@ -986,6 +1086,10 @@ C4BM_TEMPLATE(atox_scanf,   int16_t);
 C4BM_TEMPLATE(atox_sstream,   int16_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   int16_t);
 
+C4BM_TEMPLATE(atox_c4_read_dec, uint32_t);
+C4BM_TEMPLATE(atox_c4_read_hex, uint32_t);
+C4BM_TEMPLATE(atox_c4_read_oct, uint32_t);
+C4BM_TEMPLATE(atox_c4_read_bin, uint32_t);
 C4BM_TEMPLATE(atox_c4_atou, uint32_t);
 C4BM_TEMPLATE(atox_c4_atox, uint32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint32_t);
@@ -996,6 +1100,10 @@ C4BM_TEMPLATE(atox_scanf,   uint32_t);
 C4BM_TEMPLATE(atox_sstream,   uint32_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint32_t);
 
+C4BM_TEMPLATE(atox_c4_read_dec, int32_t);
+C4BM_TEMPLATE(atox_c4_read_hex, int32_t);
+C4BM_TEMPLATE(atox_c4_read_oct, int32_t);
+C4BM_TEMPLATE(atox_c4_read_bin, int32_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int32_t);
 C4BM_TEMPLATE(atox_c4_atox,  int32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int32_t);
@@ -1006,6 +1114,10 @@ C4BM_TEMPLATE(atox_scanf,   int32_t);
 C4BM_TEMPLATE(atox_sstream,   int32_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   int32_t);
 
+C4BM_TEMPLATE(atox_c4_read_dec, uint64_t);
+C4BM_TEMPLATE(atox_c4_read_hex, uint64_t);
+C4BM_TEMPLATE(atox_c4_read_oct, uint64_t);
+C4BM_TEMPLATE(atox_c4_read_bin, uint64_t);
 C4BM_TEMPLATE(atox_c4_atou, uint64_t);
 C4BM_TEMPLATE(atox_c4_atox, uint64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint64_t);
@@ -1016,6 +1128,10 @@ C4BM_TEMPLATE(atox_scanf,   uint64_t);
 C4BM_TEMPLATE(atox_sstream,   uint64_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint64_t);
 
+C4BM_TEMPLATE(atox_c4_read_dec, int64_t);
+C4BM_TEMPLATE(atox_c4_read_hex, int64_t);
+C4BM_TEMPLATE(atox_c4_read_oct, int64_t);
+C4BM_TEMPLATE(atox_c4_read_bin, int64_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int64_t);
 C4BM_TEMPLATE(atox_c4_atox,  int64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int64_t);
