@@ -4,7 +4,7 @@
 
 #include <c4/test.hpp>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 //-----------------------------------------------------------------------------
 TEST_CASE_TEMPLATE("span.default_init", SpanClass, span<int>, spanrs<int>, spanrsl<int>)
@@ -697,6 +697,6 @@ TEST_CASE("span_impl.le")
     CHECK_LE(cspanrs<int>(larri) , cspanrs<int>(larri));
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"

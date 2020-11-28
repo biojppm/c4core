@@ -231,8 +231,8 @@
 
 /** @def C4_DONT_OPTIMIZE idea lifted from GoogleBenchmark.
  * @see https://github.com/google/benchmark/blob/master/include/benchmark/benchmark_api.h */
-C4_BEGIN_NAMESPACE(c4)
-C4_BEGIN_NAMESPACE(detail)
+namespace c4 {
+namespace detail {
 #ifdef __GNUC__
 #   define C4_DONT_OPTIMIZE(var) c4::detail::dont_optimize(var)
 template< class T >
@@ -241,8 +241,8 @@ C4_ALWAYS_INLINE void dont_optimize(T const& value) { asm volatile("" : : "g"(va
 #   define C4_DONT_OPTIMIZE(var) c4::detail::use_char_pointer(reinterpret_cast< const char* >(&var))
 void use_char_pointer(char const volatile*);
 #endif
-C4_END_NAMESPACE(detail)
-C4_END_NAMESPACE(c4)
+} // namespace detail
+} // namespace c4
 
 /** @def C4_KEEP_EMPTY_LOOP prevent an empty loop from being optimized out.
  * @see http://stackoverflow.com/a/7084193/5875572 */

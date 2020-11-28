@@ -12,7 +12,7 @@
 /** @file ctor_dtor.hpp object construction and destruction facilities.
  * Some of these are not yet available in C++11. */
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 #define _C4REQUIRE(cond) \
 C4_ALWAYS_INLINE typename std::enable_if<cond, void>::type
@@ -458,7 +458,7 @@ destroy_room(U *dst, U const* src, I n, I room, I pos)
     }
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #undef _C4REQUIRE
 

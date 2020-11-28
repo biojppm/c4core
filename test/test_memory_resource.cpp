@@ -6,7 +6,7 @@
 
 #include "c4/test.hpp"
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 TEST_CASE("set_aalloc.basic")
 {
@@ -248,6 +248,6 @@ TEST_CASE("ScopedMemoryResourceCounts.counts")
 
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"

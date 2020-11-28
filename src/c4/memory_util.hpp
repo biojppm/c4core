@@ -7,7 +7,7 @@
 
 /** @file memory_util.hpp Some memory utilities. */
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 /** set the given memory to zero */
 C4_ALWAYS_INLINE void mem_zero(void* mem, size_t num_bytes)
@@ -215,7 +215,7 @@ struct contiguous_mask11
 /** use Empty Base Class Optimization to reduce the size of a pair of
  * potentially empty types*/
 
-C4_BEGIN_NAMESPACE(detail)
+namespace detail {
 typedef enum {
     tpc_same,
     tpc_same_empty,
@@ -352,11 +352,11 @@ struct tight_pair<First, Second, tpc_second_empty> : public Second
     C4_ALWAYS_INLINE C4_CONSTEXPR14 Second const& second() const { return static_cast<Second const&>(*this); }
 };
 
-C4_END_NAMESPACE(detail)
+} // namespace detail
 
 template<class First, class Second>
 using tight_pair = detail::tight_pair<First, Second, detail::tpc_which_case<First,Second>()>;
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif /* _C4_MEMORY_UTIL_HPP_ */

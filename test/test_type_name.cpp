@@ -5,7 +5,7 @@
 class  SomeTypeName {};
 struct SomeStructName {};
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 class  SomeTypeNameInsideANamespace {};
 struct SomeStructNameInsideANamespace {};
@@ -44,4 +44,4 @@ TEST_CASE("type_name.inside_namespace")
     CHECK_EQ(type_name<::c4::SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4

@@ -7,7 +7,7 @@
 #include <cctype>
 #include <cwctype>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 C4_ALWAYS_INLINE bool isspace(char c) { return std::isspace(c) != 0; }
 C4_ALWAYS_INLINE bool isspace(wchar_t c) { return std::iswspace(static_cast<wint_t>(c)) != 0; }
@@ -32,7 +32,7 @@ struct char_traits<wchar_t> : public std::char_traits<wchar_t>
 
 
 //-----------------------------------------------------------------------------
-C4_BEGIN_NAMESPACE(detail)
+namespace detail {
 template<typename C>
 struct needed_chars;
 template<>
@@ -54,7 +54,7 @@ struct needed_chars<wchar_t>
         return (num_bytes / static_cast<SizeType>(sizeof(wchar_t))) + ((num_bytes & static_cast<SizeType>(SizeType(sizeof(wchar_t)) - SizeType(1))) != 0);
     }
 };
-C4_END_NAMESPACE(detail)
+} // namespace detail
 
 /** get the number of C characters needed to store a number of bytes */
 template<typename C, typename SizeType>
@@ -71,7 +71,7 @@ C4_ALWAYS_INLINE constexpr SizeType num_needed_chars(SizeType num_bytes)
     /* is there a smarter way to do this? */\
     c4::detail::literal_as<type>::get(txt, C4_WIDEN(txt))
 
-C4_BEGIN_NAMESPACE(detail)
+namespace detail {
 template<typename C>
 struct literal_as;
 
@@ -91,8 +91,8 @@ struct literal_as<wchar_t>
         return wstr;
     }
 };
-C4_END_NAMESPACE(detail)
+} // namespace detail
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif /* _C4_CHAR_TRAITS_HPP_ */

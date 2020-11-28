@@ -6,7 +6,7 @@
 #define C4_EXPECT_NARROWER(yes_or_no, ty_out, ty_in) \
     CHECK_UNARY(( yes_or_no (is_narrower_size<ty_out C4_COMMA ty_in>::value)));
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 TEST_CASE("is_narrower_size.signed_types")
 {
@@ -159,6 +159,6 @@ DO_TEST_SZCONV(uint32)
 DO_TEST_SZCONV(int64)
 DO_TEST_SZCONV(uint64)
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"

@@ -15,7 +15,7 @@
 #   pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 //-----------------------------------------------------------------------------
 /** a general-use time stamp in microseconds (usecs).
@@ -56,4 +56,4 @@ time_type currtime()
 #   pragma GCC diagnostic pop
 #endif
 
-C4_END_NAMESPACE(c4)
+} // namespace c4

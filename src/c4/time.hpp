@@ -12,7 +12,7 @@
 
 /** @def C4_TIME_TYPE the type of the value to hold time */
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 using time_type = C4_TIME_TYPE;
 
@@ -81,7 +81,7 @@ C4_ALWAYS_INLINE Time  secs(time_type val) { return Time(val * time_type(1.e6));
 C4_ALWAYS_INLINE Time  mins(time_type val) { return Time(val * time_type(60.e6)); }
 C4_ALWAYS_INLINE Time hours(time_type val) { return Time(val * time_type(3600.e6)); }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #ifdef __clang__
 #   pragma clang diagnostic pop

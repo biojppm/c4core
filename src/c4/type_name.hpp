@@ -27,7 +27,7 @@ _c4t _c4tn()
 /// @endcond
 
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 /** compile-time type name
  * @see http://stackoverflow.com/a/20170989/5875572 */
@@ -120,6 +120,6 @@ C4_CONSTEXPR14 C4_ALWAYS_INLINE cspan<char> type_name(T const&)
     return type_name<T>();
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif //_C4_TYPENAME_HPP_

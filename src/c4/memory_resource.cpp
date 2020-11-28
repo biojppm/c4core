@@ -12,9 +12,9 @@
 
 #include <memory>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
-C4_BEGIN_NAMESPACE(detail)
+namespace detail {
 
 
 #ifdef C4_NO_ALLOC_DEFAULTS
@@ -101,7 +101,7 @@ arealloc_pfn s_arealloc = arealloc_impl;
 
 #endif // C4_NO_ALLOC_DEFAULTS
 
-C4_END_NAMESPACE(detail)
+} // namespace detail
 
 
 aalloc_pfn get_aalloc()
@@ -276,7 +276,7 @@ void* MemoryResourceLinear::do_reallocate(void* ptr, size_t oldsz, size_t newsz,
  *
  * */
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 
 //-----------------------------------------------------------------------------

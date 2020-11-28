@@ -33,15 +33,15 @@ TEST(TestForEach, print_offsets)
 // C4_BEGIN_NAMESPACE()/C4_END_NAMESPACE() are implemented with C4_FOR_EACH().
 // Test these here too.
 
-C4_BEGIN_NAMESPACE(a, b, c)
+namespace a, b, c {
 int a_var = 0;
-C4_END_NAMESPACE(c, b)
+} // namespace c, b
 int var = 1; // a::var
-C4_BEGIN_NAMESPACE(b)
+namespace b {
 int var = 2; // a::b::var
-C4_BEGIN_NAMESPACE(c)
+namespace c {
 int var = 3; // a::b::c::var
-C4_END_NAMESPACE(c, b, a)
+} // namespace c, b, a
 
 TEST(TestForEach, begin_end_namespace)
 {

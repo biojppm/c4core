@@ -17,7 +17,7 @@
 #include "c4/config.hpp"
 #include "c4/error.hpp"
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 // need these forward decls here
 struct MemoryResource;
@@ -206,13 +206,13 @@ C4_ALWAYS_INLINE MemoryResourceMalloc* get_memory_resource_malloc()
     return &mr;
 }
 
-C4_BEGIN_NAMESPACE(detail)
+namespace detail {
 C4_ALWAYS_INLINE MemoryResource* & get_memory_resource()
 {
     thread_local static MemoryResource* mr = get_memory_resource_malloc();
     return mr;
 }
-C4_END_NAMESPACE(detail)
+} // namespace detail
 
 
 //-----------------------------------------------------------------------------
@@ -559,6 +559,6 @@ struct ScopedMemoryResourceCounts
     }
 };
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif /* _C4_MEMORY_RESOURCE_HPP_ */

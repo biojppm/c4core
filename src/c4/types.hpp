@@ -17,7 +17,7 @@
 
 /** @defgroup types Type utilities */
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 /** @defgroup intrinsic_types Intrinsic types
  * @ingroup types
@@ -481,6 +481,6 @@ using index_sequence_for = make_index_sequence<sizeof...(_Tp)>;
 /** @} */
 
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif /* _C4_TYPES_HPP_ */

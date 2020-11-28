@@ -4,7 +4,7 @@
 
 #include <c4/test.hpp>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 TEST_CASE("mem_repeatT.one_repetition")
 {
@@ -267,6 +267,6 @@ TEST_CASE("tight_pair.basic")
     check_tp<4,4>();
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"

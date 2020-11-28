@@ -69,9 +69,9 @@
 #   endif
 #endif
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 bool is_debugger_attached();
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 
 //-----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ C4_END_NAMESPACE(c4)
 
 //-----------------------------------------------------------------------------
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 typedef enum : uint32_t {
     /** when an error happens and the debugger is attached, call C4_DEBUG_BREAK().
@@ -332,7 +332,7 @@ struct srcloc
 #define C4_NEVER_REACH() C4_UNREACHABLE(); C4_ERROR("never reach this point")
 #define C4_NEVER_REACH_MSG(/*msg, */...) C4_UNREACHABLE(); C4_ERROR("never reach this point: " ## __VA_ARGS__)
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #ifdef __clang__
 #   pragma clang diagnostic pop

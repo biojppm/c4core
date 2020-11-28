@@ -4,7 +4,7 @@
 #include "c4/libtest/supprwarn_push.hpp"
 #include "c4/test.hpp"
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 C4_STATIC_ASSERT((std::is_same< fastcref< char >, char >::value));
 C4_STATIC_ASSERT((std::is_same< fastcref< i8   >, i8   >::value));
@@ -74,6 +74,6 @@ TEST_CASE("TestSizeStructs.UbufSized")
     CHECK_EQ((sizeof(UbufSized<ufonix<char[65]>>)), 80);
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"

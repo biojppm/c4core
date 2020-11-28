@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 C4_BEGIN_HIDDEN_NAMESPACE
 struct subject
@@ -332,6 +332,6 @@ TEST_CASE("ctor_dtor.destroy_room_srcdst")
     }
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"

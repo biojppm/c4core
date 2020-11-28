@@ -20,7 +20,7 @@
 #define CHECK_FLOAT_EQ(lhs, rhs) CHECK((double)(lhs) == doctest::Approx((double)(rhs)))
 
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 template<class C>
 inline std::ostream& operator<< (std::ostream& stream, c4::basic_substring<C> s)
@@ -315,6 +315,6 @@ public:
     }
 };
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif // _C4_LIBTEST_TEST_HPP_

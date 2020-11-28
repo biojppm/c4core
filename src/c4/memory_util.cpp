@@ -1,7 +1,7 @@
 #include "c4/memory_util.hpp"
 #include "c4/error.hpp"
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 /** returns true if the memory overlaps */
 bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb)
@@ -44,4 +44,4 @@ void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num
     }
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4

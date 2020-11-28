@@ -9,9 +9,9 @@
 /** @defgroup hash Hash utils
  * @see http://aras-p.info/blog/2016/08/02/Hash-Functions-all-the-way-down/ */
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
-C4_BEGIN_NAMESPACE(detail)
+namespace detail {
 
 /** @internal
  * @ingroup hash
@@ -62,7 +62,7 @@ template<size_t Bits> struct fnv1a;
 template<> struct fnv1a<32> { using type = fnv1a_32; };
 template<> struct fnv1a<64> { using type = fnv1a_64; };
 
-C4_END_NAMESPACE(detail)
+} // namespace detail
 
 
 /** @ingroup hash */
@@ -89,7 +89,7 @@ C4_CONSTEXPR14 inline size_t hash_bytes(const char (&str)[N]) noexcept
     return fn.digest();
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 
 #endif // _C4_HASH_HPP_

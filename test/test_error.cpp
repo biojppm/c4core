@@ -17,7 +17,7 @@ inline c4::ScopedErrorSettings tmp_err()
 }
 C4_END_HIDDEN_NAMESPACE
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 TEST_CASE("Error.scoped_callback")
 {
@@ -31,7 +31,7 @@ TEST_CASE("Error.scoped_callback")
     CHECK_EQ(get_error_callback() == orig, true);
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 TEST_CASE("Error.outside_of_c4_namespace")
 {

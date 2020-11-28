@@ -8,7 +8,7 @@
 
 #include <limits>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 /** @todo this would be so much easier with calls to numeric_limits::max()... */
 template<class SizeOut, class SizeIn>
@@ -59,6 +59,6 @@ szconv(SizeIn sz) C4_NOEXCEPT_X
     return szo;
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif /* _C4_SZCONV_HPP_ */

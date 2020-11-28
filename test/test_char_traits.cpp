@@ -2,7 +2,7 @@
 
 #include "c4/test.hpp"
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 TEST_CASE("num_needed_chars.char")
 {
@@ -62,4 +62,4 @@ TEST_CASE("num_needed_chars.wchar_t")
 #endif
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4

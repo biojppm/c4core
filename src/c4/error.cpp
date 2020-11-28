@@ -33,7 +33,7 @@
 
 
 //-----------------------------------------------------------------------------
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 static error_flags         s_error_flags = ON_ERROR_DEFAULTS;
 static error_callback_type s_error_callback = nullptr;
@@ -179,7 +179,7 @@ bool is_debugger_attached()
 #endif
 } // is_debugger_attached()
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 
 #ifdef __clang__

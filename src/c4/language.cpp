@@ -1,7 +1,7 @@
 #include "c4/language.hpp"
 
-C4_BEGIN_NAMESPACE(c4)
-C4_BEGIN_NAMESPACE(detail)
+namespace c4 {
+namespace detail {
 
 #ifndef __GNUC__
 void use_char_pointer(char const volatile* v)
@@ -12,5 +12,5 @@ void use_char_pointer(char const volatile* v)
 void foo() {} // to avoid empty file warning from the linker
 #endif
 
-C4_END_NAMESPACE(detail)
-C4_END_NAMESPACE(c4)
+} // namespace detail
+} // namespace c4

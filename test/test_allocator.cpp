@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 template< class T > using small_adapter = c4::small_allocator< T >;
 template< class T > using small_adapter_mr = c4::small_allocator_mr< T >;
@@ -232,6 +232,6 @@ TEST_CASE("small_allocator_mr_linear_arr.std_containers")
     */
 }
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"

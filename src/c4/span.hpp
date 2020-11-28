@@ -403,7 +403,7 @@ template<class T, class I=C4_SIZE_TYPE> using cspanrs = spanrs<const T, I>;
  * used at will without loosing the original capacity; the full capacity span
  * can always be recovered by calling original().
  */
-template<class T, class I>
+template<class T, class I=C4_SIZE_TYPE>
 class spanrsl : public span_crtp<T, I, spanrsl<T, I>>
 {
     friend class span_crtp<T, I, spanrsl<T, I>>;

@@ -9,14 +9,14 @@
 #include <string>
 #include <array>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 template< class String > class sstream;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-C4_BEGIN_NAMESPACE(archetypes)
+namespace archetypes {
 
 template< class T > void check_archetype(T const& a) { a.check(); }
 template< class T > void check_archetype(T const& a, T const& ref) { a.check(ref); }
@@ -540,7 +540,7 @@ using containees = std::tuple<
 #   pragma clang diagnostic pop
 #endif
 
-C4_END_NAMESPACE(archetypes)
-C4_END_NAMESPACE(c4)
+} // namespace archetypes
+} // namespace c4
 
 #endif // _C4_TEST_ARCHETYPES_HPP_

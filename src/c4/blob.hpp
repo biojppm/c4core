@@ -7,7 +7,7 @@
 /** @file blob.hpp Mutable and immutable binary data blobs.
 */
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
 template<class T> struct blob_;
 
@@ -47,6 +47,6 @@ struct blob_
 C4_MUST_BE_TRIVIAL_COPY(blob);
 C4_MUST_BE_TRIVIAL_COPY(cblob);
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif // _C4_BLOB_HPP_
