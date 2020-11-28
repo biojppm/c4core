@@ -350,12 +350,14 @@ inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper r)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** terminates the variadic recursion
- * @ingroup formatting_functions */
+/// @cond dev
+// terminates the variadic recursion
 inline size_t cat(substr /*buf*/)
 {
     return 0;
 }
+/// @endcond
+
 
 /** serialize the arguments, concatenating them to the given fixed-size buffer.
  * The buffer size is strictly respected: no writes will occur beyond its end.
@@ -387,12 +389,15 @@ substr cat_sub(substr buf, Args && ...args)
 
 //-----------------------------------------------------------------------------
 
-/** terminates the variadic recursion
- * @ingroup formatting_functions */
+/// @cond dev
+/// @cond dev
+// terminates the variadic recursion
 inline size_t uncat(csubstr /*buf*/)
 {
     return 0;
 }
+/// @endcond
+
 
 /** deserialize the arguments from the given buffer.
  *
@@ -514,12 +519,14 @@ size_t uncatsep(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** terminates the variadic recursion
- * @ingroup formatting_functions */
+/// @cond dev
+// terminates the variadic recursion
 inline size_t format(substr buf, csubstr fmt)
 {
     return to_chars(buf, fmt);
 }
+// @endcond
+
 
 /** using a format string, serialize the arguments into the given
  * fixed-size buffer.
@@ -571,12 +578,14 @@ substr format_sub(substr buf, csubstr fmt, Args const& C4_RESTRICT ...args)
 
 //-----------------------------------------------------------------------------
 
-/** terminates the variadic recursion
- * @ingroup formatting_functions */
+/// @cond dev
+// terminates the variadic recursion
 inline size_t unformat(csubstr /*buf*/, csubstr /*fmt*/)
 {
     return 0;
 }
+// @endcond
+
 
 /** using a format string, deserialize the arguments from the given
  * buffer.
