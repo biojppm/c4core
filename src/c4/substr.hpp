@@ -9,6 +9,7 @@
 
 #include "c4/config.hpp"
 #include "c4/error.hpp"
+#include "c4/substr_fwd.hpp"
 
 #ifdef __clang__
 #   pragma clang diagnostic push
@@ -19,27 +20,13 @@
 #endif
 
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
-template<class C> struct basic_substring;
-
-#ifndef _DOXYGEN_
-using csubstr = basic_substring<const char>;
-using substr = basic_substring<char>;
-#else
-/** ConstantSUBSTRing: a non-owning read-only string view
- * @see to_substr()
- * @see to_csubstr() */
-using csubstr = C4CORE_EXPORT basic_substring<const char>;
-/** SUBSTRing: a non-owning read-write string view
- * @see to_substr()
- * @see to_csubstr() */
-using substr = C4CORE_EXPORT basic_substring<char>;
-#endif
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
 template<typename C>
 static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 {
@@ -65,9 +52,11 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 #define C4_NC2C(ty) \
     typename std::enable_if<std::is_const<C>::value && ( ! std::is_const<ty>::value), ty>::type
 
+
 /** a non-owning string-view, consisting of a character pointer
- * and a length. The pointer is restricted.
+ * and a length.
  *
+ * @note The pointer is explicitly restricted.
  * @note Because of a C++ limitation, there cannot coexist overloads for
  * constructing from a char[N] and a char*; the latter will always be chosen
  * by the compiler. To construct an object of this type, call to_substr() or
@@ -82,10 +71,15 @@ struct C4CORE_EXPORT basic_substring
 {
 public:
 
+    /** a restricted pointer to the first character of the substring */
     C * C4_RESTRICT str;
+    /** the length of the substring */
     size_t          len;
 
 public:
+
+    /** @name Types */
+    /** @{ */
 
     using  CC  = typename std::add_const<C>::type;     //!< CC=const char
     using NCC_ = typename std::remove_const<C>::type; //!< NCC_=non const char
@@ -101,12 +95,15 @@ public:
 
     enum : size_t { npos = (size_t)-1, NONE = (size_t)-1 };
 
-public:
-
     /// convert automatically to substring of const C
     operator ro_substr () const { ro_substr s(str, len); return s; }
 
+    /** @} */
+
 public:
+
+    /** @name Default construction and assignment */
+    /** @{ */
 
     constexpr basic_substring() : str(nullptr), len(0) {}
 
@@ -118,7 +115,12 @@ public:
     basic_substring& operator= (basic_substring     &&) = default;
     basic_substring& operator= (std::nullptr_t) { str = nullptr; len = 0; return *this; }
 
+    /** @} */
+
 public:
+
+    /** @name Construction and assignment from characters with the same type */
+    /** @{ */
 
     //basic_substring(C *s_) : str(s_), len(s_ ? strlen(s_) : 0) {}
     /** the overload for receiving a single C* pointer will always
@@ -148,7 +150,14 @@ public:
     void assign(C *s_, size_t len_) { str = s_; len = len_; C4_ASSERT(str || !len_); }
     void assign(C *beg_, C *end_) { C4_ASSERT(end_ >= beg_); str = (beg_); len = (end_ - beg_); }
 
+    void clear() { str = nullptr; len = 0; }
+
+    /** @} */
+
 public:
+
+    /** @name Construction from non-const characters */
+    /** @{ */
 
     // when the char type is const, allow construction and assignment from non-const chars
 
@@ -170,9 +179,12 @@ public:
     template<size_t N, class U=NCC_>
     basic_substring& operator=(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; return *this; }
 
+    /** @} */
+
 public:
 
-    void clear() { str = nullptr; len = 0; }
+    /** @name Standard accessor methods */
+    /** @{ */
 
     bool   has_str()   const { return ! empty() && str[0] != C(0); }
     bool   empty()     const { return (len == 0 || str == nullptr); }
@@ -197,7 +209,12 @@ public:
     inline C      & back()       { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
     inline C const& back() const { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
 
+    /** @} */
+
 public:
+
+    /** @name Comparison methods */
+    /** @{ */
 
     int compare(C const c) const
     {
@@ -218,31 +235,36 @@ public:
         return ret;
     }
 
-    bool operator== (C const c) const { return this->compare(c) == 0; }
-    bool operator!= (C const c) const { return this->compare(c) != 0; }
-    bool operator<  (C const c) const { return this->compare(c) <  0; }
-    bool operator>  (C const c) const { return this->compare(c) >  0; }
-    bool operator<= (C const c) const { return this->compare(c) <= 0; }
-    bool operator>= (C const c) const { return this->compare(c) >= 0; }
+    C4_ALWAYS_INLINE bool operator== (C const c) const { return this->compare(c) == 0; }
+    C4_ALWAYS_INLINE bool operator!= (C const c) const { return this->compare(c) != 0; }
+    C4_ALWAYS_INLINE bool operator<  (C const c) const { return this->compare(c) <  0; }
+    C4_ALWAYS_INLINE bool operator>  (C const c) const { return this->compare(c) >  0; }
+    C4_ALWAYS_INLINE bool operator<= (C const c) const { return this->compare(c) <= 0; }
+    C4_ALWAYS_INLINE bool operator>= (C const c) const { return this->compare(c) >= 0; }
 
-    template<class U> bool operator== (basic_substring<U> const that) const { return this->compare(that) == 0; }
-    template<class U> bool operator!= (basic_substring<U> const that) const { return this->compare(that) != 0; }
-    template<class U> bool operator<  (basic_substring<U> const that) const { return this->compare(that) <  0; }
-    template<class U> bool operator>  (basic_substring<U> const that) const { return this->compare(that) >  0; }
-    template<class U> bool operator<= (basic_substring<U> const that) const { return this->compare(that) <= 0; }
-    template<class U> bool operator>= (basic_substring<U> const that) const { return this->compare(that) >= 0; }
+    template<class U> C4_ALWAYS_INLINE bool operator== (basic_substring<U> const that) const { return this->compare(that) == 0; }
+    template<class U> C4_ALWAYS_INLINE bool operator!= (basic_substring<U> const that) const { return this->compare(that) != 0; }
+    template<class U> C4_ALWAYS_INLINE bool operator<  (basic_substring<U> const that) const { return this->compare(that) <  0; }
+    template<class U> C4_ALWAYS_INLINE bool operator>  (basic_substring<U> const that) const { return this->compare(that) >  0; }
+    template<class U> C4_ALWAYS_INLINE bool operator<= (basic_substring<U> const that) const { return this->compare(that) <= 0; }
+    template<class U> C4_ALWAYS_INLINE bool operator>= (basic_substring<U> const that) const { return this->compare(that) >= 0; }
 
-    template<size_t N> bool operator== (const char (&that)[N]) const { return this->compare(that, N-1) == 0; }
-    template<size_t N> bool operator!= (const char (&that)[N]) const { return this->compare(that, N-1) != 0; }
-    template<size_t N> bool operator<  (const char (&that)[N]) const { return this->compare(that, N-1) <  0; }
-    template<size_t N> bool operator>  (const char (&that)[N]) const { return this->compare(that, N-1) >  0; }
-    template<size_t N> bool operator<= (const char (&that)[N]) const { return this->compare(that, N-1) <= 0; }
-    template<size_t N> bool operator>= (const char (&that)[N]) const { return this->compare(that, N-1) >= 0; }
+    template<size_t N> C4_ALWAYS_INLINE bool operator== (const char (&that)[N]) const { return this->compare(that, N-1) == 0; }
+    template<size_t N> C4_ALWAYS_INLINE bool operator!= (const char (&that)[N]) const { return this->compare(that, N-1) != 0; }
+    template<size_t N> C4_ALWAYS_INLINE bool operator<  (const char (&that)[N]) const { return this->compare(that, N-1) <  0; }
+    template<size_t N> C4_ALWAYS_INLINE bool operator>  (const char (&that)[N]) const { return this->compare(that, N-1) >  0; }
+    template<size_t N> C4_ALWAYS_INLINE bool operator<= (const char (&that)[N]) const { return this->compare(that, N-1) <= 0; }
+    template<size_t N> C4_ALWAYS_INLINE bool operator>= (const char (&that)[N]) const { return this->compare(that, N-1) >= 0; }
 
-    bool operator== (std::nullptr_t) const { return str == nullptr; }
-    bool operator!= (std::nullptr_t) const { return str != nullptr; }
+    C4_ALWAYS_INLINE bool operator== (std::nullptr_t) const { return str == nullptr; }
+    C4_ALWAYS_INLINE bool operator!= (std::nullptr_t) const { return str != nullptr; }
+
+    /** @} */
 
 public:
+
+    /** @name Sub-selection methods */
+    /** @{ */
 
     /** true if *this is a substring of that (ie, from the same buffer) */
     inline bool is_sub(ro_substr const that) const
@@ -386,7 +408,8 @@ public:
         //return right_of(first_not_of(c), /*include_pos*/true);
         return triml({&c, 1});
     }
-    /** trim left ANY of the characters */
+    /** trim left ANY of the characters.
+     * @see stripl() to remove a pattern from the left */
     basic_substring triml(ro_substr chars) const
     {
         //return right_of(first_not_of(chars), /*include_pos*/true);
@@ -407,7 +430,8 @@ public:
         //return left_of(last_not_of(c), /*include_pos*/true);
         return trimr({&c, 1});
     }
-    /** trim right ANY of the characters */
+    /** trim right ANY of the characters
+     * @see stripr() to remove a pattern from the right  */
     basic_substring trimr(ro_substr chars) const
     {
         //return left_of(last_not_of(chars), /*include_pos*/true);
@@ -427,7 +451,8 @@ public:
     {
         return triml(c).trimr(c);
     }
-    /** trim left and right ANY of the characters */
+    /** trim left and right ANY of the characters
+     * @see strip() to remove a pattern from the left and right */
     basic_substring trim(ro_substr const chars) const
     {
         return triml(chars).trimr(chars);
@@ -435,21 +460,28 @@ public:
 
 public:
 
-    /** remove a pattern from the left */
+    /** remove a pattern from the left
+     * @see triml() to remove characters*/
     basic_substring stripl(ro_substr pattern) const
     {
         if( ! begins_with(pattern)) return *this;
         return sub(pattern.len < len ? pattern.len : len);
     }
 
-    /** remove a pattern from the right */
+    /** remove a pattern from the right
+     * @see trimr() to remove characters*/
     basic_substring stripr(ro_substr pattern) const
     {
         if( ! ends_with(pattern)) return *this;
         return left_of(len - (pattern.len < len ? pattern.len : len));
     }
 
+    /** @} */
+
 public:
+
+    /** @name Lookup methods */
+    /** @{ */
 
     inline size_t find(const C c, size_t start_pos=0) const
     {
@@ -481,6 +513,7 @@ public:
 
 public:
 
+    /** count the number of occurrences of c */
     inline size_t count(const C c, size_t pos=0) const
     {
         C4_ASSERT(pos >= 0 && pos <= len);
@@ -747,11 +780,16 @@ public:
         return npos;
     }
 
+    /** @} */
+
 public:
 
+    /** @name Range lookup methods */
+    /** @{ */
+
     /** get the range delimited by an open-close pair of characters.
-     * There must be no nested pairs.
-     * No checks for escapes are performed. */
+     * @note There must be no nested pairs.
+     * @note No checks for escapes are performed. */
     basic_substring pair_range(CC open, CC close) const
     {
         size_t b = find(open);
@@ -764,7 +802,7 @@ public:
     }
 
     /** get the range delimited by a single open-close character (eg, quotes).
-     * The open-close character can be escaped. */
+     * @note The open-close character can be escaped. */
     basic_substring pair_range_esc(CC open_close, CC escape=CC('\\'))
     {
         size_t b = find(open_close);
@@ -822,7 +860,12 @@ public:
         return *this;
     }
 
+    /** @} */
+
 public:
+
+    /** @name Number-matching query methods */
+    /** @{ */
 
     /** @return true if the substring contents are a floating-point or integer number */
     bool is_number() const
@@ -1000,7 +1043,12 @@ public:
         return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
+    /** @} */
+
 public:
+
+    /** @name Splitting methods */
+    /** @{ */
 
     /** returns true if the string has not been exhausted yet, meaning
      * it's ok to call next_split() again. When no instance of sep
@@ -1106,48 +1154,13 @@ public:
 
     using split_proxy = split_proxy_impl;
 
+    /** a view into the splits iterate throught splits with a view:*/
     split_proxy split(C sep, size_t start_pos=0) const
     {
         C4_XASSERT((start_pos >= 0 && start_pos < len) || empty());
         auto ss = sub(0, len);
         auto it = split_proxy(ss, start_pos, sep);
         return it;
-    }
-
-public:
-
-    basic_substring basename(C sep=C('/')) const
-    {
-        auto ss = pop_right(sep, /*skip_empty*/true);
-        ss = ss.trimr(sep);
-        return ss;
-    }
-
-    basic_substring dirname(C sep=C('/')) const
-    {
-        auto ss = basename(sep);
-        ss = ss.empty() ? *this : left_of(ss);
-        return ss;
-    }
-
-    C4_ALWAYS_INLINE basic_substring name_wo_extshort() const
-    {
-        return gpop_left('.');
-    }
-
-    C4_ALWAYS_INLINE basic_substring name_wo_extlong() const
-    {
-        return pop_left('.');
-    }
-
-    C4_ALWAYS_INLINE basic_substring extshort() const
-    {
-        return pop_right('.');
-    }
-
-    C4_ALWAYS_INLINE basic_substring extlong() const
-    {
-        return gpop_right('.');
     }
 
 public:
@@ -1262,7 +1275,7 @@ public:
 
 public:
 
-    /** greedy pop left */
+    /** greedy pop left. eg, csubstr("a/b/c").gpop_left('/')="c" */
     basic_substring gpop_left(C sep = C('/'), bool skip_empty=false) const
     {
         auto ss = pop_right(sep, skip_empty);
@@ -1284,7 +1297,7 @@ public:
         return ss;
     }
 
-    /** greedy pop right */
+    /** greedy pop right. eg, csubstr("a/b/c").gpop_right('/')="a" */
     basic_substring gpop_right(C sep = C('/'), bool skip_empty=false) const
     {
         auto ss = pop_left(sep, skip_empty);
@@ -1304,6 +1317,86 @@ public:
             }
         }
         return ss;
+    }
+
+    /** @} */
+
+public:
+
+    /** @name Path-like manipulation methods */
+    /** @{ */
+
+    basic_substring basename(C sep=C('/')) const
+    {
+        auto ss = pop_right(sep, /*skip_empty*/true);
+        ss = ss.trimr(sep);
+        return ss;
+    }
+
+    basic_substring dirname(C sep=C('/')) const
+    {
+        auto ss = basename(sep);
+        ss = ss.empty() ? *this : left_of(ss);
+        return ss;
+    }
+
+    C4_ALWAYS_INLINE basic_substring name_wo_extshort() const
+    {
+        return gpop_left('.');
+    }
+
+    C4_ALWAYS_INLINE basic_substring name_wo_extlong() const
+    {
+        return pop_left('.');
+    }
+
+    C4_ALWAYS_INLINE basic_substring extshort() const
+    {
+        return pop_right('.');
+    }
+
+    C4_ALWAYS_INLINE basic_substring extlong() const
+    {
+        return gpop_right('.');
+    }
+
+    /** @} */
+
+public:
+
+    /** @name Content-modification methods (only for non-const C) */
+    /** @{ */
+
+    /** convert the string to upper-case
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) toupper()
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            str[i] = static_cast<C>(::toupper(str[i]));
+        }
+    }
+
+    /** convert the string to lower-case
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) tolower()
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            str[i] = static_cast<C>(::tolower(str[i]));
+        }
+    }
+
+public:
+
+    /** fill the entire contents with the given @p val
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) fill(C val)
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            str[i] = val;
+        }
     }
 
 public:
@@ -1370,7 +1463,7 @@ public:
     }
 
     /** erase a part of the string.
-     * @note @p sub must be contained by this string
+     * @note @p sub must be a substring of this string
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(basic_substring) erase(ro_substr sub)
     {
@@ -1417,9 +1510,7 @@ public:
      *
      * @return the required size for dst. No overflow occurs if
      * dst.len is smaller than the required size; this can be used to
-     * determine the required size for an existing container.
-     *
-     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+     * determine the required size for an existing container. */
     size_t replace_all(rw_substr dst, ro_substr pattern, ro_substr repl, size_t pos=0) const
     {
         C4_ASSERT( ! pattern.empty()); //!< @todo relax this precondition
@@ -1455,44 +1546,27 @@ public:
 #undef _c4append
     }
 
-public:
-
-    /** convert the string to upper-case
-     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) toupper()
-    {
-        for(size_t i = 0; i < len; ++i)
-        {
-            str[i] = static_cast<C>(::toupper(str[i]));
-        }
-    }
-
-    /** convert the string to lower-case
-     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) tolower()
-    {
-        for(size_t i = 0; i < len; ++i)
-        {
-            str[i] = static_cast<C>(::tolower(str[i]));
-        }
-    }
-
-public:
-
-    C4_REQUIRE_RW(void) fill(C val)
-    {
-        for(size_t i = 0; i < len; ++i)
-        {
-            str[i] = val;
-        }
-    }
+    /** @} */
 
 }; // template class basic_substring
+
+
+/** ConstantSUBSTRing: a non-owning read-only string view
+ * @see to_substr()
+ * @see to_csubstr() */
+using csubstr = C4CORE_EXPORT basic_substring<const char>;
+
+
+/** SUBSTRing: a non-owning read-write string view
+ * @see to_substr()
+ * @see to_csubstr() */
+using substr = C4CORE_EXPORT basic_substring<char>;
 
 
 #undef C4_REQUIRE_RW
 #undef C4_REQUIRE_RO
 #undef C4_NC2C
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1620,7 +1694,7 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
 #endif
 #endif // !C4_SUBSTR_NO_OSTREAM_LSHIFT
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 
 #ifdef __clang__

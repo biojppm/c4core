@@ -1,4 +1,5 @@
 #include "c4/format.hpp"
+#include <cstdarg>
 
 #ifdef __clang__
 #   pragma clang diagnostic push

@@ -1,21 +1,15 @@
 #ifndef _C4_SUBSTR_FWD_HPP_
 #define _C4_SUBSTR_FWD_HPP_
 
-/** @file substr_fwd.hpp Forward declaration for substr.hpp */
+#include "c4/export.hpp"
 
 namespace c4 {
 
-template<class C>
-struct basic_substring;
-
-/** ConstantSUBSTRing: a non-owning read-only string view
- * @see to_csubstr() */
-using csubstr = basic_substring<const char>;
-
-/** SUBSTRing: a non-owning read-write string view
- * @see to_substr()
- * @see to_csubstr() */
-using substr = basic_substring<char>;
+#ifndef DOXYGEN
+template<class C> struct basic_substring;
+using csubstr = C4CORE_EXPORT basic_substring<const char>;
+using substr = C4CORE_EXPORT basic_substring<char>;
+#endif // !DOXYGEN
 
 } // namespace c4
 

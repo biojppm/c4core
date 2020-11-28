@@ -4,10 +4,8 @@
 /** @file charconv.hpp Low-level conversion functions to/from strings */
 
 #include "c4/language.hpp"
-#include <stdio.h>
 #include <inttypes.h>
 #include <type_traits>
-#include <stdarg.h>
 #include <climits>
 #include <limits>
 #include <utility>
@@ -882,7 +880,7 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
 #undef _c4append
 
 
-/** Convert a single precision real number to string.
+/** Convert a single-precision real number to string.
  * The string will in general be NOT null-terminated.
  * For FTOA_FLEX, \p precision is the number of significand digits. Otherwise
  * \p precision is the number of decimals.
@@ -891,7 +889,7 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
 inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
 #if C4CORE_HAVE_STD_TOCHARS
-    return rtoa(str, v, precision, formatting);
+    return detail::rtoa(str, v, precision, formatting);
 #else
     char fmt[16];
     detail::get_real_format_str(fmt, precision, formatting, /*length_modifier*/"");
@@ -900,7 +898,7 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
 }
 
 
-/** Convert a double precision real number to string.
+/** Convert a double-precision real number to string.
  * The string will in general be NOT null-terminated.
  * For FTOA_FLEX, \p precision is the number of significand digits. Otherwise
  * \p precision is the number of decimals.
@@ -911,7 +909,7 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
 inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
 #if C4CORE_HAVE_STD_TOCHARS
-    return rtoa(str, v, precision, formatting);
+    return detail::rtoa(str, v, precision, formatting);
 #else
     char fmt[16];
     detail::get_real_format_str(fmt, precision, formatting, /*length_modifier*/"l");

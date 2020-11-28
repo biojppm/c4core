@@ -1,17 +1,7 @@
 #ifndef _C4_SPAN_HPP_
 #define _C4_SPAN_HPP_
 
-/** @defgroup contiguous_containers Contiguous containers
- * @see storage_growth_policies
- * @see raw_storage_classes */
-
-/** @defgroup nonowning_containers Non-owning containers */
-
-/** @file span.hpp Provides span classes.
- * @see span_classes
- * @ingroup contiguous_containers
- * @ingroup nonowning_containers
- */
+/** @file span.hpp Provides span classes. */
 
 #include "c4/config.hpp"
 #include "c4/error.hpp"
@@ -19,9 +9,12 @@
 
 #include <algorithm>
 
-C4_BEGIN_NAMESPACE(c4)
+namespace c4 {
 
-/** @defgroup span_classes Span classes
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+/** a crtp base for implementing span classes
  *
  * A span is a non-owning range of elements contiguously stored in memory.
  * Unlike STL's array_view, the span allows write-access to its members.
@@ -37,29 +30,7 @@ C4_BEGIN_NAMESPACE(c4)
  *  - resize(sz)
  *  - ltrim(num)
  *  - rtrim(num)
-*/
-
-template<class T, class I=C4_SIZE_TYPE> class span;
-template<class T, class I=C4_SIZE_TYPE> class spanrs;
-template<class T, class I=C4_SIZE_TYPE> class spanrsl;
-
-/** @ingroup span_classes
- * @ingroup contiguous_containers
- * @ingroup nonowning_containers */
-template<class T, class I=C4_SIZE_TYPE> using cspan   = span<const T, I>;
-/** @ingroup span_classes
- * @ingroup contiguous_containers
- * @ingroup nonowning_containers */
-template<class T, class I=C4_SIZE_TYPE> using cspanrs = spanrs<const T, I>;
-/** @ingroup span_classes
- * @ingroup contiguous_containers
- * @ingroup nonowning_containers */
-template<class T, class I=C4_SIZE_TYPE> using cspanrsl = spanrsl<const T, I>;
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-/** a crtp base for implementing span
+ *
  * @see span
  * @see cspan
  * @see spanrs
@@ -299,11 +270,8 @@ inline constexpr bool operator>=
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-/** A non-owning span of elements contiguously stored in memory.
- * @ingroup span_classes
- * @ingroup contiguous_containers
- * @ingroup nonowning_containers */
-template<class T, class I>
+/** A non-owning span of elements contiguously stored in memory. */
+template<class T, class I=C4_SIZE_TYPE>
 class span : public span_crtp<T, I, span<T, I>>
 {
     friend class span_crtp<T, I, span<T, I>>;
@@ -345,6 +313,7 @@ public:
     C4_ALWAYS_INLINE void ltrim (I n ) C4_NOEXCEPT_A { C4_ASSERT(n >= 0 && n < m_size); m_size -= n; m_ptr += n; }
 
 };
+template<class T, class I=C4_SIZE_TYPE> using cspan = span<const T, I>;
 
 
 //-----------------------------------------------------------------------------
@@ -362,11 +331,11 @@ public:
  * pointer) by the corresponding offset. If this is undesired, then consider
  * using spanrsl.
  *
- * @ingroup span_classes
- * @ingroup contiguous_containers
- * @ingroup nonowning_containers
+ * @see spanrs for a span resizeable on the right
+ * @see spanrsl for a span resizeable on the right and left
  */
-template<class T, class I>
+
+template<class T, class I=C4_SIZE_TYPE>
 class spanrs : public span_crtp<T, I, spanrs<T, I>>
 {
     friend class span_crtp<T, I, spanrs<T, I>>;
@@ -377,7 +346,7 @@ class spanrs : public span_crtp<T, I, spanrs<T, I>>
 
     C4_ALWAYS_INLINE spanrs _select(T *p, I sz) const noexcept
     {
-        C4_ASSERT(p >= m_ptr); 
+        C4_ASSERT(p >= m_ptr);
         size_t delta = static_cast<size_t>(p - m_ptr);
         C4_ASSERT(m_capacity >= delta);
         return spanrs(p, sz, static_cast<size_t>(m_capacity - delta));
@@ -421,6 +390,7 @@ public:
     C4_ALWAYS_INLINE void ltrim (I n ) C4_NOEXCEPT_A { C4_ASSERT(n >= 0 && n < m_size); m_size -= n; m_ptr += n; m_capacity -= n; }
 
 };
+template<class T, class I=C4_SIZE_TYPE> using cspanrs = spanrs<const T, I>;
 
 
 //-----------------------------------------------------------------------------
@@ -432,10 +402,6 @@ public:
  * as the subselection methods subspan(), range(), first() and last() can be
  * used at will without loosing the original capacity; the full capacity span
  * can always be recovered by calling original().
- *
- * @ingroup span_classes
- * @ingroup contiguous_containers
- * @ingroup nonowning_containers
  */
 template<class T, class I>
 class spanrsl : public span_crtp<T, I, spanrsl<T, I>>
@@ -508,7 +474,8 @@ public:
         return OtherSpanType<T, I>(m_ptr - m_offset, m_capacity + m_offset);
     }
 };
+template<class T, class I=C4_SIZE_TYPE> using cspanrsl = spanrsl<const T, I>;
 
-C4_END_NAMESPACE(c4)
+} // namespace c4
 
 #endif /* _C4_SPAN_HPP_ */
