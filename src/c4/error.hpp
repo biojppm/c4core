@@ -98,6 +98,190 @@ C4_END_NAMESPACE(c4)
 
 C4_BEGIN_NAMESPACE(c4)
 
+
+//-----------------------------------------------------------------------------
+
+/** source location */
+struct srcloc;
+
+
+#if defined(C4_ERROR_SHOWS_FILELINE) && defined(C4_ERROR_SHOWS_FUNC)
+struct srcloc
+{
+    const char *file;
+    const char *func;
+    int line;
+
+    srcloc() : file(""), func(""), line() {}
+    srcloc(const char *f, const char *fn, int l) : file(f), func(fn), line(l) {}
+};
+#define C4_SRCLOC() c4::srcloc(__FILE__, C4_PRETTY_FUNC, __LINE__)
+
+#elif defined(C4_ERROR_SHOWS_FILELINE)
+struct srcloc
+{
+    const char *file;
+    int line;
+    srcloc() : file(""), line() {}
+    srcloc(const char *f, int l) : file(f), line(l) {}
+};
+#define C4_SRCLOC() c4::srcloc(__FILE__, __LINE__)
+
+#elif ! defined(C4_ERROR_SHOWS_FUNC)
+struct srcloc
+{
+};
+#define C4_SRCLOC() c4::srcloc()
+
+#else
+#   error not implemented
+#endif
+
+
+//-----------------------------------------------------------------------------
+
+using locref = c4::srcloc const& C4_RESTRICT;
+
+using pfn_err       = void (*)(locref loc, void *data);
+using pfn_warn      = void (*)(locref loc, void *data);
+using pfn_msg_begin = void (*)(locref loc, void *data);
+using pfn_msg_part  = void (*)(const char* msg, size_t size, void *data);
+using pfn_msg_end   = void (*)(void *data);
+
+struct ErrorCallbacks
+{
+    void          *user_data;
+
+    pfn_err        err;
+    pfn_warn       warn;
+    pfn_msg_begin  msg_begin;
+    pfn_msg_part   msg_part;
+    pfn_msg_end    msg_end;
+
+    bool msg_enabled() const { return msg_begin != nullptr; }
+
+    template<size_t N>
+    void msg(const char (&s)[N])
+    {
+        msg_part(s, N-1, user_data);
+    }
+    void msg(const char *msg, size_t sz)
+    {
+        msg_part(msg, sz, user_data);
+    }
+    void msg(char c)
+    {
+        msg_part(&c, 1, user_data);
+    }
+};
+
+
+template<class ErrBhv>
+struct ErrorCallbacksBridgeFull
+{
+    ErrorCallbacks callbacks() const
+    {
+        return {
+            (ErrBhv*)this,
+            ErrorCallbacksBridgeFull<ErrBhv>::on_err,
+            ErrorCallbacksBridgeFull<ErrBhv>::on_warn,
+            ErrorCallbacksBridgeFull<ErrBhv>::on_msg_begin,
+            ErrorCallbacksBridgeFull<ErrBhv>::on_msg_part,
+            ErrorCallbacksBridgeFull<ErrBhv>::on_msg_end,
+        };
+    }
+    static void on_err(locref loc, void *data)
+    {
+        ((ErrBhv*)data)->err(loc);
+    }
+    static void on_warn(locref loc, void *data)
+    {
+        ((ErrBhv*)data)->warn(loc);
+    }
+    static void on_msg_begin(locref loc, void *data)
+    {
+        ((ErrBhv*)data)->msg_begin(loc);
+    }
+    static void on_msg_part(const char *part, size_t size, void *data)
+    {
+        ((ErrBhv*)data)->msg_part(part, size);
+    }
+    static void on_msg_end(void *data)
+    {
+        ((ErrBhv*)data)->msg_end();
+    }
+};
+
+template<class ErrBhv>
+struct ErrorCallbacksBridge
+{
+    ErrorCallbacks callbacks() const
+    {
+        return {
+            (ErrBhv*)this,
+            ErrorCallbacksBridge<ErrBhv>::on_err,
+            ErrorCallbacksBridge<ErrBhv>::on_warn,
+            (pfn_msg_begin)nullptr,
+            (pfn_msg_part)nullptr,
+            (pfn_msg_end)nullptr
+        };
+    }
+    static void on_err(locref loc, void *data)
+    {
+        ((ErrBhv*)data)->err(loc);
+    }
+    static void on_warn(locref loc, void *data)
+    {
+        ((ErrBhv*)data)->warn(loc);
+    }
+};
+
+
+void new_handle_error(locref loc, size_t msg_size, const char *msg);
+void new_handle_warning(locref loc, size_t msg_size, const char *msg);
+
+
+template<size_t N>
+C4_ALWAYS_INLINE void new_handle_error(locref loc, const char (&msg)[N])
+{
+    new_handle_error(loc, N-1, msg);
+}
+
+template<size_t N>
+C4_ALWAYS_INLINE void new_handle_warning(locref loc, const char (&msg)[N])
+{
+    new_handle_warning(loc, N-1, msg);
+}
+
+
+#define C4_ERROR_NEW(msg) c4::new_handle_error(C4_SRCLOC(), msg)
+#define C4_WARNING_NEW(msg) c4::new_handle_warning(C4_SRCLOC(), msg)
+
+#define C4_ERROR_NEW_SZ(msg, msglen) c4::new_handle_error(C4_SRCLOC(), msglen, msg)
+#define C4_WARNING_NEW_SZ(msg, msglen) c4::new_handle_warning(C4_SRCLOC(), msglen, msg)
+
+
+#   define C4_ERROR(msg, ...)                             \
+    if(c4::get_error_flags() & c4::ON_ERROR_DEBUGBREAK) { C4_DEBUG_BREAK() } \
+    c4::handle_error(C4_SRCLOC(), msg, ## __VA_ARGS__)
+
+#   define C4_WARNING(msg, ...)                                         \
+    c4::handle_warning(C4_SRCLOC(), msg, ## __VA_ARGS__)
+
+
+//-----------------------------------------------------------------------------
+
+void handle_error(srcloc s, const char *fmt, ...);
+void handle_warning(srcloc s, const char *fmt, ...);
+
+#   define C4_ERROR(msg, ...)                             \
+    if(c4::get_error_flags() & c4::ON_ERROR_DEBUGBREAK) { C4_DEBUG_BREAK() } \
+    c4::handle_error(C4_SRCLOC(), msg, ## __VA_ARGS__)
+
+#   define C4_WARNING(msg, ...)                                         \
+    c4::handle_warning(C4_SRCLOC(), msg, ## __VA_ARGS__)
+
+
 typedef enum : uint32_t {
     /** when an error happens and the debugger is attached, call C4_DEBUG_BREAK().
      * Without effect otherwise. */
@@ -157,58 +341,6 @@ struct ScopedErrorSettings
         set_error_callback(m_callback);
     }
 };
-
-
-//-----------------------------------------------------------------------------
-
-/** source location */
-struct srcloc;
-
-void handle_error(srcloc s, const char *fmt, ...);
-void handle_warning(srcloc s, const char *fmt, ...);
-
-#   define C4_ERROR(msg, ...)                             \
-    if(c4::get_error_flags() & c4::ON_ERROR_DEBUGBREAK) { C4_DEBUG_BREAK() } \
-    c4::handle_error(C4_SRCLOC(), msg, ## __VA_ARGS__)
-
-#   define C4_WARNING(msg, ...)                                         \
-    c4::handle_warning(C4_SRCLOC(), msg, ## __VA_ARGS__)
-
-
-#if defined(C4_ERROR_SHOWS_FILELINE) && defined(C4_ERROR_SHOWS_FUNC)
-
-struct srcloc
-{
-    const char *file;
-    const char *func;
-    int line;
-
-    srcloc() : file(""), func(""), line() {}
-    srcloc(const char *f, const char *fn, int l) : file(f), func(fn), line(l) {}
-};
-#define C4_SRCLOC() c4::srcloc(__FILE__, C4_PRETTY_FUNC, __LINE__)
-
-#elif defined(C4_ERROR_SHOWS_FILELINE)
-
-struct srcloc
-{
-    const char *file;
-    int line;
-    srcloc() : file(""), line() {}
-    srcloc(const char *f, int l) : file(f), line(l) {}
-};
-#define C4_SRCLOC() c4::srcloc(__FILE__, __LINE__)
-
-#elif ! defined(C4_ERROR_SHOWS_FUNC)
-
-struct srcloc
-{
-};
-#define C4_SRCLOC() c4::srcloc()
-
-#else
-#   error not implemented
-#endif
 
 
 //-----------------------------------------------------------------------------
