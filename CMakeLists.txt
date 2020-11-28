@@ -49,6 +49,7 @@ c4_add_library(c4core
         c4/std/tuple.hpp
         c4/std/vector.hpp
         c4/substr.hpp
+        c4/substr_fwd.hpp
         c4/szconv.hpp
         c4/time.hpp
         c4/time.cpp
