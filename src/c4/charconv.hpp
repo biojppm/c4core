@@ -793,11 +793,7 @@ size_t print_one(substr str, const char* full_fmt, T v)
 #endif
 }
 
-
-template<typename T> constexpr        const char* get_length_modifier();
-template<>           constexpr inline const char* get_length_modifier<float>() { return ""; }
-template<>           constexpr inline const char* get_length_modifier<double>() { return "l"; }
-
+#if !defined(C4CORE_HAVE_STD_TOCHARS) && !defined(C4CORE_HAVE_FAST_FLOAT)
 /** scans a string using the given type format, while at the same time
  * allowing non-null-terminated strings AND guaranteeing that the given
  * string length is strictly respected, so that no buffer overflows
@@ -834,8 +830,7 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
     C4_ASSERT(num_chars >= 0);
     return (size_t)(num_chars);
 }
-
-} // namespace detail
+#endif
 
 
 #if C4CORE_HAVE_STD_TOCHARS
@@ -879,6 +874,8 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
     return ret > buf.len ? ret : buf.len + 1;
 }
 #endif // C4CORE_HAVE_STD_TOCHARS
+
+} // namespace detail
 
 
 #undef _c4appendrdx
@@ -1004,18 +1001,7 @@ inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
 // generic versions
-C4_ALWAYS_INLINE bool atox(csubstr s,  uint8_t *v) { return atou(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s, uint16_t *v) { return atou(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s, uint32_t *v) { return atou(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s, uint64_t *v) { return atou(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,   int8_t *v) { return atoi(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,  int16_t *v) { return atoi(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,  int32_t *v) { return atoi(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,  int64_t *v) { return atoi(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,    float *v) { return atof(s, v); }
-C4_ALWAYS_INLINE bool atox(csubstr s,   double *v) { return atod(s, v); }
 
 C4_ALWAYS_INLINE size_t xtoa(substr s,  uint8_t v) { return utoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s, uint16_t v) { return utoa(s, v); }
@@ -1028,180 +1014,89 @@ C4_ALWAYS_INLINE size_t xtoa(substr s,  int64_t v) { return itoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s,    float v) { return ftoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s,   double v) { return dtoa(s, v); }
 
+C4_ALWAYS_INLINE bool atox(csubstr s,  uint8_t *C4_RESTRICT v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s, uint16_t *C4_RESTRICT v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s, uint32_t *C4_RESTRICT v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s, uint64_t *C4_RESTRICT v) { return atou(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,   int8_t *C4_RESTRICT v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,  int16_t *C4_RESTRICT v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,  int32_t *C4_RESTRICT v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,  int64_t *C4_RESTRICT v) { return atoi(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,    float *C4_RESTRICT v) { return atof(s, v); }
+C4_ALWAYS_INLINE bool atox(csubstr s,   double *C4_RESTRICT v) { return atod(s, v); }
+
+C4_ALWAYS_INLINE size_t to_chars(substr buf,  uint8_t v) { return utoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf, uint16_t v) { return utoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf, uint32_t v) { return utoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf, uint64_t v) { return utoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf,   int8_t v) { return itoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf,  int16_t v) { return itoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf,  int32_t v) { return itoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf,  int64_t v) { return itoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf,    float v) { return ftoa(buf, v); }
+C4_ALWAYS_INLINE size_t to_chars(substr buf,   double v) { return dtoa(buf, v); }
+
+C4_ALWAYS_INLINE bool from_chars(csubstr buf,  uint8_t *C4_RESTRICT v) { return atou(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf, uint16_t *C4_RESTRICT v) { return atou(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf, uint32_t *C4_RESTRICT v) { return atou(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf, uint64_t *C4_RESTRICT v) { return atou(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf,   int8_t *C4_RESTRICT v) { return atoi(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf,  int16_t *C4_RESTRICT v) { return atoi(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf,  int32_t *C4_RESTRICT v) { return atoi(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf,  int64_t *C4_RESTRICT v) { return atoi(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf,    float *C4_RESTRICT v) { return atof(buf, v); }
+C4_ALWAYS_INLINE bool from_chars(csubstr buf,   double *C4_RESTRICT v) { return atod(buf, v); }
+
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,  uint8_t *C4_RESTRICT v) { return atou_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf, uint16_t *C4_RESTRICT v) { return atou_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf, uint32_t *C4_RESTRICT v) { return atou_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf, uint64_t *C4_RESTRICT v) { return atou_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,   int8_t *C4_RESTRICT v) { return atoi_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,  int16_t *C4_RESTRICT v) { return atoi_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,  int32_t *C4_RESTRICT v) { return atoi_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,  int64_t *C4_RESTRICT v) { return atoi_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,    float *C4_RESTRICT v) { return atof_first(buf, v); }
+C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,   double *C4_RESTRICT v) { return atod_first(buf, v); }
+
 
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-#define _C4_DEFINE_TO_FROM_CHARS_TOA(ty, id)                    \
-                                                                \
-/** @ingroup generic_tofrom_chars */                            \
-inline size_t to_chars(substr buf, ty v)                        \
-{                                                               \
-    return id##toa(buf, v);                                     \
-}                                                               \
-                                                                \
-/** @ingroup generic_tofrom_chars */                            \
-inline bool from_chars(csubstr buf, ty *C4_RESTRICT v)          \
-{                                                               \
-    return ato##id(buf, v);                                     \
-}                                                               \
-                                                                \
-/** @ingroup generic_tofrom_chars */                            \
-inline size_t from_chars_first(csubstr buf, ty *C4_RESTRICT v)  \
-{                                                               \
-    return ato##id##_first(buf, v);                             \
-}
-
 // on some platforms, (unsigned) int and (unsigned) long
 // are not any of the fixed length types above
-#define _C4_DEFINE_TO_FROM_CHARS_TOA_NOTFIXEDLENGTH(for_signedness, id) \
-                                                                        \
-/** @ingroup generic_tofrom_chars */                                    \
-template<class T>                                                       \
-inline                                                                  \
-typename std::enable_if< for_signedness && ! is_fixed_length<T>::value_##id, size_t>::type \
-to_chars(substr buf, T v)                                               \
-{                                                                       \
-    return id##toa(buf, v);                                             \
-}                                                                       \
-                                                                        \
-/** @ingroup generic_tofrom_chars */                                    \
-template<class T>                                                       \
-inline                                                                  \
-typename std::enable_if< for_signedness && ! is_fixed_length<T>::value_##id, bool>::type  \
-from_chars(csubstr buf, T *C4_RESTRICT v)                               \
-{                                                                       \
-    return ato##id(buf, v);                                             \
-}                                                                       \
-                                                                        \
-/** @ingroup generic_tofrom_chars */                                    \
-template<class T>                                                       \
-inline                                                                  \
-typename std::enable_if< for_signedness && ! is_fixed_length<T>::value_##id, size_t>::type \
-from_chars_first(csubstr buf, T *C4_RESTRICT v)                         \
-{                                                                       \
-    return ato##id##_first(buf, v);                                     \
-}
+
+#define _C4_IF_NOT_FIXED_LENGTH_I(T, ty) C4_ALWAYS_INLINE typename std::enable_if<std::  is_signed<T>::value && !is_fixed_length<T>::value_i, ty>
+#define _C4_IF_NOT_FIXED_LENGTH_U(T, ty) C4_ALWAYS_INLINE typename std::enable_if<std::is_unsigned<T>::value && !is_fixed_length<T>::value_i, ty>
+
+template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type xtoa(substr buf, T v) { return itoa(buf, v); }
+template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type xtoa(substr buf, T v) { return utoa(buf, v); }
+
+template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, bool  )::type atox(csubstr buf, T *C4_RESTRICT v) { return atoi(buf, v); }
+template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, bool  )::type atox(csubstr buf, T *C4_RESTRICT v) { return atou(buf, v); }
+
+template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type to_chars(substr buf, T v) { return itoa(buf, v); }
+template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type to_chars(substr buf, T v) { return utoa(buf, v); }
+
+template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, bool  )::type from_chars(csubstr buf, T *C4_RESTRICT v) { return atoi(buf, v); }
+template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, bool  )::type from_chars(csubstr buf, T *C4_RESTRICT v) { return atou(buf, v); }
+
+template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type from_chars_first(csubstr buf, T *C4_RESTRICT v) { return atoi_first(buf, v); }
+template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type from_chars_first(csubstr buf, T *C4_RESTRICT v) { return atou_first(buf, v); }
+
+#undef _C4_IF_NOT_FIXED_LENGTH_I
+#undef _C4_IF_NOT_FIXED_LENGTH_U
 
 
-_C4_DEFINE_TO_FROM_CHARS_TOA(   float, f)
-_C4_DEFINE_TO_FROM_CHARS_TOA(  double, d)
+//-----------------------------------------------------------------------------
+// for pointers
 
-_C4_DEFINE_TO_FROM_CHARS_TOA(  int8_t, i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int16_t, i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int32_t, i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( int64_t, i)
-_C4_DEFINE_TO_FROM_CHARS_TOA( uint8_t, u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint16_t, u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint32_t, u)
-_C4_DEFINE_TO_FROM_CHARS_TOA(uint64_t, u)
-
-_C4_DEFINE_TO_FROM_CHARS_TOA_NOTFIXEDLENGTH(std::is_signed<T>::value  , i)
-_C4_DEFINE_TO_FROM_CHARS_TOA_NOTFIXEDLENGTH(std::is_unsigned<T>::value, u)
-
-#undef _C4_DEFINE_TO_FROM_CHARS_TOA
-#undef _C4_DEFINE_TO_FROM_CHARS_TOA_NOTFIXEDLENGTH
+template <class T> C4_ALWAYS_INLINE size_t xtoa(substr s, T *v) { return xtoa(s, *v); }
+template <class T> C4_ALWAYS_INLINE bool   atox(csubstr s, T **v) { return atox(s, *v); }
+template <class T> C4_ALWAYS_INLINE size_t to_chars(substr s, T *v) { return to_chars(s, *v); }
+template <class T> C4_ALWAYS_INLINE bool   from_chars(csubstr buf, T **v) { return from_chars(buf, *v); }
+template <class T> C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf, T **v) { return from_chars_first(buf, *v); }
 
 
-#ifdef _MSC_VER
-
-#define _C4_DEFINE_TO_CHARS(ty, pri_fmt)                                \
-/** @ingroup generic_tofrom_chars */                                    \
-inline size_t to_chars(substr buf, ty v)                                \
-{                                                                       \
-    /** use _snprintf() to prevent early termination of the output      \
-     * for writing the null character at the last position              \
-     * @see https://msdn.microsoft.com/en-us/library/2ts7cx93.aspx */   \
-    int iret = _snprintf(buf.str, buf.len, "%" pri_fmt, v);             \
-    if(iret < 0)                                                        \
-    {                                                                   \
-        /* when buf.len is not enough, VS returns a negative value.     \
-         * so call it again with a negative value for getting an        \
-         * actual length of the string */                               \
-        iret = snprintf(nullptr, 0, "%" pri_fmt, v);                    \
-        C4_ASSERT(iret > 0);                                            \
-    }                                                                   \
-    size_t ret = (size_t) iret;                                         \
-    return ret;                                                         \
-}
-
-#else // not _MSC_VER
-
-#define _C4_DEFINE_TO_CHARS(ty, pri_fmt)                                \
-/** @ingroup generic_tofrom_chars */                                    \
-inline size_t to_chars(substr buf, ty v)                                \
-{                                                                       \
-    int iret = snprintf(buf.str, buf.len, "%" pri_fmt, v);              \
-    C4_ASSERT(iret >= 0);                                               \
-    size_t ret = (size_t) iret;                                         \
-    if(ret >= buf.len)                                                  \
-    {                                                                   \
-        ++ret; /* snprintf() reserves the last character to write \0 */ \
-    }                                                                   \
-    return ret;                                                         \
-}
-
-#endif
-
-/** this macro defines to_chars()/from_chars() pairs for intrinsic types. */ \
-#define _C4_DEFINE_TO_FROM_CHARS(ty, pri_fmt, scn_fmt)                  \
-                                                                        \
-_C4_DEFINE_TO_CHARS(ty, pri_fmt)                                        \
-                                                                        \
-/** @ingroup generic_tofrom_chars */                                    \
-inline size_t from_chars_first(csubstr buf, ty * C4_RESTRICT v)         \
-{                                                                       \
-    /* snscanf() is absolutely needed here as we must be sure that      \
-     * buf.len is strictly respected, because the span string is        \
-     * generally not null-terminated.                                   \
-     *                                                                  \
-     * Alas, there is no snscanf().                                     \
-     *                                                                  \
-     * So we fake it by using a dynamic format with an explicit         \
-     * field size set to the length of the given span.                  \
-     * This trick is taken from:                                        \
-     * https://stackoverflow.com/a/18368910/5875572 */                  \
-                                                                        \
-    /* this is the actual format we'll use for scanning */              \
-    char fmt[12];                                                       \
-    /* write the length into it. Eg "%12d" for an int (scn_fmt="d").    \
-     * Also, get the number of characters read from the string.         \
-     * So the final format ends up as "%12d%n"*/                        \
-    int ret = snprintf(fmt, sizeof(fmt), "%%""%zu" scn_fmt "%%n", buf.len); \
-    /* no nasty surprises, please! */                                   \
-    C4_ASSERT(size_t(ret) < sizeof(fmt));                               \
-    /* now we scan with confidence that the span length is respected */ \
-    int num_chars;                                                      \
-    ret = sscanf(buf.str, fmt, v, &num_chars);                          \
-    /* scanf returns the number of successful conversions */            \
-    if(ret != 1) return csubstr::npos;                                  \
-    return (size_t)(num_chars);                                         \
-}                                                                       \
-                                                                        \
-/** @ingroup generic_tofrom_chars */                                    \
-inline bool from_chars(csubstr buf, ty * C4_RESTRICT v)                 \
-{                                                                       \
-    size_t num = from_chars_first(buf, v);                              \
-    return (num != csubstr::npos);                                      \
-}
-
-_C4_DEFINE_TO_FROM_CHARS(void*   , "p"             , "p"             )
-//_C4_DEFINE_TO_FROM_CHARS(double  , "lg"            , "lg"            )
-//_C4_DEFINE_TO_FROM_CHARS(float   , "g"             , "g"             )
-//_C4_DEFINE_TO_FROM_CHARS(char    , "c"             , "c"             )
-//_C4_DEFINE_TO_FROM_CHARS(  int8_t, PRId8 /*"%hhd"*/, SCNd8 /*"%hhd"*/)
-//_C4_DEFINE_TO_FROM_CHARS( uint8_t, PRIu8 /*"%hhu"*/, SCNu8 /*"%hhu"*/)
-//_C4_DEFINE_TO_FROM_CHARS( int16_t, PRId16/*"%hd" */, SCNd16/*"%hd" */)
-//_C4_DEFINE_TO_FROM_CHARS(uint16_t, PRIu16/*"%hu" */, SCNu16/*"%hu" */)
-//_C4_DEFINE_TO_FROM_CHARS( int32_t, PRId32/*"%d"  */, SCNd32/*"%d"  */)
-//_C4_DEFINE_TO_FROM_CHARS(uint32_t, PRIu32/*"%u"  */, SCNu32/*"%u"  */)
-//_C4_DEFINE_TO_FROM_CHARS( int64_t, PRId64/*"%lld"*/, SCNd64/*"%lld"*/)
-//_C4_DEFINE_TO_FROM_CHARS(uint64_t, PRIu64/*"%llu"*/, SCNu64/*"%llu"*/)
-
-#undef _C4_DEFINE_TO_FROM_CHARS
-
-
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 /** call to_chars() and return a substr consisting of the
  * written portion of the input buffer. Ie, same as to_chars(),
@@ -1216,6 +1111,8 @@ inline substr to_chars_sub(substr buf, T const& C4_RESTRICT v)
     return buf.left_of(sz <= buf.len ? sz : buf.len);
 }
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // bool implementation
 
