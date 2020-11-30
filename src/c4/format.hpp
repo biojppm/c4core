@@ -25,10 +25,11 @@
 
 namespace c4 {
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// formatting integral types as booleans
+// formatting truthy types as booleans
 
 namespace fmt {
 
@@ -75,11 +76,13 @@ struct integral_
     C4_ALWAYS_INLINE integral_(T val_, T radix_) : val(val_), radix(radix_) {}
 };
 
+/** format an integral type with a custom radix */
 template<class T>
 C4_ALWAYS_INLINE integral_<T> integral(T val, T radix=10)
 {
     return integral_<T>(val, radix);
 }
+/** format an integral type with a custom radix */
 template<class T>
 C4_ALWAYS_INLINE integral_<intptr_t> integral(T const* val, T radix=10)
 {
@@ -133,6 +136,7 @@ inline integral_<intptr_t> hex(T * v)
 {
     return integral_<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(16));
 }
+/** format the pointer as an hexadecimal value */
 template<class T>
 inline integral_<intptr_t> hex(T const* v)
 {
@@ -158,6 +162,7 @@ inline integral_<intptr_t> oct(T const* v)
 {
     return integral_<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(8));
 }
+/** format the pointer as an octal value */
 template<class T>
 inline integral_<intptr_t> oct(T * v)
 {
@@ -309,6 +314,75 @@ inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper r)
 {
     return from_chars(buf, &r);
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// formatting aligned to left/right
+
+namespace fmt {
+
+template<class T>
+struct left_
+{
+    T const& C4_RESTRICT val;
+    size_t width;
+    char pad;
+    left_(T const& C4_RESTRICT v, size_t w, char p) : val(v), width(w), pad(p) {}
+};
+
+template<class T>
+struct right_
+{
+    T const& C4_RESTRICT val;
+    size_t width;
+    char pad;
+    right_(T const& C4_RESTRICT v, size_t w, char p) : val(v), width(w), pad(p) {}
+};
+
+/** mark an argument to be aligned left */
+template<class T>
+left_<T> left(T const& C4_RESTRICT val, size_t width, char padchar=' ')
+{
+    return left_<T>(val, width, padchar);
+}
+
+/** mark an argument to be aligned right */
+template<class T>
+right_<T> right(T const& C4_RESTRICT val, size_t width, char padchar=' ')
+{
+    return right_<T>(val, width, padchar);
+}
+
+template<class T>
+size_t to_chars(substr buf, fmt::left_<T> const& C4_RESTRICT align)
+{
+    size_t ret = to_chars(buf, align.val);
+    if(ret >= buf.len || ret >= align.width)
+    {
+        return ret;
+    }
+    buf.first(align.width).sub(ret).fill(align.pad);
+    to_chars(buf, align.val);
+    return align.width;
+}
+
+template<class T>
+size_t to_chars(substr buf, fmt::right_<T> const& C4_RESTRICT align)
+{
+    size_t ret = to_chars(buf, align.val);
+    if(ret >= buf.len || ret >= align.width)
+    {
+        return ret;
+    }
+    size_t rem = static_cast<size_t>(align.width - ret);
+    buf.first(rem).fill(align.pad);
+    to_chars(buf.sub(rem), align.val);
+    return align.width;
+}
+
+} // namespace fmt
 
 
 //-----------------------------------------------------------------------------

@@ -27,9 +27,11 @@ TEST_CASE_TEMPLATE("to_chars.fmt.bin", T, uint8_t, int8_t, uint16_t, int16_t, ui
 
     CHECK_EQ(to_chars_sub(buf, fmt::integral(T(21), T(2))), "0b10101");
     CHECK_EQ(to_chars_sub(buf, fmt::integral((T*)21, T(2))), "0b10101");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral((T const*)21, T(2))), "0b10101");
     CHECK_EQ(to_chars_sub(buf, fmt::integral(nullptr, T(2))), "0b0");
     CHECK_EQ(to_chars_sub(buf, fmt::bin(T(21))), "0b10101");
     CHECK_EQ(to_chars_sub(buf, fmt::bin((T*)21)), "0b10101");
+    CHECK_EQ(to_chars_sub(buf, fmt::bin((T const*)21)), "0b10101");
     CHECK_EQ(to_chars_sub(buf, fmt::bin(nullptr)), "0b0");
 }
 
@@ -40,9 +42,11 @@ TEST_CASE_TEMPLATE("to_chars.fmt.oct", T, uint8_t, int8_t, uint16_t, int16_t, ui
 
     CHECK_EQ(to_chars_sub(buf, fmt::integral(T(65), T(8))), "0o101");
     CHECK_EQ(to_chars_sub(buf, fmt::integral((T*)65, T(8))), "0o101");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral((T const*)65, T(8))), "0o101");
     CHECK_EQ(to_chars_sub(buf, fmt::integral(nullptr, T(8))), "0o0");
     CHECK_EQ(to_chars_sub(buf, fmt::oct(T(65))), "0o101");
     CHECK_EQ(to_chars_sub(buf, fmt::oct((T*)65)), "0o101");
+    CHECK_EQ(to_chars_sub(buf, fmt::oct((T const*)65)), "0o101");
     CHECK_EQ(to_chars_sub(buf, fmt::oct(nullptr)), "0o0");
 }
 
@@ -53,9 +57,11 @@ TEST_CASE_TEMPLATE("to_chars.fmt.hex", T, uint8_t, int8_t, uint16_t, int16_t, ui
 
     CHECK_EQ(to_chars_sub(buf, fmt::integral(T(0x7f), T(16))), "0x7f");
     CHECK_EQ(to_chars_sub(buf, fmt::integral((T*)0x7f, T(16))), "0x7f");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral((T const*)0x7f, T(16))), "0x7f");
     CHECK_EQ(to_chars_sub(buf, fmt::integral(nullptr, T(16))), "0x0");
     CHECK_EQ(to_chars_sub(buf, fmt::hex(T(0x7f))), "0x7f");
     CHECK_EQ(to_chars_sub(buf, fmt::hex((T*)0x7f)), "0x7f");
+    CHECK_EQ(to_chars_sub(buf, fmt::hex((T const*)0x7f)), "0x7f");
     CHECK_EQ(to_chars_sub(buf, fmt::hex(nullptr)), "0x0");
 }
 
@@ -132,6 +138,104 @@ TEST_CASE("to_chars.fmt.boolalpha")
     CHECK_EQ(to_chars_sub(buf, fmt::boolalpha(false)), "false");
     CHECK_EQ(to_chars_sub(buf, fmt::boolalpha(0)), "false");
     CHECK_EQ(to_chars_sub(buf, fmt::boolalpha(0u)), "false");
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+TEST_CASE("align.left")
+{
+    char buf[128] = {};
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 1)), "1");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 2)), "1 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 3)), "1  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 4)), "1   ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 5)), "1    ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 6)), "1     ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 7)), "1      ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 8)), "1       ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 9)), "1        ");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 1, '+')), "1");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 2, '+')), "1+");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 3, '+')), "1++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 4, '+')), "1+++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 5, '+')), "1++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 6, '+')), "1+++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 7, '+')), "1++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 8, '+')), "1+++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 9, '+')), "1++++++++");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 0)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 1)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 2)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 3)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 4)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 5)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 6)), "01234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 7)), "01234  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 8)), "01234   ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 9)), "01234    ");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 0)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 1)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 2)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 3)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 4)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 5)), "1234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 6)), "1234  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 7)), "1234   ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 8)), "1234    ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 9)), "1234     ");
+}
+
+
+TEST_CASE("align.right")
+{
+    char buf[128] = {};
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 1)), "1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 2)), " 1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 3)), "  1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 4)), "   1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 5)), "    1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 6)), "     1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 7)), "      1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 8)), "       1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 9)), "        1");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 1, '+')), "1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 2, '+')), "+1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 3, '+')), "++1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 4, '+')), "+++1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 5, '+')), "++++1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 6, '+')), "+++++1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 7, '+')), "++++++1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 8, '+')), "+++++++1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 9, '+')), "++++++++1");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 0)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 1)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 2)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 3)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 4)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 5)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 6)), " 01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 7)), "  01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 8)), "   01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 9)), "    01234");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 0)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 1)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 2)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 3)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 4)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 5)), " 1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 6)), "  1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 7)), "   1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 8)), "    1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 9)), "     1234");
 }
 
 
