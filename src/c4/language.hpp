@@ -188,7 +188,7 @@
 /** mark a function as cold, ie as NOT having a visible impact in CPU time
  * @see http://stackoverflow.com/questions/15028990/semantics-of-gcc-hot-attribute */
 #   define C4_COLD __attribute__((cold))
-#   define C4_BUILTIN_EXPECT(x, y) __builtin_expect(x, y) ///< @see https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+#   define C4_EXPECT(x, y) __builtin_expect(x, y) ///< @see https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
 #   define C4_LIKELY(x)   __builtin_expect(x, 1)
 #   define C4_UNLIKELY(x) __builtin_expect(x, 0)
 #   define C4_UNREACHABLE() __builtin_unreachable()
@@ -203,7 +203,7 @@
 #   define C4_FLATTEN
 #   define C4_HOT         /** @todo */
 #   define C4_COLD        /** @todo */
-#   define C4_BUILTIN_EXPECT(x, y) x /** @todo */
+#   define C4_EXPECT(x, y) x /** @todo */
 #   define C4_LIKELY(x)   x /** @todo */
 #   define C4_UNLIKELY(x) x /** @todo */
 #   define C4_UNREACHABLE() /** @todo */

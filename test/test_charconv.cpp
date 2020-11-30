@@ -213,6 +213,108 @@ TEST_CASE("utoa.prefixed_number_on_empty_buffer")
 }
 
 
+template<class T> using xtoaNumDigitsFn = size_t (*)(substr, T, T, size_t);
+template<class T, xtoaNumDigitsFn<T> xtoa_fn>
+void test_itoa_num_digits(substr buf, T val, T radix, size_t digits, csubstr expected)
+{
+    INFO("val=" << val << "  radix=" << radix << "  digits=" << digits);
+    size_t ret;
+
+    for(size_t i = 0; i < 16; ++i)
+    {
+        INFO("i=" << i);
+        buf.fill('?');
+        ret = xtoa_fn(buf.first(i), val, radix, digits);
+        CHECK_EQ(buf.sub(i).first_not_of('?'), substr::npos);
+        CHECK_EQ(ret, expected.len);
+    }
+
+    buf.fill('?');
+    ret = xtoa_fn(buf, val, radix, digits);
+    CHECK_EQ(ret, expected.len);
+    CHECK_EQ(buf.first(ret), expected);
+}
+
+TEST_CASE("itoa.num_digits")
+{
+    char bufc[128];
+    substr buf = bufc;
+    size_t ret;
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 10, 0, "10");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 10, 0, "-10");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 10, 1, "10");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 10, 1, "-10");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 10, 2, "10");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 10, 2, "-10");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 10, 3, "010");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 10, 3, "-010");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 10, 4, "0010");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 10, 4, "-0010");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 10, 10, "0000000010");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 10, 10, "-0000000010");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 16, 10, "0x000000000a");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 16, 10, "-0x000000000a");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 8, 10, "0o0000000012");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 8, 10, "-0o0000000012");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  10, 2, 10, "0b0000001010");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -10, 2, 10, "-0b0000001010");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  1234, 10, 0, "1234");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -1234, 10, 0, "-1234");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  1234, 10, 1, "1234");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -1234, 10, 1, "-1234");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  1234, 10, 2, "1234");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -1234, 10, 2, "-1234");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  1234, 10, 3, "1234");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -1234, 10, 3, "-1234");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  1234, 10, 4, "1234");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -1234, 10, 4, "-1234");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  1234, 10, 5, "01234");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -1234, 10, 5, "-01234");
+
+    test_itoa_num_digits<int, &itoa<int>>(buf,  1234, 10, 6, "001234");
+    test_itoa_num_digits<int, &itoa<int>>(buf, -1234, 10, 6, "-001234");
+}
+
+TEST_CASE("utoa.num_digits")
+{
+    char bufc[128];
+    substr buf = bufc;
+    size_t ret;
+
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 10, 0, "10");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 10, 1, "10");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 10, 2, "10");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 10, 3, "010");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 10, 4, "0010");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 10, 10, "0000000010");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 16, 10, "0x000000000a");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 8, 10, "0o0000000012");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 2, 10, "0b0000001010");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  1234, 10, 0, "1234");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  1234, 10, 1, "1234");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  1234, 10, 2, "1234");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  1234, 10, 3, "1234");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  1234, 10, 4, "1234");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  1234, 10, 5, "01234");
+    test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  1234, 10, 6, "001234");
+}
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

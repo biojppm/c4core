@@ -1,7 +1,38 @@
 #ifndef _C4_CHARCONV_HPP_
 #define _C4_CHARCONV_HPP_
 
-/** @file charconv.hpp Low-level conversion functions to/from strings */
+/** @file charconv.hpp Lightweight generic type-safe wrappers for
+ * converting individual values to/from strings.
+ *
+ * These are the main functions:
+ *
+ * @code{.cpp}
+ * // Convert the given value, writing into the string.
+ * // The resulting string will NOT be null-terminated.
+ * // Return the number of characters needed.
+ * // This function is safe to call when the string is too small -
+ * // no writes will occur beyond the string's last character.
+ * template<class T> size_t c4::to_chars(substr buf, T const& C4_RESTRICT val);
+ *
+ *
+ * // Convert the given value to a string using to_chars(), and
+ * // return the resulting string, up to and including the last
+ * // written character.
+ * template<class T> substr c4::to_chars_sub(substr buf, T const& C4_RESTRICT val);
+ *
+ *
+ * // Read a value from the string, which must be
+ * // trimmed to the value (ie, no leading/trailing whitespace).
+ * // return true if the conversion succeeded.
+ * template<class T> bool c4::from_chars(csubstr buf, T * C4_RESTRICT val);
+ *
+ *
+ * // Read the first valid sequence of characters from the string,
+ * // skipping leading whitespace, and convert it using from_chars().
+ * // Return the number of characters read for converting.
+ * template<class T> size_t c4::from_chars_first(csubstr buf, T * C4_RESTRICT val);
+ * @endcode
+ */
 
 #include "c4/language.hpp"
 #include <inttypes.h>
@@ -85,54 +116,6 @@
 
 namespace c4 {
 
-/** @file charconv.hpp Low-level conversion functions to/from strings */
-
-/** @defgroup formatting Formatting functions */
-
-/** @defgroup lowlevel_tofrom_chars Single value to/from string conversion
- * @brief Low-level functions providing type-specific
- * low-level conversion of values to and from string.
- * @ingroup formatting
- */
-
-/** @defgroup generic_tofrom_chars Generic single value to/from string conversion
- * @brief Lightweight generic type-safe wrappers for
- * converting individual values to/from strings. These functions generally
- * just dispatch to the proper low-level conversion function.
- * @ingroup formatting
- *
- * These are the main functions:
- *
- * @code{.cpp}
- * // Convert the given value, writing into the string.
- * // The resulting string will NOT be null-terminated.
- * // Return the number of characters needed.
- * // This function is safe to call when the string is too small -
- * // no writes will occur beyond the string's last character.
- * template<class T> size_t to_chars(substr buf, T const& C4_RESTRICT val);
- *
- *
- * // Convert the given value to a string using to_chars(), and
- * // return the resulting string, up to and including the last
- * // written character.
- * template<class T> substr to_chars_sub(substr buf, T const& C4_RESTRICT val);
- *
- *
- * // Read a value from the string, which must be
- * // trimmed to the value (ie, no leading/trailing whitespace).
- * // return true if the conversion succeeded.
- * template<class T> bool from_chars(csubstr buf, T * C4_RESTRICT val);
- *
- *
- * // Read the first valid sequence of characters from the string,
- * // skipping leading whitespace, and convert it using from_chars().
- * // Return the number of characters read for converting.
- * template<class T> size_t from_first_chars(csubstr buf, T * C4_RESTRICT val);
- * @endcode
- */
-
-
-/** @ingroup lowlevel_tofrom_chars */
 typedef enum : uint8_t {
     /** print the real number in floating point format (like %f) */
     FTOA_FLOAT = 0,
@@ -224,146 +207,151 @@ template<class T> size_t xtoa(substr s, T v);
 // Helper macros, undefined below
 
 #define _c4append(c) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
-#define _c4appendrdx(i) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = (radix == 16 ? hexchars[i] : (char)(i) + '0'); } else { ++pos; } }
+#define _c4appendhex(i) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = hexchars[i]; } else { ++pos; } }
 
-/** convert an integral signed decimal to a string.
- * The resulting string is NOT zero-terminated.
- * Writing stops at the buffer's end.
- * @return the number of characters needed for the result, even if the buffer size is insufficient
- * @ingroup lowlevel_tofrom_chars */
+
+/** write an integer to a string in decimal format. This is the
+ * lowest level (and the fastest) function to do this task.
+ * @note does not accept negative numbers
+ * @return the number of characters required for the string,
+ * even if the string is not long enough for the result.
+ * No writes are done past the end of the string. */
 template<class T>
-size_t itoa(substr buf, T v)
+size_t write_dec(substr buf, T v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
-    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(v >= 0);
     size_t pos = 0;
-    if(v >= 0)
-    {
-        do {
-            _c4append('0' + (v % 10));
-            v /= 10;
-        } while(v);
-        buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
-    }
-    else
-    {
-        _c4append('-');
-        do {
-            _c4append('0' - (v % 10));
-            v /= 10;
-        } while(v);
-        if(buf.len > 0)
-        {
-            buf.reverse_range(1, pos <= buf.len ? pos : buf.len);
-        }
-    }
-    return pos;
-}
-
-
-/** convert an integral signed integer to a string, using a specific
- * radix. The radix must be 2, 8, 10 or 16.
- *
- * The resulting string is NOT zero-terminated.
- * Writing stops at the buffer's end.
- * @return the number of characters needed for the result, even if the buffer size is insufficient
- * @ingroup lowlevel_tofrom_chars */
-template<class T>
-size_t itoa(substr buf, T v, T radix)
-{
-    C4_STATIC_ASSERT(std::is_integral<T>::value);
-    C4_STATIC_ASSERT(std::is_signed<T>::value);
-    constexpr static const char hexchars[] = "0123456789abcdef";
-    size_t pos = 0;
-
-    // write the sign prefix
-    if(v < 0)
-    {
-        v = -v;
-        _c4append('-');
-    }
-
-    // write the radix prefix
-    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
-    switch(radix)
-    {
-    case 2 : _c4append('0'); _c4append('b'); break;
-    case 8 : _c4append('0'); _c4append('o'); break;
-    case 16: _c4append('0'); _c4append('x'); break;
-    }
-
-    // write the number
-    size_t pfx = pos;
     do {
-        _c4appendrdx(v % radix);
-        v /= radix;
+        _c4append('0' + (v % T(10)));
+        v /= T(10);
     } while(v);
-    if(buf.len)
-    {
-        buf.reverse_range(pfx <= buf.len ? pfx : buf.len,
-                          pos <= buf.len ? pos : buf.len);
-    }
-
+    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
     return pos;
 }
 
-//-----------------------------------------------------------------------------
-
-/** convert an integral unsigned decimal to a string.
- * The resulting string is NOT zero-terminated.
- * Writing stops at the buffer's end.
- * @return the number of characters needed for the result, even if the buffer size is insufficient
- * @ingroup lowlevel_tofrom_chars */
+/** write an integer to a string in hexadecimal format. This is the
+ * lowest level (and the fastest) function to do this task.
+ * @note does not accept negative numbers
+ * @return the number of characters required for the string,
+ * even if the string is not long enough for the result.
+ * No writes are done past the end of the string. */
 template<class T>
-size_t utoa(substr buf, T v)
+size_t write_hex(substr buf, T v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
-    C4_STATIC_ASSERT(std::is_unsigned<T>::value);
+    C4_ASSERT(v >= 0);
+    constexpr const char hexchars[] = "0123456789abcdef";
     size_t pos = 0;
     do {
-        _c4append((char)(v % 10) + '0');
-        v /= 10;
+        _c4appendhex(v & T(15));
+        v >>= 4;
+    } while(v);
+    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    return pos;
+}
+
+/** write an integer to a string in octal format. This is the
+ * lowest level (and the fastest) function to do this task.
+ * @note does not accept negative numbers
+ * @note does not prefix with 0o
+ * @return the number of characters required for the string,
+ * even if the string is not long enough for the result.
+ * No writes are done past the end of the string. */
+template<class T>
+size_t write_oct(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    size_t pos = 0;
+    do {
+        _c4append('0' + (v & T(7)));
+        v >>= 3;
+    } while(v);
+    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    return pos;
+}
+
+/** write an integer to a string in binary format. This is the
+ * lowest level (and the fastest) function to do this task.
+ * @note does not accept negative numbers
+ * @note does not prefix with 0b
+ * @return the number of characters required for the string,
+ * even if the string is not long enough for the result.
+ * No writes are done past the end of the string. */
+template<class T>
+size_t write_bin(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    size_t pos = 0;
+    do {
+        _c4append('0' + (v & T(1)));
+        v >>= 1;
     } while(v);
     buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
     return pos;
 }
 
 
-/** convert an integral unsigned integer to a string, using a specific radix. The radix must be 2, 8, 10 or 16.
- * The resulting string is NOT zero-terminated.
- * Writing stops at the buffer's end.
- * @return the number of characters needed for the result, even if the buffer size is insufficient
- * @ingroup lowlevel_tofrom_chars */
-template<class T>
-size_t utoa(substr buf, T v, T radix)
+namespace detail {
+template<class U> using NumberWriter = size_t (*)(substr, U);
+template<class T, NumberWriter<T> writer>
+size_t write_num_digits(substr buf, T v, size_t num_digits)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
-    C4_STATIC_ASSERT(std::is_unsigned<T>::value);
-    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
-    static constexpr const char hexchars[] = "0123456789abcdef";
-    size_t pos = 0;
-
-    // write the radix prefix
-    switch(radix)
+    size_t ret = writer(buf, v);
+    if(ret >= num_digits)
     {
-    case 2 : _c4append('0'); _c4append('b'); break;
-    case 8 : _c4append('0'); _c4append('o'); break;
-    case 16: _c4append('0'); _c4append('x'); break;
+        return ret;
     }
-
-    // write the number
-    size_t pfx = pos;
-    do {
-        _c4appendrdx(v % radix);
-        v /= radix;
-    } while(v);
-    if(buf.len)
+    else if(ret >= buf.len || num_digits > buf.len)
     {
-        buf.reverse_range(pfx <= buf.len ? pfx : buf.len,
-                          pos <= buf.len ? pos : buf.len);
+        return num_digits;
     }
+    C4_ASSERT(num_digits >= ret);
+    size_t delta = static_cast<size_t>(num_digits - ret);
+    memmove(buf.str + delta, buf.str, ret);
+    memset(buf.str, '0', delta);
+    return num_digits;
+}
+} // namespace detail
 
-    return pos;
+
+/** same as c4::write_dec(), but pad with zeroes on the left
+ * such that the resulting string is @p num_digits wide.
+ * If the given number is wider than num_digits, then the number prevails. */
+template<class T>
+C4_ALWAYS_INLINE size_t write_dec(substr buf, T val, size_t num_digits)
+{
+    return detail::write_num_digits<T, &write_dec<T>>(buf, val, num_digits);
+}
+
+/** same as c4::write_hex(), but pad with zeroes on the left
+ * such that the resulting string is @p num_digits wide.
+ * If the given number is wider than num_digits, then the number prevails. */
+template<class T>
+C4_ALWAYS_INLINE size_t write_hex(substr buf, T val, size_t num_digits)
+{
+    return detail::write_num_digits<T, &write_hex<T>>(buf, val, num_digits);
+}
+
+/** same as c4::write_bin(), but pad with zeroes on the left
+ * such that the resulting string is @p num_digits wide.
+ * If the given number is wider than num_digits, then the number prevails. */
+template<class T>
+C4_ALWAYS_INLINE size_t write_bin(substr buf, T val, size_t num_digits)
+{
+    return detail::write_num_digits<T, &write_bin<T>>(buf, val, num_digits);
+}
+
+/** same as c4::write_oct(), but pad with zeroes on the left
+ * such that the resulting string is @p num_digits wide.
+ * If the given number is wider than num_digits, then the number prevails. */
+template<class T>
+C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits)
+{
+    return detail::write_num_digits<T, &write_oct<T>>(buf, val, num_digits);
 }
 
 
@@ -371,13 +359,11 @@ size_t utoa(substr buf, T v, T radix)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-
 /** read a decimal integer from a string. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note The string must be trimmed. Whitespace is not accepted.
- * @return true if the conversion was successful
- * @ingroup lowlevel_tofrom_chars */
+ * @return true if the conversion was successful */
 template<class I>
 C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
 {
@@ -399,8 +385,7 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
  * @note does not accept negative numbers
  * @note does not accept leading 0x or 0X
  * @note the string must be trimmed. Whitespace is not accepted.
- * @return true if the conversion was successful
- * @ingroup lowlevel_tofrom_chars */
+ * @return true if the conversion was successful */
 template<class I>
 C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
 {
@@ -435,8 +420,7 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
  * @note does not accept negative numbers
  * @note does not accept leading 0b or 0B
  * @note the string must be trimmed. Whitespace is not accepted.
- * @return true if the conversion was successful
- * @ingroup lowlevel_tofrom_chars */
+ * @return true if the conversion was successful */
 template<class I>
 C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v)
 {
@@ -466,8 +450,7 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v)
  * @note does not accept negative numbers
  * @note does not accept leading 0o or 0O
  * @note the string must be trimmed. Whitespace is not accepted.
- * @return true if the conversion was successful
- * @ingroup lowlevel_tofrom_chars */
+ * @return true if the conversion was successful */
 template<class I>
 C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
 {
@@ -489,6 +472,149 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** convert an integral signed decimal to a string.
+ * The resulting string is NOT zero-terminated.
+ * Writing stops at the buffer's end.
+ * @return the number of characters needed for the result, even if the buffer size is insufficient */
+template<class T>
+size_t itoa(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    if(v >= 0)
+    {
+        return write_dec(buf, v);
+    }
+    else if(buf.len > 0)
+    {
+        buf.str[0] = '-';
+        return size_t(1) + write_dec(buf.sub(1), -v);
+    }
+    return size_t(1) + write_dec({}, -v);
+}
+
+
+/** convert an integral signed integer to a string, using a specific
+ * radix. The radix must be 2, 8, 10 or 16.
+ *
+ * The resulting string is NOT zero-terminated.
+ * Writing stops at the buffer's end.
+ * @return the number of characters needed for the result, even if the buffer size is insufficient */
+template<class T>
+size_t itoa(substr buf, T v, T radix)
+{
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    size_t pos = 0;
+    if(v < 0)
+    {
+        v = -v;
+        _c4append('-');
+    }
+    switch(radix)
+    {
+    case 10:                                 return pos + write_dec(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v);
+    default:
+        C4_NEVER_REACH();
+    }
+}
+
+
+/** same as c4::itoa(), but pad with zeroes on the left such that the
+ * resulting string is @p num_digits wide. The @p radix must be 2,
+ * 8, 10 or 16.  The resulting string is NOT zero-terminated.  Writing
+ * stops at the buffer's end.
+ *
+ * @return the number of characters needed for the result, even if
+ * the buffer size is insufficient */
+template<class T>
+size_t itoa(substr buf, T v, T radix, size_t num_digits)
+{
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    size_t pos = 0;
+    if(v < 0)
+    {
+        v = -v;
+        _c4append('-');
+    }
+    switch(radix)
+    {
+    case 10:                                 return pos + write_dec(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    }
+    C4_UNREACHABLE();
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** convert an integral unsigned decimal to a string.
+ * The resulting string is NOT zero-terminated.
+ * Writing stops at the buffer's end.
+ * @return the number of characters needed for the result, even if the buffer size is insufficient */
+template<class T>
+size_t utoa(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_unsigned<T>::value);
+    return write_dec(buf, v);
+}
+
+/** convert an integral unsigned integer to a string, using a specific radix. The radix must be 2, 8, 10 or 16.
+ * The resulting string is NOT zero-terminated.
+ * Writing stops at the buffer's end.
+ * @return the number of characters needed for the result, even if the buffer size is insufficient */
+template<class T>
+size_t utoa(substr buf, T v, T radix)
+{
+    C4_STATIC_ASSERT(std::is_unsigned<T>::value);
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    size_t pos = 0;
+    switch(radix)
+    {
+    case 10:                                 return pos + write_dec(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v);
+    default:
+        C4_NEVER_REACH();
+    }
+}
+
+/** same as c4::itoa(), but pad with zeroes on the left such that the
+ * resulting string is @p num_digits wide. The @p radix must be 2,
+ * 8, 10 or 16.  The resulting string is NOT zero-terminated.  Writing
+ * stops at the buffer's end.
+ *
+ * @return the number of characters needed for the result, even if
+ * the buffer size is insufficient */
+template<class T>
+size_t utoa(substr buf, T v, T radix, size_t num_digits)
+{
+    C4_STATIC_ASSERT(std::is_unsigned<T>::value);
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    size_t pos = 0;
+    switch(radix)
+    {
+    case 10:                                 return pos + write_dec(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    default:
+        C4_NEVER_REACH();
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 /** Convert a trimmed string to a signed integral value. The value can be
  * formatted as decimal, binary (prefix 0b or 0B), octal (prefix 0o or 0O) or
  * hexadecimal (prefix 0x or 0X). Every character in the input string is read
@@ -499,9 +625,7 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
  * @note no range checking is performed: the return status is true even if the
  * conversion would return a value outside of the type's range, in which case
  * it wraps around, just like the underlying type
- * @see atoi_first() if the string is not trimmed to the value to read.
- * @ingroup lowlevel_tofrom_chars
- */
+ * @see atoi_first() if the string is not trimmed to the value to read. */
 template<class T>
 bool atoi(csubstr str, T * C4_RESTRICT v)
 {
@@ -601,9 +725,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
  * whitespace (space, newline, tabs) is skipped.
  * @return the number of characters read for conversion, or csubstr::npos if the conversion failed
  * @see atoi() if the string is already trimmed to the value to read.
- * @see csubstr::first_int_span()
- * @ingroup lowlevel_tofrom_chars
- */
+ * @see csubstr::first_int_span() */
 template<class T>
 inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
 {
@@ -624,9 +746,7 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
  * checking is performed: the return status is true even if the
  * conversion would return a value outside of the type's range. If the string
  * has a minus character, the return status will be false.
- * @see atou_first() if the string is not trimmed to the value to read.
- * @ingroup lowlevel_tofrom_chars
- */
+ * @see atou_first() if the string is not trimmed to the value to read. */
 template<class T>
 bool atou(csubstr str, T * C4_RESTRICT v)
 {
@@ -700,9 +820,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
  * whitespace (space, newline, tabs) is skipped.
  * @return the number of characters read for conversion, or csubstr::npos if the conversion faileds
  * @see atou() if the string is already trimmed to the value to read.
- * @see csubstr::first_uint_span()
- * @ingroup lowlevel_tofrom_chars
- */
+ * @see csubstr::first_uint_span() */
 template<class T>
 inline size_t atou_first(csubstr str, T *v)
 {
@@ -876,16 +994,14 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
 } // namespace detail
 
 
-#undef _c4appendrdx
+#undef _c4appendhex
 #undef _c4append
 
 
 /** Convert a single-precision real number to string.
  * The string will in general be NOT null-terminated.
  * For FTOA_FLEX, \p precision is the number of significand digits. Otherwise
- * \p precision is the number of decimals.
- * @ingroup lowlevel_tofrom_chars
- */
+ * \p precision is the number of decimals. */
 inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
 #if C4CORE_HAVE_STD_TOCHARS
@@ -904,7 +1020,6 @@ inline size_t ftoa(substr str, float v, int precision=-1, RealFormat_e formattin
  * \p precision is the number of decimals.
  *
  * @return the number of characters written.
- * @ingroup lowlevel_tofrom_chars
  */
 inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
 {
@@ -922,7 +1037,6 @@ inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatti
  * The input string must be trimmed to the value, ie
  * no leading or trailing whitespace can be present.
  * @return true iff the conversion succeeded
- * @ingroup lowlevel_tofrom_chars
  * @see atof_first() if the string is not trimmed
  */
 inline bool atof(csubstr str, float * C4_RESTRICT v)
@@ -947,7 +1061,6 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
  * The input string must be trimmed to the value, ie
  * no leading or trailing whitespace can be present.
  * @return true iff the conversion succeeded
- * @ingroup lowlevel_tofrom_chars
  * @see atod_first() if the string is not trimmed
  */
 inline bool atod(csubstr str, double * C4_RESTRICT v)
@@ -970,9 +1083,7 @@ inline bool atod(csubstr str, double * C4_RESTRICT v)
 
 /** Convert a string to a single precision real number.
  * Leading whitespace is skipped until valid characters are found.
- * @return true iff the conversion succeeded
- * @ingroup lowlevel_tofrom_chars
- */
+ * @return true iff the conversion succeeded */
 inline size_t atof_first(csubstr str, float * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();
@@ -985,7 +1096,6 @@ inline size_t atof_first(csubstr str, float * C4_RESTRICT v)
 /** Convert a string to a double precision real number.
  * Leading whitespace is skipped until valid characters are found.
  * @return true iff the conversion succeeded
- * @ingroup lowlevel_tofrom_chars
  */
 inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
 {
@@ -1100,8 +1210,7 @@ template <class T> C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf, T **v) 
  * written portion of the input buffer. Ie, same as to_chars(),
  * but return a substr instead of a size_t.
  *
- * @see to_chars()
- * @ingroup generic_tofrom_string */
+ * @see to_chars() */
 template<class T>
 inline substr to_chars_sub(substr buf, T const& C4_RESTRICT v)
 {
@@ -1114,14 +1223,12 @@ inline substr to_chars_sub(substr buf, T const& C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 // bool implementation
 
-/** @ingroup generic_tofrom_chars */
 inline size_t to_chars(substr buf, bool v)
 {
     int val = v;
     return to_chars(buf, val);
 }
 
-/** @ingroup generic_tofrom_chars */
 inline bool from_chars(csubstr buf, bool * C4_RESTRICT v)
 {
     if(buf == '0') { *v = false; return true; }
@@ -1142,7 +1249,6 @@ inline bool from_chars(csubstr buf, bool * C4_RESTRICT v)
     return ret;
 }
 
-/** @ingroup generic_tofrom_chars */
 inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v)
 {
     csubstr trimmed = buf.first_non_empty_span();
@@ -1157,7 +1263,6 @@ inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 // single-char implementation
 
-/** @ingroup generic_tofrom_chars */
 inline size_t to_chars(substr buf, char v)
 {
     if(buf.len > 0) buf[0] = v;
@@ -1165,8 +1270,7 @@ inline size_t to_chars(substr buf, char v)
 }
 
 /** extract a single character from a substring
- * @note to extract a string instead and not just a single character, use the csubstr overload
- * @ingroup generic_tofrom_chars */
+ * @note to extract a string instead and not just a single character, use the csubstr overload */
 inline bool from_chars(csubstr buf, char * C4_RESTRICT v)
 {
     if(buf.len != 1) return false;
@@ -1174,7 +1278,6 @@ inline bool from_chars(csubstr buf, char * C4_RESTRICT v)
     return true;
 }
 
-/** @ingroup generic_tofrom_chars */
 inline size_t from_chars_first(csubstr buf, char * C4_RESTRICT v)
 {
     if(buf.len < 1) return csubstr::npos;
@@ -1186,7 +1289,6 @@ inline size_t from_chars_first(csubstr buf, char * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 // csubstr implementation
 
-/** @ingroup generic_tofrom_chars */
 inline size_t to_chars(substr buf, csubstr v)
 {
     C4_ASSERT(!buf.overlaps(v));
@@ -1195,14 +1297,12 @@ inline size_t to_chars(substr buf, csubstr v)
     return v.len;
 }
 
-/** @ingroup generic_tofrom_chars */
 inline bool from_chars(csubstr buf, csubstr *C4_RESTRICT v)
 {
     *v = buf;
     return true;
 }
 
-/** @ingroup generic_tofrom_chars */
 inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v)
 {
     csubstr trimmed = buf.first_non_empty_span();
@@ -1215,7 +1315,6 @@ inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 // substr
 
-/** @ingroup generic_tofrom_chars */
 inline size_t to_chars(substr buf, substr v)
 {
     C4_ASSERT(!buf.overlaps(v));
@@ -1224,7 +1323,6 @@ inline size_t to_chars(substr buf, substr v)
     return v.len;
 }
 
-/** @ingroup generic_tofrom_chars */
 inline bool from_chars(csubstr buf, substr * C4_RESTRICT v)
 {
     C4_ASSERT(!buf.overlaps(*v));
@@ -1238,7 +1336,6 @@ inline bool from_chars(csubstr buf, substr * C4_RESTRICT v)
     return false;
 }
 
-/** @ingroup generic_tofrom_chars */
 inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v)
 {
     csubstr trimmed = buf.first_non_empty_span();
@@ -1253,7 +1350,6 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v)
 
 //-----------------------------------------------------------------------------
 
-/** @ingroup generic_tofrom_chars */
 template<size_t N>
 inline size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N])
 {
@@ -1261,7 +1357,6 @@ inline size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N])
     return to_chars(buf, sp);
 }
 
-/** @ingroup generic_tofrom_chars */
 inline size_t to_chars(substr buf, const char * C4_RESTRICT v)
 {
     return to_chars(buf, to_csubstr(v));
