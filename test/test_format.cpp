@@ -366,22 +366,6 @@ TEST_CASE("unformat.tuple")
 #endif // C4_TUPLE_TO_STR
 
 
-TEST_CASE("printf.basic")
-{
-    char bufc[128];
-    substr buf = bufc;
-    size_t ret;
-
-    memset(buf.str, 0, buf.len);
-    ret = sprintf(buf, "hello world");
-    CHECK_EQ(buf.first(ret), "hello world");
-
-    memset(buf.str, 0, buf.len);
-    ret = sprintf(buf, "%d %d %d %d", 1, 2, 3, 4);
-    CHECK_EQ(buf.first(ret), "1 2 3 4");
-}
-
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

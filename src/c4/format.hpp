@@ -30,11 +30,6 @@ namespace c4 {
  * @ingroup formatting
  */
 
-/** C-style printing into a buffer
- * @ingroup formatting_functions */
-size_t sprintf(substr buf, const char * fmt, ...);
-//size_t sscanf(csubstr buf, const char *fmt, ...);
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
