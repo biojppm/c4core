@@ -25,74 +25,38 @@
 
 namespace c4 {
 
-/** @defgroup formatting_functions Formatting multiple values<->string
- * @brief Convert a sequence of values to/from a string.
- * @ingroup formatting
- */
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-/** @addtogroup generic_tofrom_chars
- * @{ */
-
-namespace fmt {
-
-/** a generic class for providing type-specific formatting settings
- * The second template parameter type is to enable SFINAE idioms. */
-template<class T, class=T>
-struct fmt_wrapper;
-
-/** mark a variable to be written in its default custom format wrapper */
-template<class T, class... Args>
-inline fmt_wrapper<T> fmt(T &v, Args && ...args)
-{
-    return fmt_wrapper<T>(std::ref(v), std::forward<Args>(args)...);
-}
-
-} // namespace fmt
-
-/** @} */
-
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // formatting integral types as booleans
 
-/** @addtogroup generic_tofrom_chars
- * @{ */
-
 namespace fmt {
-
-struct boolalpha_
-{
-    template<class T>
-    boolalpha_(T val_, bool strict_read_) : val(val_ ? true : false), strict_read(strict_read_) {}
-    bool val;
-    bool strict_read;
-};
 
 /** write a variable as an alphabetic boolean, ie as either true or false
  * @param strict_read */
 template<class T>
-inline boolalpha_ boolalpha(T const& C4_RESTRICT v, bool strict_read=false)
+struct boolalpha_
 {
-    return boolalpha_(v, strict_read);
+    boolalpha_(T val_, bool strict_read_=false) : val(val_ ? true : false), strict_read(strict_read_) {}
+    bool val;
+    bool strict_read;
+};
+
+template<class T>
+boolalpha_<T> boolalpha(T const& val, bool strict_read=false)
+{
+    return boolalpha_<T>(val, strict_read);
 }
 
-} // namespace fmt
-
-
 /** write a variable as an alphabetic boolean, ie as either true or false */
-inline size_t to_chars(substr buf, fmt::boolalpha_ fmt)
+template<class T>
+inline size_t to_chars(substr buf, boolalpha_<T> fmt)
 {
     return to_chars(buf, fmt.val ? "true" : "false");
 }
 
-/** @} */
+} // namespace fmt
+
 
 
 //-----------------------------------------------------------------------------
@@ -100,27 +64,37 @@ inline size_t to_chars(substr buf, fmt::boolalpha_ fmt)
 //-----------------------------------------------------------------------------
 // formatting integral types
 
-/** @addtogroup generic_tofrom_chars
- * @{ */
-
 namespace fmt {
 
-/** format an integral type */
+/** format an integral type with a custom radix */
 template<typename T>
-struct fmt_wrapper<T, typename std::enable_if<std::is_integral<T>::value, T>::type>
+struct integral_
 {
-    using second_type = typename std::enable_if<std::is_integral<T>::value, T>::type;
     T val;
     T radix;
-    fmt_wrapper(T val_, T radix_=10) : val(val_), radix(radix_) {}
+    C4_ALWAYS_INLINE integral_(T val_, T radix_) : val(val_), radix(radix_) {}
 };
 
+template<class T>
+C4_ALWAYS_INLINE integral_<T> integral(T val, T radix=10)
+{
+    return integral_<T>(val, radix);
+}
+template<class T>
+C4_ALWAYS_INLINE integral_<intptr_t> integral(T const* val, T radix=10)
+{
+    return integral_<intptr_t>(reinterpret_cast<intptr_t>(val), static_cast<intptr_t>(radix));
+}
+template<class T>
+C4_ALWAYS_INLINE integral_<intptr_t> integral(std::nullptr_t, T radix=10)
+{
+    return integral_<intptr_t>(intptr_t(0), static_cast<intptr_t>(radix));
+}
+
 #if C4_CPP >= 17
-/** format an integral type, C++17 version */
+/** format an integral_ type, C++17 version */
 template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if_t<std::is_integral_v<T>, size_t>
-to_chars(substr buf, fmt::fmt_wrapper<T> fmt)
+C4_ALWAYS_INLINE void to_chars(substr buf, integral_<T> fmt)
 {
     if constexpr (std::is_signed_v<T>)
     {
@@ -133,98 +107,103 @@ to_chars(substr buf, fmt::fmt_wrapper<T> fmt)
     }
 }
 #else
-/** format an integral signed type */
+/** format an integral_ signed type */
 template<typename T>
 C4_ALWAYS_INLINE
-typename std::enable_if<std::is_signed<T>::value && std::is_integral<T>::value, size_t>::type
-to_chars(substr buf, fmt::fmt_wrapper<T> fmt)
+typename std::enable_if<std::is_signed<T>::value, size_t>::type
+to_chars(substr buf, integral_<T> fmt)
 {
     return itoa(buf, fmt.val, fmt.radix);
 }
 
-/** format an integral unsigned type */
+/** format an integral_ unsigned type */
 template<typename T>
 C4_ALWAYS_INLINE
-typename std::enable_if<std::is_unsigned<T>::value && std::is_integral<T>::value, size_t>::type
-to_chars(substr buf, fmt::fmt_wrapper<T> fmt)
+typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
+to_chars(substr buf, integral_<T> fmt)
 {
     return utoa(buf, fmt.val, fmt.radix);
 }
 #endif
 
 
-/** format the integral argument as an hexadecimal value
+/** format the pointer as an hexadecimal value */
+template<class T>
+inline integral_<intptr_t> hex(T * v)
+{
+    return integral_<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(16));
+}
+template<class T>
+inline integral_<intptr_t> hex(T const* v)
+{
+    return integral_<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(16));
+}
+/** format null as an hexadecimal value
+ * @overload hex */
+inline integral_<intptr_t> hex(std::nullptr_t)
+{
+    return integral_<intptr_t>(0, intptr_t(16));
+}
+/** format the integral_ argument as an hexadecimal value
  * @overload hex */
 template<class T>
-inline fmt_wrapper<T> hex(T v)
+inline integral_<T> hex(T v)
 {
-    return fmt_wrapper<T>(v, T(16));
-}
-/** format the integral argument as an hexadecimal value
- * @overload hex */
-template<class T>
-inline fmt_wrapper<intptr_t> hex(T const* v)
-{
-    return fmt_wrapper<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(16));
-}
-/** format the integral argument as an hexadecimal value
- * @overload hex */
-inline fmt_wrapper<intptr_t> hex(std::nullptr_t)
-{
-    return fmt_wrapper<intptr_t>(0, intptr_t(16));
+    return integral_<T>(v, T(16));
 }
 
-/** format the integral argument as an octal value
- * @overload oct */
+/** format the pointer as an octal value */
 template<class T>
-inline fmt_wrapper<T> oct(T v)
+inline integral_<intptr_t> oct(T const* v)
 {
-    C4_STATIC_ASSERT(std::is_integral<T>::value);
-    return fmt_wrapper<T>(v, T(8));
+    return integral_<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(8));
 }
-/** format the integral argument as an octal value
- * @overload oct */
 template<class T>
-inline fmt_wrapper<intptr_t> oct(T const* v)
+inline integral_<intptr_t> oct(T * v)
 {
-    return fmt_wrapper<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(8));
+    return integral_<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(8));
 }
-/** format the integral argument as an octal value
- * @overload oct */
-inline fmt_wrapper<intptr_t> oct(std::nullptr_t)
+/** format null as an octal value */
+inline integral_<intptr_t> oct(std::nullptr_t)
 {
-    return fmt_wrapper<intptr_t>(0, intptr_t(8));
+    return integral_<intptr_t>(intptr_t(0), intptr_t(8));
+}
+/** format the integral_ argument as an octal value */
+template<class T>
+inline integral_<T> oct(T v)
+{
+    return integral_<T>(v, T(8));
 }
 
-
-/** format the integral argument as a binary 0-1 value
- * @overload bin
- * @see raw() if you want to use a binary memcpy instead of formatting */
+/** format the pointer as a binary 0-1 value
+ * @see c4::raw() if you want to use a binary memcpy instead of 0-1 formatting */
 template<class T>
-inline fmt_wrapper<T> bin(T v)
+inline integral_<intptr_t> bin(T const* v)
 {
-    C4_STATIC_ASSERT(std::is_integral<T>::value);
-    return fmt_wrapper<T>(v, T(2));
+    return integral_<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(2));
 }
-/** format the integral argument as a binary 0-1 value
- * @overload bin
- * @see raw() if you want to use a binary memcpy instead of formatting */
+/** format the pointer as a binary 0-1 value
+ * @see c4::raw() if you want to use a binary memcpy instead of 0-1 formatting */
 template<class T>
-inline fmt_wrapper<uintptr_t> bin(T const* v)
+inline integral_<intptr_t> bin(T * v)
 {
-    return fmt_wrapper<uintptr_t>(reinterpret_cast<uintptr_t>(v), uintptr_t(2));
+    return integral_<intptr_t>(reinterpret_cast<intptr_t>(v), intptr_t(2));
 }
-/** format the integral argument as a binary 0-1 value
- * @overload bin
- * @see raw() if you want to use a binary memcpy instead of formatting */
-inline fmt_wrapper<uintptr_t> bin(std::nullptr_t)
+/** format null as a binary 0-1 value
+ * @see c4::raw() if you want to use a binary memcpy instead of 0-1 formatting */
+inline integral_<intptr_t> bin(std::nullptr_t)
 {
-    return fmt_wrapper<uintptr_t>(0, uintptr_t(2));
+    return integral_<intptr_t>(intptr_t(0), intptr_t(2));
+}
+/** format the integral_ argument as a binary 0-1 value
+ * @see c4::raw() if you want to use a binary memcpy instead of 0-1 formatting */
+template<class T>
+inline integral_<T> bin(T v)
+{
+    return integral_<T>(v, T(2));
 }
 
 } // namespace fmt
-
-/** @} */
 
 
 //-----------------------------------------------------------------------------
@@ -232,39 +211,33 @@ inline fmt_wrapper<uintptr_t> bin(std::nullptr_t)
 //-----------------------------------------------------------------------------
 // formatting real types
 
-/** @addtogroup generic_tofrom_chars
- * @{ */
-
 namespace fmt {
 
 template<class T>
-struct real
+struct real_
 {
     T val;
     int precision;
     RealFormat_e fmt;
-    real(T v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
+    real_(T v, int prec=-1, RealFormat_e f=FTOA_FLOAT) : val(v), precision(prec), fmt(f)  {}
 };
 
+template<class T>
+real_<T> real(T val, int precision, RealFormat_e fmt=FTOA_FLOAT)
+{
+    return real_<T>(val, precision, fmt);
+}
 
-template<> struct fmt_wrapper< float> : public real< float> { using real< float>::real; };
-template<> struct fmt_wrapper<double> : public real<double> { using real<double>::real; };
+inline size_t to_chars(substr buf, real_< float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
+inline size_t to_chars(substr buf, real_<double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); }
 
 } // namespace fmt
-
-inline size_t to_chars(substr buf, fmt::fmt_wrapper< float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
-inline size_t to_chars(substr buf, fmt::fmt_wrapper<double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); }
-
-/** @} */
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // writing raw binary data
-
-/** @addtogroup generic_tofrom_chars
- * @{ */
 
 namespace fmt {
 
@@ -338,9 +311,6 @@ inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper r)
 }
 
 
-/** @} */
-
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -384,7 +354,6 @@ substr cat_sub(substr buf, Args && ...args)
 
 //-----------------------------------------------------------------------------
 
-/// @cond dev
 /// @cond dev
 // terminates the variadic recursion
 inline size_t uncat(csubstr /*buf*/)
@@ -724,16 +693,15 @@ inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_R
     return cont;
 }
 
-/** like catsep(), but receives a container, and appends the arguments, resizing the
- * container as needed to contain the result. The buffer is appended to.
- * @return a csubstr of the appended part
- * @ingroup formatting_functions */
+/// @cond dev
+// terminates the recursion
 template<class CharOwningContainer, class Sep, class... Args>
 inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT, Sep const& C4_RESTRICT)
 {
     csubstr s;
     return s;
 }
+/// @endcond
 
 /** like catsep(), but receives a container, and appends the arguments, resizing the
  * container as needed to contain the result. The buffer is appended to.

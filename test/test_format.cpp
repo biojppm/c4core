@@ -19,8 +19,53 @@ namespace c4 {
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+
+TEST_CASE_TEMPLATE("to_chars.fmt.bin", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t)
+{
+    char bufc[128];
+    substr buf(bufc);
+
+    CHECK_EQ(to_chars_sub(buf, fmt::integral(T(21), T(2))), "0b10101");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral((T*)21, T(2))), "0b10101");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral(nullptr, T(2))), "0b0");
+    CHECK_EQ(to_chars_sub(buf, fmt::bin(T(21))), "0b10101");
+    CHECK_EQ(to_chars_sub(buf, fmt::bin((T*)21)), "0b10101");
+    CHECK_EQ(to_chars_sub(buf, fmt::bin(nullptr)), "0b0");
+}
+
+TEST_CASE_TEMPLATE("to_chars.fmt.oct", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t)
+{
+    char bufc[128];
+    substr buf(bufc);
+
+    CHECK_EQ(to_chars_sub(buf, fmt::integral(T(65), T(8))), "0o101");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral((T*)65, T(8))), "0o101");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral(nullptr, T(8))), "0o0");
+    CHECK_EQ(to_chars_sub(buf, fmt::oct(T(65))), "0o101");
+    CHECK_EQ(to_chars_sub(buf, fmt::oct((T*)65)), "0o101");
+    CHECK_EQ(to_chars_sub(buf, fmt::oct(nullptr)), "0o0");
+}
+
+TEST_CASE_TEMPLATE("to_chars.fmt.hex", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t)
+{
+    char bufc[128];
+    substr buf(bufc);
+
+    CHECK_EQ(to_chars_sub(buf, fmt::integral(T(0x7f), T(16))), "0x7f");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral((T*)0x7f, T(16))), "0x7f");
+    CHECK_EQ(to_chars_sub(buf, fmt::integral(nullptr, T(16))), "0x0");
+    CHECK_EQ(to_chars_sub(buf, fmt::hex(T(0x7f))), "0x7f");
+    CHECK_EQ(to_chars_sub(buf, fmt::hex((T*)0x7f)), "0x7f");
+    CHECK_EQ(to_chars_sub(buf, fmt::hex(nullptr)), "0x0");
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 template<class T>
-void test_to_chars_fmt_basic(T f, int precision, const char* flt, T fltv, const char *scient, T scientv)
+void test_to_chars_real(T f, int precision, const char* flt, T fltv, const char *scient, T scientv)
 {
     char bufc[64];
     substr buf(bufc);
@@ -29,7 +74,7 @@ void test_to_chars_fmt_basic(T f, int precision, const char* flt, T fltv, const 
 
     INFO("num=" << f);
 
-    r = to_chars_sub(buf, fmt::fmt(f, precision));
+    r = to_chars_sub(buf, fmt::real(f, precision));
     CHECK_EQ(r, to_csubstr(flt));
     from_chars(r, &copy);
     if(sizeof(T) == sizeof(float))
@@ -41,7 +86,7 @@ void test_to_chars_fmt_basic(T f, int precision, const char* flt, T fltv, const 
         CHECK_FLOAT_EQ(fltv, copy);
     }
 
-    r = to_chars_sub(buf, fmt::fmt(f, precision, FTOA_SCIENT));
+    r = to_chars_sub(buf, fmt::real(f, precision, FTOA_SCIENT));
     CHECK_EQ(r, to_csubstr(scient));
     from_chars(r, &copy);
     if(sizeof(T) == sizeof(float))
@@ -54,31 +99,18 @@ void test_to_chars_fmt_basic(T f, int precision, const char* flt, T fltv, const 
     }
 }
 
-TEST_CASE("to_chars.fmt_basic")
+TEST_CASE_TEMPLATE("to_chars.fmt.real", T, float, double)
 {
     char bufc[128];
     substr buf(bufc);
 
-    CHECK_EQ(to_chars_sub(buf, fmt::hex( int8_t(0x7f))), "0x7f");
-    CHECK_EQ(to_chars_sub(buf, fmt::hex(uint8_t(0xff))), "0xff");
-
-    #ifdef FIXME_READFLOAT
-    float f = 256.064f;
-    test_to_chars_fmt_basic<float>(f, 0, "256", 256.f, "3e+02", 300.f);
-    test_to_chars_fmt_basic<float>(f, 1, "256.1", 256.1f, "2.6e+02", 260.f);
-    test_to_chars_fmt_basic<float>(f, 2, "256.06", 256.06f, "2.56e+02", 256.f);
-    test_to_chars_fmt_basic<float>(f, 3, "256.064", 256.064f, "2.561e+02", 256.1f);
-    test_to_chars_fmt_basic<float>(f, 4, "256.0640", 256.0640f, "2.5606e+02", 256.06f);
-    test_to_chars_fmt_basic<float>(f, 5, "256.06400", 256.06400f, "2.56064e+02", 256.064f);
-
-    double d = 256.064;
-    test_to_chars_fmt_basic<double>(d, 0, "256", 256., "3e+02", 300.);
-    test_to_chars_fmt_basic<double>(d, 1, "256.1", 256.1, "2.6e+02", 260.);
-    test_to_chars_fmt_basic<double>(d, 2, "256.06", 256.06, "2.56e+02", 256.);
-    test_to_chars_fmt_basic<double>(d, 3, "256.064", 256.064, "2.561e+02", 256.1);
-    test_to_chars_fmt_basic<double>(d, 4, "256.0640", 256.0640, "2.5606e+02", 256.06);
-    test_to_chars_fmt_basic<double>(d, 5, "256.06400", 256.06400, "2.56064e+02", 256.064);
-    #endif
+    T f = static_cast<T>(256.064);
+    test_to_chars_real<T>(f, 0, "256", T(256.), "3e+02", T(300.));
+    test_to_chars_real<T>(f, 1, "256.1", T(256.1), "2.6e+02", T(260.));
+    test_to_chars_real<T>(f, 2, "256.06", T(256.06), "2.56e+02", T(256.));
+    test_to_chars_real<T>(f, 3, "256.064", T(256.064), "2.561e+02", T(256.1));
+    test_to_chars_real<T>(f, 4, "256.0640", T(256.0640), "2.5606e+02", T(256.06));
+    test_to_chars_real<T>(f, 5, "256.06400", T(256.06400), "2.56064e+02", T(256.064));
 }
 
 
@@ -86,11 +118,11 @@ TEST_CASE("to_chars.fmt_basic")
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-TEST_CASE("to_chars.boolalpha")
+TEST_CASE("to_chars.fmt.boolalpha")
 {
     char bufc[128];
     substr buf(bufc);
-    
+
     CHECK_EQ(to_chars_sub(buf, true), "1");
     CHECK_EQ(to_chars_sub(buf, false), "0");
     CHECK_EQ(to_chars_sub(buf, fmt::boolalpha(true)), "true");
