@@ -88,6 +88,7 @@ C4_ALWAYS_INLINE integral_<intptr_t> integral(T const* val, T radix=10)
 {
     return integral_<intptr_t>(reinterpret_cast<intptr_t>(val), static_cast<intptr_t>(radix));
 }
+/** format an integral type with a custom radix */
 template<class T>
 C4_ALWAYS_INLINE integral_<intptr_t> integral(std::nullptr_t, T radix=10)
 {
@@ -97,7 +98,7 @@ C4_ALWAYS_INLINE integral_<intptr_t> integral(std::nullptr_t, T radix=10)
 #if C4_CPP >= 17
 /** format an integral_ type, C++17 version */
 template<typename T>
-C4_ALWAYS_INLINE void to_chars(substr buf, integral_<T> fmt)
+C4_ALWAYS_INLINE size_t to_chars(substr buf, integral_<T> fmt)
 {
     if constexpr (std::is_signed_v<T>)
     {
