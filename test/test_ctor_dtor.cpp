@@ -8,7 +8,7 @@
 
 namespace c4 {
 
-C4_BEGIN_HIDDEN_NAMESPACE
+namespace {
 struct subject
 {
     static size_t ct_cp, ct_mv, cp, mv;
@@ -34,12 +34,14 @@ size_t subject::ct_cp = 0;
 size_t subject::ct_mv = 0;
 size_t subject::cp = 0;
 size_t subject::mv = 0;
-C4_END_HIDDEN_NAMESPACE
+} // empty namespace
+
 
 TEST_CASE("ctor_dtor.construct_n")
 {
     using T = Counting<subject>;
-    char buf1[100 * sizeof(T)];
+    C4_STATIC_ASSERT(sizeof(T) % alignof(T) == 0);
+    alignas(T) char buf1[100 * sizeof(T)];
     T* mem1 = reinterpret_cast<T*>(buf1);
 
     using cs = Counting<std::string>;
@@ -63,6 +65,7 @@ TEST_CASE("ctor_dtor.construct_n")
         subject::clear();
     }
 }
+
 
 //-----------------------------------------------------------------------------
 template<class T>
@@ -91,6 +94,7 @@ void do_make_room_inplace(std::vector<T> const& orig, std::vector<T> & buf,
     buf = orig;
     make_room(buf.data() + pos, bufsz, room);
 }
+
 template<class T>
 void do_make_room_srcdst(std::vector<T> const& orig, std::vector<T> & buf,
                          size_t bufsz, size_t room, size_t pos)
@@ -112,7 +116,7 @@ void do_make_room_check(std::vector<T> const& orig, std::vector<T> & buf,
         INFO("i=" << (int)i);
         if(i < pos)
         {
-            // memory before the move, should be untouched
+            // memory before the move, must be untouched
             CHECK_EQ(buf[i], orig[i]);
         }
         else
@@ -129,7 +133,7 @@ void do_make_room_check(std::vector<T> const& orig, std::vector<T> & buf,
             }
             else
             {
-                // this is memory at the end, should be untouched
+                // this is memory at the end, must be untouched
                 CHECK_EQ(buf[i], orig[i]);
             }
         }
@@ -179,36 +183,17 @@ void test_make_room(Func test_func)
         test_func(orig, buf, /*bufsz*/10, /*room*/15, /*pos*/10);
     }
 }
-TEST_CASE("ctor_dtor.make_room_inplace")
+
+TEST_CASE_TEMPLATE("ctor_dtor.make_room_inplace", T, uint8_t, uint64_t, std::string)
 {
-    {
-        INFO("uint8_t");
-        test_make_room<uint8_t>(do_make_room_inplace_test<uint8_t>);
-    }
-    {
-        INFO("uint64_t");
-        test_make_room<uint64_t>(do_make_room_inplace_test<uint64_t>);
-    }
-    {
-        INFO("std::string");
-        test_make_room<std::string>(&do_make_room_inplace_test<std::string>);
-    }
+    test_make_room<T>(do_make_room_inplace_test<T>);
 }
-TEST_CASE("ctor_dtor.make_room_srcdst")
+
+TEST_CASE_TEMPLATE("ctor_dtor.make_room_srcdst", T, uint8_t, uint64_t, std::string)
 {
-    {
-        INFO("uint8_t");
-        test_make_room<uint8_t>(&do_make_room_srcdst_test<uint8_t>);
-    }
-    {
-        INFO("uint64_t");
-        test_make_room<uint64_t>(&do_make_room_srcdst_test<uint64_t>);
-    }
-    {
-        INFO("std::string");
-        test_make_room<std::string>(&do_make_room_srcdst_test<std::string>);
-    }
+    test_make_room<T>(&do_make_room_srcdst_test<T>);
 }
+
 
 //-----------------------------------------------------------------------------
 
@@ -219,6 +204,7 @@ void do_destroy_room_inplace(std::vector<T> const& orig, std::vector<T> & buf,
     buf = orig;
     destroy_room(buf.data() + pos, bufsz - pos, room);
 }
+
 template<class T>
 void do_destroy_room_srcdst(std::vector<T> const& orig, std::vector<T> & buf,
                             size_t bufsz, size_t room, size_t pos)
@@ -274,6 +260,7 @@ void do_destroy_room_srcdst_test(std::vector<T> const& orig, std::vector<T> & bu
     do_destroy_room_srcdst(orig, buf, buf.size(), room, pos);
     do_destroy_room_check(orig, buf, buf.size(), room, pos);
 }
+
 template<class T, class Func>
 void test_destroy_room(Func test_func)
 {
@@ -301,35 +288,15 @@ void test_destroy_room(Func test_func)
         test_func(orig, buf, /*room*/20, /*pos*/10);
     }
 }
-TEST_CASE("ctor_dtor.destroy_room_inplace")
+
+TEST_CASE_TEMPLATE("ctor_dtor.destroy_room_inplace", T, uint8_t, uint64_t, std::string)
 {
-    {
-        INFO("uint8_t");
-        test_destroy_room<uint8_t>(do_destroy_room_inplace_test<uint8_t>);
-    }
-    {
-        INFO("uint64_t");
-        test_destroy_room<uint64_t>(do_destroy_room_inplace_test<uint64_t>);
-    }
-    {
-        INFO("std::string");
-        test_destroy_room<std::string>(&do_destroy_room_inplace_test<std::string>);
-    }
+    test_destroy_room<T>(do_destroy_room_inplace_test<T>);
 }
-TEST_CASE("ctor_dtor.destroy_room_srcdst")
+
+TEST_CASE_TEMPLATE("ctor_dtor.destroy_room_srcdst", T, uint8_t, uint64_t, std::string)
 {
-    {
-        INFO("uint8_t");
-        test_destroy_room<uint8_t>(&do_destroy_room_srcdst_test<uint8_t>);
-    }
-    {
-        INFO("uint64_t");
-        test_destroy_room<uint64_t>(&do_destroy_room_srcdst_test<uint64_t>);
-    }
-    {
-        INFO("std::string");
-        test_destroy_room<std::string>(&do_destroy_room_srcdst_test<std::string>);
-    }
+    test_destroy_room<T>(&do_destroy_room_srcdst_test<T>);
 }
 
 } // namespace c4
