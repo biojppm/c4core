@@ -128,6 +128,14 @@ to_chars(substr buf, integral_<T> fmt)
 {
     return utoa(buf, fmt.val, fmt.radix);
 }
+/** format an integral_ unsigned type, pad with zeroes */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
+to_chars(substr buf, integral_padded_<T> fmt)
+{
+    return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
+}
 #endif
 
 
@@ -405,8 +413,7 @@ inline size_t cat(substr /*buf*/)
  * @see catrs() if instead of a fixed-size buffer, a resizeable container is desired
  * @see uncat() for the inverse function
  * @see catsep() if a separator between each argument is to be used
- * @see format() if a format string is desired
- * @ingroup formatting_functions */
+ * @see format() if a format string is desired */
 template<class Arg, class... Args>
 size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
@@ -416,8 +423,7 @@ size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more
     return num;
 }
 
-/** like cat but return a substr instead of a size, checking
- * @ingroup formatting_functions */
+/** like c4::cat() but return a substr instead of a size */
 template<class... Args>
 substr cat_sub(substr buf, Args && ...args)
 {
@@ -442,8 +448,7 @@ inline size_t uncat(csubstr /*buf*/)
  *
  * @return the number of characters read from the buffer, or csubstr::npos
  *   if a conversion was not successful.
- * @see cat(). uncat() is the inverse of cat().
- * @ingroup formatting_functions */
+ * @see cat(). uncat() is the inverse of cat(). */
 template<class Arg, class... Args>
 size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
@@ -510,11 +515,10 @@ size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Ar
  * buffer, using a separator between each argument.
  * The buffer size is strictly respected: no writes will occur beyond its end.
  * @return the number of characters needed to write all the arguments into the buffer.
- * @see catseprs() if instead of a fixed-size buffer, a resizeable container is desired
- * @see uncatsep() for the inverse function
- * @see cat() if no separator is needed
- * @see format() if a format string is desired
- * @ingroup formatting_functions */
+ * @see c4::catseprs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see c4::uncatsep() for the inverse function (ie, reading instead of writing)
+ * @see c4::cat() if no separator is needed
+ * @see c4::format() if a format string is desired */
 template<class Sep, class Arg, class... Args>
 size_t catsep(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
@@ -524,9 +528,8 @@ size_t catsep(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, 
     return num;
 }
 
-/** like catsep but return a substr instead of a size
- * @see catsep(). uncatsep() is the inverse of catsep().
- * @ingroup formatting_functions */
+/** like c4::catsep() but return a substr instead of a size
+ * @see c4::catsep(). c4::uncatsep() is the inverse of c4::catsep(). */
 template<class... Args>
 substr catsep_sub(substr buf, Args && ...args)
 {
@@ -539,8 +542,7 @@ substr catsep_sub(substr buf, Args && ...args)
  *
  * @return the number of characters read from the buffer, or csubstr::npos
  *   if a conversion was not successful
- * @see catsep(). uncatsep() is the inverse of catsep().
- * @ingroup formatting_functions */
+ * @see c4::catsep(). c4::uncatsep() is the inverse of c4::catsep(). */
 template<class Sep, class Arg, class... Args>
 size_t uncatsep(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
@@ -578,11 +580,10 @@ inline size_t format(substr buf, csubstr fmt)
  * c4::format(buf, "the {} drank {} {}", "programmer", 6, "coffees"); // the programmer drank 6 coffees
  * @endcode
  * @return the number of characters needed to write into the buffer.
- * @see formatrs() if instead of a fixed-size buffer, a resizeable container is desired
- * @see unformat() for the inverse function
- * @see cat() if no format or separator is needed
- * @see catsep() if no format is needed, but a separator must be used
- * @ingroup formatting_functions */
+ * @see c4::formatrs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see c4::unformat() for the inverse function
+ * @see c4::cat() if no format or separator is needed
+ * @see c4::catsep() if no format is needed, but a separator must be used */
 template<class Arg, class... Args>
 size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
@@ -602,10 +603,9 @@ size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_
     return out;
 }
 
-/** like format() but return a substr instead of a size
- * @see format()
- * @see catsep(). uncatsep() is the inverse of catsep().
- * @ingroup formatting_functions */
+/** like c4::format() but return a substr instead of a size
+ * @see c4::format()
+ * @see c4::catsep(). uncatsep() is the inverse of catsep(). */
 template<class... Args>
 substr format_sub(substr buf, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
@@ -629,8 +629,7 @@ inline size_t unformat(csubstr /*buf*/, csubstr /*fmt*/)
 /** using a format string, deserialize the arguments from the given
  * buffer.
  * @return the number of characters read from the buffer, or npos if a conversion failed.
- * @see format() this is the inverse function to format().
- * @ingroup formatting_functions */
+ * @see c4::format(). c4::unformat() is the inverse function to format(). */
 template<class Arg, class... Args>
 size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
@@ -657,26 +656,21 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** a tag type
- * @see catrs
- * @ingroup formatting_functions
- * */
+/** a tag type for marking append to container
+ * @see c4::catrs() */
 struct append_t {};
 
 /** a tag variable
- * @see catrs
- * @ingroup formatting_functions
- * */
+ * @see c4::catrs() */
 constexpr const append_t append = {};
+
 
 //-----------------------------------------------------------------------------
 
-/** like cat(), but receives a container, and resizes it as needed to contain
+/** like c4::cat(), but receives a container, and resizes it as needed to contain
  * the result. The container is overwritten. To append to it, use the append
  * overload.
- *
- * @see cat()
- * @ingroup formatting_functions */
+ * @see c4::cat() */
 template<class CharOwningContainer, class... Args>
 inline void catrs(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
@@ -690,12 +684,9 @@ retry:
     }
 }
 
-/** like cat(), but creates and returns a new container sized as needed to contain
+/** like c4::cat(), but creates and returns a new container sized as needed to contain
  * the result.
- *
- * @see cat()
- * @overload catrs
- * @ingroup formatting_functions */
+ * @see c4::cat() */
 template<class CharOwningContainer, class... Args>
 inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
 {
@@ -704,14 +695,11 @@ inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
     return cont;
 }
 
-/** like cat(), but receives a container, and appends to it instead of
+/** like c4::cat(), but receives a container, and appends to it instead of
  * overwriting it. The container is resized as needed to contain the result.
- *
  * @return the region newly appended to the original container
- * @see cat()
- * @see catrs()
- * @overload catrs
- * @ingroup formatting_functions */
+ * @see c4::cat()
+ * @see c4::catrs() */
 template<class CharOwningContainer, class... Args>
 inline csubstr catrs(append_t, CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
@@ -727,22 +715,22 @@ retry:
     return to_csubstr(*cont).range(pos, cont->size());
 }
 
+
 //-----------------------------------------------------------------------------
 
-/** like catsep(), but receives a container, and resizes it as needed to contain the result.
- * The container is overwritten. To append to the container use the append overload.
- * @see catsep()
- * @ingroup formatting_functions */
+/// @cond dev
+// terminates the recursion
 template<class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer * C4_RESTRICT, Sep const& C4_RESTRICT)
 {
     return;
 }
+/// @end cond
 
-/** like catsep(), but receives a container, and resizes it as needed to contain the result.
+
+/** like c4::catsep(), but receives a container, and resizes it as needed to contain the result.
  * The container is overwritten. To append to the container use the append overload.
- * @see catsep()
- * @ingroup formatting_functions */
+ * @see c4::catsep() */
 template<class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
@@ -756,17 +744,16 @@ retry:
     }
 }
 
-/** like catsep(), but create a container with the result.
- * @overload catseprs
- * @return the requested container
- * @ingroup formatting_functions */
+/** like c4::catsep(), but create a new container with the result.
+ * @return the requested container */
 template<class CharOwningContainer, class Sep, class... Args>
 inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
     CharOwningContainer cont;
-    catseprs(&cont, std::cref(sep), args...);
+    catseprs(&cont, sep, args...);
     return cont;
 }
+
 
 /// @cond dev
 // terminates the recursion
@@ -800,11 +787,10 @@ retry:
 
 //-----------------------------------------------------------------------------
 
-/** like format(), but receives a container, and resizes it as needed
+/** like c4::format(), but receives a container, and resizes it as needed
  * to contain the result.  The container is overwritten. To append to
  * the container use the append overload.
- * @see format()
- * @ingroup formatting_functions */
+ * @see c4::format() */
 template<class CharOwningContainer, class... Args>
 inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
@@ -818,9 +804,8 @@ retry:
     }
 }
 
-/**
- * @overload formatrs
- * @ingroup formatting_functions */
+/** like c4::format(), but create a new container with the result.
+ * @return the requested container */
 template<class CharOwningContainer, class... Args>
 inline CharOwningContainer formatrs(csubstr fmt, Args const& C4_RESTRICT ...args)
 {
