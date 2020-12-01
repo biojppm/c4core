@@ -899,7 +899,7 @@ template<class T> void test_raw_roundtrip(const char *valstr, T const& orig)
     alignas(alignof(T)) char buf_[2 * (sizeof(T) + alignof(T))] = {};
     substr buf = buf_;
 
-    fmt::const_raw_wrapper rawwrap = fmt::craw(orig);
+    fmt::const_raw_wrapper rawwrap = fmt::raw(orig);
     REQUIRE_EQ((void*)rawwrap.buf, (void*)&orig);
     REQUIRE_EQ(rawwrap.len, sizeof(orig));
 
@@ -908,7 +908,7 @@ template<class T> void test_raw_roundtrip(const char *valstr, T const& orig)
         INFO(" i=" << i);
         // make sure to cover unaligned buffers
         substr sbuf = buf.sub(i);
-        size_t szwrite = c4::to_chars(sbuf, fmt::craw(orig));
+        size_t szwrite = c4::to_chars(sbuf, fmt::raw(orig));
         REQUIRE_LE(szwrite, sbuf.len);
         if(i == 0)
         {
@@ -927,7 +927,7 @@ template<class T> void test_raw_roundtrip(const char *valstr, T const& orig)
         // cover also insufficient buffers
         sbuf = sbuf.first(sizeof(T)-1);
         memset(buf.str, 0, buf.len);
-        szwrite = c4::to_chars(sbuf, fmt::craw(orig));
+        szwrite = c4::to_chars(sbuf, fmt::raw(orig));
         REQUIRE_GT(szwrite, sbuf.len);
         for(char c : buf)
         {

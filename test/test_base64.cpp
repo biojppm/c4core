@@ -18,7 +18,7 @@ void test_base64_str(T const& val, csubstr expected, U *ws)
     char buf_[512];
     substr buf(buf_);
 
-    csubstr encoded = to_chars_sub(buf, fmt::cbase64(val));
+    csubstr encoded = to_chars_sub(buf, fmt::base64(val));
     CHECK(base64_valid(encoded));
     CHECK_EQ(encoded, expected);
     CHECK_EQ(encoded.len % 4, 0);
@@ -34,7 +34,7 @@ void test_base64(T const& val, csubstr expected, T *ws)
     char buf_[512];
     substr buf(buf_);
 
-    csubstr encoded = to_chars_sub(buf, fmt::cbase64(val));
+    csubstr encoded = to_chars_sub(buf, fmt::base64(val));
     CHECK(base64_valid(encoded));
     CHECK_EQ(encoded, expected);
     CHECK_EQ(encoded.len % 4, 0);

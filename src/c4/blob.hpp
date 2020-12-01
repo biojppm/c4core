@@ -9,13 +9,6 @@
 
 namespace c4 {
 
-template<class T> struct blob_;
-
-/** an immutable binary blob */
-using cblob = blob_<cbyte>;
-/** a mutable binary blob */
-using  blob = blob_< byte>;
-
 template<class T>
 struct blob_
 {
@@ -43,6 +36,11 @@ struct blob_
     C4_ALWAYS_INLINE blob_(void       *ptr, size_t n) noexcept : buf(reinterpret_cast<T*>(ptr)), len(n) {}
     C4_ALWAYS_INLINE blob_(void const *ptr, size_t n) noexcept : buf(reinterpret_cast<T*>(ptr)), len(n) {}
 };
+
+/** an immutable binary blob */
+using cblob = blob_<cbyte>;
+/** a mutable binary blob */
+using  blob = blob_< byte>;
 
 C4_MUST_BE_TRIVIAL_COPY(blob);
 C4_MUST_BE_TRIVIAL_COPY(cblob);
