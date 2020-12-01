@@ -516,9 +516,9 @@ size_t itoa(substr buf, T v, T radix)
     case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v);
     case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v);
     case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v);
-    default:
-        C4_NEVER_REACH();
     }
+    C4_UNREACHABLE();
+    return substr::npos;
 }
 
 
@@ -533,6 +533,7 @@ template<class T>
 size_t itoa(substr buf, T v, T radix, size_t num_digits)
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
     size_t pos = 0;
     if(v < 0)
     {
@@ -547,6 +548,7 @@ size_t itoa(substr buf, T v, T radix, size_t num_digits)
     case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
     }
     C4_UNREACHABLE();
+    return substr::npos;
 }
 
 
@@ -581,9 +583,9 @@ size_t utoa(substr buf, T v, T radix)
     case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v);
     case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v);
     case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v);
-    default:
-        C4_NEVER_REACH();
     }
+    C4_UNREACHABLE();
+    return substr::npos;
 }
 
 /** same as c4::itoa(), but pad with zeroes on the left such that the
@@ -605,9 +607,9 @@ size_t utoa(substr buf, T v, T radix, size_t num_digits)
     case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
     case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
     case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
-    default:
-        C4_NEVER_REACH();
     }
+    C4_UNREACHABLE();
+    return substr::npos;
 }
 
 

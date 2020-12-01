@@ -225,7 +225,7 @@ void test_itoa_num_digits(substr buf, T val, T radix, size_t digits, csubstr exp
         INFO("i=" << i);
         buf.fill('?');
         ret = xtoa_fn(buf.first(i), val, radix, digits);
-        CHECK_EQ(buf.sub(i).first_not_of('?'), substr::npos);
+        CHECK_EQ(buf.sub(i).first_not_of('?'), (size_t)substr::npos);
         CHECK_EQ(ret, expected.len);
     }
 
@@ -239,7 +239,6 @@ TEST_CASE("itoa.num_digits")
 {
     char bufc[128];
     substr buf = bufc;
-    size_t ret;
 
     test_itoa_num_digits<int, &itoa<int>>(buf,  10, 10, 0, "10");
     test_itoa_num_digits<int, &itoa<int>>(buf, -10, 10, 0, "-10");
@@ -294,7 +293,6 @@ TEST_CASE("utoa.num_digits")
 {
     char bufc[128];
     substr buf = bufc;
-    size_t ret;
 
     test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 10, 0, "10");
     test_itoa_num_digits<uint32_t, &utoa<uint32_t>>(buf,  10, 10, 1, "10");
