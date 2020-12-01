@@ -76,6 +76,16 @@ struct integral_
     C4_ALWAYS_INLINE integral_(T val_, T radix_) : val(val_), radix(radix_) {}
 };
 
+/** format an integral type with a custom radix, and pad with zeroes on the left */
+template<typename T>
+struct integral_padded_
+{
+    T val;
+    T radix;
+    size_t num_digits;
+    C4_ALWAYS_INLINE integral_padded_(T val_, T radix_, size_t nd) : val(val_), radix(radix_), num_digits(nd) {}
+};
+
 /** format an integral type with a custom radix */
 template<class T>
 C4_ALWAYS_INLINE integral_<T> integral(T val, T radix=10)
@@ -94,6 +104,34 @@ C4_ALWAYS_INLINE integral_<intptr_t> integral(std::nullptr_t, T radix=10)
 {
     return integral_<intptr_t>(intptr_t(0), static_cast<intptr_t>(radix));
 }
+/** pad the argument with zeroes on the left, with decimal radix */
+template<class T>
+C4_ALWAYS_INLINE integral_padded_<T> zpad(T val, size_t num_digits)
+{
+    return integral_padded_<T>(val, T(10), num_digits);
+}
+/** pad the argument with zeroes on the left */
+template<class T>
+C4_ALWAYS_INLINE integral_padded_<T> zpad(integral_<T> val, size_t num_digits)
+{
+    return integral_padded_<T>(val.val, val.radix, num_digits);
+}
+/** pad the argument with zeroes on the left */
+C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(std::nullptr_t, size_t num_digits)
+{
+    return integral_padded_<intptr_t>(0, 16, num_digits);
+}
+/** pad the argument with zeroes on the left */
+template<class T>
+C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(T const* val, size_t num_digits)
+{
+    return integral_padded_<intptr_t>(reinterpret_cast<intptr_t>(val), 16, num_digits);
+}
+template<class T>
+C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(T * val, size_t num_digits)
+{
+    return integral_padded_<intptr_t>(reinterpret_cast<intptr_t>(val), 16, num_digits);
+}
 
 #if C4_CPP >= 17
 /** format an integral_ type, C++17 version */
@@ -110,6 +148,20 @@ C4_ALWAYS_INLINE size_t to_chars(substr buf, integral_<T> fmt)
         return utoa(buf, fmt.val, fmt.radix);
     }
 }
+/** format an integral_ type, C++17 version */
+template<typename T>
+C4_ALWAYS_INLINE size_t to_chars(substr buf, integral_padded_<T> fmt)
+{
+    if constexpr (std::is_signed_v<T>)
+    {
+        return itoa(buf, fmt.val, fmt.radix, fmt.num_digits);
+    }
+    else
+    {
+        static_assert(std::is_unsigned_v<T>);
+        return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
+    }
+}
 #else
 /** format an integral_ signed type */
 template<typename T>
@@ -118,6 +170,14 @@ typename std::enable_if<std::is_signed<T>::value, size_t>::type
 to_chars(substr buf, integral_<T> fmt)
 {
     return itoa(buf, fmt.val, fmt.radix);
+}
+/** format an integral_ signed type, pad with zeroes */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if<std::is_signed<T>::value, size_t>::type
+to_chars(substr buf, integral_padded_<T> fmt)
+{
+    return itoa(buf, fmt.val, fmt.radix, fmt.num_digits);
 }
 
 /** format an integral_ unsigned type */

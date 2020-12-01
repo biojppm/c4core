@@ -35,6 +35,19 @@ TEST_CASE_TEMPLATE("to_chars.fmt.bin", T, uint8_t, int8_t, uint16_t, int16_t, ui
     CHECK_EQ(to_chars_sub(buf, fmt::bin(nullptr)), "0b0");
 }
 
+TEST_CASE_TEMPLATE("to_chars.fmt.zpad.bin", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t)
+{
+    char bufc[128];
+    substr buf(bufc);
+    using namespace fmt;
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(T(21), T(2)), 8u)), "0b00010101");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral((T*)21, T(2)), 8u)), "0b00010101");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral((T const*)21, T(2)), 8u)), "0b00010101");
+    CHECK_EQ(to_chars_sub(buf, zpad(bin(T(21)), 8u)), "0b00010101");
+    CHECK_EQ(to_chars_sub(buf, zpad(bin((T*)21), 8u)), "0b00010101");
+    CHECK_EQ(to_chars_sub(buf, zpad(bin((T const*)21), 8u)), "0b00010101");
+}
+
 TEST_CASE_TEMPLATE("to_chars.fmt.oct", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t)
 {
     char bufc[128];
@@ -50,11 +63,23 @@ TEST_CASE_TEMPLATE("to_chars.fmt.oct", T, uint8_t, int8_t, uint16_t, int16_t, ui
     CHECK_EQ(to_chars_sub(buf, fmt::oct(nullptr)), "0o0");
 }
 
+TEST_CASE_TEMPLATE("to_chars.fmt.zpad.oct", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t)
+{
+    char bufc[128];
+    substr buf(bufc);
+    using namespace fmt;
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(T(65), T(8)), 5u)), "0o00101");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral((T*)65, T(8)), 5u)), "0o00101");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral((T const*)65, T(8)), 5u)), "0o00101");
+    CHECK_EQ(to_chars_sub(buf, zpad(oct(T(65)), 5u)), "0o00101");
+    CHECK_EQ(to_chars_sub(buf, zpad(oct((T*)65), 5u)), "0o00101");
+    CHECK_EQ(to_chars_sub(buf, zpad(oct((T const*)65), 5u)), "0o00101");
+}
+
 TEST_CASE_TEMPLATE("to_chars.fmt.hex", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t)
 {
     char bufc[128];
     substr buf(bufc);
-
     CHECK_EQ(to_chars_sub(buf, fmt::integral(T(0x7f), T(16))), "0x7f");
     CHECK_EQ(to_chars_sub(buf, fmt::integral((T*)0x7f, T(16))), "0x7f");
     CHECK_EQ(to_chars_sub(buf, fmt::integral((T const*)0x7f, T(16))), "0x7f");
@@ -63,6 +88,61 @@ TEST_CASE_TEMPLATE("to_chars.fmt.hex", T, uint8_t, int8_t, uint16_t, int16_t, ui
     CHECK_EQ(to_chars_sub(buf, fmt::hex((T*)0x7f)), "0x7f");
     CHECK_EQ(to_chars_sub(buf, fmt::hex((T const*)0x7f)), "0x7f");
     CHECK_EQ(to_chars_sub(buf, fmt::hex(nullptr)), "0x0");
+}
+
+TEST_CASE_TEMPLATE("to_chars.fmt.zpad.hex", T, uint8_t, int8_t)
+{
+    char bufc[128];
+    substr buf(bufc);
+    using namespace fmt;
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(T(0x7f), T(16)), 5u)), "0x0007f");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral((T*)0x7f, T(16)), 5u)), "0x0007f");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral((T const*)0x7f, T(16)), 5u)), "0x0007f");
+    CHECK_EQ(to_chars_sub(buf, zpad(hex(T(0x7f)), 5u)), "0x0007f");
+    CHECK_EQ(to_chars_sub(buf, zpad(hex((T*)0x7f), 5u)), "0x0007f");
+    CHECK_EQ(to_chars_sub(buf, zpad(hex((T const*)0x7f), 5u)), "0x0007f");
+}
+
+
+TEST_CASE_TEMPLATE("to_chars.fmt.zpad", T, uint8_t, int8_t)
+{
+    char bufc[128];
+    substr buf(bufc);
+    using namespace fmt;
+    CHECK_EQ(to_chars_sub(buf, zpad(T(10), 0)), "10");
+    CHECK_EQ(to_chars_sub(buf, zpad(T(10), 1)), "10");
+    CHECK_EQ(to_chars_sub(buf, zpad(T(10), 2)), "10");
+    CHECK_EQ(to_chars_sub(buf, zpad(T(10), 3)), "010");
+    CHECK_EQ(to_chars_sub(buf, zpad(T(10), 4)), "0010");
+    CHECK_EQ(to_chars_sub(buf, zpad((T const*)17, 0)), "0x11");
+    CHECK_EQ(to_chars_sub(buf, zpad((T const*)17, 1)), "0x11");
+    CHECK_EQ(to_chars_sub(buf, zpad((T const*)17, 2)), "0x11");
+    CHECK_EQ(to_chars_sub(buf, zpad((T const*)17, 3)), "0x011");
+    CHECK_EQ(to_chars_sub(buf, zpad((T const*)17, 4)), "0x0011");
+    CHECK_EQ(to_chars_sub(buf, zpad((T *)17, 0)), "0x11");
+    CHECK_EQ(to_chars_sub(buf, zpad((T *)17, 1)), "0x11");
+    CHECK_EQ(to_chars_sub(buf, zpad((T *)17, 2)), "0x11");
+    CHECK_EQ(to_chars_sub(buf, zpad((T *)17, 3)), "0x011");
+    CHECK_EQ(to_chars_sub(buf, zpad((T *)17, 4)), "0x0011");
+    CHECK_EQ(to_chars_sub(buf, zpad(nullptr, 0)), "0x0");
+    CHECK_EQ(to_chars_sub(buf, zpad(nullptr, 1)), "0x0");
+    CHECK_EQ(to_chars_sub(buf, zpad(nullptr, 2)), "0x00");
+    CHECK_EQ(to_chars_sub(buf, zpad(nullptr, 3)), "0x000");
+    CHECK_EQ(to_chars_sub(buf, zpad(nullptr, 4)), "0x0000");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(nullptr, T(10)), 0u)), "0");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(nullptr, T(16)), 0u)), "0x0");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(nullptr, T(2)), 0u)), "0b0");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(nullptr, T(8)), 0u)), "0o0");
+    CHECK_EQ(to_chars_sub(buf, zpad(hex(nullptr), 0u)), "0x0");
+    CHECK_EQ(to_chars_sub(buf, zpad(bin(nullptr), 0u)), "0b0");
+    CHECK_EQ(to_chars_sub(buf, zpad(oct(nullptr), 0u)), "0o0");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(nullptr, T(10)), 5u)), "00000");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(nullptr, T(16)), 5u)), "0x00000");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(nullptr, T(2)), 5u)), "0b00000");
+    CHECK_EQ(to_chars_sub(buf, zpad(integral(nullptr, T(8)), 5u)), "0o00000");
+    CHECK_EQ(to_chars_sub(buf, zpad(hex(nullptr), 5u)), "0x00000");
+    CHECK_EQ(to_chars_sub(buf, zpad(bin(nullptr), 5u)), "0b00000");
+    CHECK_EQ(to_chars_sub(buf, zpad(oct(nullptr), 5u)), "0o00000");
 }
 
 
