@@ -706,7 +706,7 @@ template<class T>
 size_t utoa(substr buf, T v, T radix)
 {
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
-    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    C4_ASSERT(radix == 10 || radix == 16 || radix == 2 || radix == 8);
     size_t pos = 0;
     switch(radix)
     {
@@ -719,7 +719,7 @@ size_t utoa(substr buf, T v, T radix)
     return substr::npos;
 }
 
-/** same as c4::itoa(), but pad with zeroes on the left such that the
+/** same as c4::utoa(), but pad with zeroes on the left such that the
  * resulting string is @p num_digits wide. The @p radix must be 2,
  * 8, 10 or 16.  The resulting string is NOT zero-terminated.  Writing
  * stops at the buffer's end.
@@ -730,7 +730,7 @@ template<class T>
 size_t utoa(substr buf, T v, T radix, size_t num_digits)
 {
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
-    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    C4_ASSERT(radix == 10 || radix == 16 || radix == 2 || radix == 8);
     size_t pos = 0;
     switch(radix)
     {
@@ -748,16 +748,19 @@ size_t utoa(substr buf, T v, T radix, size_t num_digits)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** Convert a trimmed string to a signed integral value. The value can be
- * formatted as decimal, binary (prefix 0b or 0B), octal (prefix 0o or 0O) or
- * hexadecimal (prefix 0x or 0X). Every character in the input string is read
- * for the conversion; it must not contain any leading or trailing
- * whitespace.
+/** Convert a trimmed string to a signed integral value. The string
+ * can be formatted as decimal, binary (prefix 0b or 0B), octal
+ * (prefix 0o or 0O) or hexadecimal (prefix 0x or 0X). Strings with
+ * leading zeroes are considered as decimal. Every character in the
+ * input string is read for the conversion; it must not contain any
+ * leading or trailing whitespace.
  *
  * @return true if the conversion was successful.
- * @note no range checking is performed: the return status is true even if the
- * conversion would return a value outside of the type's range, in which case
- * it wraps around, just like the underlying type
+ *
+ * @note overflow is not detected: the return status is true even if
+ * the conversion would return a value outside of the type's range, in
+ * which case the result will wrap around the type's range. This is similar to, just like the native.
+ *
  * @see atoi_first() if the string is not trimmed to the value to read. */
 template<class T>
 bool atoi(csubstr str, T * C4_RESTRICT v)
@@ -871,14 +874,20 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
 
 //-----------------------------------------------------------------------------
 
-/** Convert a trimmed string to an unsigned integral value. The value can be
+/** Convert a trimmed string to an unsigned integral value. The string can be
  * formatted as decimal, binary (prefix 0b or 0B), octal (prefix 0o or 0O)
  * or hexadecimal (prefix 0x or 0X). Every character in the input string is read
  * for the conversion; it must not contain any leading or trailing whitespace.
- * @return true if the conversion was successful. Note that no range
- * checking is performed: the return status is true even if the
- * conversion would return a value outside of the type's range. If the string
- * has a minus character, the return status will be false.
+ *
+ * @return true if the conversion was successful.
+ *
+ * @note overflow is not detected: the return status is true even if
+ * the conversion would return a value outside of the type's range, in
+ * which case the result will wrap around the type's range.
+ *
+ * @note If the string has a minus character, the return status
+ * will be false.
+ *
  * @see atou_first() if the string is not trimmed to the value to read. */
 template<class T>
 bool atou(csubstr str, T * C4_RESTRICT v)
