@@ -18,30 +18,6 @@
 
 namespace c4 {
 
-TEST_CASE("itoa.int8_t")
-{
-    char bufc[64];
-    substr buf = bufc;
-    int8_t val = -128;
-    size_t ret = itoa(buf, val);
-    CHECK_EQ(buf.first(ret), "-128");
-    val = 127;
-    ret = itoa(buf, val);
-    CHECK_EQ(buf.first(ret), "127");
-}
-
-TEST_CASE("itoa.int16_t")
-{
-    char bufc[64];
-    substr buf = bufc;
-    int16_t val = -32768;
-    size_t ret = itoa(buf, val);
-    CHECK_EQ(buf.first(ret), "-32768");
-    val = 32767;
-    ret = itoa(buf, val);
-    CHECK_EQ(buf.first(ret), "32767");
-}
-
 TEST_CASE("itoa.shortbuf")
 {
     char buf0_[1];
@@ -894,6 +870,114 @@ TEST_CASE_TEMPLATE("atou.false_parse", T, uint8_t, uint16_t, uint32_t, uint64_t,
 }
 
 
+template<class T>
+void test_itoa_range_min(csubstr dec, csubstr hex, csubstr oct, csubstr bin)
+{
+    char buf_[128];
+    substr buf(buf_);
+    size_t ret;
+
+    constexpr const T min = std::numeric_limits<T>::min();
+
+    INFO("min=" << int64_t(min));
+    INFO("expected dec=" << dec);
+    INFO("expected hex=" << hex);
+    INFO("expected oct=" << oct);
+    INFO("expected bin=" << bin);
+
+    CHECK_EQ(T(-min), T(min));
+    {
+        INFO("vanilla itoa");
+        ret = itoa(buf, min);
+        CHECK_EQ(ret, dec.len);
+        CHECK_EQ(buf.first(ret), dec);
+    }
+    {
+        INFO("radix itoa, 10");
+        ret = itoa(buf, min, T(10));
+        CHECK_EQ(ret, dec.len);
+        CHECK_EQ(buf.first(ret), dec);
+    }
+    {
+        INFO("radix itoa, 16");
+        ret = itoa(buf, min, T(16));
+        CHECK_EQ(ret, hex.len);
+        CHECK_EQ(buf.first(ret), hex);
+    }
+    {
+        INFO("radix itoa, 8");
+        ret = itoa(buf, min, T(8));
+        CHECK_EQ(ret, oct.len);
+        CHECK_EQ(buf.first(ret), oct);
+    }
+    {
+        INFO("radix itoa, 2");
+        ret = itoa(buf, min, T(2));
+        CHECK_EQ(ret, bin.len);
+        CHECK_EQ(buf.first(ret), bin);
+    }
+
+    for(size_t num_digits = dec.len; num_digits < dec.len + 10; ++num_digits)
+    {
+        INFO("radix itoa, 10, num_digits=" << num_digits);
+        ret = itoa(buf, min, T(10), num_digits);
+        REQUIRE_GE(ret, dec.len);
+        csubstr num = buf.first(ret);
+        INFO("num=" << num);
+        CHECK_EQ(num[0], '-');
+        CHECK_EQ(ret, 1 + num_digits); // add 1 for the signal
+        // remove the signal
+        num = num.sub(1);
+        REQUIRE_EQ(num.first_not_of('0'), ret - dec.len);
+        CHECK_EQ(num.triml('0'), dec.sub(1));
+    }
+
+    for(size_t num_digits = hex.len; num_digits < hex.len + 10; ++num_digits)
+    {
+        INFO("radix itoa, 16, num_digits=" << num_digits);
+        ret = itoa(buf, min, T(16), num_digits);
+        REQUIRE_GE(ret, hex.len);
+        csubstr num = buf.first(ret);
+        INFO("num=" << num);
+        CHECK(num.begins_with("-0x"));
+        CHECK_EQ(ret, 1 + 2 + num_digits); // add 1 for the signal
+        // remove the signal and prefix
+        num = num.sub(1 + 2);
+        REQUIRE_EQ(num.first_not_of('0'), ret - hex.len);
+        CHECK_EQ(num.triml('0'), hex.sub(1 + 2));
+    }
+
+    for(size_t num_digits = oct.len; num_digits < oct.len + 10; ++num_digits)
+    {
+        INFO("radix itoa, 16, num_digits=" << num_digits);
+        ret = itoa(buf, min, T(8), num_digits);
+        REQUIRE_GE(ret, oct.len);
+        csubstr num = buf.first(ret);
+        INFO("num=" << num);
+        CHECK(num.begins_with("-0o"));
+        CHECK_EQ(ret, 1 + 2 + num_digits); // add 1 for the signal
+        // remove the signal and prefix
+        num = num.sub(1 + 2);
+        REQUIRE_EQ(num.first_not_of('0'), ret - oct.len);
+        CHECK_EQ(num.triml('0'), oct.sub(1 + 2));
+    }
+
+    for(size_t num_digits = bin.len; num_digits < bin.len + 10; ++num_digits)
+    {
+        INFO("radix itoa, 16, num_digits=" << num_digits);
+        ret = itoa(buf, min, T(2), num_digits);
+        REQUIRE_GE(ret, bin.len);
+        csubstr num = buf.first(ret);
+        INFO("num=" << num);
+        CHECK(num.begins_with("-0b"));
+        CHECK_EQ(ret, 1 + 2 + num_digits); // add 1 for the signal
+        // remove the signal and prefix
+        num = num.sub(1 + 2);
+        REQUIRE_EQ(num.first_not_of('0'), ret - bin.len);
+        CHECK_EQ(num.triml('0'), bin.sub(1 + 2));
+    }
+}
+
 //-----------------------------------------------------------------------------
 
 TEST_CASE("atoi.range_i8")
@@ -908,6 +992,11 @@ TEST_CASE("atoi.range_i8")
     Ti(int8_t,  "127",  "0x7F",  "0o177",  "0b01111111",  127);
     Ti(int8_t,  "128",  "0x80",  "0o200",  "0b10000000", -128);
     Ti(int8_t,  "129",  "0x81",  "0o201",  "0b10000001", -127);
+}
+
+TEST_CASE("itoa.range_i8")
+{
+    test_itoa_range_min<int8_t>("-128", "-0x80", "-0o200", "-0b10000000");
 }
 
 TEST_CASE("atou.range_u8")
@@ -941,6 +1030,11 @@ TEST_CASE("atoi.range_i16")
     Ti(int16_t,  "32769",  "0x8001",  "0o100001",  "0b1000000000000001", -32767);
 }
 
+TEST_CASE("itoa.range_i16")
+{
+    test_itoa_range_min<int16_t>("-32768", "-0x8000", "-0o100000", "-0b1000000000000000");
+}
+
 TEST_CASE("atou.range_u16")
 {
     Fu(uint16_t, "-1");
@@ -962,17 +1056,22 @@ TEST_CASE("atoi.range_i32")
     Ti(int32_t, "-2147483649", "-0x80000001", "-0o20000000001", "-0b10000000000000000000000000000001",  max  );
     Ti(int32_t, "-2147483648", "-0x80000000", "-0o20000000000", "-0b10000000000000000000000000000000",  min  );
     Ti(int32_t, "-2147483647", "-0x7fffffff", "-0o17777777777", "-0b01111111111111111111111111111111",  min+1);
-    Ti(int32_t, "-2147483647", "-0x7FFFFFFF", "-0o17777777777", "-0b01111111111111111111111111111111",  min+1);
+    Ti(int32_t, "-2147483647", "-0x7FFFFFFF", "-0O17777777777", "-0B01111111111111111111111111111111",  min+1);
     Ti(int32_t, "-2147483646", "-0x7ffffffe", "-0o17777777776", "-0b01111111111111111111111111111110",  min+2);
-    Ti(int32_t, "-2147483646", "-0x7FFFFFFE", "-0o17777777776", "-0b01111111111111111111111111111110",  min+2);
+    Ti(int32_t, "-2147483646", "-0x7FFFFFFE", "-0O17777777776", "-0B01111111111111111111111111111110",  min+2);
     Ti(int32_t, "-0"         , "-0x0"       , "-0o0"          , "-0b0"                               ,      0);
     Ti(int32_t,  "0"         ,  "0x0"       ,  "0o0"          ,  "0b0"                               ,      0);
     Ti(int32_t,  "2147483646",  "0x7ffffffe",  "0o17777777776",  "0b01111111111111111111111111111110",  max-1);
-    Ti(int32_t,  "2147483646",  "0x7FFFFFFE",  "0o17777777776",  "0b01111111111111111111111111111110",  max-1);
+    Ti(int32_t,  "2147483646",  "0X7FFFFFFE",  "0O17777777776",  "0B01111111111111111111111111111110",  max-1);
     Ti(int32_t,  "2147483647",  "0x7fffffff",  "0o17777777777",  "0b01111111111111111111111111111111",  max  );
-    Ti(int32_t,  "2147483647",  "0x7FFFFFFF",  "0o17777777777",  "0b01111111111111111111111111111111",  max  );
+    Ti(int32_t,  "2147483647",  "0X7FFFFFFF",  "0O17777777777",  "0b01111111111111111111111111111111",  max  );
     Ti(int32_t,  "2147483648",  "0x80000000",  "0o20000000000",  "0b10000000000000000000000000000000",  min  );
     Ti(int32_t,  "2147483649",  "0x80000001",  "0o20000000001",  "0b10000000000000000000000000000001",  min+1);
+}
+
+TEST_CASE("itoa.range_i32")
+{
+    test_itoa_range_min<int32_t>("-2147483648", "-0x80000000", "-0o20000000000", "-0b10000000000000000000000000000000");
 }
 
 TEST_CASE("atou.range_u32")
@@ -1014,6 +1113,11 @@ TEST_CASE("atoi.range_i64")
     Ti(int64_t,  "9223372036854775808",  "0x8000000000000000",  "0o1000000000000000000000",  "0b1000000000000000000000000000000000000000000000000000000000000000", min  );
     Ti(int64_t,  "9223372036854775809",  "0x8000000000000001",  "0o1000000000000000000001",  "0b1000000000000000000000000000000000000000000000000000000000000001", min+1);
     Ti(int64_t,  "9223372036854775810",  "0x8000000000000002",  "0o1000000000000000000002",  "0b1000000000000000000000000000000000000000000000000000000000000010", min+2);
+}
+
+TEST_CASE("itoa.range_i64")
+{
+    test_itoa_range_min<int64_t>("-9223372036854775808", "-0x8000000000000000", "-0o1000000000000000000000", "-0b1000000000000000000000000000000000000000000000000000000000000000");
 }
 
 TEST_CASE("atou.range_u64")

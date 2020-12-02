@@ -31,7 +31,7 @@ function(c4core_test name)
         INC_DIRS ${CMAKE_CURRENT_LIST_DIR}
         LIBS c4core-_libtest
         FOLDER test)
-    c4_add_test(c4core-test-${name})
+    c4_add_test(c4core-test-${name} ARGS --duration=on --no-version=on)
 endfunction()
 
 c4core_test(preprocessor     test_preprocessor.cpp)

@@ -210,6 +210,67 @@ template<class T> size_t xtoa(substr s, T v);
 #define _c4appendhex(i) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = hexchars[i]; } else { ++pos; } }
 
 
+namespace detail {
+template<class T>
+C4_NO_INLINE size_t write_dec_neg(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(v < 0);
+    size_t pos = 0;
+    do {
+        _c4append('0' - v % T(10));
+        v /= T(10);
+    } while(v);
+    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    return pos;
+}
+template<class T>
+C4_NO_INLINE size_t write_hex_neg(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(v < 0);
+    constexpr const char hexchars[] = "0123456789abcdef";
+    size_t pos = 0;
+    do {
+        _c4appendhex(-(v % T(16)));
+        v /= 16;
+    } while(v);
+    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    return pos;
+}
+template<class T>
+C4_NO_INLINE size_t write_oct_neg(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(v < 0);
+    size_t pos = 0;
+    do {
+        _c4append('0' - (v % T(8)));
+        v /= 8;
+    } while(v);
+    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    return pos;
+}
+template<class T>
+C4_NO_INLINE size_t write_bin_neg(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(v < 0);
+    size_t pos = 0;
+    do {
+        _c4append('0' - (v % T(2)));
+        v /= 2;
+    } while(v);
+    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    return pos;
+}
+} // namespace detail
+
+
 /** write an integer to a string in decimal format. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
@@ -229,6 +290,7 @@ size_t write_dec(substr buf, T v)
     buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
     return pos;
 }
+
 
 /** write an integer to a string in hexadecimal format. This is the
  * lowest level (and the fastest) function to do this task.
@@ -296,8 +358,8 @@ size_t write_bin(substr buf, T v)
 
 namespace detail {
 template<class U> using NumberWriter = size_t (*)(substr, U);
-template<class T, NumberWriter<T> writer>
-size_t write_num_digits(substr buf, T v, size_t num_digits)
+template<class T>
+size_t write_num_digits(NumberWriter<T> writer, substr buf, T v, size_t num_digits)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     size_t ret = writer(buf, v);
@@ -322,36 +384,36 @@ size_t write_num_digits(substr buf, T v, size_t num_digits)
  * such that the resulting string is @p num_digits wide.
  * If the given number is wider than num_digits, then the number prevails. */
 template<class T>
-C4_ALWAYS_INLINE size_t write_dec(substr buf, T val, size_t num_digits)
+size_t write_dec(substr buf, T val, size_t num_digits)
 {
-    return detail::write_num_digits<T, &write_dec<T>>(buf, val, num_digits);
+    return detail::write_num_digits<T>(&write_dec<T>, buf, val, num_digits);
 }
 
 /** same as c4::write_hex(), but pad with zeroes on the left
  * such that the resulting string is @p num_digits wide.
  * If the given number is wider than num_digits, then the number prevails. */
 template<class T>
-C4_ALWAYS_INLINE size_t write_hex(substr buf, T val, size_t num_digits)
+size_t write_hex(substr buf, T val, size_t num_digits)
 {
-    return detail::write_num_digits<T, &write_hex<T>>(buf, val, num_digits);
+    return detail::write_num_digits<T>(&write_hex<T>, buf, val, num_digits);
 }
 
 /** same as c4::write_bin(), but pad with zeroes on the left
  * such that the resulting string is @p num_digits wide.
  * If the given number is wider than num_digits, then the number prevails. */
 template<class T>
-C4_ALWAYS_INLINE size_t write_bin(substr buf, T val, size_t num_digits)
+size_t write_bin(substr buf, T val, size_t num_digits)
 {
-    return detail::write_num_digits<T, &write_bin<T>>(buf, val, num_digits);
+    return detail::write_num_digits<T>(&write_bin<T>, buf, val, num_digits);
 }
 
 /** same as c4::write_oct(), but pad with zeroes on the left
  * such that the resulting string is @p num_digits wide.
  * If the given number is wider than num_digits, then the number prevails. */
 template<class T>
-C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits)
+size_t write_oct(substr buf, T val, size_t num_digits)
 {
-    return detail::write_num_digits<T, &write_oct<T>>(buf, val, num_digits);
+    return detail::write_num_digits<T>(&write_oct<T>, buf, val, num_digits);
 }
 
 
@@ -472,6 +534,60 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+namespace detail {
+template<class T>
+C4_NO_INLINE size_t itoa_neg(substr buf, T v)
+{
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(v < 0);
+    if(buf.len > 0)
+    {
+        buf.str[0] = '-';
+        return size_t(1) + detail::write_dec_neg(buf.sub(1), v);
+    }
+    return size_t(1) + detail::write_dec_neg({}, v);
+}
+
+template<class T>
+C4_NO_INLINE size_t itoa_neg(substr buf, T v, T radix)
+{
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    C4_ASSERT(v < 0);
+    size_t pos = 0;
+    _c4append('-');
+    switch(radix)
+    {
+    case 10:                                 return pos + detail::write_dec_neg(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 16: _c4append('0'); _c4append('x'); return pos + detail::write_hex_neg(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 2 : _c4append('0'); _c4append('b'); return pos + detail::write_bin_neg(pos < buf.len ? buf.sub(pos) : substr(), v);
+    case 8 : _c4append('0'); _c4append('o'); return pos + detail::write_oct_neg(pos < buf.len ? buf.sub(pos) : substr(), v);
+    }
+    C4_UNREACHABLE();
+    return substr::npos;
+}
+
+template<class T>
+C4_NO_INLINE size_t itoa_neg(substr buf, T v, T radix, size_t num_digits)
+{
+    C4_STATIC_ASSERT(std::is_signed<T>::value);
+    C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    C4_ASSERT(v < 0);
+    size_t pos = 0;
+    _c4append('-');
+    switch(radix)
+    {
+    case 10:                                 return pos + detail::write_num_digits<T>(&detail::write_dec_neg<T>, pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 16: _c4append('0'); _c4append('x'); return pos + detail::write_num_digits<T>(&detail::write_hex_neg<T>, pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 2 : _c4append('0'); _c4append('b'); return pos + detail::write_num_digits<T>(&detail::write_bin_neg<T>, pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    case 8 : _c4append('0'); _c4append('o'); return pos + detail::write_num_digits<T>(&detail::write_oct_neg<T>, pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+    }
+    C4_UNREACHABLE();
+    return csubstr::npos;
+}
+} // namespace detail
+
+
 /** convert an integral signed decimal to a string.
  * The resulting string is NOT zero-terminated.
  * Writing stops at the buffer's end.
@@ -484,14 +600,19 @@ size_t itoa(substr buf, T v)
     {
         return write_dec(buf, v);
     }
-    else if(buf.len > 0)
+    else if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
-        buf.str[0] = '-';
-        return size_t(1) + write_dec(buf.sub(1), -v);
+        if(buf.len > 0)
+        {
+            buf.str[0] = '-';
+            return size_t(1) + write_dec(buf.sub(1), -v);
+        }
+        return size_t(1) + write_dec({}, -v);
     }
-    return size_t(1) + write_dec({}, -v);
+    // when T is the min value (eg i8: -128), negating it
+    // will overflow
+    return detail::itoa_neg(buf, v);
 }
-
 
 /** convert an integral signed integer to a string, using a specific
  * radix. The radix must be 2, 8, 10 or 16.
@@ -504,21 +625,27 @@ size_t itoa(substr buf, T v, T radix)
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
-    size_t pos = 0;
-    if(v < 0)
+    // when T is the min value (eg i8: -128), negating it
+    // will overflow
+    if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
-        v = -v;
-        _c4append('-');
+        size_t pos = 0;
+        if(v < 0)
+        {
+            v = -v;
+            _c4append('-');
+        }
+        switch(radix)
+        {
+        case 10:                                 return pos + write_dec(pos < buf.len ? buf.sub(pos) : substr(), v);
+        case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v);
+        case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v);
+        case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v);
+        }
     }
-    switch(radix)
-    {
-    case 10:                                 return pos + write_dec(pos < buf.len ? buf.sub(pos) : substr(), v);
-    case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v);
-    case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v);
-    case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v);
-    }
-    C4_UNREACHABLE();
-    return substr::npos;
+    // when T is the min value (eg i8: -128), negating it
+    // will overflow
+    return detail::itoa_neg<T>(buf, v, radix);
 }
 
 
@@ -534,21 +661,25 @@ size_t itoa(substr buf, T v, T radix, size_t num_digits)
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
-    size_t pos = 0;
-    if(v < 0)
+    // when T is the min value (eg i8: -128), negating it
+    // will overflow
+    if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
-        v = -v;
-        _c4append('-');
+        size_t pos = 0;
+        if(v < 0)
+        {
+            v = -v;
+            _c4append('-');
+        }
+        switch(radix)
+        {
+        case 10:                                 return pos + write_dec(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+        case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+        case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+        case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
+        }
     }
-    switch(radix)
-    {
-    case 10:                                 return pos + write_dec(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
-    case 16: _c4append('0'); _c4append('x'); return pos + write_hex(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
-    case 2 : _c4append('0'); _c4append('b'); return pos + write_bin(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
-    case 8 : _c4append('0'); _c4append('o'); return pos + write_oct(pos < buf.len ? buf.sub(pos) : substr(), v, num_digits);
-    }
-    C4_UNREACHABLE();
-    return substr::npos;
+    return detail::itoa_neg(buf, v, radix, num_digits);
 }
 
 
