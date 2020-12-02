@@ -49,14 +49,14 @@ boolalpha_<T> boolalpha(T const& val, bool strict_read=false)
     return boolalpha_<T>(val, strict_read);
 }
 
+} // namespace fmt
+
 /** write a variable as an alphabetic boolean, ie as either true or false */
 template<class T>
-inline size_t to_chars(substr buf, boolalpha_<T> fmt)
+inline size_t to_chars(substr buf, fmt::boolalpha_<T> fmt)
 {
     return to_chars(buf, fmt.val ? "true" : "false");
 }
-
-} // namespace fmt
 
 
 
@@ -132,71 +132,6 @@ C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(T * val, size_t num_digits)
 {
     return integral_padded_<intptr_t>(reinterpret_cast<intptr_t>(val), 16, num_digits);
 }
-
-#if C4_CPP >= 17
-/** format an integral_ type, C++17 version */
-template<typename T>
-C4_ALWAYS_INLINE size_t to_chars(substr buf, integral_<T> fmt)
-{
-    if constexpr (std::is_signed_v<T>)
-    {
-        return itoa(buf, fmt.val, fmt.radix);
-    }
-    else
-    {
-        static_assert(std::is_unsigned_v<T>);
-        return utoa(buf, fmt.val, fmt.radix);
-    }
-}
-/** format an integral_ type, C++17 version */
-template<typename T>
-C4_ALWAYS_INLINE size_t to_chars(substr buf, integral_padded_<T> fmt)
-{
-    if constexpr (std::is_signed_v<T>)
-    {
-        return itoa(buf, fmt.val, fmt.radix, fmt.num_digits);
-    }
-    else
-    {
-        static_assert(std::is_unsigned_v<T>);
-        return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
-    }
-}
-#else
-/** format an integral_ signed type */
-template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if<std::is_signed<T>::value, size_t>::type
-to_chars(substr buf, integral_<T> fmt)
-{
-    return itoa(buf, fmt.val, fmt.radix);
-}
-/** format an integral_ signed type, pad with zeroes */
-template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if<std::is_signed<T>::value, size_t>::type
-to_chars(substr buf, integral_padded_<T> fmt)
-{
-    return itoa(buf, fmt.val, fmt.radix, fmt.num_digits);
-}
-
-/** format an integral_ unsigned type */
-template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
-to_chars(substr buf, integral_<T> fmt)
-{
-    return utoa(buf, fmt.val, fmt.radix);
-}
-/** format an integral_ unsigned type, pad with zeroes */
-template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
-to_chars(substr buf, integral_padded_<T> fmt)
-{
-    return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
-}
-#endif
 
 
 /** format the pointer as an hexadecimal value */
@@ -280,6 +215,41 @@ inline integral_<T> bin(T v)
 } // namespace fmt
 
 
+/** format an integral_ signed type */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if<std::is_signed<T>::value, size_t>::type
+to_chars(substr buf, fmt::integral_<T> fmt)
+{
+    return itoa(buf, fmt.val, fmt.radix);
+}
+/** format an integral_ signed type, pad with zeroes */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if<std::is_signed<T>::value, size_t>::type
+to_chars(substr buf, fmt::integral_padded_<T> fmt)
+{
+    return itoa(buf, fmt.val, fmt.radix, fmt.num_digits);
+}
+
+/** format an integral_ unsigned type */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
+to_chars(substr buf, fmt::integral_<T> fmt)
+{
+    return utoa(buf, fmt.val, fmt.radix);
+}
+/** format an integral_ unsigned type, pad with zeroes */
+template<typename T>
+C4_ALWAYS_INLINE
+typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
+to_chars(substr buf, fmt::integral_padded_<T> fmt)
+{
+    return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
+}
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -302,10 +272,10 @@ real_<T> real(T val, int precision, RealFormat_e fmt=FTOA_FLOAT)
     return real_<T>(val, precision, fmt);
 }
 
-inline size_t to_chars(substr buf, real_< float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
-inline size_t to_chars(substr buf, real_<double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); }
-
 } // namespace fmt
+
+inline size_t to_chars(substr buf, fmt::real_< float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
+inline size_t to_chars(substr buf, fmt::real_<double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); }
 
 
 //-----------------------------------------------------------------------------
@@ -424,6 +394,9 @@ right_<T> right(T const& C4_RESTRICT val, size_t width, char padchar=' ')
     return right_<T>(val, width, padchar);
 }
 
+} // namespace fmt
+
+
 template<class T>
 size_t to_chars(substr buf, fmt::left_<T> const& C4_RESTRICT align)
 {
@@ -451,8 +424,6 @@ size_t to_chars(substr buf, fmt::right_<T> const& C4_RESTRICT align)
     return align.width;
 }
 
-} // namespace fmt
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -470,10 +441,10 @@ inline size_t cat(substr /*buf*/)
 /** serialize the arguments, concatenating them to the given fixed-size buffer.
  * The buffer size is strictly respected: no writes will occur beyond its end.
  * @return the number of characters needed to write all the arguments into the buffer.
- * @see catrs() if instead of a fixed-size buffer, a resizeable container is desired
- * @see uncat() for the inverse function
- * @see catsep() if a separator between each argument is to be used
- * @see format() if a format string is desired */
+ * @see c4::catrs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see c4::uncat() for the inverse function
+ * @see c4::catsep() if a separator between each argument is to be used
+ * @see c4::format() if a format string is desired */
 template<class Arg, class... Args>
 size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
@@ -508,7 +479,7 @@ inline size_t uncat(csubstr /*buf*/)
  *
  * @return the number of characters read from the buffer, or csubstr::npos
  *   if a conversion was not successful.
- * @see cat(). uncat() is the inverse of cat(). */
+ * @see c4::cat(). c4::uncat() is the inverse of c4::cat(). */
 template<class Arg, class... Args>
 size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
