@@ -1135,7 +1135,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, int64_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int64_t);
 C4BM_TEMPLATE(atox_c4_atox,  int64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int64_t);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint64_t);
+C4BM_TEMPLATE_CPP17(atox_std_from_chars, int64_t);
 C4BM_TEMPLATE(atox_std_atol,   int64_t);
 C4BM_TEMPLATE(atox_std_strtoll,   int64_t);
 C4BM_TEMPLATE(atox_scanf,   int64_t);
