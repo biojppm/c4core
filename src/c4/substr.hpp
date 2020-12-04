@@ -218,14 +218,22 @@ public:
 
     int compare(C const c) const
     {
-        if( ! len) return -1;
-        if(*str == c) return static_cast<int>(len - 1);
+        C4_XASSERT((str != nullptr) || len == 0);
+        if( ! len)
+        {
+            return -1;
+        }
+        if(*str == c)
+        {
+            return static_cast<int>(len - 1);
+        }
         return *str - c;
     }
 
-    int compare(ro_substr const that) const { return compare(that.str, that.len); }
     int compare(const char *that, size_t sz) const
     {
+        C4_XASSERT((that != nullptr) || sz  == 0);
+        C4_XASSERT((str  != nullptr) || len == 0);
         size_t n = len < sz ? len : sz;
         int ret = strncmp(str, that, n);
         if(ret == 0 && len != sz)
@@ -234,6 +242,8 @@ public:
         }
         return ret;
     }
+
+    C4_ALWAYS_INLINE int compare(ro_substr const that) const { return compare(that.str, that.len); }
 
     C4_ALWAYS_INLINE bool operator== (C const c) const { return this->compare(c) == 0; }
     C4_ALWAYS_INLINE bool operator!= (C const c) const { return this->compare(c) != 0; }

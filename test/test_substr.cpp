@@ -789,8 +789,28 @@ TEST_CASE("substr.compare")
     const char s2[] = "one empty doc, explicit termination";
     csubstr c1(s1), c2(s2);
     CHECK_NE(c1, c2);
+    CHECK_NE(c1, s2);
+    CHECK_NE(s1, c2);
     CHECK_GT(c2, c1);
+    CHECK_GT(c2, s1);
+    CHECK_GT(s2, c1);
     CHECK_UNARY((c1 > c2) != (c1 < c2));
+}
+
+TEST_CASE("substr.compare_null")
+{
+    csubstr s1, s2;
+    CHECK_EQ(s1, s2);
+    CHECK(!(s1 > s2));
+    CHECK(!(s1 < s2));
+    CHECK((s1 <= s2));
+    CHECK((s1 >= s2));
+    CHECK(!(s1 != s2));
+    CHECK_LT(csubstr().compare('-'), 0);
+    CHECK_LT(csubstr().compare("-", 1u), 0);
+    CHECK_EQ(csubstr().compare("-", 0u), 0);
+    CHECK_GT(csubstr(" ").compare((const char*)0, 0u), 0);
+    CHECK_EQ(csubstr().compare((const char*)0, 0u), 0);
 }
 
 TEST_CASE("substr.compare_vs_char")
