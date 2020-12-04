@@ -164,7 +164,7 @@ bool is_debugger_attached()
             tracer_pid = strstr(buf, TracerPid);
             if (tracer_pid)
             {
-                first_call_result = !!atoi(tracer_pid + sizeof(TracerPid) - 1);
+                first_call_result = !!::atoi(tracer_pid + sizeof(TracerPid) - 1);
             }
         }
     }
