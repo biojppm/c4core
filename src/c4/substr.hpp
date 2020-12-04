@@ -359,16 +359,13 @@ public:
         return basic_substring(str + left, len - right - left);
     }
 
-public:
-
+    /** return [0, pos+include_pos[ */
     basic_substring left_of(size_t pos, bool include_pos=false) const
     {
-        if(pos == npos) return *this;
-        if(pos == 0) return sub(0, include_pos ? 1 : 0);
-        if( ! include_pos) --pos;
-        return sub(0, pos+1/* bump because this arg is a size, not a pos*/);
+        return first(pos + include_pos);
     }
 
+    /** return [pos+!include_pos, len[ */
     basic_substring right_of(size_t pos, bool include_pos=false) const
     {
         if(pos == npos) return sub(len, 0);
@@ -378,10 +375,12 @@ public:
 
 public:
 
-    basic_substring left_of(ro_substr const ss) const
+    /** given @p subs a substring of the current string, get the
+     * portion of the current string to the left of it*/
+    basic_substring left_of(ro_substr const subs) const
     {
-        C4_ASSERT(this->is_super(ss) || ss.empty());
-        auto ssb = ss.begin();
+        C4_ASSERT(this->is_super(subs) || subs.empty());
+        auto ssb = subs.begin();
         auto b = begin();
         auto e = end();
         if(ssb >= b && ssb <= e)
@@ -394,10 +393,12 @@ public:
         }
     }
 
-    basic_substring right_of(ro_substr const ss) const
+    /** given @p subs a substring of the current string, get the
+     * portion of the current string to the right of it*/
+    basic_substring right_of(ro_substr const subs) const
     {
-        C4_ASSERT(is_super(ss) || ss.empty());
-        auto sse = ss.end();
+        C4_ASSERT(is_super(subs) || subs.empty());
+        auto sse = subs.end();
         auto b = begin();
         auto e = end();
         if(sse >= b && sse <= e)
@@ -410,7 +411,12 @@ public:
         }
     }
 
+    /** @} */
+
 public:
+
+    /** @name Removing characters (trim()) / patterns (strip()) from the tips of the string */
+    /** @{ */
 
     /** trim left */
     basic_substring triml(const C c) const
@@ -467,8 +473,6 @@ public:
     {
         return triml(chars).trimr(chars);
     }
-
-public:
 
     /** remove a pattern from the left
      * @see triml() to remove characters*/
@@ -537,15 +541,17 @@ public:
         return num;
     }
 
-    inline basic_substring select(const C c) const
+    /** get the substr consisting of the first occurrence of @p c after @p pos, or an empty substr if none occurs */
+    inline basic_substring select(const C c, size_t pos=0) const
     {
-        size_t pos = find(c);
+        pos = find(c, pos);
         return pos != npos ? sub(pos, 1) : basic_substring();
     }
 
-    inline basic_substring select(ro_substr pattern) const
+    /** get the substr consisting of the first occurrence of @p pattern after @p pos, or an empty substr if none occurs */
+    inline basic_substring select(ro_substr pattern, size_t pos=0) const
     {
-        size_t pos = find(pattern);
+        pos = find(pattern, pos);
         return pos != npos ? sub(pos, pattern.len) : basic_substring();
     }
 
@@ -613,59 +619,118 @@ public:
 
 public:
 
-    inline bool begins_with(const C c) const
+    /** true if the first character of the string is @p c */
+    bool begins_with(const C c) const
     {
         return len > 0 ? str[0] == c : false;
     }
-    inline bool begins_with(const C c, size_t num) const
+
+    /** true if the first @p num characters of the string are @p c */
+    bool begins_with(const C c, size_t num) const
     {
-        if(len < num) return false;
+        if(len < num)
+        {
+            return false;
+        }
         for(size_t i = 0; i < num; ++i)
         {
-            if(str[i] != c) return false;
+            if(str[i] != c)
+            {
+                return false;
+            }
         }
         return true;
-    }
-    inline bool begins_with(ro_substr pattern) const
-    {
-        if(len < pattern.len) return false;
-        for(size_t i = 0; i < pattern.len; ++i)
-        {
-            if(str[i] != pattern[i]) return false;
-        }
-        return true;
-    }
-    inline bool begins_with_any(ro_substr pattern) const
-    {
-        return first_of(pattern) == 0;
     }
 
-    inline bool ends_with(const C c) const
+    /** true if the string begins with the given @p pattern */
+    bool begins_with(ro_substr pattern) const
+    {
+        if(len < pattern.len)
+        {
+            return false;
+        }
+        for(size_t i = 0; i < pattern.len; ++i)
+        {
+            if(str[i] != pattern[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** true if the first character of the string is any of the given @p chars */
+    bool begins_with_any(ro_substr chars) const
+    {
+        if(len == 0)
+        {
+            return false;
+        }
+        for(size_t i = 0; i < chars.len; ++i)
+        {
+            if(str[0] == chars.str[i])
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** true if the last character of the string is @p c */
+    bool ends_with(const C c) const
     {
         return len > 0 ? str[len-1] == c : false;
     }
-    inline bool ends_with(const C c, size_t num) const
+
+    /** true if the last @p num characters of the string are @p c */
+    bool ends_with(const C c, size_t num) const
     {
-        if(len < num) return false;
+        if(len < num)
+        {
+            return false;
+        }
         for(size_t i = len - num; i < len; ++i)
         {
-            if(str[i] != c) return false;
+            if(str[i] != c)
+            {
+                return false;
+            }
         }
         return true;
     }
-    inline bool ends_with(ro_substr pattern) const
+
+    /** true if the string ends with the given @p pattern */
+    bool ends_with(ro_substr pattern) const
     {
-        if(len < pattern.len) return false;
+        if(len < pattern.len)
+        {
+            return false;
+        }
         for(size_t i = 0, s = len-pattern.len; i < pattern.len; ++i)
         {
-            if(str[s+i] != pattern[i]) return false;
+            if(str[s+i] != pattern[i])
+            {
+                return false;
+            }
         }
         return true;
     }
-    inline bool ends_with_any(ro_substr chars) const
+
+    /** true if the last character of the string is any of the given @p chars */
+    bool ends_with_any(ro_substr chars) const
     {
-        if(len == 0) return false;
-        return last_of(chars) == len - 1;
+        if(len == 0)
+        {
+            return false;
+        }
+        for(size_t i = 0; i < chars.len; ++i)
+        {
+            if(str[len - 1] == chars[i])
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 public:
