@@ -799,18 +799,22 @@ TEST_CASE("substr.compare")
 
 TEST_CASE("substr.compare_null")
 {
-    csubstr s1, s2;
+    csubstr s1, s2, sp(" ");
+    CHECK_EQ(s1, "");
     CHECK_EQ(s1, s2);
     CHECK(!(s1 > s2));
     CHECK(!(s1 < s2));
     CHECK((s1 <= s2));
     CHECK((s1 >= s2));
     CHECK(!(s1 != s2));
-    CHECK_LT(csubstr().compare('-'), 0);
-    CHECK_LT(csubstr().compare("-", 1u), 0);
-    CHECK_EQ(csubstr().compare("-", 0u), 0);
-    CHECK_GT(csubstr(" ").compare((const char*)0, 0u), 0);
-    CHECK_EQ(csubstr().compare((const char*)0, 0u), 0);
+    CHECK_EQ(s1.compare('-'), -1);
+    CHECK_EQ(sp.compare(' '), 0);
+    CHECK_EQ(s1.compare("-", 1u), -1);
+    CHECK_EQ(s1.compare("-", 0u), 0);
+    CHECK_EQ(s1.compare((const char*)0, 0u), 0);
+    CHECK_EQ(sp.compare((const char*)0, 0u), 1);
+    CHECK_EQ(sp.compare(" ", 0u), 1);
+    CHECK_EQ(sp.compare(" ", 1u), 0);
 }
 
 TEST_CASE("substr.compare_vs_char")

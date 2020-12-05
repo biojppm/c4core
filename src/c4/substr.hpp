@@ -236,23 +236,25 @@ public:
         C4_XASSERT(str  || len == 0);
         if(C4_LIKELY(str && that))
         {
-            size_t n = len < sz ? len : sz;
-            int ret = strncmp(str, that, n);
+            int ret = strncmp(str, that, len < sz ? len : sz);
             if(ret == 0 && len != sz)
             {
                 ret = len < sz ? -1 : 1;
             }
             return ret;
         }
-        else if(str && !that)
+        if((!str && !that) || (len == sz))
         {
-            return 1;
+            C4_XASSERT(len == 0 && sz == 0);
+            return 0;
         }
-        C4_XASSERT(!str && that);
-        return -1;
+        return len < sz ? -1 : 1;
     }
 
-    C4_ALWAYS_INLINE int compare(ro_substr const that) const { return compare(that.str, that.len); }
+    C4_ALWAYS_INLINE int compare(ro_substr const that) const { return this->compare(that.str, that.len); }
+
+    C4_ALWAYS_INLINE bool operator== (std::nullptr_t) const { return str == nullptr; }
+    C4_ALWAYS_INLINE bool operator!= (std::nullptr_t) const { return str != nullptr; }
 
     C4_ALWAYS_INLINE bool operator== (C const c) const { return this->compare(c) == 0; }
     C4_ALWAYS_INLINE bool operator!= (C const c) const { return this->compare(c) != 0; }
@@ -274,9 +276,6 @@ public:
     template<size_t N> C4_ALWAYS_INLINE bool operator>  (const char (&that)[N]) const { return this->compare(that, N-1) >  0; }
     template<size_t N> C4_ALWAYS_INLINE bool operator<= (const char (&that)[N]) const { return this->compare(that, N-1) <= 0; }
     template<size_t N> C4_ALWAYS_INLINE bool operator>= (const char (&that)[N]) const { return this->compare(that, N-1) >= 0; }
-
-    C4_ALWAYS_INLINE bool operator== (std::nullptr_t) const { return str == nullptr; }
-    C4_ALWAYS_INLINE bool operator!= (std::nullptr_t) const { return str != nullptr; }
 
     /** @} */
 
