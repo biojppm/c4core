@@ -232,15 +232,24 @@ public:
 
     int compare(const char *that, size_t sz) const
     {
-        C4_XASSERT((that != nullptr) || sz  == 0);
-        C4_XASSERT((str  != nullptr) || len == 0);
-        size_t n = len < sz ? len : sz;
-        int ret = strncmp(str, that, n);
-        if(ret == 0 && len != sz)
+        C4_XASSERT(that || sz  == 0);
+        C4_XASSERT(str  || len == 0);
+        if(C4_LIKELY(str && that))
         {
-            ret = len < sz ? -1 : 1;
+            size_t n = len < sz ? len : sz;
+            int ret = strncmp(str, that, n);
+            if(ret == 0 && len != sz)
+            {
+                ret = len < sz ? -1 : 1;
+            }
+            return ret;
         }
-        return ret;
+        else if(str && !that)
+        {
+            return 1;
+        }
+        C4_XASSERT(!str && that);
+        return -1;
     }
 
     C4_ALWAYS_INLINE int compare(ro_substr const that) const { return compare(that.str, that.len); }
