@@ -1387,7 +1387,7 @@ TEST_CASE("substr.is_number")
         }
     }
     // adding after may or may not make it a number
-    for(const number n : numbers)
+    for(number const& n : numbers)
     {
         for(int i = 0; i < 127; ++i)
         {
