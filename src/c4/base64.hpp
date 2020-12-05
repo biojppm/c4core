@@ -15,17 +15,17 @@ namespace c4 {
  * @see https://en.wikipedia.org/wiki/Base64 */
 bool base64_valid(csubstr encoded);
 
-/** encode binary data into base64
- * @param encoded [out] the output buffer
- * @param data [in] the output buffer
- * @return the number of bytes needed to return the output
+/** base64-encode binary data.
+ * @param encoded [out] output buffer for encoded data
+ * @param data [in] the input buffer with the binary data
+ * @return the number of bytes needed to return the output. No writes occur beyond the end of the output buffer.
  * @see https://en.wikipedia.org/wiki/Base64 */
 size_t base64_encode(substr encoded, cblob data);
 
-/** check that the given is a valid base64 encoding
- * @param encoded [in] the output buffer
+/** decode the base64 encoding in the given buffer
+ * @param encoded [in] the encoded base64
  * @param data [out] the output buffer
- * @return the number of bytes needed to return the output
+ * @return the number of bytes needed to return the output.. No writes occur beyond the end of the output buffer.
  * @see https://en.wikipedia.org/wiki/Base64 */
 size_t base64_decode(csubstr encoded, blob data);
 
