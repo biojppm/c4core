@@ -783,7 +783,7 @@ TEST_CASE("substr.right_of")
     CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 6))));
 }
 
-TEST_CASE("substr.compare")
+TEST_CASE("substr.compare_different_length")
 {
     const char s1[] = "one empty doc";
     const char s2[] = "one empty doc, explicit termination";
@@ -791,10 +791,18 @@ TEST_CASE("substr.compare")
     CHECK_NE(c1, c2);
     CHECK_NE(c1, s2);
     CHECK_NE(s1, c2);
+    CHECK_LT(c1, c2);
+    CHECK_LT(c1, s2);
+    CHECK_LT(s1, c2);
     CHECK_GT(c2, c1);
     CHECK_GT(c2, s1);
     CHECK_GT(s2, c1);
     CHECK_UNARY((c1 > c2) != (c1 < c2));
+    CHECK_UNARY((c1 > s2) != (c1 < s2));
+    CHECK_UNARY((s1 > c2) != (s1 < c2));
+    CHECK_UNARY((c2 > c1) != (c2 < c1));
+    CHECK_UNARY((c2 > s1) != (c2 < s1));
+    CHECK_UNARY((s2 > c1) != (s2 < c1));
 }
 
 TEST_CASE("substr.compare_null")
