@@ -334,8 +334,9 @@ public:
     basic_substring sub(size_t first, size_t num) const
     {
         C4_ASSERT(first >= 0 && first <= len);
+        C4_ASSERT((num >= 0 && num <= len) || (num == npos));
         size_t rnum = num != npos ? num : len - first;
-        C4_ASSERT((first >= 0 && first + rnum <= len) || num == 0);
+        C4_ASSERT((first >= 0 && first + rnum <= len) || (num == 0));
         return basic_substring(str + first, rnum);
     }
 
@@ -358,11 +359,16 @@ public:
     /** return [len-num,len[*/
     basic_substring last(size_t num) const
     {
-        C4_ASSERT(num <= len);
+        if(num == npos)
+        {
+            return *this;
+        }
         return sub(len - num);
     }
 
-    /** return [left,len-right[ */
+    /** offset from the ends: return [left,len-right[ ; ie, trim a
+        number of characters from the left and right. This is
+        equivalent to python's negative list indices. */
     basic_substring offs(size_t left, size_t right) const
     {
         C4_ASSERT(left  >= 0 && left  <= len);
@@ -374,14 +380,24 @@ public:
     /** return [0, pos+include_pos[ */
     basic_substring left_of(size_t pos, bool include_pos=false) const
     {
+        if(pos == npos)
+        {
+            return *this;
+        }
         return first(pos + include_pos);
     }
 
     /** return [pos+!include_pos, len[ */
     basic_substring right_of(size_t pos, bool include_pos=false) const
     {
-        if(pos == npos) return sub(len, 0);
-        if( ! include_pos) ++pos;
+        if(pos == npos)
+        {
+            return sub(len, 0);
+        }
+        if( ! include_pos)
+        {
+            ++pos;
+        }
         return sub(pos);
     }
 

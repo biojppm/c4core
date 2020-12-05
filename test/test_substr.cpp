@@ -266,6 +266,8 @@ TEST_CASE("substr.first")
 {
     csubstr s = "0123456789";
 
+    CHECK_EQ(s.first(csubstr::npos), s);
+
     CHECK_EQ(s.first(10), "0123456789");
     CHECK_EQ(s.first(9), "012345678");
     CHECK_EQ(s.first(8), "01234567");
@@ -282,6 +284,8 @@ TEST_CASE("substr.first")
 TEST_CASE("substr.last")
 {
     csubstr s = "0123456789";
+
+    CHECK_EQ(s.last(csubstr::npos), s);
 
     CHECK_EQ(s.last(10), "0123456789");
     CHECK_EQ(s.last(9), "123456789");
@@ -670,6 +674,9 @@ TEST_CASE("substr.left_of")
 {
     csubstr s = "012345";
 
+    CHECK_EQ(s.left_of(csubstr::npos, /*include_pos*/false), s);
+    CHECK_EQ(s.left_of(csubstr::npos, /*include_pos*/true), s);
+
 
     CHECK_EQ(s.left_of(0, /*include_pos*/false), "");
     CHECK_EQ(s.left_of(1, /*include_pos*/false), "0");
@@ -725,6 +732,10 @@ TEST_CASE("substr.left_of")
 TEST_CASE("substr.right_of")
 {
     csubstr s = "012345";
+
+    CHECK_EQ(s.right_of(csubstr::npos, /*include_pos*/false), "");
+    CHECK_EQ(s.right_of(csubstr::npos, /*include_pos*/true), "");
+
 
     CHECK_EQ(s.right_of(0, /*include_pos*/false), "12345");
     CHECK_EQ(s.right_of(1, /*include_pos*/false), "2345");
