@@ -58,8 +58,8 @@ function c4_show_info()
 function _c4bits()
 {
     case "$1" in
-        shared64|static64) echo 64 ;;
-        shared32|static32) echo 32 ;;
+        shared64|static64|arm64) echo 64 ;;
+        shared32|static32|arm32|arm) echo 32 ;;
         *) exit 1 ;;
     esac
 }
@@ -107,7 +107,7 @@ function c4_build_target()  # runs in parallel
     # watchout: the `--parallel` flag to `cmake --build` is broken:
     # https://discourse.cmake.org/t/parallel-does-not-really-enable-parallel-compiles-with-msbuild/964/10
     # https://gitlab.kitware.com/cmake/cmake/-/issues/20564
-    cmake --build $build_dir --config $BT --target $target -- $(_c4_parallel_build_flags)
+    cmake --build $build_dir --config $BT --target $target -- $(_c4_generator_build_flags) $(_c4_parallel_build_flags)
 }
 
 function c4_run_target()  # does not run in parallel
@@ -117,7 +117,7 @@ function c4_run_target()  # does not run in parallel
     target=$2
     build_dir=`pwd`/build/$id
     export CTEST_OUTPUT_ON_FAILURE=1
-    cmake --build $build_dir --config $BT --target $target
+    cmake --build $build_dir --config $BT --target $target -- $(_c4_generator_build_flags)
 }
 
 function c4_package()
@@ -274,9 +274,7 @@ function c4_cfg_test()
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_BUILD_TYPE=$BT -G "$g" -DCMAKE_OSX_ARCHITECTURES=$a $CMFLAGS
             ;;
-        arm*|"")
-            # for empty compiler
-            # or arm-*
+        arm*|"") # make sure arm* comes before *g++ or *gcc*
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
             ;;
@@ -364,6 +362,28 @@ function _c4_parallel_build_flags()
             else
                 echo "-j $NUM_JOBS_BUILD"
             fi
+            ;;
+        "") # allow empty compiler
+            ;;
+        *)
+            echo "unknown compiler"
+            exit 1
+            ;;
+    esac
+}
+
+function _c4_generator_build_flags()
+{
+    case "$CXX_" in
+        vs2019|vs2017|vs2015)
+            ;;
+        xcode)
+            # WTF???
+            # https://github.com/biojppm/rapidyaml/pull/97/checks?check_run_id=1504677928#step:7:964
+            # https://stackoverflow.com/questions/51153525/xcode-10-unable-to-attach-db-error
+            echo "-UseModernBuildSystem=NO"
+            ;;
+        *g++*|*gcc*|*clang*)
             ;;
         "") # allow empty compiler
             ;;
