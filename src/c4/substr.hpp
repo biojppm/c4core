@@ -27,6 +27,8 @@ namespace c4 {
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+namespace detail {
+
 template<typename C>
 static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 {
@@ -37,6 +39,8 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
         *first++ = tmp;
     }
 }
+
+} // namespace detail
 
 
 //-----------------------------------------------------------------------------
@@ -134,9 +138,9 @@ public:
     basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
     basic_substring(C *beg_, C *end_) : str(beg_), len(static_cast<size_t>(end_ - beg_)) { C4_ASSERT(end_ >= beg_); }
 
-	//basic_substring& operator= (C *s_) { this->assign(s_); return *this; }
-	template<size_t N>
-	basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
+    //basic_substring& operator= (C *s_) { this->assign(s_); return *this; }
+    template<size_t N>
+    basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
 
     //void assign(C *s_) { str = (s_); len = (s_ ? strlen(s_) : 0); }
     /** the overload for receiving a single C* pointer will always
@@ -1502,7 +1506,7 @@ public:
     C4_REQUIRE_RW(void) reverse()
     {
         if(len == 0) return;
-        _do_reverse(str, str + len - 1);
+        detail::_do_reverse(str, str + len - 1);
     }
 
     /** revert a subpart in place
@@ -1512,7 +1516,7 @@ public:
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
         if(num == 0) return;
-        _do_reverse(str + ifirst, ifirst + num - 1);
+        detail::_do_reverse(str + ifirst, ifirst + num - 1);
     }
 
     /** revert a range in place
@@ -1522,7 +1526,7 @@ public:
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         C4_ASSERT(ilast  >= 0 && ilast  <= len);
         if(ifirst == ilast) return;
-        _do_reverse(str + ifirst, str + ilast - 1);
+        detail::_do_reverse(str + ifirst, str + ilast - 1);
     }
 
 public:
@@ -1588,7 +1592,7 @@ public:
         return did_it;
     }
 
-	/** replace @p pattern with @p repl, and write the result into
+    /** replace @p pattern with @p repl, and write the result into
      * @dst. pattern and repl don't need equal sizes.
      *
      * @return the required size for dst. No overflow occurs if
