@@ -35,6 +35,7 @@ enum class MyEnumClass {
     BAZ,
 };
 
+
 namespace c4 {
 template<>
 inline const EnumSymbols<MyEnumClass> esyms<MyEnumClass>()
@@ -48,6 +49,7 @@ inline const EnumSymbols<MyEnumClass> esyms<MyEnumClass>()
     EnumSymbols<MyEnumClass> r(rs);
     return r;
 }
+
 
 template<>
 inline size_t eoffs_cls<MyEnumClass>()
@@ -71,7 +73,6 @@ typedef enum {
 } MyBitmask;
 
 namespace c4 {
-
 template<>
 inline const EnumSymbols<MyBitmask> esyms<MyBitmask>()
 {
@@ -93,7 +94,39 @@ inline size_t eoffs_pfx<MyBitmask>()
 {
     return 3; // same as strlen("BM_")
 }
+} // namespace c4
 
+
+
+typedef enum {
+    // no null value
+    BM_KABOOM = 1,
+    BM_PAFF = 2,
+    BM_PEW = 4,
+    BM_POW = 7,
+} BmWithoutNull;
+
+
+namespace c4 {
+template<>
+inline const c4::EnumSymbols<BmWithoutNull> esyms<BmWithoutNull>()
+{
+    static const EnumSymbols<BmWithoutNull>::Sym rs[] =
+    {
+        {BM_KABOOM, "KABOOM"},
+        {BM_PAFF  , "PAFF"},
+        {BM_PEW   , "PEW"},
+        {BM_POW   , "POW"},
+    };
+    EnumSymbols<BmWithoutNull> r(rs);
+    return r;
+}
+
+template<>
+inline size_t eoffs_pfx<BmWithoutNull>()
+{
+    return 3; // same as strlen("BM_")
+}
 } // namespace c4
 
 
@@ -137,6 +170,41 @@ template<> inline size_t eoffs_pfx< MyBitmaskClass >()
     return 19; // same as strlen("MyBitmaskClass::BM_")
 }
 
+} // namespace c4
+
+
+enum class BmClassWithoutNull {
+    // no null value
+    BM_KABOOM = 1,
+    BM_PAFF = 2,
+    BM_PEW = 4,
+    BM_POW = 7,
+};
+
+
+namespace c4 {
+template<>
+inline const c4::EnumSymbols<BmClassWithoutNull> esyms<BmClassWithoutNull>()
+{
+    static const EnumSymbols<BmClassWithoutNull>::Sym rs[] =
+    {
+        {BmClassWithoutNull::BM_KABOOM, "BmClassWithoutNull::BM_KABOOM"},
+        {BmClassWithoutNull::BM_PAFF  , "BmClassWithoutNull::BM_PAFF"},
+        {BmClassWithoutNull::BM_PEW   , "BmClassWithoutNull::BM_PEW"},
+        {BmClassWithoutNull::BM_POW   , "BmClassWithoutNull::BM_POW"},
+    };
+    EnumSymbols<BmClassWithoutNull> r(rs);
+    return r;
+}
+
+template<> inline size_t eoffs_cls<BmClassWithoutNull>()
+{
+    return strlen("BmClassWithoutNull::");
+}
+template<> inline size_t eoffs_pfx<BmClassWithoutNull>()
+{
+    return strlen("BmClassWithoutNull::BM_");
+}
 } // namespace c4
 
 

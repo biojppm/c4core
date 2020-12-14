@@ -146,24 +146,22 @@ See also:
     </Expand>
   </Type>
 
-  <Type Name="c4::detail::real&lt;*&gt;">
-    <DisplayString>{*($T1*)&amp;buf} ({buf})</DisplayString>
+  <!-- enum symbols -->
+  <Type Name="c4::EnumSymbols&lt;*&gt;::Sym">
+    <DisplayString>{value} - {name}</DisplayString>
     <Expand>
-      <Synthetic Name="[real]">
-        <DisplayString>{*($T1*)&amp;buf}</DisplayString>
-      </Synthetic>
-      <Synthetic Name="[integral]">
-        <DisplayString>{buf}</DisplayString>
-      </Synthetic>
-      <Synthetic Name="[sign]">
-        <DisplayString>{(buf &amp; sign_mask) >> sign_bit}</DisplayString>
-      </Synthetic>
-      <Synthetic Name="[exponent]">
-        <DisplayString>{(buf &amp; exp_mask) ? ((int64_t)((buf &amp; exp_mask) >> exp_start) - (int64_t)exp_bias) : 0}</DisplayString>
-      </Synthetic>
-      <Synthetic Name="[mantissa]">
-        <DisplayString>{((buf &amp; mant_mask) >> mant_start)}</DisplayString>
-      </Synthetic>
+      <Item Name="[value]">value</Item>
+      <Item Name="[name]">name</Item>
+    </Expand>
+  </Type>
+  <Type Name="c4::EnumSymbols&lt;*&gt;">
+    <DisplayString>{m_symbols,[m_num]} (sz={m_num})</DisplayString>
+    <Expand>
+      <Item Name="[size]">m_num</Item>
+      <ArrayItems>
+        <Size>m_num</Size>
+        <ValuePointer>m_symbols</ValuePointer>
+      </ArrayItems>
     </Expand>
   </Type>
 

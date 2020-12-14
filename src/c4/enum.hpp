@@ -67,7 +67,7 @@ public:
     Sym const* find(const char *s) const;
     Sym const* find(const char *s, size_t len) const;
 
-    Sym const& operator[] (size_t i) { C4_CHECK(i < m_num); return m_symbols[i]; }
+    Sym const& operator[] (size_t i) const { C4_CHECK(i < m_num); return m_symbols[i]; }
 
     Sym const* begin() const { return m_symbols; }
     Sym const* end  () const { return m_symbols + m_num; }

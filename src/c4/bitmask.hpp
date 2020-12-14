@@ -25,33 +25,64 @@ namespace c4 {
 
 //-----------------------------------------------------------------------------
 /** write a bitmask to a stream, formatted as a string */
+
 template<class Enum, class Stream>
-Stream& bm2stream(typename std::underlying_type<Enum>::type bits, Stream &s)
+Stream& bm2stream(Stream &s, typename std::underlying_type<Enum>::type bits, EnumOffsetType offst=EOFFS_PFX)
 {
     using I = typename std::underlying_type<Enum>::type;
     bool written = false;
 
     auto const& pairs = esyms<Enum>();
 
-    // do reverse iteration to give preference to composite enum symbols,
-    // which are likely to appear at the end of the enum sequence
-    for(size_t i = pairs.size() - 1; i != size_t(-1); --i)
+    // write non null value
+    if(bits)
     {
-        auto p = pairs[i];
-        I b(p.value);
-        if((b != 0) && ((bits & b) == b))
+        // do reverse iteration to give preference to composite enum symbols,
+        // which are likely to appear at the end of the enum sequence
+        for(size_t i = pairs.size() - 1; i != size_t(-1); --i)
         {
-            if(written) s << '|'; // append bit-or character
-            written = true;
-            s << p.name; // append bit string
-            bits &= ~b;
+            auto p = pairs[i];
+            I b(static_cast<I>(p.value));
+            if(b && (bits & b) == b)
+            {
+                if(written) s << '|'; // append bit-or character
+                written = true;
+                s << p.name_offs(offst); // append bit string
+                bits &= ~b;
+            }
+        }
+        return s;
+    }
+    else
+    {
+        // write a null value
+        for(size_t i = pairs.size() - 1; i != size_t(-1); --i)
+        {
+            auto p = pairs[i];
+            I b(static_cast<I>(p.value));
+            if(b == 0)
+            {
+                s << p.name_offs(offst);
+                written = true;
+                break;
+            }
         }
     }
     if(!written)
     {
-        s << 0;
+        s << '0';
     }
+    return s;
 }
+
+template<class Enum, class Stream>
+typename std::enable_if<is_scoped_enum<Enum>::value, Stream&>::type
+bm2stream(Stream &s, Enum value, EnumOffsetType offst=EOFFS_PFX)
+{
+    using I = typename std::underlying_type<Enum>::type;
+    return bm2stream<Enum>(s, static_cast<I>(value), offst);
+}
+
 
 //-----------------------------------------------------------------------------
 
