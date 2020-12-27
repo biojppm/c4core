@@ -146,6 +146,9 @@ template<class T, size_t BytesToPadAtEnd>
 struct Padded : public T
 {
     using T::T;
+    using T::operator=;
+    Padded(T const& val) : T(val) {}
+    Padded(T && val) : T(val) {}
     char ___c4padspace___[BytesToPadAtEnd];
 };
 #pragma pack(pop)
@@ -154,6 +157,9 @@ template<class T>
 struct Padded<T, 0> : public T
 {
     using T::T;
+    using T::operator=;
+    Padded(T const& val) : T(val) {}
+    Padded(T && val) : T(val) {}
 };
 
 /** make T have a size which is at least Min bytes */
