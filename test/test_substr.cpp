@@ -1131,6 +1131,8 @@ TEST_CASE("substr.first_uint_span")
     CHECK_EQ(csubstr("0b01]asdasd").first_uint_span(), "0b01");
     CHECK_EQ(csubstr("0b01)asdasd").first_uint_span(), "0b01");
     CHECK_EQ(csubstr("0b01hasdasd").first_uint_span(), "");
+    CHECK_EQ(csubstr("+").first_uint_span(), "");
+    CHECK_EQ(csubstr("-").first_uint_span(), "");
 }
 
 TEST_CASE("substr.first_int_span")
@@ -1215,6 +1217,8 @@ TEST_CASE("substr.first_real_span")
     CHECK_EQ(csubstr("0b01]asdasd").first_int_span(), "0b01");
     CHECK_EQ(csubstr("0b01)asdasd").first_int_span(), "0b01");
     CHECK_EQ(csubstr("0b01gasdasd").first_int_span(), "");
+    CHECK_EQ(csubstr("+").first_int_span(), "");
+    CHECK_EQ(csubstr("-").first_int_span(), "");
 }
 
 typedef enum : uint8_t { kIsNone = 0, kIsUint = 1, kIsInt = 3, kIsReal = 7 } NumberClass;
@@ -3284,6 +3288,8 @@ TEST_CASE("substr.short_integer")
 {
     char buf[] = "-";
     CHECK_FALSE(substr(buf).is_integer());
+    CHECK_FALSE(csubstr("-").is_integer());
+    CHECK_FALSE(csubstr("+").is_integer());
 }
 
 } // namespace c4

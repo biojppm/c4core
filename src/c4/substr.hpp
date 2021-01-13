@@ -1023,6 +1023,9 @@ public:
     basic_substring _first_integral_span(size_t skip_start) const
     {
         C4_ASSERT(!empty());
+        if(skip_start == len) {
+            return first(0);
+        }
         C4_ASSERT(skip_start < len);
         if(first_of_any("0x", "0X")) // hexadecimal
         {
