@@ -3280,6 +3280,12 @@ TEST_CASE("substr.replace_all")
     CHECK_EQ(r, "");
 }
 
+TEST_CASE("substr.short_integer")
+{
+    char buf[] = "-";
+    CHECK_FALSE(substr(buf).is_integer());
+}
+
 } // namespace c4
 
 #include "c4/libtest/supprwarn_pop.hpp"
