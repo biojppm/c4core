@@ -329,8 +329,8 @@ struct srcloc
 #define C4_NOT_IMPLEMENTED_IF(condition) if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED"); }
 #define C4_NOT_IMPLEMENTED_IF_MSG(condition, /*msg, */...) if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED: " ## __VA_ARGS__); }
 
-#define C4_NEVER_REACH() C4_UNREACHABLE(); C4_ERROR("never reach this point")
-#define C4_NEVER_REACH_MSG(/*msg, */...) C4_UNREACHABLE(); C4_ERROR("never reach this point: " ## __VA_ARGS__)
+#define C4_NEVER_REACH() C4_ERROR("never reach this point"); C4_UNREACHABLE()
+#define C4_NEVER_REACH_MSG(/*msg, */...) C4_ERROR("never reach this point: " ## __VA_ARGS__); C4_UNREACHABLE();
 
 } // namespace c4
 
