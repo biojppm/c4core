@@ -202,6 +202,8 @@ protected:
  * @ingroup memory_resources */
 C4_ALWAYS_INLINE MemoryResourceMalloc* get_memory_resource_malloc()
 {
+    /** @todo use a nifty counter:
+     * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter */
     static MemoryResourceMalloc mr;
     return &mr;
 }
@@ -209,6 +211,8 @@ C4_ALWAYS_INLINE MemoryResourceMalloc* get_memory_resource_malloc()
 namespace detail {
 C4_ALWAYS_INLINE MemoryResource* & get_memory_resource()
 {
+    /** @todo use a nifty counter:
+     * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter */
     thread_local static MemoryResource* mr = get_memory_resource_malloc();
     return mr;
 }

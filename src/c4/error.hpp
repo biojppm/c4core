@@ -322,7 +322,7 @@ struct srcloc
     }
 
 
- //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Common error conditions
 #define C4_NOT_IMPLEMENTED() C4_ERROR("NOT IMPLEMENTED")
 #define C4_NOT_IMPLEMENTED_MSG(/*msg, */...) C4_ERROR("NOT IMPLEMENTED: " ## __VA_ARGS__)
@@ -331,6 +331,76 @@ struct srcloc
 
 #define C4_NEVER_REACH() C4_ERROR("never reach this point"); C4_UNREACHABLE()
 #define C4_NEVER_REACH_MSG(/*msg, */...) C4_ERROR("never reach this point: " ## __VA_ARGS__); C4_UNREACHABLE();
+
+
+
+//-----------------------------------------------------------------------------
+// helpers for warning suppression
+// idea adapted from https://github.com/onqtam/doctest/
+
+
+#if C4_MSVC
+#define C4_SUPPRESS_WARNING_MSVC_PUSH __pragma(warning(push))
+#define C4_SUPPRESS_WARNING_MSVC(w) __pragma(warning(disable : w))
+#define C4_SUPPRESS_WARNING_MSVC_POP __pragma(warning(pop))
+#define C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(w)   \
+    C4_SUPPRESS_WARNING_MSVC_PUSH               \
+    C4_SUPPRESS_WARNING_MSVC(w)
+#else // C4_MSVC
+#define C4_SUPPRESS_WARNING_MSVC_PUSH
+#define C4_SUPPRESS_WARNING_MSVC(w)
+#define C4_SUPPRESS_WARNING_MSVC_POP
+#define C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(w)
+#endif // C4_MSVC
+
+
+#ifdef C4_CLANG
+#define C4_PRAGMA_TO_STR(x) _Pragma(#x)
+#define C4_SUPPRESS_WARNING_CLANG_PUSH _Pragma("clang diagnostic push")
+#define C4_SUPPRESS_WARNING_CLANG(w) C4_PRAGMA_TO_STR(clang diagnostic ignored w)
+#define C4_SUPPRESS_WARNING_CLANG_POP _Pragma("clang diagnostic pop")
+#define C4_SUPPRESS_WARNING_CLANG_WITH_PUSH(w)  \
+    C4_SUPPRESS_WARNING_CLANG_PUSH              \
+    C4_SUPPRESS_WARNING_CLANG(w)
+#else // C4_CLANG
+#define C4_SUPPRESS_WARNING_CLANG_PUSH
+#define C4_SUPPRESS_WARNING_CLANG(w)
+#define C4_SUPPRESS_WARNING_CLANG_POP
+#define C4_SUPPRESS_WARNING_CLANG_WITH_PUSH(w)
+#endif // C4_CLANG
+
+
+#ifdef C4_GCC
+#define C4_PRAGMA_TO_STR(x) _Pragma(#x)
+#define C4_SUPPRESS_WARNING_GCC_PUSH _Pragma("GCC diagnostic push")
+#define C4_SUPPRESS_WARNING_GCC(w) C4_PRAGMA_TO_STR(GCC diagnostic ignored w)
+#define C4_SUPPRESS_WARNING_GCC_POP _Pragma("GCC diagnostic pop")
+#define C4_SUPPRESS_WARNING_GCC_WITH_PUSH(w)    \
+    C4_SUPPRESS_WARNING_GCC_PUSH                \
+    C4_SUPPRESS_WARNING_GCC(w)
+#else // C4_GCC
+#define C4_SUPPRESS_WARNING_GCC_PUSH
+#define C4_SUPPRESS_WARNING_GCC(w)
+#define C4_SUPPRESS_WARNING_GCC_POP
+#define C4_SUPPRESS_WARNING_GCC_WITH_PUSH(w)
+#endif // C4_GCC
+
+
+#define C4_SUPPRESS_WARNING_GCC_CLANG_PUSH \
+    C4_SUPPRESS_WARNING_GCC_PUSH     \
+    C4_SUPPRESS_WARNING_CLANG_PUSH
+
+#define C4_SUPPRESS_WARNING_GCC_CLANG(w) \
+    C4_SUPPRESS_WARNING_GCC(w)     \
+    C4_SUPPRESS_WARNING_CLANG(w)
+
+#define C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH(w) \
+    C4_SUPPRESS_WARNING_GCC_WITH_PUSH(w)     \
+    C4_SUPPRESS_WARNING_CLANG_WITH_PUSH(w)
+
+#define C4_SUPPRESS_WARNING_GCC_CLANG_POP \
+    C4_SUPPRESS_WARNING_GCC_POP     \
+    C4_SUPPRESS_WARNING_CLANG_POP
 
 } // namespace c4
 
