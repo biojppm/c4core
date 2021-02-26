@@ -339,7 +339,7 @@ struct srcloc
 // idea adapted from https://github.com/onqtam/doctest/
 
 
-#if C4_MSVC
+#ifdef C4_MSVC
 #define C4_SUPPRESS_WARNING_MSVC_PUSH __pragma(warning(push))
 #define C4_SUPPRESS_WARNING_MSVC(w) __pragma(warning(disable : w))
 #define C4_SUPPRESS_WARNING_MSVC_POP __pragma(warning(pop))

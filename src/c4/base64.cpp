@@ -99,8 +99,6 @@ size_t base64_encode(substr buf, cblob data)
     const char *C4_RESTRICT d = data.buf;
     for(rem = data.len; rem >= 3; rem -= 3, d += 3)
     {
-        //const uint32_t val = c4asuint32(d[2], d[1], d[0], 0);
-        //const uint32_t val = ((uint32_t(d[2]) << 24) | (uint32_t(d[1]) << 16) | (uint32_t(d[0]) << 8));
         const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8) | (uint32_t(d[2])));
         c4append_idx_((val >> (3 * 6)) & sextet_mask);
         c4append_idx_((val >> (2 * 6)) & sextet_mask);
@@ -110,8 +108,6 @@ size_t base64_encode(substr buf, cblob data)
     C4_ASSERT(rem < 3);
     if(rem == 2)
     {
-        //const uint32_t val = c4asuint32(0, d[1], d[0], 0);
-        //const uint32_t val = ((uint32_t(d[1]) << 16) | (uint32_t(d[0]) << 8));
         const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8));
         c4append_idx_((val >> (3 * 6)) & sextet_mask);
         c4append_idx_((val >> (2 * 6)) & sextet_mask);
@@ -162,9 +158,6 @@ size_t base64_decode(csubstr encoded, blob data)
         c4appendval_(d[2], 1);
         c4appendval_(d[1], 2);
         c4appendval_(d[0], 3);
-        static_assert(std::is_same<decltype(val), uint32_t>::value, "sdflkjsdflkjsdf");
-        static_assert(std::is_same<decltype(val >> 1), uint32_t>::value, "sdflkjsdflkjsdf");
-        static_assert(std::is_same<decltype((val >> 1) & full_byte), uint32_t>::value, "sdflkjsdflkjsdf");
         c4append_((val >> (2 * 8)) & full_byte);
         c4append_((val >> (1 * 8)) & full_byte);
         c4append_((val           ) & full_byte);
