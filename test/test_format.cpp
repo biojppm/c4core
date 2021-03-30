@@ -560,9 +560,24 @@ TEST_CASE("unformat.vars")
     CHECK_EQ(v3, 3);
     CHECK_EQ(v4, 4);
 
+    v1 = 0;
     sz = unformat("1 and 2 and 3 and 4" , "3", v1);
-    CHECK_EQ(sz, 0);
+    CHECK_EQ(sz, 1);
+    CHECK_EQ(v1, 0);
+
+    v1 = 0;
+    sz = unformat("1,2,3,,,", "{},{},{}", v1, v2, v3);
+    CHECK_EQ(sz, 5);
     CHECK_EQ(v1, 1);
+    CHECK_EQ(v2, 2);
+    CHECK_EQ(v3, 3);
+
+    v1 = v2 = v3 = 0;
+    sz = unformat("1,2,3,,,", "{},{},{},,,", v1, v2, v3);
+    CHECK_EQ(sz, 8); // make sure we count the trailing characters in the format
+    CHECK_EQ(v1, 1);
+    CHECK_EQ(v2, 2);
+    CHECK_EQ(v3, 3);
 }
 
 #ifdef C4_TUPLE_TO_STR

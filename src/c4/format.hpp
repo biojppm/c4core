@@ -650,9 +650,9 @@ substr format_sub(substr buf, csubstr fmt, Args const& C4_RESTRICT ...args)
 
 /// @cond dev
 // terminates the variadic recursion
-inline size_t unformat(csubstr /*buf*/, csubstr /*fmt*/)
+inline size_t unformat(csubstr /*buf*/, csubstr fmt)
 {
-    return 0;
+    return fmt.len;
 }
 // @endcond
 
