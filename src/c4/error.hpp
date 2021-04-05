@@ -30,6 +30,15 @@
 #endif
 
 
+namespace c4 {
+namespace detail {
+struct fail_type__ {};
+} // detail
+} // c4
+#define C4_STATIC_ERROR(dummy_type, errmsg)                             \
+    static_assert(std::is_same<dummy_type, c4::detail::fail_type__>::value, errmsg);
+
+
 //-----------------------------------------------------------------------------
 
 #define C4_ASSERT_SAME_TYPE(ty1, ty2)                       \
