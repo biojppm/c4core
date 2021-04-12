@@ -316,6 +316,47 @@ TEST_CASE("align.right")
     CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 7)), "   1234");
     CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 8)), "    1234");
     CHECK_EQ(to_chars_sub(buf, fmt::right(1234, 9)), "     1234");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::real(0.125, 1)), "0.1"); // we assume this in what follows
+    CHECK_EQ(to_chars_sub(buf, fmt::real(0.125, 2)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::real(0.125, 3)), "0.125");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 1), 0)), "0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 1), 1)), "0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 1), 2)), "0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 1), 3)), "0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 1), 4)), " 0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 1), 5)), "  0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 1), 6)), "   0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 1), 7)), "    0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 2), 0)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 2), 1)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 2), 2)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 2), 3)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 2), 4)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 2), 5)), " 0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 2), 6)), "  0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 2), 7)), "   0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 3), 0)), "0.125");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 3), 1)), "0.125");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 3), 2)), "0.125");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 3), 3)), "0.125");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 3), 4)), "0.125");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 3), 5)), "0.125");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 3), 6)), " 0.125");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.125, 3), 7)), "  0.125");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(1234.5222, 1), 7)), " 1234.5");
+    auto r = [](double val, size_t width) { return fmt::right(fmt::real(val, 1), width); };
+    CHECK_EQ(to_chars_sub(buf, r(1234.5, 7)), " 1234.5");
+    c4::format(buf, "freq={}Hz\0",
+               r(1234.5, 7));
+    CHECK_EQ(buf, "freq= 1234.5Hz");
+    return;
+    c4::format(buf, "freq={}Hz dt={}us proc={}us ({}%) slack={}us ({}%)\0",
+               r(1234.5, 7), r(250.0, 5),
+               r( 200.0, 5), r( 75.0, 4),
+               r(  50.0, 5), r( 25.0, 4));
+    CHECK_EQ(buf, "freq= 1234.5Hz dt=250.5us proc=200.0us (75.0%) slack= 50.0us (25.0%)");
 }
 
 

@@ -365,31 +365,31 @@ namespace fmt {
 template<class T>
 struct left_
 {
-    T const& C4_RESTRICT val;
+    T val;
     size_t width;
     char pad;
-    left_(T const& C4_RESTRICT v, size_t w, char p) : val(v), width(w), pad(p) {}
+    left_(T v, size_t w, char p) : val(v), width(w), pad(p) {}
 };
 
 template<class T>
 struct right_
 {
-    T const& C4_RESTRICT val;
+    T val;
     size_t width;
     char pad;
-    right_(T const& C4_RESTRICT v, size_t w, char p) : val(v), width(w), pad(p) {}
+    right_(T v, size_t w, char p) : val(v), width(w), pad(p) {}
 };
 
 /** mark an argument to be aligned left */
 template<class T>
-left_<T> left(T const& C4_RESTRICT val, size_t width, char padchar=' ')
+left_<T> left(T val, size_t width, char padchar=' ')
 {
     return left_<T>(val, width, padchar);
 }
 
 /** mark an argument to be aligned right */
 template<class T>
-right_<T> right(T const& C4_RESTRICT val, size_t width, char padchar=' ')
+right_<T> right(T val, size_t width, char padchar=' ')
 {
     return right_<T>(val, width, padchar);
 }
