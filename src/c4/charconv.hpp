@@ -1338,11 +1338,11 @@ template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type from_chars_first(c
 //-----------------------------------------------------------------------------
 // for pointers
 
-template <class T> C4_ALWAYS_INLINE size_t xtoa(substr s, T *v) { return xtoa(s, *v); }
-template <class T> C4_ALWAYS_INLINE bool   atox(csubstr s, T **v) { return atox(s, *v); }
-template <class T> C4_ALWAYS_INLINE size_t to_chars(substr s, T *v) { return to_chars(s, *v); }
-template <class T> C4_ALWAYS_INLINE bool   from_chars(csubstr buf, T **v) { return from_chars(buf, *v); }
-template <class T> C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf, T **v) { return from_chars_first(buf, *v); }
+template <class T> C4_ALWAYS_INLINE size_t xtoa(substr s, T *v) { return itoa(s, (intptr_t)v, (intptr_t)16); }
+template <class T> C4_ALWAYS_INLINE bool   atox(csubstr s, T **v) { intptr_t tmp; bool ret = atox(s, &tmp); if(ret) { *v = (T*)tmp; } return ret; }
+template <class T> C4_ALWAYS_INLINE size_t to_chars(substr s, T *v) { return itoa(s, (intptr_t)v, (intptr_t)16); }
+template <class T> C4_ALWAYS_INLINE bool   from_chars(csubstr buf, T **v) { intptr_t tmp; bool ret = from_chars(buf, &tmp); if(ret) { *v = (T*)tmp; } return ret; }
+template <class T> C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf, T **v) { intptr_t tmp; bool ret = from_chars_first(buf, &tmp); if(ret) { *v = (T*)tmp; } return ret; }
 
 
 //-----------------------------------------------------------------------------

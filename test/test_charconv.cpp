@@ -1539,6 +1539,126 @@ TEST_CASE("from_chars.substr_insufficient_size")
     }
 }
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+struct ptr_expected { void *ptr; c4::csubstr str; };
+const ptr_expected ptr_cases[] = {
+    {(void*)0x0, "0x0"},
+    {(void*)0x1234, "0x1234"},
+    {(void*)-0x1234, "-0x1234"},
+};
+
+template<class T>
+void test_xtoa_ptr(const char *type_name)
+{
+    INFO("type=" << type_name);
+    char buf_[128] = {};
+    c4::substr buf(buf_);
+    for(auto &pe : ptr_cases)
+    {
+        INFO("val=" << pe.str);
+        size_t ret = xtoa(buf, (T const*)pe.ptr);
+        CHECK_EQ(ret, pe.str.len);
+        CHECK_EQ(buf.first(ret), pe.str);
+    }
+}
+
+template<class T>
+void test_to_chars_ptr(const char *type_name)
+{
+    INFO("type=" << type_name);
+    char buf_[128] = {};
+    c4::substr buf(buf_);
+    for(auto &pe : ptr_cases)
+    {
+        INFO("val=" << pe.str);
+        size_t ret = to_chars(buf, (T const*)pe.ptr);
+        CHECK_EQ(ret, pe.str.len);
+        CHECK_EQ(buf.first(ret), pe.str);
+    }
+}
+
+template<class T>
+void test_atox_ptr(const char *type_name)
+{
+    INFO("type=" << type_name);
+    for(auto &pe : ptr_cases)
+    {
+        T *ptr;
+        INFO("val=" << pe.str);
+        bool ret = atox(pe.str, &ptr);
+        CHECK(ret);
+        CHECK_EQ((void*)ptr, pe.ptr);
+    }
+}
+
+template<class T>
+void test_from_chars_ptr(const char *type_name)
+{
+    INFO("type=" << type_name);
+    for(auto &pe : ptr_cases)
+    {
+        T *ptr;
+        INFO("val=" << pe.str);
+        bool ret = from_chars(pe.str, &ptr);
+        CHECK(ret);
+        CHECK_EQ((void*)ptr, pe.ptr);
+    }
+}
+
+template<class T>
+void test_from_chars_first_ptr(const char *type_name)
+{
+    INFO("type=" << type_name);
+    for(auto &pe : ptr_cases)
+    {
+        T *ptr;
+        INFO("val=" << pe.str);
+        bool ret = from_chars(pe.str, &ptr);
+        CHECK(ret);
+        CHECK_EQ((void*)ptr, pe.ptr);
+    }
+}
+
+
+TEST_CASE("xtoa.ptr")
+{
+    test_xtoa_ptr<void>("void");
+    test_xtoa_ptr<int>("int");
+    test_xtoa_ptr<std::vector<int>>("std::vector<int>");
+}
+
+TEST_CASE("atox.ptr")
+{
+    test_atox_ptr<void>("void");
+    test_atox_ptr<int>("int");
+    test_atox_ptr<std::vector<int>>("std::vector<int>");
+}
+
+TEST_CASE("to_chars.ptr")
+{
+    test_to_chars_ptr<void>("void");
+    test_to_chars_ptr<int>("int");
+    test_to_chars_ptr<std::vector<int>>("std::vector<int>");
+}
+
+TEST_CASE("from_chars.ptr")
+{
+    test_from_chars_ptr<void>("void");
+    test_from_chars_ptr<int>("int");
+    test_from_chars_ptr<std::vector<int>>("std::vector<int>");
+}
+
+TEST_CASE("from_chars_first.ptr")
+{
+    test_from_chars_first_ptr<void>("void");
+    test_from_chars_first_ptr<int>("int");
+    test_from_chars_first_ptr<std::vector<int>>("std::vector<int>");
+}
+
 } // namespace c4
 
 #ifdef __clang__
