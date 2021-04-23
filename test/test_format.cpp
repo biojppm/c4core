@@ -348,15 +348,9 @@ TEST_CASE("align.right")
     CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(1234.5222, 1), 7)), " 1234.5");
     auto r = [](double val, size_t width) { return fmt::right(fmt::real(val, 1), width); };
     CHECK_EQ(to_chars_sub(buf, r(1234.5, 7)), " 1234.5");
-    c4::format(buf, "freq={}Hz\0",
-               r(1234.5, 7));
-    CHECK_EQ(buf, "freq= 1234.5Hz");
-    return;
-    c4::format(buf, "freq={}Hz dt={}us proc={}us ({}%) slack={}us ({}%)\0",
-               r(1234.5, 7), r(250.0, 5),
-               r( 200.0, 5), r( 75.0, 4),
-               r(  50.0, 5), r( 25.0, 4));
-    CHECK_EQ(buf, "freq= 1234.5Hz dt=250.5us proc=200.0us (75.0%) slack= 50.0us (25.0%)");
+    c4::format(buf, "freq={}Hz\0", r(1234.5, 7));
+    CHECK_EQ(to_csubstr(buf).len, to_csubstr("freq= 1234.5Hz").len);
+    CHECK_EQ(to_csubstr(buf), "freq= 1234.5Hz");
 }
 
 
