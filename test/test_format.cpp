@@ -225,6 +225,20 @@ TEST_CASE("to_chars.fmt.boolalpha")
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+TEST_CASE("align.left.overflow")
+{
+    CHECK_EQ(to_chars(substr(), fmt::left(' ', 91u)), 91u);
+    CHECK_EQ(to_chars(substr(), fmt::left("0123456789.123456789.123456789.123456789", 91u)), 91u);
+    CHECK_EQ(to_chars(substr(), fmt::left("0123456789.123456789.123456789.123456789", 30u)), 40u);
+}
+
+TEST_CASE("align.right.overflow")
+{
+    CHECK_EQ(to_chars(substr(), fmt::right(' ', 91u)), 91u);
+    CHECK_EQ(to_chars(substr(), fmt::right("0123456789.123456789.123456789.123456789", 91u)), 91u);
+    CHECK_EQ(to_chars(substr(), fmt::right("0123456789.123456789.123456789.123456789", 30u)), 40u);
+}
+
 TEST_CASE("align.left")
 {
     char buf[128] = {};

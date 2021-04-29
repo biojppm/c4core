@@ -403,7 +403,7 @@ size_t to_chars(substr buf, fmt::left_<T> const& C4_RESTRICT align)
     size_t ret = to_chars(buf, align.val);
     if(ret >= buf.len || ret >= align.width)
     {
-        return ret;
+        return ret > align.width ? ret : align.width;
     }
     buf.first(align.width).sub(ret).fill(align.pad);
     to_chars(buf, align.val);
@@ -416,7 +416,7 @@ size_t to_chars(substr buf, fmt::right_<T> const& C4_RESTRICT align)
     size_t ret = to_chars(buf, align.val);
     if(ret >= buf.len || ret >= align.width)
     {
-        return ret;
+        return ret > align.width ? ret : align.width;
     }
     size_t rem = static_cast<size_t>(align.width - ret);
     buf.first(rem).fill(align.pad);
