@@ -15,6 +15,24 @@ TEST_CASE_TEMPLATE("span.default_init", SpanClass, span<int>, spanrs<int>, spanr
     CHECK_EQ(s.data(), nullptr);
 }
 
+
+template<template<class, class> class Span, class T, class I>
+Span<const T, I> cvt_to_const(Span<T, I> const& s)
+{
+    Span<const T, I> ret = s;
+    return ret;
+}
+
+TEST_CASE_TEMPLATE("span.convert_to_const", SpanClass, span<int>, spanrs<int>, spanrsl<int>)
+{
+    SpanClass s;
+    auto cs = cvt_to_const(s);
+    CHECK_EQ(s.size(), cs.size());
+    CHECK_EQ(s.data(), cs.data());
+    CHECK_EQ(s.end(), cs.end());
+}
+
+
 //-----------------------------------------------------------------------------
 TEST_CASE("span.empty_init")
 {
@@ -66,9 +84,14 @@ TEST_CASE("spanrsl.empty_init")
 }
 
 //-----------------------------------------------------------------------------
-template<class SpanClass>
-void test_fromArray()
+
+TEST_CASE_TEMPLATE("span.fromArray", SpanClass,
+                   span<char>, span<int>, span<uint32_t>,
+                   spanrs<char>, spanrs<int>, spanrs<uint32_t>,
+                   spanrsl<char>, spanrsl<int>, spanrsl<uint32_t>
+    )
 {
+    using ConstSpanClass = typename SpanClass::const_type;
     using T = typename SpanClass::value_type;
     T arr1[10];
     T arr2[20];
@@ -85,7 +108,21 @@ void test_fromArray()
     }
 
     {
+        ConstSpanClass s(arr1);
+        CHECK_EQ(s.size(), C4_COUNTOF(arr1));
+        CHECK_EQ(s.capacity(), C4_COUNTOF(arr1));
+        CHECK_EQ(s.data(), arr1);
+    }
+
+    {
         SpanClass s = arr1;
+        CHECK_EQ(s.size(), C4_COUNTOF(arr1));
+        CHECK_EQ(s.capacity(), C4_COUNTOF(arr1));
+        CHECK_EQ(s.data(), arr1);
+    }
+
+    {
+        ConstSpanClass s = arr1;
         CHECK_EQ(s.size(), C4_COUNTOF(arr1));
         CHECK_EQ(s.capacity(), C4_COUNTOF(arr1));
         CHECK_EQ(s.data(), arr1);
@@ -101,28 +138,19 @@ void test_fromArray()
         CHECK_EQ(s.capacity(), C4_COUNTOF(arr2));
         CHECK_EQ(s.data(), arr2);
     }
+
+    {
+        ConstSpanClass s = arr1;
+        CHECK_EQ(s.size(), C4_COUNTOF(arr1));
+        CHECK_EQ(s.capacity(), C4_COUNTOF(arr1));
+        CHECK_EQ(s.data(), arr1);
+        s = arr2;
+        CHECK_EQ(s.size(), C4_COUNTOF(arr2));
+        CHECK_EQ(s.capacity(), C4_COUNTOF(arr2));
+        CHECK_EQ(s.data(), arr2);
+    }
 }
 
-TEST_CASE("span.fromArray")
-{
-    test_fromArray<span<char>>();
-    test_fromArray<span<int>>();
-    test_fromArray<span<uint32_t>>();
-}
-
-TEST_CASE("spanrs.fromArray")
-{
-    test_fromArray<spanrs<char>>();
-    test_fromArray<spanrs<int>>();
-    test_fromArray<spanrs<uint32_t>>();
-}
-
-TEST_CASE("spanrsl.fromArray")
-{
-    test_fromArray<spanrsl<char>>();
-    test_fromArray<spanrsl<int>>();
-    test_fromArray<spanrsl<uint32_t>>();
-}
 
 //-----------------------------------------------------------------------------
 TEST_CASE("span.subspan")

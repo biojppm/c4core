@@ -276,7 +276,7 @@ class span : public span_crtp<T, I, span<T, I>>
 {
     friend class span_crtp<T, I, span<T, I>>;
 
-    T * m_ptr;
+    T * C4_RESTRICT m_ptr;
     I   m_size;
 
     C4_ALWAYS_INLINE span _select(T *p, I sz) const { return span(p, sz); }
@@ -284,25 +284,38 @@ class span : public span_crtp<T, I, span<T, I>>
 public:
 
     _c4_DEFINE_ARRAY_TYPES(T, I);
+    using NCT = typename std::remove_const<T>::type; //!< NCT=non const type
+    using CT = typename std::add_const<T>::type; //!< CT=const type
+    using const_type = span<CT, I>;
+
+    /// convert automatically to span of const T
+    operator span<CT, I> () const { span<CT, I> s(m_ptr, m_size); return s; }
 
 public:
 
     C4_ALWAYS_INLINE C4_CONSTEXPR14 span() noexcept : m_ptr{nullptr}, m_size{0} {}
-
-    C4_ALWAYS_INLINE C4_CONSTEXPR14      span  (T *p, I sz) noexcept : m_ptr{p}, m_size{sz} {}
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 void assign(T *p, I sz) noexcept { m_ptr = p; m_size = sz; }
-
-    template<size_t N> C4_ALWAYS_INLINE C4_CONSTEXPR14      span  (T (&arr)[N]) noexcept : m_ptr{arr}, m_size{N} {}
-    template<size_t N> C4_ALWAYS_INLINE C4_CONSTEXPR14 void assign(T (&arr)[N]) noexcept { m_ptr = arr; m_size = N; }
-
-    C4_ALWAYS_INLINE C4_CONSTEXPR14      span  (c4::aggregate_t, std::initializer_list<T> il) noexcept : m_ptr{il.begin()}, m_size{il.size()} {}
-    C4_ALWAYS_INLINE C4_CONSTEXPR14 void assign(c4::aggregate_t, std::initializer_list<T> il) noexcept { m_ptr = il.begin(); m_size = il.size(); }
 
     span(span const&) = default;
     span(span     &&) = default;
 
     span& operator= (span const&) = default;
     span& operator= (span     &&) = default;
+
+public:
+
+    /** @name Construction and assignment from same type */
+    /** @{ */
+
+    template<size_t N> C4_ALWAYS_INLINE C4_CONSTEXPR14      span  (T (&arr)[N]) noexcept : m_ptr{arr}, m_size{N} {}
+    template<size_t N> C4_ALWAYS_INLINE C4_CONSTEXPR14 void assign(T (&arr)[N]) noexcept { m_ptr = arr; m_size = N; }
+
+    C4_ALWAYS_INLINE C4_CONSTEXPR14        span(T *p, I sz) noexcept : m_ptr{p}, m_size{sz} {}
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 void   assign(T *p, I sz) noexcept { m_ptr = p; m_size = sz; }
+
+    C4_ALWAYS_INLINE C4_CONSTEXPR14      span  (c4::aggregate_t, std::initializer_list<T> il) noexcept : m_ptr{il.begin()}, m_size{il.size()} {}
+    C4_ALWAYS_INLINE C4_CONSTEXPR14 void assign(c4::aggregate_t, std::initializer_list<T> il) noexcept { m_ptr = il.begin(); m_size = il.size(); }
+
+    /** @} */
 
 public:
 
@@ -340,7 +353,7 @@ class spanrs : public span_crtp<T, I, spanrs<T, I>>
 {
     friend class span_crtp<T, I, spanrs<T, I>>;
 
-    T * m_ptr;
+    T * C4_RESTRICT m_ptr;
     I   m_size;
     I   m_capacity;
 
@@ -355,12 +368,31 @@ class spanrs : public span_crtp<T, I, spanrs<T, I>>
 public:
 
     _c4_DEFINE_ARRAY_TYPES(T, I);
+    using NCT = typename std::remove_const<T>::type; //!< NCT=non const type
+    using CT = typename std::add_const<T>::type; //!< CT=const type
+    using const_type = spanrs<CT, I>;
 
-    C4_ALWAYS_INLINE operator span<T, I > () const noexcept { return span< T, I>(m_ptr, m_size); }
+    /// convert automatically to span of T
+    C4_ALWAYS_INLINE operator span<T, I > () const noexcept { return span<T, I>(m_ptr, m_size); }
+    /// convert automatically to span of const T
+    //C4_ALWAYS_INLINE operator span<CT, I> () const noexcept { span<CT, I> s(m_ptr, m_size); return s; }
+    /// convert automatically to spanrs of const T
+    C4_ALWAYS_INLINE operator spanrs<CT, I> () const noexcept { spanrs<CT, I> s(m_ptr, m_size, m_capacity); return s; }
 
 public:
 
     C4_ALWAYS_INLINE spanrs() noexcept : m_ptr{nullptr}, m_size{0}, m_capacity{0} {}
+
+    spanrs(spanrs const&) = default;
+    spanrs(spanrs     &&) = default;
+
+    spanrs& operator= (spanrs const&) = default;
+    spanrs& operator= (spanrs     &&) = default;
+
+public:
+
+    /** @name Construction and assignment from same type */
+    /** @{ */
 
     C4_ALWAYS_INLINE      spanrs(T *p, I sz) noexcept : m_ptr{p}, m_size{sz}, m_capacity{sz} {}
     /** @warning will reset the capacity to sz */
@@ -375,11 +407,7 @@ public:
     C4_ALWAYS_INLINE      spanrs(c4::aggregate_t, std::initializer_list<T> il) noexcept : m_ptr{il.begin()}, m_size{il.size()}, m_capacity{il.size()} {}
     C4_ALWAYS_INLINE void assign(c4::aggregate_t, std::initializer_list<T> il) noexcept { m_ptr = il.begin(); m_size = il.size(); m_capacity = il.size(); }
 
-    spanrs(spanrs const&) = default;
-    spanrs(spanrs     &&) = default;
-
-    spanrs& operator= (spanrs const&) = default;
-    spanrs& operator= (spanrs     &&) = default;
+    /** @} */
 
 public:
 
@@ -408,7 +436,7 @@ class spanrsl : public span_crtp<T, I, spanrsl<T, I>>
 {
     friend class span_crtp<T, I, spanrsl<T, I>>;
 
-    T * m_ptr;      ///< the current ptr. the original ptr is (m_ptr - m_offset).
+    T *C4_RESTRICT m_ptr;      ///< the current ptr. the original ptr is (m_ptr - m_offset).
     I   m_size;     ///< the current size. the original size is unrecoverable.
     I   m_capacity; ///< the current capacity. the original capacity is (m_capacity + m_offset).
     I   m_offset;   ///< the offset of the current m_ptr to the start of the original memory block.
@@ -416,21 +444,33 @@ class spanrsl : public span_crtp<T, I, spanrsl<T, I>>
     C4_ALWAYS_INLINE spanrsl _select(T *p, I sz) const noexcept
     {
         C4_ASSERT(p >= m_ptr);
-        size_t delta = static_cast<size_t>(p - m_ptr);
+        I delta = static_cast<I>(p - m_ptr);
         C4_ASSERT(m_capacity >= delta);
-        return spanrsl(p, sz, static_cast<size_t>(m_capacity - delta), m_offset + delta);
+        return spanrsl(p, sz, static_cast<I>(m_capacity - delta), m_offset + delta);
     }
 
 public:
 
     _c4_DEFINE_ARRAY_TYPES(T, I);
+    using NCT = typename std::remove_const<T>::type; //!< NCT=non const type
+    using CT = typename std::add_const<T>::type; //!< CT=const type
+    using const_type = spanrsl<CT, I>;
 
     C4_ALWAYS_INLINE operator span<T, I> () const noexcept { return span<T, I>(m_ptr, m_size); }
     C4_ALWAYS_INLINE operator spanrs<T, I> () const noexcept { return spanrs<T, I>(m_ptr, m_size, m_capacity); }
+    C4_ALWAYS_INLINE operator spanrsl<CT, I> () const noexcept { return spanrsl<CT, I>(m_ptr, m_size, m_capacity, m_offset); }
 
 public:
 
     C4_ALWAYS_INLINE spanrsl() noexcept : m_ptr{nullptr}, m_size{0}, m_capacity{0}, m_offset{0} {}
+
+    spanrsl(spanrsl const&) = default;
+    spanrsl(spanrsl     &&) = default;
+
+    spanrsl& operator= (spanrsl const&) = default;
+    spanrsl& operator= (spanrsl     &&) = default;
+
+public:
 
     C4_ALWAYS_INLINE     spanrsl(T *p, I sz) noexcept : m_ptr{p}, m_size{sz}, m_capacity{sz}, m_offset{0} {}
     C4_ALWAYS_INLINE void assign(T *p, I sz) noexcept { m_ptr = p; m_size = sz; m_capacity = sz; m_offset = 0; }
@@ -446,12 +486,6 @@ public:
 
     C4_ALWAYS_INLINE      spanrsl(c4::aggregate_t, std::initializer_list<T> il) noexcept : m_ptr{il.begin()}, m_size{il.size()}, m_capacity{il.size()}, m_offset{0} {}
     C4_ALWAYS_INLINE void assign (c4::aggregate_t, std::initializer_list<T> il) noexcept { m_ptr = il.begin(); m_size = il.size(); m_capacity = il.size(); m_offset = 0; }
-
-    spanrsl(spanrsl const&) = default;
-    spanrsl(spanrsl     &&) = default;
-
-    spanrsl& operator= (spanrsl const&) = default;
-    spanrsl& operator= (spanrsl     &&) = default;
 
 public:
 
@@ -476,6 +510,8 @@ public:
 };
 template<class T, class I=C4_SIZE_TYPE> using cspanrsl = spanrsl<const T, I>;
 
+
 } // namespace c4
+
 
 #endif /* _C4_SPAN_HPP_ */
