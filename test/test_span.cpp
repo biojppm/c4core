@@ -169,6 +169,17 @@ TEST_CASE("span.subspan")
         CHECK_EQ(ss.size(), 5);
         CHECK_EQ(ss.capacity(), 5);
         CHECK_EQ(ss.data(), &arr[5]);
+
+        // fine to obtain an empty span at the end
+        ss = s.subspan(10);
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.capacity(), 0);
+        CHECK_EQ(ss.data(), std::end(arr));
+        // fine to obtain an empty span at the end
+        ss = s.subspan(10, 0);
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.capacity(), 0);
+        CHECK_EQ(ss.data(), std::end(arr));
     }
     {
         int buf10[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -209,6 +220,17 @@ TEST_CASE("spanrs.subspan")
     CHECK_EQ(ss.size(), 5);
     CHECK_EQ(ss.capacity(), 5);
     CHECK_EQ(ss.data(), &arr[5]);
+
+    // fine to obtain an empty span at the end
+    ss = s.subspan(10);
+    CHECK_EQ(ss.size(), 0);
+    CHECK_EQ(ss.capacity(), 0);
+    CHECK_EQ(ss.data(), std::end(arr));
+    // fine to obtain an empty span at the end
+    ss = s.subspan(10, 0);
+    CHECK_EQ(ss.size(), 0);
+    CHECK_EQ(ss.capacity(), 0);
+    CHECK_EQ(ss.data(), std::end(arr));
 }
 TEST_CASE("spanrsl.subspan")
 {
@@ -239,6 +261,17 @@ TEST_CASE("spanrsl.subspan")
     CHECK_EQ(ss.capacity(), 10);
     CHECK_EQ(ss.data(), arr);
     CHECK_EQ(ss.offset(), 0);
+
+    // fine to obtain an empty span at the end
+    ss = s.subspan(10);
+    CHECK_EQ(ss.size(), 0);
+    CHECK_EQ(ss.capacity(), 0);
+    CHECK_EQ(ss.data(), std::end(arr));
+    // fine to obtain an empty span at the end
+    ss = s.subspan(10, 0);
+    CHECK_EQ(ss.size(), 0);
+    CHECK_EQ(ss.capacity(), 0);
+    CHECK_EQ(ss.data(), std::end(arr));
 }
 
 //-----------------------------------------------------------------------------
@@ -262,6 +295,11 @@ TEST_CASE("span.range")
     CHECK_EQ(ss.size(), 5);
     CHECK_EQ(ss.capacity(), 5);
     CHECK_EQ(ss.data(), &arr[5]);
+
+    ss = s.range(10, 10);
+    CHECK_EQ(ss.size(), 0);
+    CHECK_EQ(ss.capacity(), 0);
+    CHECK_EQ(ss.data(), std::end(arr));
 }
 TEST_CASE("spanrs.range")
 {
@@ -283,6 +321,11 @@ TEST_CASE("spanrs.range")
     CHECK_EQ(ss.size(), 5);
     CHECK_EQ(ss.capacity(), 5);
     CHECK_EQ(ss.data(), &arr[5]);
+
+    ss = s.range(10, 10);
+    CHECK_EQ(ss.size(), 0);
+    CHECK_EQ(ss.capacity(), 0);
+    CHECK_EQ(ss.data(), std::end(arr));
 }
 TEST_CASE("spanrsl.range")
 {
@@ -314,6 +357,11 @@ TEST_CASE("spanrsl.range")
     CHECK_EQ(ss.size(), 10);
     CHECK_EQ(ss.capacity(), 10);
     CHECK_EQ(ss.data(), arr);
+
+    ss = s.range(10, 10);
+    CHECK_EQ(ss.size(), 0);
+    CHECK_EQ(ss.capacity(), 0);
+    CHECK_EQ(ss.data(), std::end(arr));
 }
 
 //-----------------------------------------------------------------------------
