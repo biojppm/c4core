@@ -8,17 +8,22 @@
  *
  * @see https://aras-p.info/blog/2018/01/12/Minimizing-windows.h/ */
 
-#if defined(_WIN64)
+#if defined(_M_AMD64)
 #   ifndef _AMD64_
 #       define _c4_AMD64_
 #       define _AMD64_
 #   endif
-#elif defined(_WIN32)
+#elif defined(_M_IX86)
 #   ifndef _X86_
 #       define _c4_X86_
 #       define _X86_
 #   endif
-#elif defined(_ARM)
+#elif defined(_M_ARM64)
+#   ifndef _ARM64_
+#       define _c4_ARM64_
+#       define _ARM64_
+#   endif
+#elif defined(_M_ARM)
 #   ifndef _ARM_
 #       define _c4_ARM_
 #       define _ARM_
