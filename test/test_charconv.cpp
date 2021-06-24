@@ -1546,9 +1546,9 @@ TEST_CASE("from_chars.substr_insufficient_size")
 
 struct ptr_expected { void *ptr; c4::csubstr str; };
 const ptr_expected ptr_cases[] = {
-    {(void*)0x0, "0x0"},
-    {(void*)0x1234, "0x1234"},
-    {(void*)-0x1234, "-0x1234"},
+    {(void*)0x0, c4::csubstr("0x0")},
+    {(void*)0x1234, c4::csubstr("0x1234")},
+    {(void*)-0x1234, c4::csubstr("-0x1234")},
 };
 
 template<class T>
