@@ -53,6 +53,7 @@ jobs:
   test_coverage:
     # if: github.ref == 'refs/heads/master'
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -115,6 +116,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_windows:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -160,6 +162,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_macosx:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -200,6 +203,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_gcc_canary:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -240,6 +244,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_clang_canary:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -278,6 +283,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_clang_tidy:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -321,6 +327,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_gcc_extended:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -375,6 +382,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_clang_extended:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -425,6 +433,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_clang_sanitize:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -476,6 +485,7 @@ jobs:
   #----------------------------------------------------------------------------
   test_arm:
     continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -503,6 +513,7 @@ jobs:
 #  # https://blog.kitware.com/static-checks-with-cmake-cdash-iwyu-clang-tidy-lwyu-cpplint-and-cppcheck/
 #  static_analysis:
 #    continue-on-error: true
+#    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
 #    runs-on: ${{matrix.os}}
 #    strategy:
 #      fail-fast: false
