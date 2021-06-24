@@ -1587,7 +1587,7 @@ void test_atox_ptr(const char *type_name)
     INFO("type=" << type_name);
     for(auto &pe : ptr_cases)
     {
-        T *ptr;
+        T *ptr = nullptr;
         INFO("val=" << pe.str);
         bool ret = atox(pe.str, &ptr);
         CHECK(ret);
@@ -1601,7 +1601,7 @@ void test_from_chars_ptr(const char *type_name)
     INFO("type=" << type_name);
     for(auto &pe : ptr_cases)
     {
-        T *ptr;
+        T *ptr = nullptr;
         INFO("val=" << pe.str);
         bool ret = from_chars(pe.str, &ptr);
         CHECK(ret);
@@ -1615,7 +1615,7 @@ void test_from_chars_first_ptr(const char *type_name)
     INFO("type=" << type_name);
     for(auto &pe : ptr_cases)
     {
-        T *ptr;
+        T *ptr = nullptr;
         INFO("val=" << pe.str);
         bool ret = from_chars(pe.str, &ptr);
         CHECK(ret);

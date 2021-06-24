@@ -150,7 +150,8 @@ void do_std_containers_test(Alloc alloc)
         int count = 0;
         for(auto &s : v)
         {
-            s = _string(64, (char)('0' + count++));
+            _string ss(size_t(64), (char)('0' + count++));
+            s = ss;
         }
     }
 
