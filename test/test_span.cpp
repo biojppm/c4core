@@ -686,13 +686,19 @@ TEST_CASE("span.reverse_iter")
     cspan<int> s(larri);
     using rit = cspan<int>::const_reverse_iterator;
     int pos = szconv<int>(s.size()) - 1;
+    size_t count = 0;
     for(rit b = s.rbegin(), e = s.rend(); b != e; ++b)
     {
-        C4_ASSERT(pos >= 0);
-        CHECK_EQ(*b, s[static_cast<size_t>(pos)]);
+        printf("count=%zu pos=%d\n", count, pos);
+        REQUIRE_GE(pos, 0);
+        REQUIRE_LT(pos, szconv<int>(s.size()));
+        REQUIRE_LT(count, s.size());
+        CHECK_EQ(*b, s[szconv<size_t>(pos)]);
         --pos;
+        ++count;
     }
     CHECK_EQ(pos, -1);
+    CHECK_EQ(count, s.size());
 }
 
 //-----------------------------------------------------------------------------
