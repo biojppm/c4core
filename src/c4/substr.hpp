@@ -1624,16 +1624,21 @@ public:
         C4_ASSERT( ! pattern.overlaps(dst));
         C4_ASSERT( ! repl   .overlaps(dst));
         C4_ASSERT((pos >= 0 && pos <= len) || pos == npos);
-#define _c4append(first, last)                                  \
-        {                                                       \
-            C4_ASSERT((last) >= (first));                       \
-            size_t num = static_cast<size_t>((last) - (first)); \
-            if(sz + num <= dst.len)                             \
-            {                                                   \
-                memcpy(dst.str + sz, first, num * sizeof(C));   \
-            }                                                   \
-            sz += num;                                          \
-        }
+        C4_SUPPRESS_WARNING_GCC_PUSH
+        C4_SUPPRESS_WARNING_GCC("-Warray-bounds")  // gcc11 has a false positive here
+        #if (!defined(__clang__)) && (defined(__GNUC__) && (__GNUC__ >= 7))
+        C4_SUPPRESS_WARNING_GCC("-Wstringop-overflow")  // gcc11 has a false positive here
+        #endif
+        #define _c4append(first, last)                                  \
+            {                                                           \
+                C4_ASSERT((last) >= (first));                           \
+                size_t num = static_cast<size_t>((last) - (first));     \
+                if(sz + num <= dst.len)                                 \
+                {                                                       \
+                    memcpy(dst.str + sz, first, num * sizeof(C));       \
+                }                                                       \
+                sz += num;                                              \
+            }
         size_t sz = 0;
         size_t b = pos;
         _c4append(str, str + pos);
@@ -1649,7 +1654,8 @@ public:
             b = e + pattern.size();
         } while(b < len && b != npos);
         return sz;
-#undef _c4append
+        #undef _c4append
+        C4_SUPPRESS_WARNING_GCC_POP
     }
 
     /** @} */

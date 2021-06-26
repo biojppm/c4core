@@ -1,9 +1,10 @@
 # c4core - C++ core utilities
 
 [![MIT Licensed](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/biojppm/c4core/blob/master/LICENSE.txt)
+[![Docs](https://img.shields.io/badge/docs-docsforge-blue)](https://c4core.docsforge.com/)
 [![ci](https://github.com/biojppm/c4core/workflows/ci/badge.svg)](https://github.com/biojppm/c4core/actions?query=ci)
-[![Coverage: coveralls](https://coveralls.io/repos/github/biojppm/c4core/badge.svg)](https://coveralls.io/github/biojppm/c4core)
-[![Coverage: codecov](https://codecov.io/gh/biojppm/c4core/branch/master/graph/badge.svg)](https://codecov.io/gh/biojppm/c4core)
+[![Coveralls](https://coveralls.io/repos/github/biojppm/c4core/badge.svg)](https://coveralls.io/github/biojppm/c4core)
+[![Codecov](https://codecov.io/gh/biojppm/c4core/branch/master/graph/badge.svg)](https://codecov.io/gh/biojppm/c4core)
 [![LGTM alerts](https://img.shields.io/lgtm/alerts/g/biojppm/c4core.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/biojppm/c4core/alerts/)
 [![LGTM grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/biojppm/c4core.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/biojppm/c4core/context:cpp)
 
