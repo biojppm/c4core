@@ -684,15 +684,28 @@ const int rarri[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
 TEST_CASE("span.reverse_iter")
 {
     cspan<int> s(larri);
+    REQUIRE_EQ(s.data(), larri);
+    REQUIRE_EQ(s.begin(), std::begin(larri));
+    REQUIRE_EQ(s.end(), std::end(larri));
+    REQUIRE_EQ(&*s.rbegin(), s.end()-1);
     using rit = cspan<int>::const_reverse_iterator;
     int pos = szconv<int>(s.size()) - 1;
-    for(rit b = s.rbegin(), e = s.rend(); b != e; ++b)
+    size_t count = 0;
+    //for(rit b = s.rbegin(), e = s.rend(); b != e; ++b) // BUG: b != e is never true on arm-eabi-g++-7
+    for(rit b = s.rbegin(), e = s.rend(); b < e; ++b)
     {
-        C4_ASSERT(pos >= 0);
-        CHECK_EQ(*b, s[static_cast<size_t>(pos)]);
+        CHECK_EQ(&(*b), s.data() + pos);
+        auto spos = szconv<size_t>(pos);
+        REQUIRE_EQ(&*b, &s[spos]);
+        REQUIRE_GE(pos, 0);
+        REQUIRE_LT(pos, szconv<int>(s.size()));
+        REQUIRE_LT(count, s.size());
+        CHECK_EQ(*b, s[spos]);
         --pos;
+        ++count;
     }
     CHECK_EQ(pos, -1);
+    CHECK_EQ(count, s.size());
 }
 
 //-----------------------------------------------------------------------------
