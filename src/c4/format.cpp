@@ -1,5 +1,7 @@
 #include "c4/format.hpp"
 
+#include <memory> // for std::align
+
 #ifdef __clang__
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wformat-nonliteral"

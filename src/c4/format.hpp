@@ -7,8 +7,6 @@
 #include "c4/charconv.hpp"
 #include "c4/blob.hpp"
 
-#include <memory>
-#include <functional>
 
 #ifdef _MSC_VER
 #   pragma warning(push)
