@@ -527,7 +527,7 @@ TEST_CASE("format.vars")
     size_t sz;
 
     sz = format(buf, "{} and {} and {} and {}", 1, 2, 3, 4);
-    CHECK_EQ(sz, 19);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
     result = sp.left_of(sz);
     CHECK_EQ(result, "1 and 2 and 3 and 4");
 
@@ -555,6 +555,22 @@ TEST_CASE("format.vars")
     CHECK_EQ(sz, 23);
     result = sp.left_of(sz);
     CHECK_EQ(result, "{} and {} and {} and {}");
+}
+
+TEST_CASE("format.empty_buffer")
+{
+    size_t sz = format({}, "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
+    char buf_[128];
+    substr buf = buf_;
+    sz = format(buf, "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
+    CHECK_EQ(format(buf, "{} and {} and {} and {}", 1, 2, 3, 4),
+             format({} , "{} and {} and {} and {}", 1, 2, 3, 4));
+    CHECK_EQ(to_chars({}, 101), to_chars(buf, 101)); // eq for all integers
+    CHECK_GE(to_chars({}, 0.1f), to_chars(buf, 0.1f)); // ge for all floats, due to a sprintf quirk
+    CHECK_EQ(format(buf, "a={} foo {} {} bar {}", 101, 10, 11, 12),
+             format({} , "a={} foo {} {} bar {}", 101, 10, 11, 12));
 }
 
 #ifdef C4_TUPLE_TO_STR

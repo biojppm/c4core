@@ -1262,6 +1262,26 @@ TEST_CASE_TEMPLATE("atof.basic", T, float, double)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+TEST_CASE_TEMPLATE("to_chars.empty_buffer", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t, void*)
+{
+    char buf_[100];
+    substr buf = buf_;
+    CHECK_EQ(to_chars({}, T(101)), to_chars(buf_, T(101)));
+    CHECK_EQ(to_chars({}, T(101)), to_chars(buf , T(101)));
+}
+// due to an implementation quirk with sprintf, for floats the empty is GE
+TEST_CASE_TEMPLATE("to_chars.empty_buffer", T, float, double)
+{
+    char buf_[100];
+    substr buf = buf_;
+    CHECK_GE(to_chars({}, T(101)), to_chars(buf_, T(101)));
+    CHECK_GE(to_chars({}, T(101)), to_chars(buf , T(101)));
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 TEST_CASE("to_chars.std_string")
 {
@@ -1349,6 +1369,7 @@ void test_trimmed_fit(T v, csubstr expected)
     CHECK_EQ(result2, result);
     std::string str;
     catrs(&str, v);
+    CHECK_EQ(expected, to_csubstr(str));
     CHECK_EQ(result, to_csubstr(str));
 }
 
@@ -1359,14 +1380,14 @@ TEST_CASE("to_chars.trimmed_fit_int")
 
 TEST_CASE("to_chars.trimmed_fit_float")
 {
-    test_trimmed_fit(0.375f, "0.375");
-    test_trimmed_fit(12.375f, "12.375");
+    test_trimmed_fit(0.374f, "0.374");
+    test_trimmed_fit(12.374f, "12.374");
 }
 
 TEST_CASE("to_chars.trimmed_fit_double")
 {
-    test_trimmed_fit(0.375, "0.375");
-    test_trimmed_fit(12.375, "12.375");
+    test_trimmed_fit(0.374, "0.374");
+    test_trimmed_fit(12.374, "12.374");
 }
 
 
