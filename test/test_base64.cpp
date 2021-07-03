@@ -6,6 +6,8 @@
 
 #include "c4/libtest/supprwarn_push.hpp"
 
+C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(4310)  // cast truncates constant value
+
 namespace c4 {
 
 namespace detail {
@@ -239,5 +241,7 @@ TEST_CASE("base64.high_bits_i64")
 }
 
 } // namespace c4
+
+C4_SUPPRESS_WARNING_MSVC_POP
 
 #include "c4/libtest/supprwarn_pop.hpp"
