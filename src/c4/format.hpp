@@ -303,9 +303,22 @@ using raw_wrapper = raw_wrapper_<byte>;
 
 /** mark a variable to be written in raw binary format, using memcpy
  * @see blob_ */
+inline const_raw_wrapper craw(cblob data, size_t alignment=alignof(max_align_t))
+{
+    return const_raw_wrapper(data, alignment);
+}
+/** mark a variable to be written in raw binary format, using memcpy
+ * @see blob_ */
 inline const_raw_wrapper raw(cblob data, size_t alignment=alignof(max_align_t))
 {
     return const_raw_wrapper(data, alignment);
+}
+/** mark a variable to be written in raw binary format, using memcpy
+ * @see blob_ */
+template<class T>
+inline const_raw_wrapper craw(T const& C4_RESTRICT data, size_t alignment=alignof(T))
+{
+    return const_raw_wrapper(cblob(data), alignment);
 }
 /** mark a variable to be written in raw binary format, using memcpy
  * @see blob_ */
