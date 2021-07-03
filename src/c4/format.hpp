@@ -482,10 +482,12 @@ template<class Arg, class... Args>
 size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     size_t out = from_chars_first(buf, &a);
-    if(C4_UNLIKELY(out == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(out == csubstr::npos))
+        return csubstr::npos;
     buf  = buf.len >= out ? buf.sub(out) : substr{};
     size_t num = uncat(buf, more...);
-    if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(num == csubstr::npos))
+        return csubstr::npos;
     return out + num;
 }
 
@@ -525,14 +527,17 @@ template<class Sep, class Arg, class... Args>
 size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     size_t ret = from_chars_first(buf, &sep), num = ret;
-    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos))
+        return csubstr::npos;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
     ret  = from_chars_first(buf, &a);
-    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos))
+        return csubstr::npos;
     num += ret;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
     ret  = uncatsep_more(buf, sep, more...);
-    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos))
+        return csubstr::npos;
     num += ret;
     return num;
 }
@@ -576,10 +581,12 @@ template<class Sep, class Arg, class... Args>
 size_t uncatsep(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
     size_t ret = from_chars_first(buf, &a), num = ret;
-    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos))
+        return csubstr::npos;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
     ret  = detail::uncatsep_more(buf, sep, more...);
-    if(C4_UNLIKELY(ret == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(ret == csubstr::npos))
+        return csubstr::npos;
     num += ret;
     return num;
 }
@@ -618,9 +625,7 @@ size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_
 {
     auto pos = fmt.find("{}"); // @todo use _find_fmt()
     if(C4_UNLIKELY(pos == csubstr::npos))
-    {
         return format(buf, fmt);
-    }
     size_t num = to_chars(buf, fmt.sub(0, pos));
     size_t out = num;
     buf  = buf.len >= num ? buf.sub(num) : substr{};
@@ -662,20 +667,20 @@ inline size_t unformat(csubstr /*buf*/, csubstr fmt)
 template<class Arg, class... Args>
 size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
-    size_t pos = fmt.find("{}");
+    const size_t pos = fmt.find("{}");
     if(C4_UNLIKELY(pos == csubstr::npos))
-    {
         return unformat(buf, fmt);
-    }
     size_t num = pos;
     size_t out = num;
     buf  = buf.len >= num ? buf.sub(num) : substr{};
     num  = from_chars_first(buf, &a);
-    if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(num == csubstr::npos))
+        return csubstr::npos;
     out += num;
     buf  = buf.len >= num ? buf.sub(num) : substr{};
     num  = unformat(buf, fmt.sub(pos + 2), more...);
-    if(C4_UNLIKELY(num == csubstr::npos)) return csubstr::npos;
+    if(C4_UNLIKELY(num == csubstr::npos))
+        return csubstr::npos;
     out += num;
     return out;
 }
@@ -708,9 +713,7 @@ retry:
     size_t ret = cat(buf, args...);
     cont->resize(ret);
     if(ret > buf.len)
-    {
         goto retry;
-    }
 }
 
 /** like c4::cat(), but creates and returns a new container sized as needed to contain
@@ -738,9 +741,7 @@ retry:
     size_t ret = cat(buf, args...);
     cont->resize(pos + ret);
     if(ret > buf.len)
-    {
         goto retry;
-    }
     return to_csubstr(*cont).range(pos, cont->size());
 }
 
@@ -768,9 +769,7 @@ retry:
     size_t ret = catsep(buf, sep, args...);
     cont->resize(ret);
     if(ret > buf.len)
-    {
         goto retry;
-    }
 }
 
 /** like c4::catsep(), but create a new container with the result.
@@ -807,9 +806,7 @@ retry:
     size_t ret = catsep(buf, sep, args...);
     cont->resize(pos + ret);
     if(ret > buf.len)
-    {
         goto retry;
-    }
     return to_csubstr(*cont).range(pos, cont->size());
 }
 
@@ -828,9 +825,7 @@ retry:
     size_t ret = format(buf, fmt, args...);
     cont->resize(ret);
     if(ret > buf.len)
-    {
         goto retry;
-    }
 }
 
 /** like c4::format(), but create a new container with the result.
@@ -857,9 +852,7 @@ retry:
     size_t ret = format(buf, fmt, args...);
     cont->resize(pos + ret);
     if(ret > buf.len)
-    {
         goto retry;
-    }
     return to_csubstr(*cont).range(pos, cont->size());
 }
 
