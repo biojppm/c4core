@@ -68,9 +68,9 @@ C4_ALWAYS_INLINE const_base64_wrapper base64(csubstr s)
 
 /** mark a variable to be read in base64 format */
 template<class ...Args>
-C4_ALWAYS_INLINE base64_wrapper base64(Args &&... args)
+C4_ALWAYS_INLINE base64_wrapper base64(Args &... args)
 {
-    return base64_wrapper(std::forward<Args>(args)...);
+    return base64_wrapper(blob(args...));
 }
 /** mark a variable to be read in base64 format */
 C4_ALWAYS_INLINE base64_wrapper base64(substr s)
