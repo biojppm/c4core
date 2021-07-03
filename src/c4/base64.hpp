@@ -45,6 +45,17 @@ using base64_wrapper = base64_wrapper_<byte>;
 
 /** mark a variable to be written in base64 format */
 template<class ...Args>
+C4_ALWAYS_INLINE const_base64_wrapper cbase64(Args const& C4_RESTRICT ...args)
+{
+    return const_base64_wrapper(cblob(args...));
+}
+/** mark a csubstr to be written in base64 format */
+C4_ALWAYS_INLINE const_base64_wrapper cbase64(csubstr s)
+{
+    return const_base64_wrapper(cblob(s.str, s.len));
+}
+/** mark a variable to be written in base64 format */
+template<class ...Args>
 C4_ALWAYS_INLINE const_base64_wrapper base64(Args const& C4_RESTRICT ...args)
 {
     return const_base64_wrapper(cblob(args...));

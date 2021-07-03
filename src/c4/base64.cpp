@@ -1,4 +1,5 @@
 #include "c4/base64.hpp"
+#include <iostream>
 
 #ifdef __clang__
 #   pragma clang diagnostic push
@@ -69,6 +70,26 @@ constexpr static const char base64_char_to_sextet_[128] = {
     /*124 |  */ __, /*125 }  */ __, /*126 ~  */ __, /*127 DEL*/ __,
     #undef __
 };
+
+#ifndef NDEBUG
+void base64_test_tables()
+{
+    for(size_t i = 0; i < C4_COUNTOF(detail::base64_sextet_to_char_); ++i)
+    {
+        char s2c = base64_sextet_to_char_[i];
+        char c2s = base64_char_to_sextet_[(int)s2c];
+        C4_CHECK((size_t)c2s == i);
+    }
+    for(size_t i = 0; i < C4_COUNTOF(detail::base64_char_to_sextet_); ++i)
+    {
+        char c2s = base64_char_to_sextet_[i];
+        if(c2s == char(-1))
+            continue;
+        char s2c = base64_sextet_to_char_[(int)c2s];
+        C4_CHECK((size_t)s2c == i);
+    }
+}
+#endif
 } // namespace detail
 
 
@@ -96,30 +117,29 @@ size_t base64_encode(substr buf, cblob data)
 
     size_t rem, pos = 0;
     constexpr const uint32_t sextet_mask = uint32_t(1 << 6) - 1;
-    const char *C4_RESTRICT d = data.buf;
+    const unsigned char *C4_RESTRICT d = (unsigned char *) data.buf; // cast to unsigned to avoid wrapping high-bits
     for(rem = data.len; rem >= 3; rem -= 3, d += 3)
     {
         const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8) | (uint32_t(d[2])));
-        c4append_idx_((val >> (3 * 6)) & sextet_mask);
-        c4append_idx_((val >> (2 * 6)) & sextet_mask);
-        c4append_idx_((val >> (1 * 6)) & sextet_mask);
-        c4append_idx_((val           ) & sextet_mask);
+        c4append_idx_((val >> 18) & sextet_mask);
+        c4append_idx_((val >> 12) & sextet_mask);
+        c4append_idx_((val >>  6) & sextet_mask);
+        c4append_idx_((val      ) & sextet_mask);
     }
     C4_ASSERT(rem < 3);
     if(rem == 2)
     {
         const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8));
-        c4append_idx_((val >> (3 * 6)) & sextet_mask);
-        c4append_idx_((val >> (2 * 6)) & sextet_mask);
-        c4append_idx_((val >> (1 * 6)) & sextet_mask);
+        c4append_idx_((val >> 18) & sextet_mask);
+        c4append_idx_((val >> 12) & sextet_mask);
+        c4append_idx_((val >>  6) & sextet_mask);
         c4append_('=');
     }
     else if(rem == 1)
     {
-        //const uint32_t val = c4asuint32(0, 0, d[0], 0);
         const uint32_t val = ((uint32_t(d[0]) << 16));
-        c4append_idx_((val >> (3 * 6)) & sextet_mask);
-        c4append_idx_((val >> (2 * 6)) & sextet_mask);
+        c4append_idx_((val >> 18) & sextet_mask);
+        c4append_idx_((val >> 12) & sextet_mask);
         c4append_('=');
         c4append_('=');
     }
@@ -142,7 +162,7 @@ size_t base64_decode(csubstr encoded, blob data)
 
     C4_ASSERT(base64_valid(encoded));
     C4_CHECK(encoded.len % 4 == 0);
-    size_t wpos = 0;
+    size_t wpos = 0;  // the write position
     const char *C4_RESTRICT d = encoded.str;
     constexpr const uint32_t full_byte = 0xff;
     // process every quartet of input 6 bits --> triplet of output bytes
@@ -163,7 +183,8 @@ size_t base64_decode(csubstr encoded, blob data)
         c4append_((val           ) & full_byte);
     }
     // deal with the last quartet when it is padded
-    if(d == encoded.str + encoded.len) return wpos;
+    if(d == encoded.str + encoded.len)
+        return wpos;
     if(d[2] == '=') // 2 padding chars
     {
         C4_ASSERT(d + 4 == encoded.str + encoded.len);
