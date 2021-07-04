@@ -133,6 +133,7 @@ jobs:
           - {std: 17, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
           - {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
           - {std: 20, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v2, with: {submodules: recursive}}
@@ -545,11 +546,15 @@ jobs:
   #----------------------------------------------------------------------------
   # useful to iterate when fixing the release
   # ver=0.0.0-rc1 ; ( set -x ; git tag -d v$ver ; git push origin :v$ver ) ; (set -x ; set -e ; git add -u ; git commit --amend --no-edit ; git tag --annotate --message "v$ver" "v$ver" ; git push -f --tags origin gh_actions )
+
   release:
     if: contains(github.ref, 'tags/v')
     runs-on: ubuntu-latest
     #needs: [test_coverage, test_windows, test_macosx, test_gcc_canary, test_clang_canary, test_clang_tidy, test_gcc_extended, test_clang_extended, test_clang_sanitize, test_api]
     steps:
+      - name: Install requirements
+        run: |
+          sudo -E pip install git-archive-all
       - name: Get version
         id: get_version
         # https://github.community/t/how-to-get-just-the-tag-name/16241/11
@@ -572,7 +577,34 @@ jobs:
           draft: true  # to create a draft (unpublished) release, false to create a published one. Default: false
           prerelease: ${{contains(github.ref, '-rc')}}
           body_path: ${{github.workspace}}/changelog/${{steps.get_version.outputs.SRC_VERSION}}.md
-      - name: Store Release URL
+      - name: Create source packs
+        id: src_pack
+        run: |
+          version=${{steps.get_version.outputs.SRC_VERSION}}
+          name=ryml-$version
+          git-archive-all --prefix $name $name.tgz
+          git-archive-all --prefix $name $name.zip
+          echo ::set-output name=TGZ::$name.tgz
+          echo ::set-output name=ZIP::$name.zip
+      - name: Upload tgz source pack
+        id: upload_src_tgz_to_release
+        uses: actions/upload-release-asset@v1.0.1
+        env: {GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}"}
+        with:
+          upload_url: ${{steps.create_release.outputs.upload_url}}
+          asset_path: ${{steps.src_pack.outputs.TGZ}}
+          asset_name: ${{steps.src_pack.outputs.TGZ}}
+          asset_content_type: application/gzip
+      - name: Upload zip source pack
+        id: upload_src_zip_to_release
+        uses: actions/upload-release-asset@v1.0.1
+        env: {GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}"}
+        with:
+          upload_url: ${{steps.create_release.outputs.upload_url}}
+          asset_path: ${{steps.src_pack.outputs.ZIP}}
+          asset_name: ${{steps.src_pack.outputs.ZIP}}
+          asset_content_type: application/zip
+      - name: Save Release URL for uploading binary artifacts
         run: |
           echo "UPLOAD_URL: ${{steps.create_release.outputs.upload_url}}"
           echo "${{steps.create_release.outputs.upload_url}}" > ./upload_url
