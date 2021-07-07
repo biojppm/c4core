@@ -3150,6 +3150,18 @@ void do_test_reverse(substr s, csubstr orig, csubstr expected)
     CHECK_EQ(s, expected);
     s.reverse();
     CHECK_EQ(s, orig);
+    //
+    CHECK_EQ(s, orig);
+    s.reverse_sub(0, s.len);
+    CHECK_EQ(s, expected);
+    s.reverse_sub(0, s.len);
+    CHECK_EQ(s, orig);
+    //
+    CHECK_EQ(s, orig);
+    s.reverse_range(0, s.len);
+    CHECK_EQ(s, expected);
+    s.reverse_range(0, s.len);
+    CHECK_EQ(s, orig);
 }
 
 TEST_CASE("substr.reverse")
@@ -3180,6 +3192,49 @@ TEST_CASE("substr.reverse")
     s.last(3).reverse();
     CHECK_EQ(s, "0123456987");
     s.last(3).reverse();
+    CHECK_EQ(s, "0123456789");
+}
+
+
+TEST_CASE("substr.reverse_sub")
+{
+    char buf[] = "0123456789";
+    substr s = buf;
+
+    s.reverse_sub(0, s.len);
+    CHECK_EQ(s, "9876543210");
+    s.reverse_sub(0, s.len);
+    CHECK_EQ(s, "0123456789");
+
+    s.reverse_sub(0, 0);
+    CHECK_EQ(s, "0123456789");
+    s.reverse_sub(s.len, 0);
+    CHECK_EQ(s, "0123456789");
+
+    s.reverse_sub(1, 3);
+    CHECK_EQ(s, "0321456789");
+    s.reverse_sub(1, 3);
+    CHECK_EQ(s, "0123456789");
+}
+
+TEST_CASE("substr.reverse_range")
+{
+    char buf[] = "0123456789";
+    substr s = buf;
+
+    s.reverse_range(0, s.len);
+    CHECK_EQ(s, "9876543210");
+    s.reverse_range(0, s.len);
+    CHECK_EQ(s, "0123456789");
+
+    s.reverse_range(0, 0);
+    CHECK_EQ(s, "0123456789");
+    s.reverse_range(s.len, s.len);
+    CHECK_EQ(s, "0123456789");
+
+    s.reverse_range(1, 3);
+    CHECK_EQ(s, "0213456789");
+    s.reverse_range(1, 3);
     CHECK_EQ(s, "0123456789");
 }
 
