@@ -519,6 +519,27 @@ TEST_CASE("substr.ends_with")
     CHECK_FALSE(csubstr("12340000").ends_with('0', 5));
 }
 
+TEST_CASE("substr.find")
+{
+    csubstr s012345 = "012345";
+    CHECK(s012345.find('a') == csubstr::npos);
+    CHECK(s012345.find('0'    ) == 0u);
+    CHECK(s012345.find('0', 1u) == csubstr::npos);
+    CHECK(s012345.find('1'    ) == 1u);
+    CHECK(s012345.find('1', 2u) == csubstr::npos);
+    CHECK(s012345.find('2'    ) == 2u);
+    CHECK(s012345.find('2', 3u) == csubstr::npos);
+    CHECK(s012345.find('3'    ) == 3u);
+    CHECK(s012345.find('3', 4u) == csubstr::npos);
+    CHECK(s012345.find("ab"    ) == csubstr::npos);
+    CHECK(s012345.find("01"    ) == 0u);
+    CHECK(s012345.find("01", 1u) == csubstr::npos);
+    CHECK(s012345.find("12"    ) == 1u);
+    CHECK(s012345.find("12", 2u) == csubstr::npos);
+    CHECK(s012345.find("23"    ) == 2u);
+    CHECK(s012345.find("23", 3u) == csubstr::npos);
+}
+
 TEST_CASE("substr.first_of")
 {
     size_t npos = csubstr::npos;

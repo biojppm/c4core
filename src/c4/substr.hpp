@@ -1543,7 +1543,7 @@ public:
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
         if(num == 0) return;
-        detail::_do_reverse(str + ifirst, ifirst + num - 1);
+        detail::_do_reverse(str + ifirst, str + ifirst + num - 1);
     }
 
     /** revert a range in place
