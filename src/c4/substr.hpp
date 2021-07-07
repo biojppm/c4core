@@ -1093,8 +1093,16 @@ public:
             for(size_t i = skip_start; i < ne.len; ++i)
             {
                 char c = ne.str[i];
-                if(( ! _is_hex_char(c)) && c != '.')
+                if(( ! _is_hex_char(c)) && c != '.' && c != 'p' && c != 'P')
                 {
+                    if(c == '-' || c == '+')
+                    {
+                        // we can also have a sign for the exponent
+                        if(i > 1 && (ne[i-1] == 'p' || ne[i-1] == 'P'))
+                        {
+                            continue;
+                        }
+                    }
                     return _is_delim_char(c) ? ne.first(i) : ne.first(0);
                 }
             }
