@@ -581,7 +581,7 @@ jobs:
         id: src_pack
         run: |
           version=${{steps.get_version.outputs.SRC_VERSION}}
-          name=ryml-$version
+          name=${PROJ_PFX_TARGET}src-$version
           git-archive-all --prefix $name $name.tgz
           git-archive-all --prefix $name $name.zip
           echo ::set-output name=TGZ::$name.tgz
@@ -671,7 +671,7 @@ jobs:
       - {name: show info, run: source .github/setenv.sh && c4_show_info }
       - name: shared64-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test shared64
-      - {name: shared64-build, run: source .github/setenv.sh && c4_build_target shared64}
+      - {name: shared64-build, run: source .github/setenv.sh && c4_build_target shared64 all}
       - name: shared64-pack
         run: |
           source .github/setenv.sh && c4_package shared64 $GEN
