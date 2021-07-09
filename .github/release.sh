@@ -39,11 +39,12 @@ function c4_release_commit()
       set -euxo pipefail ; \
       ver=$(_c4_validate_ver $1) ; \
       branch=${2:-$(git rev-parse --abbrev-ref HEAD)} ; \
+      tag=v$ver ; \
       git add -u ; \
-      git commit -m "v$ver" ; \
-      git tag --annotate --message "v$ver" "v$ver" ; \
+      git commit -m $tag ; \
+      git tag --annotate --message $tag $tag ; \
       git push origin $branch ; \
-      git push --tags origin $branch \
+      git push --tags origin $tag \
       )
 }
 
@@ -53,11 +54,12 @@ function c4_release_amend()
       set -euxo pipefail ; \
       ver=$(_c4_validate_ver $1) ; \
       branch=${2:-$(git rev-parse --abbrev-ref HEAD)} ; \
+      tag=v$ver ; \
       git add -u ; \
-      git commit --amend -m "v$ver" ; \
-      git tag --annotate --message "v$ver" "v$ver" ; \
+      git commit --amend -m $tag ; \
+      git tag --annotate --message $tag $tag ; \
       git push -f origin $branch ; \
-      git push -f --tags origin $branch \
+      git push -f --tags origin $tag \
     )
 }
 

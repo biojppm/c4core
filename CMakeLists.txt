@@ -4,7 +4,7 @@ project(c4core
     DESCRIPTION "Multiplatform low-level C++ utilities"
     HOMEPAGE_URL "https://github.com/biojppm/c4core"
     LANGUAGES CXX)
-c4_project(VERSION 0.1.1-rc0
+c4_project(VERSION 0.1.1-rc1
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
 c4_add_library(c4core
