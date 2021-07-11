@@ -193,14 +193,11 @@ void handle_warning(srcloc s, const char *fmt, ...);
 
 struct srcloc
 {
-    const char *file;
-    const char *func;
-    int line;
-
-    srcloc() : file(""), func(""), line() {}
-    srcloc(const char *f, const char *fn, int l) : file(f), func(fn), line(l) {}
+    const char *file = "";
+    const char *func = "";
+    int line = 0;
 };
-#define C4_SRCLOC() c4::srcloc(__FILE__, C4_PRETTY_FUNC, __LINE__)
+#define C4_SRCLOC() c4::srcloc{__FILE__, C4_PRETTY_FUNC, __LINE__}
 
 #elif defined(C4_ERROR_SHOWS_FILELINE)
 
@@ -208,10 +205,8 @@ struct srcloc
 {
     const char *file;
     int line;
-    srcloc() : file(""), line() {}
-    srcloc(const char *f, int l) : file(f), line(l) {}
 };
-#define C4_SRCLOC() c4::srcloc(__FILE__, __LINE__)
+#define C4_SRCLOC() c4::srcloc{__FILE__, __LINE__}
 
 #elif ! defined(C4_ERROR_SHOWS_FUNC)
 
