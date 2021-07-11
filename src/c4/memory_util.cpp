@@ -8,15 +8,18 @@ bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb)
 {
     if(a < b)
     {
-        if(size_t(a) + sza > size_t(b)) return true;
+        if(size_t(a) + sza > size_t(b))
+            return true;
     }
     else if(a > b)
     {
-        if(size_t(b) + szb > size_t(a)) return true;
+        if(size_t(b) + szb > size_t(a))
+            return true;
     }
     else if(a == b)
     {
-        if(sza != 0 && szb != 0) return true;
+        if(sza != 0 && szb != 0)
+            return true;
     }
     return false;
 }
@@ -24,7 +27,8 @@ bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb)
 /** Fills 'dest' with the first 'pattern_size' bytes at 'pattern', 'num_times'. */
 void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times)
 {
-    if(C4_UNLIKELY(num_times == 0)) return;
+    if(C4_UNLIKELY(num_times == 0))
+        return;
     C4_ASSERT( ! mem_overlaps(dest, pattern, num_times*pattern_size, pattern_size));
     char *begin = (char*)dest;
     char *end   = begin + num_times * pattern_size;
