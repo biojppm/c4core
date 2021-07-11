@@ -36,7 +36,7 @@ struct fail_type__ {};
 } // detail
 } // c4
 #define C4_STATIC_ERROR(dummy_type, errmsg)                             \
-    static_assert(std::is_same<dummy_type, c4::detail::fail_type__>::value, errmsg);
+    static_assert(std::is_same<dummy_type, c4::detail::fail_type__>::value, errmsg)
 
 
 //-----------------------------------------------------------------------------
@@ -68,10 +68,8 @@ struct fail_type__ {};
 #       endif
 #   elif defined(__GNUC__)
 #   endif
-
 #   include <c4/ext/debugbreak/debugbreak.h>
 #   define C4_DEBUG_BREAK() if(c4::is_debugger_attached()) { ::debug_break(); }
-
 #   ifdef __clang__
 #       pragma clang diagnostic pop
 #   elif defined(__GNUC__)
@@ -176,11 +174,18 @@ struct srcloc;
 void handle_error(srcloc s, const char *fmt, ...);
 void handle_warning(srcloc s, const char *fmt, ...);
 
-#   define C4_ERROR(msg, ...)                             \
-    if(c4::get_error_flags() & c4::ON_ERROR_DEBUGBREAK) { C4_DEBUG_BREAK() } \
-    c4::handle_error(C4_SRCLOC(), msg, ## __VA_ARGS__)
 
-#   define C4_WARNING(msg, ...)                                         \
+#   define C4_ERROR(msg, ...)                               \
+    do {                                                    \
+        if(c4::get_error_flags() & c4::ON_ERROR_DEBUGBREAK) \
+        {                                                   \
+            C4_DEBUG_BREAK()                                \
+        }                                                   \
+        c4::handle_error(C4_SRCLOC(), msg, ## __VA_ARGS__); \
+    } while(0)
+
+
+#   define C4_WARNING(msg, ...)                             \
     c4::handle_warning(C4_SRCLOC(), msg, ## __VA_ARGS__)
 
 
@@ -315,31 +320,37 @@ struct srcloc
  * @todo add constexpr-compatible compile-time assert:
  * https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/
  */
-#define C4_CHECK(cond)                          \
-    if(C4_UNLIKELY(!(cond)))                    \
-    {                                           \
-        C4_ERROR("check failed: %s", #cond);    \
-    }
+#define C4_CHECK(cond)                              \
+    do {                                            \
+        if(C4_UNLIKELY(!(cond)))                    \
+        {                                           \
+            C4_ERROR("check failed: %s", #cond);    \
+        }                                           \
+    } while(0)
+
 
 /** like C4_CHECK(), and additionally log a printf-style message.
  * @see C4_CHECK
  * @ingroup error_checking */
-#define C4_CHECK_MSG(cond, fmt, ...)                        \
-    if(C4_UNLIKELY(!(cond)))                                    \
-    {                                                           \
-        C4_ERROR("check failed: " #cond "\n" fmt, ## __VA_ARGS__);  \
-    }
+#define C4_CHECK_MSG(cond, fmt, ...)                                    \
+    do {                                                                \
+        if(C4_UNLIKELY(!(cond)))                                        \
+        {                                                               \
+            C4_ERROR("check failed: " #cond "\n" fmt, ## __VA_ARGS__);  \
+        }                                                               \
+    } while(0)
 
 
 //-----------------------------------------------------------------------------
 // Common error conditions
+
 #define C4_NOT_IMPLEMENTED() C4_ERROR("NOT IMPLEMENTED")
 #define C4_NOT_IMPLEMENTED_MSG(/*msg, */...) C4_ERROR("NOT IMPLEMENTED: " ## __VA_ARGS__)
-#define C4_NOT_IMPLEMENTED_IF(condition) if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED"); }
-#define C4_NOT_IMPLEMENTED_IF_MSG(condition, /*msg, */...) if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED: " ## __VA_ARGS__); }
+#define C4_NOT_IMPLEMENTED_IF(condition) do { if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED"); } } while(0)
+#define C4_NOT_IMPLEMENTED_IF_MSG(condition, /*msg, */...) do { if(C4_UNLIKELY(condition)) { C4_ERROR("NOT IMPLEMENTED: " ## __VA_ARGS__); } } while(0)
 
-#define C4_NEVER_REACH() C4_ERROR("never reach this point"); C4_UNREACHABLE()
-#define C4_NEVER_REACH_MSG(/*msg, */...) C4_ERROR("never reach this point: " ## __VA_ARGS__); C4_UNREACHABLE();
+#define C4_NEVER_REACH() do { C4_ERROR("never reach this point"); C4_UNREACHABLE(); } while(0)
+#define C4_NEVER_REACH_MSG(/*msg, */...) do { C4_ERROR("never reach this point: " ## __VA_ARGS__); C4_UNREACHABLE(); } while(0)
 
 
 
@@ -350,7 +361,7 @@ struct srcloc
 
 #ifdef C4_MSVC
 #define C4_SUPPRESS_WARNING_MSVC_PUSH __pragma(warning(push))
-#define C4_SUPPRESS_WARNING_MSVC(w) __pragma(warning(disable : w))
+#define C4_SUPPRESS_WARNING_MSVC(w)  __pragma(warning(disable : w))
 #define C4_SUPPRESS_WARNING_MSVC_POP __pragma(warning(pop))
 #define C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(w)   \
     C4_SUPPRESS_WARNING_MSVC_PUSH               \
