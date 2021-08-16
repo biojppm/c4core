@@ -1,0 +1,3 @@
+- Fix error macros (ie `C4_ERROR()`, `C4_CHECK()`, `C4_ASSERT()`, etc) such that they are a single statement
+- `is_debugger_attached()`: add MacOSX version
+- Add support for Visual Studio 2022
