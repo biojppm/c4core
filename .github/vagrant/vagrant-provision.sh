@@ -33,9 +33,19 @@ sudo -E apt-get install -yq --force-yes \
      g++-6-multilib \
      g++-7 \
      g++-7-multilib \
+     g++-8 \
+     g++-8-multilib \
+     g++-9 \
+     g++-9-multilib \
+     g++-10 \
+     g++-10-multilib \
+     g++-11 \
+     g++-11-multilib \
      clang-3.7 \
      clang-3.8 \
      clang-3.9 \
      clang-4.0
+
+pip install cmany
 
 exit 0
