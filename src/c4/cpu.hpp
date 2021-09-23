@@ -95,6 +95,11 @@
 #   define C4_BYTE_ORDER _C4EM
 // itanium is bi-endian - check byte order below
 
+#elif defined(__s390x__) || defined(__zarch__) || defined(__SYSC_ZARCH_)
+#   define C4_CPU_S390_X
+#   define C4_WORDSIZE 8
+#   define C4_BYTE_ORDER _C4EB
+
 #elif defined(SWIG)
 #   error "please define CPU architecture macros when compiling with swig"
 
