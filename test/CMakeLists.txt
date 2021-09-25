@@ -60,6 +60,7 @@ c4core_test(std_vector       test_std_vector.cpp)
 c4_add_install_include_test(c4core "c4core::")
 c4_add_install_link_test(c4core "c4core::" "
 #include <c4/substr.hpp>
+#include <c4/charconv.hpp> // helps detect added headers in fast_float
 int main()
 {
     c4::csubstr s = \"12345\";

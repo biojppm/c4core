@@ -66,7 +66,9 @@ c4_add_library(c4core
         c4/ext/sg14/inplace_function.h
         c4/ext/fast_float.hpp
         c4/ext/fast_float/include/fast_float/ascii_number.h
+        c4/ext/fast_float/include/fast_float/bigint.h
         c4/ext/fast_float/include/fast_float/decimal_to_binary.h
+        c4/ext/fast_float/include/fast_float/digit_comparison.h
         c4/ext/fast_float/include/fast_float/fast_float.h
         c4/ext/fast_float/include/fast_float/fast_table.h
         c4/ext/fast_float/include/fast_float/float_common.h
