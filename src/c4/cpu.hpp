@@ -15,11 +15,13 @@
 #else
 #   define _C4EL 1234
 #endif
+
 #ifdef __ORDER_BIG_ENDIAN__
 #   define _C4EB __ORDER_BIG_ENDIAN__
 #else
 #   define _C4EB 4321
 #endif
+
 // mixed byte order (eg, PowerPC or ia64)
 #define _C4EM 1111
 
