@@ -20,6 +20,8 @@
 #else
 #   define _C4EB 4321
 #endif
+// mixed byte order (eg, PowerPC or ia64)
+#define _C4EM 1111
 
 #if defined(__x86_64) || defined(__x86_64__) || defined(__amd64) || defined(_M_X64)
 #   define C4_CPU_X86_64
@@ -30,11 +32,6 @@
 #   define C4_CPU_X86
 #   define C4_WORDSIZE 4
 #   define C4_BYTE_ORDER _C4EL
-
-#elif defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
-#   define C4_CPU_IA64
-#   define C4_WORDSIZE 8
-// itanium is bi-endian - check byte order below
 
 #elif defined(__arm__) || defined(_M_ARM) \
     || defined(__TARGET_ARCH_ARM) || defined(__aarch64__) || defined(_M_ARM64)
@@ -73,7 +70,15 @@
 #       define C4_BYTE_ORDER _C4EL
 #   elif defined(__ARMEB__)
 #       define C4_BYTE_ORDER _C4EB
+#   else
+#       error "unknown endianness"
 #   endif
+
+#elif defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
+#   define C4_CPU_IA64
+#   define C4_WORDSIZE 8
+#   define C4_BYTE_ORDER _C4EM
+// itanium is bi-endian - check byte order below
 
 #elif defined(__ppc__) || defined(__ppc) || defined(__powerpc__)       \
     || defined(_ARCH_COM) || defined(_ARCH_PWR) || defined(_ARCH_PPC)  \
@@ -85,12 +90,18 @@
 #       define C4_CPU_PPC
 #       define C4_WORDSIZE 4
 #   endif
+#   define C4_BYTE_ORDER _C4EM
+// itanium is bi-endian - check byte order below
+
 #elif defined(SWIG)
+#   error "please define CPU architecture macros when compiling with swig"
+
 #else
 #   error "unknown CPU architecture"
 #endif
 
 #define C4_LITTLE_ENDIAN (C4_BYTE_ORDER == _C4EL)
 #define C4_BIG_ENDIAN (C4_BYTE_ORDER == _C4EB)
+#define C4_MIXED_ENDIAN (C4_BYTE_ORDER == _C4EM)
 
 #endif /* _C4_CPU_HPP_ */
