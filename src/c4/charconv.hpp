@@ -49,6 +49,7 @@
 #ifndef C4CORE_NO_FAST_FLOAT
     C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wsign-conversion")
     C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Warray-bounds")
+    C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wshift-count-overflow")
 #   include "c4/ext/fast_float.hpp"
     C4_SUPPRESS_WARNING_GCC_POP
 #   define C4CORE_HAVE_FAST_FLOAT 1
