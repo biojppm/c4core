@@ -1,6 +1,10 @@
 #!/bin/bash
 
 
+# useful to iterate when fixing the release:
+# ver=0.2.1 ; ( set -x ; git tag -d v$ver ; git push origin :v$ver ) ; (set -x ; set -e ; tbump --only-patch --non-interactive $ver ; git add -u ; git commit --amend --no-edit ; git tag --annotate --message "v$ver" "v$ver" ; git push -f --tags origin )
+
+
 function c4_release_create()
 {
     ( \
