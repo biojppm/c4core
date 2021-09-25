@@ -47,8 +47,6 @@ function c4_release_commit()
       git add -u ; \
       git commit -m $tag ; \
       git tag --annotate --message $tag $tag ; \
-      git push origin $branch ; \
-      git push --tags origin $tag \
       )
 }
 
@@ -62,8 +60,6 @@ function c4_release_amend()
       git add -u ; \
       git commit --amend -m $tag ; \
       git tag --annotate --message $tag $tag ; \
-      git push -f origin $branch ; \
-      git push -f --tags origin $tag \
     )
 }
 
@@ -74,6 +70,30 @@ function c4_release_delete()
       ver=$(_c4_validate_ver $1) ; \
       git tag -d v$ver ; \
       git push origin :v$ver \
+    )
+}
+
+function c4_release_push()
+{
+    ( \
+      set -euxo pipefail ; \
+      ver=$(_c4_validate_ver $1) ; \
+      branch=${2:-$(git rev-parse --abbrev-ref HEAD)} ; \
+      tag=v$ver ; \
+      git push origin $branch ; \
+      git push --tags origin $tag \
+      )
+}
+
+function c4_release_force_push()
+{
+    ( \
+      set -euxo pipefail ; \
+      ver=$(_c4_validate_ver $1) ; \
+      branch=${2:-$(git rev-parse --abbrev-ref HEAD)} ; \
+      tag=v$ver ; \
+      git push -f origin $branch ; \
+      git push -f --tags origin $tag \
     )
 }
 
