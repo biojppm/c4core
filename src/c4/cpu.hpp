@@ -67,10 +67,14 @@
            #error "unknown CPU architecture: ARM"
        #endif
    #endif
-   #ifdef __ARMEL__
+   #if defined(__ARMEL__) || defined(__LITTLE_ENDIAN__) || defined(__AARCH64EL__) \
+       || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
        #define C4_BYTE_ORDER _C4EL
-   #elif defined(__ARMEB__)
+   #elif defined(__ARMEB__) || defined(__BIG_ENDIAN__) || defined(__AARCH64EB__) \
+       || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
        #define C4_BYTE_ORDER _C4EB
+   #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_PDP_ENDIAN__)
+       #define C4_BYTE_ORDER _C4EM
    #else
        #error "unknown endianness"
    #endif
