@@ -48,10 +48,12 @@ env:
 # windows-2016:
 #   # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2016-Readme.md
 #   vs2017
+
 jobs:
 
   #----------------------------------------------------------------------------
   coverage:
+    name: c++${{matrix.std}}
     # if: github.ref == 'refs/heads/master'
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
@@ -116,6 +118,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   windows:
+    name: win/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -163,6 +166,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   macosx:
+    name: mac/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -204,6 +208,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   gcc_canary:
+    name: gcc_canary/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -245,6 +250,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   clang_canary:
+    name: clang_canary/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -284,6 +290,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   clang_tidy:
+    name: clang_tidy/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -328,6 +335,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   gcc_extended:
+    name: gcc_extended/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}/vg${{matrix.vg}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -383,6 +391,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   clang_extended:
+    name: clang_extended/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}/vg${{matrix.vg}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -434,6 +443,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   clang_sanitize:
+    name: clang_sanitize/c++${{matrix.std}}/${{matrix.bt}}/vg${{matrix.vg}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -511,7 +521,7 @@ jobs:
       - {name: run, run: source .github/setenv.sh && c4_run_test arm}
       - {name: pack, run: source .github/setenv.sh && c4_package arm}
 
-#  #----------------------------------------------------------------------------
+  #----------------------------------------------------------------------------
 #  # https://blog.kitware.com/static-checks-with-cmake-cdash-iwyu-clang-tidy-lwyu-cpplint-and-cppcheck/
 #  static_analysis:
 #    continue-on-error: true
@@ -543,4 +553,3 @@ jobs:
 #      - {name: cpplint, run: cmake "-DCMAKE_CXX_CPPLINT=/usr/local/bin/cpplint;--linelength=179" ..}
 #      - {name: include-what-you-use, run: cmake "-DCMAKE_CXX_INCLUDE_WHAT_YOU_USE=/usr/bin/iwyu;--transitive_includes_only" ..}
 #      - {name: link-what-you-use, run: cmake -DCMAKE_LINK_WHAT_YOU_USE=TRUE ..}
-
