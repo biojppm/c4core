@@ -106,8 +106,12 @@ function _c4_validate_ver()
     ver=$(echo $ver | sed "s:v\(.*\):\1:")
     #sver=$(echo $ver | sed "s:\([0-9]*\.[0-9]*\..[0-9]*\).*:\1:")
     if [ ! -f changelog/$ver.md ] ; then \
-        echo "ERROR: could not find changelog/$ver.md"
-        exit 1
+        if [ -f changelog/current.md ] ; then
+            git mv changelog/current.md changelog/$ver.md
+        else
+            echo "ERROR: could not find changelog/$ver.md"
+            exit 1
+        fi
     fi
     echo $ver
 }
