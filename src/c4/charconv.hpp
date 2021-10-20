@@ -99,6 +99,11 @@
 #endif
 
 
+#if C4CORE_HAVE_STD_FROMCHARS && !defined(C4CORE_HAVE_FAST_FLOAT)
+#include <cstdio>
+#endif
+
+
 #ifdef _MSC_VER
 #   pragma warning(push)
 #   if C4_MSVC_VERSION != C4_MSVC_VERSION_2017
@@ -1050,7 +1055,7 @@ size_t print_one(substr str, const char* full_fmt, T v)
 #endif
 }
 
-#if !defined(C4CORE_HAVE_STD_TOCHARS) && !defined(C4CORE_HAVE_FAST_FLOAT)
+#if C4CORE_HAVE_STD_FROMCHARS && !defined(C4CORE_HAVE_FAST_FLOAT)
 /** scans a string using the given type format, while at the same time
  * allowing non-null-terminated strings AND guaranteeing that the given
  * string length is strictly respected, so that no buffer overflows
@@ -1075,13 +1080,13 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
     /* write the length into it. Eg "%12f".
      * Also, get the number of characters read from the string.
      * So the final format ends up as "%12f%n"*/
-    int iret = snprintf(fmt, sizeof(fmt), "%%" "%zu" "%s" "%%n", str.len, type_fmt);
+    int iret = std::snprintf(fmt, sizeof(fmt), "%%" "%zu" "%s" "%%n", str.len, type_fmt);
     /* no nasty surprises, please! */
     C4_ASSERT(iret >= 0 && size_t(iret) < C4_COUNTOF(fmt));
 
     /* now we scan with confidence that the span length is respected */
     int num_chars;
-    iret = sscanf(str.str, fmt, v, &num_chars);
+    iret = std::sscanf(str.str, fmt, v, &num_chars);
     /* scanf returns the number of successful conversions */
     if(iret != 1) return csubstr::npos;
     C4_ASSERT(num_chars >= 0);
