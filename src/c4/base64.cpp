@@ -100,7 +100,7 @@ bool base64_valid(csubstr encoded)
     {
         if(c < 0/* || c >= 128*/) return false;
         if(c == '=') continue;
-        if(detail::base64_char_to_sextet_[c] == -1) return false;
+        if(detail::base64_char_to_sextet_[c] == char(-1)) return false;
     }
     return true;
 }
