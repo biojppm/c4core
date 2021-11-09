@@ -44,8 +44,28 @@ sudo -E apt-get install -yq --force-yes \
      clang-3.7 \
      clang-3.8 \
      clang-3.9 \
-     clang-4.0
+     clang-4.0 \
+     swig3.0 \
+     libssl-dev \
+     zlib1g-dev \
+     libbz2-dev \
+     libreadline-dev \
+     libsqlite3-dev \
+     wget \
+     curl \
+     llvm \
+     libncurses5-dev \
+     libncursesw5-dev \
+     xz-utils \
+     tk-dev \
+     libffi-dev \
+     liblzma-dev \
+     python-openssl \
+     git \
+     python3 \
+     python3-pip \
+     python3-venv
 
-pip install cmany
+sudo -E pip install cmany
 
 exit 0
