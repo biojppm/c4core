@@ -76,6 +76,11 @@ c4_add_library(c4core
         c4/ext/fast_float/include/fast_float/simple_decimal_conversion.h
 )
 
+option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
+if(NOT C4CORE_WITH_FASTFLOAT)
+    target_compile_definitions(c4core PUBLIC -DC4CORE_NO_FAST_FLOAT)
+endif()
+
 
 #-------------------------------------------------------
 
