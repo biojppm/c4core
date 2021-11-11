@@ -150,17 +150,22 @@ jobs:
           mkdir -p $BDIR
           mkdir -p $IDIR
           cmake -S . -B $BDIR \
+            -DC4CORE_WITH_FASTFLOAT=OFF \
             -DC4_CXX_STANDARD=${{matrix.std}} \
             -DC4CORE_CXX_STANDARD=${{matrix.std}} \
             -DC4CORE_BUILD_TESTS=ON \
-            -DC4CORE_WITH_FASTFLOAT=OFF \
+            -DC4CORE_VALGRIND=OFF \
+            -DC4CORE_COVERAGE_CODECOV=ON \
+            -DC4CORE_COVERAGE_CODECOV_SILENT=ON \
+            -DC4CORE_COVERAGE_COVERALLS=ON \
+            -DC4CORE_COVERAGE_COVERALLS_SILENT=ON \
             -DCMAKE_INSTALL_PREFIX=$IDIR \
             -DCMAKE_BUILD_TYPE=Coverage \
             -DCMAKE_CXX_COMPILER=${{matrix.cxx}} \
-            -DCMAKE_CXX_COMPILER=${{matrix.cc}}
+            -DCMAKE_C_COMPILER=${{matrix.cc}}
       - name: nofastfloat-build
         run: |
-          cmake --build $BDIR --config Coverage --target c4core-test-build
+          cmake --build $BDIR --config Coverage --target c4core-test-build -j
       - name: nofastfloat-run
         run: |
           cmake --build $BDIR --config Coverage --target c4core-test-run
