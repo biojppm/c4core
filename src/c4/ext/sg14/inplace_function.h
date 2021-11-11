@@ -23,8 +23,8 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
-#pragma once
+#ifndef _C4_EXT_SG14_INPLACE_FUNCTION_H_
+#define _C4_EXT_SG14_INPLACE_FUNCTION_H_
 
 #include <type_traits>
 #include <utility>
@@ -352,3 +352,5 @@ private:
 };
 
 } // namespace stdext
+
+#endif /* _C4_EXT_SG14_INPLACE_FUNCTION_H_ */

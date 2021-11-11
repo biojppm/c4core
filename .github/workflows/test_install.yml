@@ -1,0 +1,93 @@
+name: test_install
+
+defaults:
+  #if: "!contains(github.event.head_commit.message, 'skip ci')"  # SKIP
+  run:
+    # Use a bash shell so we can use the same syntax for environment variable
+    # access regardless of the host operating system
+    shell: bash -e -x {0}
+
+on:
+  # https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662
+  workflow_dispatch:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+env:
+  PROJ_PFX_TARGET: c4core-
+  PROJ_PFX_CMAKE: C4CORE_
+  CMAKE_FLAGS:
+  NUM_JOBS_BUILD: # 4
+
+jobs:
+
+  #----------------------------------------------------------------------------
+  install_tests:
+    name: ${{matrix.name}}/${{matrix.bt}}
+    # if: github.ref == 'refs/heads/master'
+    continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: find_package/linux, sdir: test/test_install     , os: ubuntu-18.04, tgt: all      , bt: Release, vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
+          - {name: find_package/linux, sdir: test/test_install     , os: ubuntu-18.04, tgt: all      , bt: Debug  , vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
+          - {name: find_package/macos, sdir: test/test_install     , os: macos-11.0  , tgt: all      , bt: Release, vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
+          - {name: find_package/macos, sdir: test/test_install     , os: macos-11.0  , tgt: all      , bt: Debug  , vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
+          - {name: find_package/win  , sdir: test/test_install     , os: windows-2016, tgt: ALL_BUILD, bt: Release, vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
+          - {name: find_package/win  , sdir: test/test_install     , os: windows-2016, tgt: ALL_BUILD, bt: Debug  , vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
+          #
+          - {name: find_library/linux, sdir: test/test_install     , os: ubuntu-18.04, tgt: all      , bt: Release, vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
+          - {name: find_library/linux, sdir: test/test_install     , os: ubuntu-18.04, tgt: all      , bt: Debug  , vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
+          - {name: find_library/macos, sdir: test/test_install     , os: macos-11.0  , tgt: all      , bt: Release, vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
+          - {name: find_library/macos, sdir: test/test_install     , os: macos-11.0  , tgt: all      , bt: Debug  , vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
+          - {name: find_library/win  , sdir: test/test_install     , os: windows-2016, tgt: ALL_BUILD, bt: Release, vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
+          - {name: find_library/win  , sdir: test/test_install     , os: windows-2016, tgt: ALL_BUILD, bt: Debug  , vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
+          #
+          - {name: singleheader/linux, sdir: test/test_singleheader, os: ubuntu-18.04, tgt: all      , bt: Release, vars: }
+          - {name: singleheader/linux, sdir: test/test_singleheader, os: ubuntu-18.04, tgt: all      , bt: Debug  , vars: }
+          - {name: singleheader/macos, sdir: test/test_singleheader, os: macos-11.0  , tgt: all      , bt: Release, vars: }
+          - {name: singleheader/macos, sdir: test/test_singleheader, os: macos-11.0  , tgt: all      , bt: Debug  , vars: }
+          - {name: singleheader/win  , sdir: test/test_singleheader, os: windows-2016, tgt: ALL_BUILD, bt: Release, vars: }
+          - {name: singleheader/win  , sdir: test/test_singleheader, os: windows-2016, tgt: ALL_BUILD, bt: Debug  , vars: }
+    env: {
+      BT: "${{matrix.bt}}",
+      OS: "${{matrix.os}}",
+      BDIR:   "build/${{matrix.name}}-${{matrix.bt}}",
+      IDIR: "install/${{matrix.name}}-${{matrix.bt}}",
+      PDIR:  "prefix/${{matrix.name}}-${{matrix.bt}}",
+    }
+    steps:
+      - {name: checkout, uses: actions/checkout@v2, with: {submodules: recursive}}
+      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - {name: show info, run: source .github/setenv.sh && c4_show_info}
+      - name: preinstall
+        run: |
+          if [ "${{matrix.sdir}}" == "test/test_install" ] ; then
+            mkdir -p $BDIR-staging
+            cmake -S . -B $BDIR-staging -DCMAKE_INSTALL_PREFIX=$PDIR -DCMAKE_BUILD_TYPE=${{matrix.bt}}
+            cmake --build $BDIR-staging --config ${{matrix.bt}} --target ${{matrix.tgt}} -j
+            cmake --build $BDIR-staging --config ${{matrix.bt}} --target install
+          fi
+      - name: configure
+        run: |
+          mkdir -p $BDIR
+          mkdir -p $IDIR
+          cmake -S ${{matrix.sdir}} -B $BDIR \
+            -DC4CORE_BUILD_TESTS=ON \
+            -DC4CORE_VALGRIND=OFF \
+            -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
+            -DCMAKE_INSTALL_PREFIX=$IDIR \
+            ${{matrix.vars}}
+      - name: build
+        run: |
+          cmake --build $BDIR --config ${{matrix.bt}} --target c4core-test-build -j
+      - name: run
+        run: |
+          cmake --build $BDIR --config ${{matrix.bt}} --target c4core-test-run

@@ -1,5 +1,7 @@
+#ifndef C4CORE_SINGLE_HEADER
 #include "c4/std/std.hpp"
 #include "c4/substr.hpp"
+#endif
 
 #include <c4/test.hpp>
 

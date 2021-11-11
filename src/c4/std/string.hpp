@@ -3,7 +3,9 @@
 
 /** @file string.hpp */
 
+#ifndef C4CORE_SINGLE_HEADER
 #include "c4/substr.hpp"
+#endif
 
 #include <string>
 
