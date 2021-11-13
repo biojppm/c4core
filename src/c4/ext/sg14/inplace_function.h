@@ -41,7 +41,7 @@ template<size_t Cap>
 union aligned_storage_helper {
     struct double1 { double a; };
     struct double4 { double a[4]; };
-    template<class T> using maybe = std::conditional_t<(Cap >= sizeof(T)), T, char>;
+    template<class T> using maybe = typename std::conditional<(Cap >= sizeof(T)), T, char>::type;
     char real_data[Cap];
     maybe<int> a;
     maybe<long> b;
@@ -55,7 +55,7 @@ union aligned_storage_helper {
 
 template<size_t Cap, size_t Align = std::alignment_of<aligned_storage_helper<Cap>>::value>
 struct aligned_storage {
-    using type = std::aligned_storage_t<Cap, Align>;
+    using type = typename std::aligned_storage<Cap, Align>::type;
 };
 
 template<size_t Cap, size_t Align = std::alignment_of<aligned_storage_helper<Cap>>::value>
@@ -145,7 +145,7 @@ struct is_valid_inplace_dst : std::true_type
 template<
     typename Signature,
     size_t Capacity = inplace_function_detail::InplaceFunctionDefaultCapacity,
-    size_t Alignment = std::alignment_of<inplace_function_detail::aligned_storage_t<Capacity>>::value
+    size_t Alignment = std::alignment_of<typename inplace_function_detail::aligned_storage<Capacity>::type>::value
 >
 class inplace_function; // unspecified
 
@@ -173,11 +173,11 @@ public:
 
     template<
         typename T,
-        typename C = std::decay_t<T>,
-        typename = std::enable_if_t<
+        typename C = typename std::decay<T>::type,
+        typename = typename std::enable_if<
             !(std::is_same<C, inplace_function>::value
             || std::is_convertible<C, inplace_function>::value)
-        >
+        >::type
     >
     inplace_function(T&& closure)
     {
