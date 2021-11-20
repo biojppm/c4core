@@ -12,6 +12,15 @@
 #include <cstddef>
 
 namespace std {
+#if defined(_MSC_VER)
+template<typename> struct char_traits;
+template<typename> class allocator;
+template<typename _CharT,
+         typename _Traits,
+         typename _Alloc>
+class basic_string;
+using string = basic_string<char, char_traits<char>, allocator<char>>;
+#elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
 template<typename> class char_traits;
 template<typename> class allocator;
 namespace __cxx11 {
@@ -21,6 +30,9 @@ template<typename _CharT,
 class basic_string;
 } // namespace __cxx11
 using string = __cxx11::basic_string<char, char_traits<char>, allocator<char>>;
+#else
+#error "unknown standard library"
+#endif
 } /* namespace std */
 
 namespace c4 {

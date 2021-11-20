@@ -5,12 +5,12 @@
 // https://github.com/biojppm/c4core
 // 
 // DO NOT EDIT. This file is generated automatically.
-// This is an amalgamated single-header version of the file.
+// This is an amalgamated single-header version of the library.
 // 
 // INSTRUCTIONS:
 //   - Include at will in any header of your project
 //   - In one (and only one) of your project source files, #define
-//     C4CORE_SINGLE_HDR_DEFINE_NOW and then include the header. This will enable the
+//     C4CORE_SINGLE_HDR_DEFINE_NOW and then include this header. This will enable the
 //     function and class definitions in the header file.
 // 
 
@@ -9244,77 +9244,6 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 
 //********************************************************************************
 //--------------------------------------------------------------------------------
-// src/c4/std/string_fwd.hpp
-// https://github.com/biojppm/c4core/src/c4/std/string_fwd.hpp
-//--------------------------------------------------------------------------------
-//********************************************************************************
-
-#ifndef _C4_STD_STRING_FWD_HPP_
-#define _C4_STD_STRING_FWD_HPP_
-
-/** @file string_fwd.hpp */
-
-#ifndef DOXYGEN
-
-#ifndef C4CORE_SINGLE_HEADER
-// amalgamate: removed include of
-// https://github.com/biojppm/c4core/src/c4/substr_fwd.hpp
-//#include "c4/substr_fwd.hpp"
-#if !defined(C4_SUBSTR_FWD_HPP_) && !defined(_C4_SUBSTR_FWD_HPP_)
-#error "amalgamate: file c4/substr_fwd.hpp must have been included at this point"
-#endif /* C4_SUBSTR_FWD_HPP_ */
-
-#endif
-
-//included above:
-//#include <cstddef>
-
-namespace std {
-template<typename> class char_traits;
-template<typename> class allocator;
-namespace __cxx11 {
-template<typename _CharT,
-         typename _Traits,
-         typename _Alloc>
-class basic_string;
-} // namespace __cxx11
-using string = __cxx11::basic_string<char, char_traits<char>, allocator<char>>;
-} /* namespace std */
-
-namespace c4 {
-
-c4::substr to_substr(std::string &s);
-c4::csubstr to_csubstr(std::string const& s);
-
-bool operator== (c4::csubstr ss, std::string const& s);
-bool operator!= (c4::csubstr ss, std::string const& s);
-bool operator>= (c4::csubstr ss, std::string const& s);
-bool operator>  (c4::csubstr ss, std::string const& s);
-bool operator<= (c4::csubstr ss, std::string const& s);
-bool operator<  (c4::csubstr ss, std::string const& s);
-
-bool operator== (std::string const& s, c4::csubstr ss);
-bool operator!= (std::string const& s, c4::csubstr ss);
-bool operator>= (std::string const& s, c4::csubstr ss);
-bool operator>  (std::string const& s, c4::csubstr ss);
-bool operator<= (std::string const& s, c4::csubstr ss);
-bool operator<  (std::string const& s, c4::csubstr ss);
-
-size_t to_chars(c4::substr buf, std::string const& s);
-bool from_chars(c4::csubstr buf, std::string * s);
-
-} // namespace c4
-
-#endif // DOXYGEN
-#endif // _C4_STD_STRING_FWD_HPP_
-
-
-// (end https://github.com/biojppm/c4core/src/c4/std/string_fwd.hpp)
-
-
-
-//********************************************************************************
-//--------------------------------------------------------------------------------
 // src/c4/std/vector_fwd.hpp
 // https://github.com/biojppm/c4core/src/c4/std/vector_fwd.hpp
 //--------------------------------------------------------------------------------
@@ -9384,6 +9313,124 @@ template<class Alloc> bool operator<  (std::vector<const char, Alloc> const& s, 
 
 
 // (end https://github.com/biojppm/c4core/src/c4/std/vector_fwd.hpp)
+
+
+
+//********************************************************************************
+//--------------------------------------------------------------------------------
+// src/c4/std/string_fwd.hpp
+// https://github.com/biojppm/c4core/src/c4/std/string_fwd.hpp
+//--------------------------------------------------------------------------------
+//********************************************************************************
+
+#ifndef _C4_STD_STRING_FWD_HPP_
+#define _C4_STD_STRING_FWD_HPP_
+
+/** @file string_fwd.hpp */
+
+#ifndef DOXYGEN
+
+#ifndef C4CORE_SINGLE_HEADER
+// amalgamate: removed include of
+// https://github.com/biojppm/c4core/src/c4/substr_fwd.hpp
+//#include "c4/substr_fwd.hpp"
+#if !defined(C4_SUBSTR_FWD_HPP_) && !defined(_C4_SUBSTR_FWD_HPP_)
+#error "amalgamate: file c4/substr_fwd.hpp must have been included at this point"
+#endif /* C4_SUBSTR_FWD_HPP_ */
+
+#endif
+
+//included above:
+//#include <cstddef>
+
+namespace std {
+#if defined(_MSC_VER)
+template<typename> struct char_traits;
+template<typename> class allocator;
+template<typename _CharT,
+         typename _Traits,
+         typename _Alloc>
+class basic_string;
+using string = basic_string<char, char_traits<char>, allocator<char>>;
+#elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
+template<typename> class char_traits;
+template<typename> class allocator;
+namespace __cxx11 {
+template<typename _CharT,
+         typename _Traits,
+         typename _Alloc>
+class basic_string;
+} // namespace __cxx11
+using string = __cxx11::basic_string<char, char_traits<char>, allocator<char>>;
+#else
+#error "unknown standard library"
+#endif
+} /* namespace std */
+
+namespace c4 {
+
+c4::substr to_substr(std::string &s);
+c4::csubstr to_csubstr(std::string const& s);
+
+bool operator== (c4::csubstr ss, std::string const& s);
+bool operator!= (c4::csubstr ss, std::string const& s);
+bool operator>= (c4::csubstr ss, std::string const& s);
+bool operator>  (c4::csubstr ss, std::string const& s);
+bool operator<= (c4::csubstr ss, std::string const& s);
+bool operator<  (c4::csubstr ss, std::string const& s);
+
+bool operator== (std::string const& s, c4::csubstr ss);
+bool operator!= (std::string const& s, c4::csubstr ss);
+bool operator>= (std::string const& s, c4::csubstr ss);
+bool operator>  (std::string const& s, c4::csubstr ss);
+bool operator<= (std::string const& s, c4::csubstr ss);
+bool operator<  (std::string const& s, c4::csubstr ss);
+
+size_t to_chars(c4::substr buf, std::string const& s);
+bool from_chars(c4::csubstr buf, std::string * s);
+
+} // namespace c4
+
+#endif // DOXYGEN
+#endif // _C4_STD_STRING_FWD_HPP_
+
+
+// (end https://github.com/biojppm/c4core/src/c4/std/string_fwd.hpp)
+
+
+
+//********************************************************************************
+//--------------------------------------------------------------------------------
+// src/c4/std/std_fwd.hpp
+// https://github.com/biojppm/c4core/src/c4/std/std_fwd.hpp
+//--------------------------------------------------------------------------------
+//********************************************************************************
+
+#ifndef _C4_STD_STD_FWD_HPP_
+#define _C4_STD_STD_FWD_HPP_
+
+/** @file std_fwd.hpp includes all c4-std interop fwd files */
+
+// amalgamate: removed include of
+// https://github.com/biojppm/c4core/src/c4/std/vector_fwd.hpp
+//#include "c4/std/vector_fwd.hpp"
+#if !defined(C4_STD_VECTOR_FWD_HPP_) && !defined(_C4_STD_VECTOR_FWD_HPP_)
+#error "amalgamate: file c4/std/vector_fwd.hpp must have been included at this point"
+#endif /* C4_STD_VECTOR_FWD_HPP_ */
+
+// amalgamate: removed include of
+// https://github.com/biojppm/c4core/src/c4/std/string_fwd.hpp
+//#include "c4/std/string_fwd.hpp"
+#if !defined(C4_STD_STRING_FWD_HPP_) && !defined(_C4_STD_STRING_FWD_HPP_)
+#error "amalgamate: file c4/std/string_fwd.hpp must have been included at this point"
+#endif /* C4_STD_STRING_FWD_HPP_ */
+
+//#include "c4/std/tuple_fwd.hpp"
+
+#endif // _C4_STD_STD_FWD_HPP_
+
+
+// (end https://github.com/biojppm/c4core/src/c4/std/std_fwd.hpp)
 
 
 
@@ -9461,6 +9508,13 @@ template<class Alloc> bool operator<  (std::vector<const char, Alloc> const& s, 
 #if !defined(C4_SUBSTR_HPP_) && !defined(_C4_SUBSTR_HPP_)
 #error "amalgamate: file c4/substr.hpp must have been included at this point"
 #endif /* C4_SUBSTR_HPP_ */
+
+// amalgamate: removed include of
+// https://github.com/biojppm/c4core/src/c4/std/std_fwd.hpp
+//#include "c4/std/std_fwd.hpp"
+#if !defined(C4_STD_STD_FWD_HPP_) && !defined(_C4_STD_STD_FWD_HPP_)
+#error "amalgamate: file c4/std/std_fwd.hpp must have been included at this point"
+#endif /* C4_STD_STD_FWD_HPP_ */
 
 // amalgamate: removed include of
 // https://github.com/biojppm/c4core/src/c4/memory_util.hpp
@@ -15232,6 +15286,212 @@ size_t base64_decode(csubstr encoded, blob data)
 
 
 // (end https://github.com/biojppm/c4core/src/c4/base64.cpp)
+
+#define C4_WINDOWS_POP_HPP_
+
+
+
+//********************************************************************************
+//--------------------------------------------------------------------------------
+// src/c4/windows_push.hpp
+// https://github.com/biojppm/c4core/src/c4/windows_push.hpp
+//--------------------------------------------------------------------------------
+//********************************************************************************
+
+#ifndef _C4_WINDOWS_PUSH_HPP_
+#define _C4_WINDOWS_PUSH_HPP_
+
+/** @file windows_push.hpp sets up macros to include windows header files
+ * without pulling in all of <windows.h>
+ *
+ * @see #include windows_pop.hpp to undefine these macros
+ *
+ * @see https://aras-p.info/blog/2018/01/12/Minimizing-windows.h/ */
+
+
+#if defined(_WIN64) || defined(_WIN32)
+
+#if defined(_M_AMD64)
+#   ifndef _AMD64_
+#       define _c4_AMD64_
+#       define _AMD64_
+#   endif
+#elif defined(_M_IX86)
+#   ifndef _X86_
+#       define _c4_X86_
+#       define _X86_
+#   endif
+#elif defined(_M_ARM64)
+#   ifndef _ARM64_
+#       define _c4_ARM64_
+#       define _ARM64_
+#   endif
+#elif defined(_M_ARM)
+#   ifndef _ARM_
+#       define _c4_ARM_
+#       define _ARM_
+#   endif
+#endif
+
+#ifndef NOMINMAX
+#    define _c4_NOMINMAX
+#    define NOMINMAX
+#endif
+
+#ifndef NOGDI
+#    define _c4_NOGDI
+#    define NOGDI
+#endif
+
+#ifndef VC_EXTRALEAN
+#    define _c4_VC_EXTRALEAN
+#    define VC_EXTRALEAN
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN
+#    define _c4_WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#endif
+
+/*  If defined, the following flags inhibit definition
+ *     of the indicated items.
+ *
+ *  NOGDICAPMASKS     - CC_*, LC_*, PC_*, CP_*, TC_*, RC_
+ *  NOVIRTUALKEYCODES - VK_*
+ *  NOWINMESSAGES     - WM_*, EM_*, LB_*, CB_*
+ *  NOWINSTYLES       - WS_*, CS_*, ES_*, LBS_*, SBS_*, CBS_*
+ *  NOSYSMETRICS      - SM_*
+ *  NOMENUS           - MF_*
+ *  NOICONS           - IDI_*
+ *  NOKEYSTATES       - MK_*
+ *  NOSYSCOMMANDS     - SC_*
+ *  NORASTEROPS       - Binary and Tertiary raster ops
+ *  NOSHOWWINDOW      - SW_*
+ *  OEMRESOURCE       - OEM Resource values
+ *  NOATOM            - Atom Manager routines
+ *  NOCLIPBOARD       - Clipboard routines
+ *  NOCOLOR           - Screen colors
+ *  NOCTLMGR          - Control and Dialog routines
+ *  NODRAWTEXT        - DrawText() and DT_*
+ *  NOGDI             - All GDI defines and routines
+ *  NOKERNEL          - All KERNEL defines and routines
+ *  NOUSER            - All USER defines and routines
+ *  NONLS             - All NLS defines and routines
+ *  NOMB              - MB_* and MessageBox()
+ *  NOMEMMGR          - GMEM_*, LMEM_*, GHND, LHND, associated routines
+ *  NOMETAFILE        - typedef METAFILEPICT
+ *  NOMINMAX          - Macros min(a,b) and max(a,b)
+ *  NOMSG             - typedef MSG and associated routines
+ *  NOOPENFILE        - OpenFile(), OemToAnsi, AnsiToOem, and OF_*
+ *  NOSCROLL          - SB_* and scrolling routines
+ *  NOSERVICE         - All Service Controller routines, SERVICE_ equates, etc.
+ *  NOSOUND           - Sound driver routines
+ *  NOTEXTMETRIC      - typedef TEXTMETRIC and associated routines
+ *  NOWH              - SetWindowsHook and WH_*
+ *  NOWINOFFSETS      - GWL_*, GCL_*, associated routines
+ *  NOCOMM            - COMM driver routines
+ *  NOKANJI           - Kanji support stuff.
+ *  NOHELP            - Help engine interface.
+ *  NOPROFILER        - Profiler interface.
+ *  NODEFERWINDOWPOS  - DeferWindowPos routines
+ *  NOMCX             - Modem Configuration Extensions
+ */
+
+#endif /* defined(_WIN64) || defined(_WIN32) */
+
+#endif /* _C4_WINDOWS_PUSH_HPP_ */
+
+
+// (end https://github.com/biojppm/c4core/src/c4/windows_push.hpp)
+
+
+
+//********************************************************************************
+//--------------------------------------------------------------------------------
+// src/c4/windows.hpp
+// https://github.com/biojppm/c4core/src/c4/windows.hpp
+//--------------------------------------------------------------------------------
+//********************************************************************************
+
+#ifndef _C4_WINDOWS_HPP_
+#define _C4_WINDOWS_HPP_
+
+#if defined(_WIN64) || defined(_WIN32)
+// amalgamate: removed include of
+// https://github.com/biojppm/c4core/src/c4/windows_push.hpp
+//#include "c4/windows_push.hpp"
+#if !defined(C4_WINDOWS_PUSH_HPP_) && !defined(_C4_WINDOWS_PUSH_HPP_)
+#error "amalgamate: file c4/windows_push.hpp must have been included at this point"
+#endif /* C4_WINDOWS_PUSH_HPP_ */
+
+#include <Windows.h>
+// amalgamate: removed include of
+// https://github.com/biojppm/c4core/src/c4/windows_pop.hpp
+//#include "c4/windows_pop.hpp"
+#if !defined(C4_WINDOWS_POP_HPP_) && !defined(_C4_WINDOWS_POP_HPP_)
+#error "amalgamate: file c4/windows_pop.hpp must have been included at this point"
+#endif /* C4_WINDOWS_POP_HPP_ */
+
+#endif
+
+#endif /* _C4_WINDOWS_HPP_ */
+
+
+// (end https://github.com/biojppm/c4core/src/c4/windows.hpp)
+
+
+
+//********************************************************************************
+//--------------------------------------------------------------------------------
+// src/c4/windows_pop.hpp
+// https://github.com/biojppm/c4core/src/c4/windows_pop.hpp
+//--------------------------------------------------------------------------------
+//********************************************************************************
+
+#ifndef _C4_WINDOWS_POP_HPP_
+#define _C4_WINDOWS_POP_HPP_
+
+#if defined(_WIN64) || defined(_WIN32)
+
+#ifdef _c4_AMD64_
+#    undef _c4_AMD64_
+#    undef _AMD64_
+#endif
+#ifdef _c4_X86_
+#    undef _c4_X86_
+#    undef _X86_
+#endif
+#ifdef _c4_ARM_
+#    undef _c4_ARM_
+#    undef _ARM_
+#endif
+
+#ifdef _c4_NOMINMAX
+#    undef _c4_NOMINMAX
+#    undef NOMINMAX
+#endif
+
+#ifdef NOGDI
+#    undef _c4_NOGDI
+#    undef NOGDI
+#endif
+
+#ifdef VC_EXTRALEAN
+#    undef _c4_VC_EXTRALEAN
+#    undef VC_EXTRALEAN
+#endif
+
+#ifdef WIN32_LEAN_AND_MEAN
+#    undef _c4_WIN32_LEAN_AND_MEAN
+#    undef WIN32_LEAN_AND_MEAN
+#endif
+
+#endif /* defined(_WIN64) || defined(_WIN32) */
+
+#endif /* _C4_WINDOWS_POP_HPP_ */
+
+
+// (end https://github.com/biojppm/c4core/src/c4/windows_pop.hpp)
 
 
 

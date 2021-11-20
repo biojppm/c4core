@@ -26,12 +26,12 @@ c4core - C++ utilities
 {repo}
 
 DO NOT EDIT. This file is generated automatically.
-This is an amalgamated single-header version of the file.
+This is an amalgamated single-header version of the library.
 
 INSTRUCTIONS:
   - Include at will in any header of your project
   - In one (and only one) of your project source files, #define
-    {defmacro} and then include the header. This will enable the
+    {defmacro} and then include this header. This will enable the
     function and class definitions in the header file.
 """),
     cmtfile("LICENSE.txt"),
@@ -57,8 +57,9 @@ INSTRUCTIONS:
     "src/c4/substr.hpp",
     injfile("src/c4/ext/fast_float_all.h", "c4/ext/fast_float_all.h"),
     "src/c4/ext/fast_float.hpp",
-    "src/c4/std/string_fwd.hpp",
     "src/c4/std/vector_fwd.hpp",
+    "src/c4/std/string_fwd.hpp",
+    "src/c4/std/std_fwd.hpp",
     "src/c4/charconv.hpp",
     "src/c4/format.hpp",
     "src/c4/enum.hpp",
@@ -76,9 +77,6 @@ INSTRUCTIONS:
     ignfile("src/c4/common.hpp"),
     ignfile("src/c4/c4_push.hpp"),
     ignfile("src/c4/c4_pop.hpp"),
-    ignfile("src/c4/windows.hpp"),
-    ignfile("src/c4/windows_push.hpp"),
-    ignfile("src/c4/windows_pop.hpp"),
     ignfile("src/c4/restrict.hpp"),
     ignfile("src/c4/unrestrict.hpp"),
     "src/c4/language.cpp",
@@ -87,6 +85,10 @@ INSTRUCTIONS:
     "src/c4/char_traits.cpp",
     "src/c4/memory_resource.cpp",
     "src/c4/base64.cpp",
+    injcode("#define C4_WINDOWS_POP_HPP_"),
+    "src/c4/windows_push.hpp",
+    "src/c4/windows.hpp",
+    "src/c4/windows_pop.hpp", # do NOT include this before windows.hpp
     "src/c4/time.cpp",
     "src/c4/error.cpp",
 ]

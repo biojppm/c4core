@@ -43,9 +43,12 @@ set(C4CORE_SRC_FILES
     c4/restrict.hpp
     c4/span.hpp
     c4/std/std.hpp
+    c4/std/std_fwd.hpp
     c4/std/string.hpp
+    c4/std/string_fwd.hpp
     c4/std/tuple.hpp
     c4/std/vector.hpp
+    c4/std/vector_fwd.hpp
     c4/substr.hpp
     c4/substr_fwd.hpp
     c4/szconv.hpp
