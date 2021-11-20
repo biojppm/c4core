@@ -6,6 +6,7 @@
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
 #elif defined(__clang__)
 #   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wfortify-source"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wuseless-cast"

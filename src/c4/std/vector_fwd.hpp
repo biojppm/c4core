@@ -4,11 +4,14 @@
 /** @file vector_fwd.hpp */
 
 namespace std {
-template<typename>
-class allocator;
-
-template<typename T, typename Alloc>
-class vector;
+template<typename> class allocator;
+#ifndef __APPLE_CC__
+template<typename T, typename Alloc> class vector;
+#else
+inline namespace __1 {
+template<typename T, typename Alloc> class vector;
+} /* */
+#endif
 } // namespace std
 
 #ifndef C4CORE_SINGLE_HEADER
