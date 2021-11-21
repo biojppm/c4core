@@ -16,14 +16,7 @@
 // use the fwd header in stdlibc++
 #include <bits/stringfwd.h>
 #elif defined(_LIBCPP_VERSION) || defined(__APPLE_CC__)
-//! @todo is there a fwd header in libc++?
-namespace std {
-template<typename> class allocator;
-inline namespace __1 {
-template<typename> struct char_traits;
-template<typename _CharT, typename _Traits, typename _Alloc> class basic_string;
-} // namespace __1
-} /* namespace std */
+#include <iosfwd>
 #elif defined(_MSC_VER)
 //! @todo is there a fwd header in msvc?
 namespace std {

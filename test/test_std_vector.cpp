@@ -28,7 +28,7 @@ TEST_CASE("std_vector.to_substr")
     CHECK_EQ(ss, csubstr("barnabe"));
     CHECK_EQ(ss.str, s.data());
     CHECK_EQ(ss.len, s.size());
-    // 
+    //
     CHECK_EQ(s[0], 'b');
     ss[0] = 'B';
     CHECK_EQ(s[0], 'B');
