@@ -14163,12 +14163,8 @@ template<size_t Cap, size_t Align = std::alignment_of<aligned_storage_helper<Cap
 struct aligned_storage {
     using type = typename std::aligned_storage<Cap, Align>::type;
 };
-
-template<size_t Cap, size_t Align = std::alignment_of<aligned_storage_helper<Cap>>::value>
-using aligned_storage_t = typename aligned_storage<Cap, Align>::type;
 #else
 using std::aligned_storage;
-using std::aligned_storage_t;
 #endif
 
 template<typename T> struct wrapper
@@ -14267,7 +14263,7 @@ public:
     using capacity = std::integral_constant<size_t, Capacity>;
     using alignment = std::integral_constant<size_t, Alignment>;
 
-    using storage_t = inplace_function_detail::aligned_storage_t<Capacity, Alignment>;
+    using storage_t = typename inplace_function_detail::aligned_storage<Capacity, Alignment>::type;
     using vtable_t = inplace_function_detail::vtable<R, Args...>;
     using vtable_ptr_t = const vtable_t*;
 
