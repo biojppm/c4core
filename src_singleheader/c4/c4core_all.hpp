@@ -9269,12 +9269,12 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 
 namespace std {
 template<typename> class allocator;
-#ifdef __APPLE_CC__
+#ifndef __APPLE_CC__
+template<typename T, typename Alloc> class vector;
+#else
 inline namespace __1 {
 template<typename T, typename Alloc> class vector;
 } /* */
-#else
-template<typename T, typename Alloc> class vector;
 #endif
 } // namespace std
 
@@ -9290,38 +9290,25 @@ template<typename T, typename Alloc> class vector;
 
 namespace c4 {
 
-template<class Alloc>
-c4::substr to_substr(std::vector<char, Alloc> &vec);
+template<class Alloc> c4::substr to_substr(std::vector<char, Alloc> &vec);
+template<class Alloc> c4::csubstr to_csubstr(std::vector<char, Alloc> const& vec);
 
-template<class Alloc>
-c4::csubstr to_csubstr(std::vector<char, Alloc> const& vec);
-
-template<class Alloc>
-c4::csubstr to_csubstr(std::vector<const char, Alloc> const& vec);
-
+template<class Alloc> bool operator!= (c4::csubstr ss, std::vector<char, Alloc> const& s);
 template<class Alloc> bool operator== (c4::csubstr ss, std::vector<char, Alloc> const& s);
 template<class Alloc> bool operator>= (c4::csubstr ss, std::vector<char, Alloc> const& s);
 template<class Alloc> bool operator>  (c4::csubstr ss, std::vector<char, Alloc> const& s);
 template<class Alloc> bool operator<= (c4::csubstr ss, std::vector<char, Alloc> const& s);
 template<class Alloc> bool operator<  (c4::csubstr ss, std::vector<char, Alloc> const& s);
 
+template<class Alloc> bool operator!= (std::vector<char, Alloc> const& s, c4::csubstr ss);
 template<class Alloc> bool operator== (std::vector<char, Alloc> const& s, c4::csubstr ss);
 template<class Alloc> bool operator>= (std::vector<char, Alloc> const& s, c4::csubstr ss);
 template<class Alloc> bool operator>  (std::vector<char, Alloc> const& s, c4::csubstr ss);
 template<class Alloc> bool operator<= (std::vector<char, Alloc> const& s, c4::csubstr ss);
 template<class Alloc> bool operator<  (std::vector<char, Alloc> const& s, c4::csubstr ss);
 
-template<class Alloc> bool operator== (c4::csubstr ss, std::vector<const char, Alloc> const& s);
-template<class Alloc> bool operator>= (c4::csubstr ss, std::vector<const char, Alloc> const& s);
-template<class Alloc> bool operator>  (c4::csubstr ss, std::vector<const char, Alloc> const& s);
-template<class Alloc> bool operator<= (c4::csubstr ss, std::vector<const char, Alloc> const& s);
-template<class Alloc> bool operator<  (c4::csubstr ss, std::vector<const char, Alloc> const& s);
-
-template<class Alloc> bool operator== (std::vector<const char, Alloc> const& s, c4::csubstr ss);
-template<class Alloc> bool operator>= (std::vector<const char, Alloc> const& s, c4::csubstr ss);
-template<class Alloc> bool operator>  (std::vector<const char, Alloc> const& s, c4::csubstr ss);
-template<class Alloc> bool operator<= (std::vector<const char, Alloc> const& s, c4::csubstr ss);
-template<class Alloc> bool operator<  (std::vector<const char, Alloc> const& s, c4::csubstr ss);
+template<class Alloc> size_t to_chars(c4::substr buf, std::vector<char, Alloc> const& s);
+template<class Alloc> bool from_chars(c4::csubstr buf, std::vector<char, Alloc> * s);
 
 } // namespace c4
 
@@ -13455,19 +13442,19 @@ inline c4::csubstr to_csubstr(std::string const& s)
 
 //-----------------------------------------------------------------------------
 
-inline bool operator== (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) == 0; }
-inline bool operator!= (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) != 0; }
-inline bool operator>= (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) >= 0; }
-inline bool operator>  (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) >  0; }
-inline bool operator<= (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) <= 0; }
-inline bool operator<  (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) <  0; }
+C4_ALWAYS_INLINE bool operator== (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) == 0; }
+C4_ALWAYS_INLINE bool operator!= (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) != 0; }
+C4_ALWAYS_INLINE bool operator>= (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) >= 0; }
+C4_ALWAYS_INLINE bool operator>  (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) >  0; }
+C4_ALWAYS_INLINE bool operator<= (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) <= 0; }
+C4_ALWAYS_INLINE bool operator<  (c4::csubstr ss, std::string const& s) { return ss.compare(to_csubstr(s)) <  0; }
 
-inline bool operator== (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) == 0; }
-inline bool operator!= (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) != 0; }
-inline bool operator>= (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) <= 0; }
-inline bool operator>  (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) <  0; }
-inline bool operator<= (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) >= 0; }
-inline bool operator<  (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) >  0; }
+C4_ALWAYS_INLINE bool operator== (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) == 0; }
+C4_ALWAYS_INLINE bool operator!= (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) != 0; }
+C4_ALWAYS_INLINE bool operator>= (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) <= 0; }
+C4_ALWAYS_INLINE bool operator>  (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) <  0; }
+C4_ALWAYS_INLINE bool operator<= (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) >= 0; }
+C4_ALWAYS_INLINE bool operator<  (std::string const& s, c4::csubstr ss) { return ss.compare(to_csubstr(s)) >  0; }
 
 //-----------------------------------------------------------------------------
 
@@ -13545,40 +13532,44 @@ c4::csubstr to_csubstr(std::vector<char, Alloc> const& vec)
     return c4::csubstr(data, vec.size());
 }
 
-/** get a csubstr (read-only string view) of an existing std::vector<const char> */
-template<class Alloc>
-c4::csubstr to_csubstr(std::vector<const char, Alloc> const& vec)
-{
-    const char *data = vec.empty() ? nullptr : vec.data(); // data() may or may not return a null pointer.
-    return c4::csubstr(data, vec.size());
-}
+//-----------------------------------------------------------------------------
+// comparisons between substrings and std::vector<char>
+
+template<class Alloc> C4_ALWAYS_INLINE bool operator!= (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss != to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator== (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss == to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator>= (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss >= to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator>  (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss >  to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator<= (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss <= to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator<  (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss <  to_csubstr(s); }
+
+template<class Alloc> C4_ALWAYS_INLINE bool operator!= (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss != to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator== (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss == to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator>= (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss <= to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator>  (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss <  to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator<= (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss >= to_csubstr(s); }
+template<class Alloc> C4_ALWAYS_INLINE bool operator<  (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss >  to_csubstr(s); }
 
 //-----------------------------------------------------------------------------
-// comparisons between substrings std::vector<char>/std::vector<const char>
 
-template<class Alloc> inline bool operator== (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss == to_csubstr(s); }
-template<class Alloc> inline bool operator>= (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss >= to_csubstr(s); }
-template<class Alloc> inline bool operator>  (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss >  to_csubstr(s); }
-template<class Alloc> inline bool operator<= (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss <= to_csubstr(s); }
-template<class Alloc> inline bool operator<  (c4::csubstr ss, std::vector<char, Alloc> const& s) { return ss <  to_csubstr(s); }
+/** copy a std::vector<char> to a writeable string view */
+template<class Alloc>
+inline size_t to_chars(c4::substr buf, std::vector<char, Alloc> const& s)
+{
+    C4_ASSERT(!buf.overlaps(to_csubstr(s)));
+    size_t len = buf.len < s.size() ? buf.len : s.size();
+    memcpy(buf.str, s.data(), len);
+    return s.size(); // return the number of needed chars
+}
 
-template<class Alloc> inline bool operator== (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss == to_csubstr(s); }
-template<class Alloc> inline bool operator>= (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss <= to_csubstr(s); }
-template<class Alloc> inline bool operator>  (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss <  to_csubstr(s); }
-template<class Alloc> inline bool operator<= (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss >= to_csubstr(s); }
-template<class Alloc> inline bool operator<  (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss >  to_csubstr(s); }
-
-template<class Alloc> inline bool operator== (c4::csubstr ss, std::vector<const char, Alloc> const& s) { return ss == to_csubstr(s); }
-template<class Alloc> inline bool operator>= (c4::csubstr ss, std::vector<const char, Alloc> const& s) { return ss >= to_csubstr(s); }
-template<class Alloc> inline bool operator>  (c4::csubstr ss, std::vector<const char, Alloc> const& s) { return ss >  to_csubstr(s); }
-template<class Alloc> inline bool operator<= (c4::csubstr ss, std::vector<const char, Alloc> const& s) { return ss <= to_csubstr(s); }
-template<class Alloc> inline bool operator<  (c4::csubstr ss, std::vector<const char, Alloc> const& s) { return ss <  to_csubstr(s); }
-
-template<class Alloc> inline bool operator== (std::vector<const char, Alloc> const& s, c4::csubstr ss) { return ss == to_csubstr(s); }
-template<class Alloc> inline bool operator>= (std::vector<const char, Alloc> const& s, c4::csubstr ss) { return ss <= to_csubstr(s); }
-template<class Alloc> inline bool operator>  (std::vector<const char, Alloc> const& s, c4::csubstr ss) { return ss <  to_csubstr(s); }
-template<class Alloc> inline bool operator<= (std::vector<const char, Alloc> const& s, c4::csubstr ss) { return ss >= to_csubstr(s); }
-template<class Alloc> inline bool operator<  (std::vector<const char, Alloc> const& s, c4::csubstr ss) { return ss >  to_csubstr(s); }
+/** copy a string view to an existing std::vector<char> */
+template<class Alloc>
+inline bool from_chars(c4::csubstr buf, std::vector<char, Alloc> * s)
+{
+    s->resize(buf.len);
+    C4_ASSERT(!buf.overlaps(to_csubstr(*s)));
+    memcpy(&(*s)[0], buf.str, buf.len);
+    return true;
+}
 
 } // namespace c4
 
