@@ -3,16 +3,24 @@
 
 /** @file vector_fwd.hpp */
 
+#include <cstddef>
+
+// forward declarations for std::vector
+#if defined(__GLIBCXX__) || defined(__GLIBCPP__) || defined(_MSC_VER)
 namespace std {
 template<typename> class allocator;
-#ifndef __APPLE_CC__
 template<typename T, typename Alloc> class vector;
-#else
+} // namespace std
+#elif defined(_LIBCPP_VERSION)
+namespace std {
+template<typename> class allocator;
 inline namespace __1 {
 template<typename T, typename Alloc> class vector;
-} /* */
-#endif
+} // namespace __1
 } // namespace std
+#else
+#error "unknown standard library"
+#endif
 
 #ifndef C4CORE_SINGLE_HEADER
 #include "c4/substr_fwd.hpp"

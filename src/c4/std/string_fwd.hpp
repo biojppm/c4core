@@ -11,38 +11,30 @@
 
 #include <cstddef>
 
+// forward declarations for std::string
+#if defined(__GLIBCXX__) || defined(__GLIBCPP__)
+// use the fwd header in stdlibc++
+#include <bits/stringfwd.h>
+#elif defined(_LIBCPP_VERSION) || defined(__APPLE_CC__)
+//! @todo is there a fwd header in libc++?
 namespace std {
-#if defined(_MSC_VER)
-template<typename> struct char_traits;
-template<typename> class allocator;
-template<typename _CharT,
-         typename _Traits,
-         typename _Alloc>
-class basic_string;
-using string = basic_string<char, char_traits<char>, allocator<char>>;
-#elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
-template<typename> class char_traits;
-template<typename> class allocator;
-namespace __cxx11 {
-template<typename _CharT,
-         typename _Traits,
-         typename _Alloc>
-class basic_string;
-} // namespace __cxx11
-using string = __cxx11::basic_string<char, char_traits<char>, allocator<char>>;
-#elif defined(__APPLE_CC__)
-template<typename> struct char_traits;
 template<typename> class allocator;
 inline namespace __1 {
-template<typename _CharT,
-         typename _Traits,
-         typename _Alloc>
-class basic_string;
-}
+template<typename> struct char_traits;
+template<typename _CharT, typename _Traits, typename _Alloc> class basic_string;
+} // namespace __1
+} /* namespace std */
+#elif defined(_MSC_VER)
+//! @todo is there a fwd header in msvc?
+namespace std {
+template<typename> struct char_traits;
+template<typename> class allocator;
+template<typename _CharT, typename _Traits, typename _Alloc> class basic_string;
+using string = basic_string<char, char_traits<char>, allocator<char>>;
+} /* namespace std */
 #else
 #error "unknown standard library"
 #endif
-} /* namespace std */
 
 namespace c4 {
 

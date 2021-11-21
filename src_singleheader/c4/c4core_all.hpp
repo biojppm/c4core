@@ -6259,9 +6259,12 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
 #ifdef _MSC_VER
 #   pragma warning(push)
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
-#elif defined(__clang__)
+#elif defined(__clang__) || defined(__APPLE_CC__)
 #   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wfortify-source"
+#   if (defined(__clang_major__) && _clang_major__ >= 9) || defined(__APPLE_CC__)
+#       pragma clang diagnostic ignored "-Wfortify-source"
+#   endif
+#   pragma clang diagnostic ignored "-Wshift-count-overflow"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -9242,7 +9245,7 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 
 #ifdef _MSC_VER
 #   pragma warning(pop)
-#elif defined(__clang__)
+#elif defined(__clang__) || defined(__APPLE_CC__)
 #   pragma clang diagnostic pop
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic pop
@@ -9267,16 +9270,25 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 
 /** @file vector_fwd.hpp */
 
+//included above:
+//#include <cstddef>
+
+// forward declarations for std::vector
+#if defined(__GLIBCXX__) || defined(__GLIBCPP__) || defined(_MSC_VER)
 namespace std {
 template<typename> class allocator;
-#ifndef __APPLE_CC__
 template<typename T, typename Alloc> class vector;
-#else
+} // namespace std
+#elif defined(_LIBCPP_VERSION)
+namespace std {
+template<typename> class allocator;
 inline namespace __1 {
 template<typename T, typename Alloc> class vector;
-} /* */
-#endif
+} // namespace __1
 } // namespace std
+#else
+#error "unknown standard library"
+#endif
 
 #ifndef C4CORE_SINGLE_HEADER
 // amalgamate: removed include of
@@ -9346,38 +9358,30 @@ template<class Alloc> bool from_chars(c4::csubstr buf, std::vector<char, Alloc> 
 //included above:
 //#include <cstddef>
 
+// forward declarations for std::string
+#if defined(__GLIBCXX__) || defined(__GLIBCPP__)
+// use the fwd header in stdlibc++
+#include <bits/stringfwd.h>
+#elif defined(_LIBCPP_VERSION) || defined(__APPLE_CC__)
+//! @todo is there a fwd header in libc++?
 namespace std {
-#if defined(_MSC_VER)
-template<typename> struct char_traits;
-template<typename> class allocator;
-template<typename _CharT,
-         typename _Traits,
-         typename _Alloc>
-class basic_string;
-using string = basic_string<char, char_traits<char>, allocator<char>>;
-#elif defined(__GLIBCXX__) || defined(__GLIBCPP__)
-template<typename> class char_traits;
-template<typename> class allocator;
-namespace __cxx11 {
-template<typename _CharT,
-         typename _Traits,
-         typename _Alloc>
-class basic_string;
-} // namespace __cxx11
-using string = __cxx11::basic_string<char, char_traits<char>, allocator<char>>;
-#elif defined(__APPLE_CC__)
-template<typename> struct char_traits;
 template<typename> class allocator;
 inline namespace __1 {
-template<typename _CharT,
-         typename _Traits,
-         typename _Alloc>
-class basic_string;
-}
+template<typename> struct char_traits;
+template<typename _CharT, typename _Traits, typename _Alloc> class basic_string;
+} // namespace __1
+} /* namespace std */
+#elif defined(_MSC_VER)
+//! @todo is there a fwd header in msvc?
+namespace std {
+template<typename> struct char_traits;
+template<typename> class allocator;
+template<typename _CharT, typename _Traits, typename _Alloc> class basic_string;
+using string = basic_string<char, char_traits<char>, allocator<char>>;
+} /* namespace std */
 #else
 #error "unknown standard library"
 #endif
-} /* namespace std */
 
 namespace c4 {
 
@@ -14224,12 +14228,6 @@ template<typename R, typename... Args> struct vtable
     ~vtable() = default;
 };
 
-template<typename R, typename... Args>
-#if __cplusplus >= 201703L
-inline constexpr
-#endif
-vtable<R, Args...> empty_vtable{};
-
 template<size_t DstCap, size_t DstAlign, size_t SrcCap, size_t SrcAlign>
 struct is_valid_inplace_dst : std::true_type
 {
@@ -14259,6 +14257,7 @@ template<
 >
 class inplace_function<R(Args...), Capacity, Alignment>
 {
+    static const constexpr inplace_function_detail::vtable<R, Args...> empty_vtable{};
 public:
     using capacity = std::integral_constant<size_t, Capacity>;
     using alignment = std::integral_constant<size_t, Alignment>;
@@ -14270,7 +14269,7 @@ public:
     template <typename, size_t, size_t>	friend class inplace_function;
 
     inplace_function() noexcept :
-        vtable_ptr_{std::addressof(inplace_function_detail::empty_vtable<R, Args...>)}
+        vtable_ptr_{std::addressof(empty_vtable)}
     {}
 
     template<
@@ -14307,7 +14306,7 @@ public:
     }
 
     inplace_function(std::nullptr_t) noexcept :
-        vtable_ptr_{std::addressof(inplace_function_detail::empty_vtable<R, Args...>)}
+        vtable_ptr_{std::addressof(empty_vtable)}
     {}
 
     inplace_function(const inplace_function& other) :
@@ -14331,7 +14330,7 @@ public:
     inplace_function& operator= (std::nullptr_t) noexcept
     {
         vtable_ptr_->destructor_ptr(std::addressof(storage_));
-        vtable_ptr_ = std::addressof(inplace_function_detail::empty_vtable<R, Args...>);
+        vtable_ptr_ = std::addressof(empty_vtable);
         return *this;
     }
 
@@ -14390,7 +14389,7 @@ public:
 
     explicit constexpr operator bool() const noexcept
     {
-        return vtable_ptr_ != std::addressof(inplace_function_detail::empty_vtable<R, Args...>);
+        return vtable_ptr_ != std::addressof(empty_vtable);
     }
 
     template<size_t Cap, size_t Align>
@@ -15635,15 +15634,17 @@ time_type currtime()
 //included above:
 //#   include <cstring>
 #   include <fcntl.h>
-#   include <unistd.h>
 #elif defined(C4_MACOS) || defined(C4_IOS)
 //included above:
 //#   include <assert.h>
 #   include <stdbool.h>
 #   include <sys/types.h>
-//included above:
-//#   include <unistd.h>
 #   include <sys/sysctl.h>
+#endif
+// the amalgamation tool is dumb and was omitting this include under MACOS.
+// So do it only once:
+#if defined(C4_UNIX) || defined(C4_LINUX) || defined(C4_MACOS) || defined(C4_IOS)
+#   include <unistd.h>
 #endif
 
 #if defined(C4_EXCEPTIONS_ENABLED) && defined(C4_ERROR_THROWS_EXCEPTION)

@@ -118,12 +118,6 @@ template<typename R, typename... Args> struct vtable
     ~vtable() = default;
 };
 
-template<typename R, typename... Args>
-#if __cplusplus >= 201703L
-inline constexpr
-#endif
-vtable<R, Args...> empty_vtable{};
-
 template<size_t DstCap, size_t DstAlign, size_t SrcCap, size_t SrcAlign>
 struct is_valid_inplace_dst : std::true_type
 {
@@ -153,6 +147,7 @@ template<
 >
 class inplace_function<R(Args...), Capacity, Alignment>
 {
+    static const constexpr inplace_function_detail::vtable<R, Args...> empty_vtable{};
 public:
     using capacity = std::integral_constant<size_t, Capacity>;
     using alignment = std::integral_constant<size_t, Alignment>;
@@ -164,7 +159,7 @@ public:
     template <typename, size_t, size_t>	friend class inplace_function;
 
     inplace_function() noexcept :
-        vtable_ptr_{std::addressof(inplace_function_detail::empty_vtable<R, Args...>)}
+        vtable_ptr_{std::addressof(empty_vtable)}
     {}
 
     template<
@@ -201,7 +196,7 @@ public:
     }
 
     inplace_function(std::nullptr_t) noexcept :
-        vtable_ptr_{std::addressof(inplace_function_detail::empty_vtable<R, Args...>)}
+        vtable_ptr_{std::addressof(empty_vtable)}
     {}
 
     inplace_function(const inplace_function& other) :
@@ -225,7 +220,7 @@ public:
     inplace_function& operator= (std::nullptr_t) noexcept
     {
         vtable_ptr_->destructor_ptr(std::addressof(storage_));
-        vtable_ptr_ = std::addressof(inplace_function_detail::empty_vtable<R, Args...>);
+        vtable_ptr_ = std::addressof(empty_vtable);
         return *this;
     }
 
@@ -284,7 +279,7 @@ public:
 
     explicit constexpr operator bool() const noexcept
     {
-        return vtable_ptr_ != std::addressof(inplace_function_detail::empty_vtable<R, Args...>);
+        return vtable_ptr_ != std::addressof(empty_vtable);
     }
 
     template<size_t Cap, size_t Align>

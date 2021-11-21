@@ -40,22 +40,22 @@ jobs:
           - {name: find_package/linux, sdir: test/test_install     , os: ubuntu-18.04, tgt: all      , bt: Debug  , vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
           - {name: find_package/macos, sdir: test/test_install     , os: macos-11.0  , tgt: all      , bt: Release, vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
           - {name: find_package/macos, sdir: test/test_install     , os: macos-11.0  , tgt: all      , bt: Debug  , vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
-          - {name: find_package/win  , sdir: test/test_install     , os: windows-2016, tgt: ALL_BUILD, bt: Release, vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
-          - {name: find_package/win  , sdir: test/test_install     , os: windows-2016, tgt: ALL_BUILD, bt: Debug  , vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
+          - {name: find_package/win  , sdir: test/test_install     , os: windows-2019, tgt: ALL_BUILD, bt: Release, vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
+          - {name: find_package/win  , sdir: test/test_install     , os: windows-2019, tgt: ALL_BUILD, bt: Debug  , vars: "-Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON"}
           #
           - {name: find_library/linux, sdir: test/test_install     , os: ubuntu-18.04, tgt: all      , bt: Release, vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
           - {name: find_library/linux, sdir: test/test_install     , os: ubuntu-18.04, tgt: all      , bt: Debug  , vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
           - {name: find_library/macos, sdir: test/test_install     , os: macos-11.0  , tgt: all      , bt: Release, vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
           - {name: find_library/macos, sdir: test/test_install     , os: macos-11.0  , tgt: all      , bt: Debug  , vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
-          - {name: find_library/win  , sdir: test/test_install     , os: windows-2016, tgt: ALL_BUILD, bt: Release, vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
-          - {name: find_library/win  , sdir: test/test_install     , os: windows-2016, tgt: ALL_BUILD, bt: Debug  , vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
+          - {name: find_library/win  , sdir: test/test_install     , os: windows-2019, tgt: ALL_BUILD, bt: Release, vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
+          - {name: find_library/win  , sdir: test/test_install     , os: windows-2019, tgt: ALL_BUILD, bt: Debug  , vars: "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF"}
           #
           - {name: singleheader/linux, sdir: test/test_singleheader, os: ubuntu-18.04, tgt: all      , bt: Release, vars: }
           - {name: singleheader/linux, sdir: test/test_singleheader, os: ubuntu-18.04, tgt: all      , bt: Debug  , vars: }
           - {name: singleheader/macos, sdir: test/test_singleheader, os: macos-11.0  , tgt: all      , bt: Release, vars: }
           - {name: singleheader/macos, sdir: test/test_singleheader, os: macos-11.0  , tgt: all      , bt: Debug  , vars: }
-          - {name: singleheader/win  , sdir: test/test_singleheader, os: windows-2016, tgt: ALL_BUILD, bt: Release, vars: }
-          - {name: singleheader/win  , sdir: test/test_singleheader, os: windows-2016, tgt: ALL_BUILD, bt: Debug  , vars: }
+          - {name: singleheader/win  , sdir: test/test_singleheader, os: windows-2019, tgt: ALL_BUILD, bt: Release, vars: }
+          - {name: singleheader/win  , sdir: test/test_singleheader, os: windows-2019, tgt: ALL_BUILD, bt: Debug  , vars: }
     env: {
       BT: "${{matrix.bt}}",
       OS: "${{matrix.os}}",
