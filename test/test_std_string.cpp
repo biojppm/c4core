@@ -1,5 +1,6 @@
 #include "c4/test.hpp"
 #ifndef C4CORE_SINGLE_HEADER
+#include "c4/std/string_fwd.hpp"
 #include "c4/std/string.hpp"
 #endif
 

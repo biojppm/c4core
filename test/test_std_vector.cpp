@@ -1,11 +1,12 @@
 #include "c4/test.hpp"
 #ifndef C4CORE_SINGLE_HEADER
+#include "c4/std/vector_fwd.hpp"
 #include "c4/std/vector.hpp"
 #endif
 
 namespace c4 {
 
-template< size_t N >
+template<size_t N>
 std::vector<char> ctor(const char (&s)[N])
 {
     return std::vector<char>(s, s+N-1);

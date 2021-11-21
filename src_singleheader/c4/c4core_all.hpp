@@ -488,6 +488,18 @@ C4_FOR_EACH(PRN_STRUCT_OFFSETS, a, b, c);
 #   ifdef __INTEL_COMPILER // check ICC before checking GCC, as ICC defines __GNUC__ too
 #       define C4_ICC
 #       define C4_ICC_VERSION __INTEL_COMPILER
+#   elif defined(__APPLE_CC__)
+#       define C4_XCODE
+#       if defined(__clang__)
+#           define C4_CLANG
+#           ifndef __apple_build_version__
+#               define C4_CLANG_VERSION C4_VERSION_ENCODED(__clang_major__, __clang_minor__, __clang_patchlevel__)
+#           else
+#               define C4_CLANG_VERSION __apple_build_version__
+#           endif
+#       else
+#           define C4_XCODE_VERSION __APPLE_CC__
+#       endif
 #   elif defined(__clang__)
 #       define C4_CLANG
 #       ifndef __apple_build_version__
@@ -6249,6 +6261,7 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
 #elif defined(__clang__)
 #   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wfortify-source"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -9255,11 +9268,14 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 /** @file vector_fwd.hpp */
 
 namespace std {
-template<typename>
-class allocator;
-
-template<typename T, typename Alloc>
-class vector;
+template<typename> class allocator;
+#ifdef __APPLE_CC__
+inline namespace __1 {
+template<typename T, typename Alloc> class vector;
+} /* */
+#else
+template<typename T, typename Alloc> class vector;
+#endif
 } // namespace std
 
 #ifndef C4CORE_SINGLE_HEADER
@@ -9362,6 +9378,15 @@ template<typename _CharT,
 class basic_string;
 } // namespace __cxx11
 using string = __cxx11::basic_string<char, char_traits<char>, allocator<char>>;
+#elif defined(__APPLE_CC__)
+template<typename> struct char_traits;
+template<typename> class allocator;
+inline namespace __1 {
+template<typename _CharT,
+         typename _Traits,
+         typename _Alloc>
+class basic_string;
+}
 #else
 #error "unknown standard library"
 #endif
