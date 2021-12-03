@@ -300,6 +300,28 @@ TEST_CASE("span.range")
     CHECK_EQ(ss.size(), 0);
     CHECK_EQ(ss.capacity(), 0);
     CHECK_EQ(ss.data(), std::end(arr));
+
+    SUBCASE("empty_span")
+    {
+        s = {};
+        ss = s.range(0, 0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.range(0, 0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr);
+        ss = s.range(10, 10);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+        ss = s.range(10);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+    }
 }
 TEST_CASE("spanrs.range")
 {
@@ -326,6 +348,28 @@ TEST_CASE("spanrs.range")
     CHECK_EQ(ss.size(), 0);
     CHECK_EQ(ss.capacity(), 0);
     CHECK_EQ(ss.data(), std::end(arr));
+
+    SUBCASE("empty_span")
+    {
+        s = {};
+        ss = s.range(0, 0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.range(0, 0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr);
+        ss = s.range(10, 10);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+        ss = s.range(10);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+    }
 }
 TEST_CASE("spanrsl.range")
 {
@@ -362,6 +406,28 @@ TEST_CASE("spanrsl.range")
     CHECK_EQ(ss.size(), 0);
     CHECK_EQ(ss.capacity(), 0);
     CHECK_EQ(ss.data(), std::end(arr));
+
+    SUBCASE("empty_span")
+    {
+        s = {};
+        ss = s.range(0, 0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.range(0, 0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr);
+        ss = s.range(10, 10);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+        ss = s.range(10);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -380,6 +446,20 @@ TEST_CASE("span.first")
     CHECK_EQ(ss.size(), 5);
     CHECK_EQ(ss.capacity(), 5);
     CHECK_EQ(ss.data(), arr);
+
+    SUBCASE("empty")
+    {
+        s = {};
+        ss = s.first(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.first(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr);
+    }
 }
 TEST_CASE("spanrs.first")
 {
@@ -396,6 +476,20 @@ TEST_CASE("spanrs.first")
     CHECK_EQ(ss.size(), 5);
     CHECK_EQ(ss.capacity(), 10);
     CHECK_EQ(ss.data(), arr);
+
+    SUBCASE("empty")
+    {
+        s = {};
+        ss = s.first(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.first(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr);
+    }
 }
 TEST_CASE("spanrsl.first")
 {
@@ -422,6 +516,20 @@ TEST_CASE("spanrsl.first")
     CHECK_EQ(ss.size(), 10);
     CHECK_EQ(ss.capacity(), 10);
     CHECK_EQ(ss.data(), arr);
+
+    SUBCASE("empty")
+    {
+        s = {};
+        ss = s.first(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.first(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -440,6 +548,20 @@ TEST_CASE("span.last")
     CHECK_EQ(ss.size(), 5);
     CHECK_EQ(ss.capacity(), 5);
     CHECK_EQ(ss.data(), arr + 5);
+
+    SUBCASE("empty")
+    {
+        s = {};
+        ss = s.last(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.last(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+    }
 }
 TEST_CASE("spanrs.last")
 {
@@ -456,6 +578,20 @@ TEST_CASE("spanrs.last")
     CHECK_EQ(ss.size(), 5);
     CHECK_EQ(ss.capacity(), 5);
     CHECK_EQ(ss.data(), arr + 5);
+
+    SUBCASE("empty")
+    {
+        s = {};
+        ss = s.last(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.last(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+    }
 }
 TEST_CASE("spanrsl.last")
 {
@@ -482,7 +618,22 @@ TEST_CASE("spanrsl.last")
     CHECK_EQ(ss.size(), 10);
     CHECK_EQ(ss.capacity(), 10);
     CHECK_EQ(ss.data(), arr);
+
+    SUBCASE("empty")
+    {
+        s = {};
+        ss = s.last(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), nullptr);
+        s = arr;
+        ss = s.last(0);
+        CHECK(ss.empty());
+        CHECK_EQ(ss.size(), 0);
+        CHECK_EQ(ss.data(), arr + 10);
+    }
 }
+
 
 //-----------------------------------------------------------------------------
 TEST_CASE_TEMPLATE("span.is_subspan", SpanClass, span<int>, spanrs<int>, spanrsl<int>)
