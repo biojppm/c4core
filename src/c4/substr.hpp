@@ -491,7 +491,8 @@ public:
      * @see triml() to remove characters*/
     basic_substring stripl(ro_substr pattern) const
     {
-        if( ! begins_with(pattern)) return *this;
+        if( ! begins_with(pattern))
+            return *this;
         return sub(pattern.len < len ? pattern.len : len);
     }
 
@@ -499,7 +500,8 @@ public:
      * @see trimr() to remove characters*/
     basic_substring stripr(ro_substr pattern) const
     {
-        if( ! ends_with(pattern)) return *this;
+        if( ! ends_with(pattern))
+            return *this;
         return left_of(len - (pattern.len < len ? pattern.len : len));
     }
 
@@ -958,19 +960,26 @@ public:
     /** @return true if the substring contents are a floating-point or integer number */
     bool is_number() const
     {
-        if(empty() || (first_non_empty_span().empty())) return false;
-        if(first_real_span() == *this) return true;
-        if(first_int_span() == *this) return true;
-        if(first_uint_span() == *this) return true;
+        if(empty() || (first_non_empty_span().empty()))
+            return false;
+        if(first_real_span() == *this)
+            return true;
+        if(first_int_span() == *this)
+            return true;
+        if(first_uint_span() == *this)
+            return true;
         return false;
     }
 
     /** @return true if the substring contents are an integer number */
     bool is_integer() const
     {
-        if(empty() || (first_non_empty_span().empty())) return false;
-        if(first_int_span() == *this) return true;
-        if(first_uint_span() == *this) return true;
+        if(empty() || (first_non_empty_span().empty()))
+            return false;
+        if(first_int_span() == *this)
+            return true;
+        if(first_uint_span() == *this)
+            return true;
         return false;
     }
 
@@ -980,7 +989,8 @@ public:
     {
         constexpr const ro_substr empty_chars(" \n\r\t");
         size_t pos = first_not_of(empty_chars);
-        if(pos == npos) return first(0);
+        if(pos == npos)
+            return first(0);
         auto ret = sub(pos);
         pos = ret.first_of(empty_chars);
         return ret.first(pos);
@@ -990,8 +1000,10 @@ public:
     basic_substring first_uint_span() const
     {
         basic_substring ne = first_non_empty_span();
-        if(ne.empty()) return ne;
-        if(ne.str[0] == '-') return first(0);
+        if(ne.empty())
+            return ne;
+        if(ne.str[0] == '-')
+            return first(0);
         size_t skip_start = (ne.str[0] == '+') ? 1 : 0;
         return ne._first_integral_span(skip_start);
     }
@@ -1000,7 +1012,8 @@ public:
     basic_substring first_int_span() const
     {
         basic_substring ne = first_non_empty_span();
-        if(ne.empty()) return ne;
+        if(ne.empty())
+            return ne;
         size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-') ? 1 : 0;
         return ne._first_integral_span(skip_start);
     }
@@ -1015,7 +1028,8 @@ public:
         if(first_of_any("0x", "0X")) // hexadecimal
         {
             skip_start += 2;
-            if(len == skip_start) return first(0);
+            if(len == skip_start)
+                return first(0);
             for(size_t i = skip_start; i < len; ++i)
             {
                 if( ! _is_hex_char(str[i]))
@@ -1027,7 +1041,8 @@ public:
         else if(first_of_any("0o", "0O")) // octal
         {
             skip_start += 2;
-            if(len == skip_start) return first(0);
+            if(len == skip_start)
+                return first(0);
             for(size_t i = skip_start; i < len; ++i)
             {
                 char c = str[i];
@@ -1040,7 +1055,8 @@ public:
         else if(first_of_any("0b", "0B")) // binary
         {
             skip_start += 2;
-            if(len == skip_start) return first(0);
+            if(len == skip_start)
+                return first(0);
             for(size_t i = skip_start; i < len; ++i)
             {
                 char c = str[i];
@@ -1052,7 +1068,8 @@ public:
         }
         else // otherwise, decimal
         {
-            if(len == skip_start) return first(0);
+            if(len == skip_start)
+                return first(0);
             for(size_t i = skip_start; i < len; ++i)
             {
                 char c = str[i];
@@ -1069,12 +1086,14 @@ public:
     basic_substring first_real_span() const
     {
         basic_substring ne = first_non_empty_span();
-        if(ne.empty()) return ne;
+        if(ne.empty())
+            return ne;
         size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-') ? 1 : 0;
         if(ne.first_of_any("0x", "0X")) // hexadecimal
         {
             skip_start += 2;
-            if(ne.len == skip_start) return ne.first(0);
+            if(ne.len == skip_start)
+                return ne.first(0);
             for(size_t i = skip_start; i < ne.len; ++i)
             {
                 char c = ne.str[i];
@@ -1095,7 +1114,8 @@ public:
         else if(ne.first_of_any("0b", "0B")) // binary
         {
             skip_start += 2;
-            if(ne.len == skip_start) return ne.first(0);
+            if(ne.len == skip_start)
+                return ne.first(0);
             for(size_t i = skip_start; i < ne.len; ++i)
             {
                 char c = ne.str[i];
@@ -1107,7 +1127,8 @@ public:
         }
         else // assume decimal
         {
-            if(ne.len == skip_start) return ne.first(0);
+            if(ne.len == skip_start)
+                return ne.first(0);
             for(size_t i = skip_start; i < ne.len; ++i)
             {
                 char c = ne.str[i];
@@ -1221,8 +1242,10 @@ private:
             bool operator== (split_iterator_impl const& that) const
             {
                 C4_XASSERT((m_sep == that.m_sep) && "cannot compare split iterators with different separators");
-                if(m_str.size() != that.m_str.size()) return false;
-                if(m_str.data() != that.m_str.data()) return false;
+                if(m_str.size() != that.m_str.size())
+                    return false;
+                if(m_str.data() != that.m_str.data())
+                    return false;
                 return m_pos == that.m_pos;
             }
         };
@@ -1253,7 +1276,7 @@ public:
 
     using split_proxy = split_proxy_impl;
 
-    /** a view into the splits iterate throught splits with a view:*/
+    /** a view into the splits */
     split_proxy split(C sep, size_t start_pos=0) const
     {
         C4_XASSERT((start_pos >= 0 && start_pos < len) || empty());
