@@ -329,8 +329,7 @@ public:
         return basic_substring(str + first, len - first);
     }
 
-    /** return [first,first+num[. If num==npos, return first
-     * if*/
+    /** return [first,first+num[. If num==npos, return [first,len[ */
     basic_substring sub(size_t first, size_t num) const
     {
         C4_ASSERT(first >= 0 && first <= len);
@@ -340,7 +339,7 @@ public:
         return basic_substring(str + first, rnum);
     }
 
-    /** return [first,last[ */
+    /** return [first,last[. If last==npos, return [first,len[ */
     basic_substring range(size_t first, size_t last=npos) const
     {
         C4_ASSERT(first >= 0 && first <= len);
@@ -360,9 +359,7 @@ public:
     basic_substring last(size_t num) const
     {
         if(num == npos)
-        {
             return *this;
-        }
         return sub(len - num);
     }
 
@@ -381,9 +378,7 @@ public:
     basic_substring left_of(size_t pos, bool include_pos=false) const
     {
         if(pos == npos)
-        {
             return *this;
-        }
         return first(pos + include_pos);
     }
 
@@ -391,38 +386,28 @@ public:
     basic_substring right_of(size_t pos, bool include_pos=false) const
     {
         if(pos == npos)
-        {
             return sub(len, 0);
-        }
-        if( ! include_pos)
-        {
-            ++pos;
-        }
-        return sub(pos);
+        return sub(pos + !include_pos);
     }
 
 public:
 
     /** given @p subs a substring of the current string, get the
-     * portion of the current string to the left of it*/
+     * portion of the current string to the left of it */
     basic_substring left_of(ro_substr const subs) const
     {
-        C4_ASSERT(this->is_super(subs) || subs.empty());
+        C4_ASSERT(is_super(subs) || subs.empty());
         auto ssb = subs.begin();
         auto b = begin();
         auto e = end();
         if(ssb >= b && ssb <= e)
-        {
             return sub(0, static_cast<size_t>(ssb - b));
-        }
         else
-        {
             return sub(0, 0);
-        }
     }
 
     /** given @p subs a substring of the current string, get the
-     * portion of the current string to the right of it*/
+     * portion of the current string to the right of it */
     basic_substring right_of(ro_substr const subs) const
     {
         C4_ASSERT(is_super(subs) || subs.empty());
@@ -430,13 +415,9 @@ public:
         auto b = begin();
         auto e = end();
         if(sse >= b && sse <= e)
-        {
             return sub(static_cast<size_t>(sse - b), static_cast<size_t>(e - sse));
-        }
         else
-        {
             return sub(0, 0);
-        }
     }
 
     /** @} */
@@ -449,21 +430,23 @@ public:
     /** trim left */
     basic_substring triml(const C c) const
     {
-        //return right_of(first_not_of(c), /*include_pos*/true);
-        return triml({&c, 1});
+        if( ! empty())
+        {
+            size_t pos = first_not_of(c);
+            if(pos != npos)
+                return sub(pos);
+        }
+        return sub(0, 0);
     }
     /** trim left ANY of the characters.
      * @see stripl() to remove a pattern from the left */
     basic_substring triml(ro_substr chars) const
     {
-        //return right_of(first_not_of(chars), /*include_pos*/true);
         if( ! empty())
         {
-            size_t pos = first_not_of(chars, 0);
+            size_t pos = first_not_of(chars);
             if(pos != npos)
-            {
                 return sub(pos);
-            }
         }
         return sub(0, 0);
     }
@@ -471,21 +454,23 @@ public:
     /** trim the character c from the right */
     basic_substring trimr(const C c) const
     {
-        //return left_of(last_not_of(c), /*include_pos*/true);
-        return trimr({&c, 1});
+        if( ! empty())
+        {
+            size_t pos = last_not_of(c, npos);
+            if(pos != npos)
+                return sub(0, pos+1);
+        }
+        return sub(0, 0);
     }
     /** trim right ANY of the characters
      * @see stripr() to remove a pattern from the right  */
     basic_substring trimr(ro_substr chars) const
     {
-        //return left_of(last_not_of(chars), /*include_pos*/true);
         if( ! empty())
         {
             size_t pos = last_not_of(chars, npos);
             if(pos != npos)
-            {
                 return sub(0, pos+1);
-            }
         }
         return sub(0, 0);
     }
