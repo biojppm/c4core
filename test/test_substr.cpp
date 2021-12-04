@@ -1253,6 +1253,513 @@ TEST_CASE("substr.first_real_span")
     CHECK_EQ(csubstr("+0x1.e8480p-19 asdkjh").first_real_span(), "+0x1.e8480p-19");
 }
 
+// start with some obvious direct tests
+TEST_CASE("substr.is_unsigned_integer")
+{
+    SUBCASE("empty_string")
+    {
+        CHECK_FALSE(csubstr().is_unsigned_integer());
+        CHECK_FALSE(csubstr("").is_unsigned_integer());
+    }
+    SUBCASE("signs")
+    {
+        CHECK_FALSE(csubstr("-").is_unsigned_integer());
+        CHECK_FALSE(csubstr("+").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-1").is_unsigned_integer());
+        CHECK_UNARY(csubstr("+1").is_unsigned_integer());
+    }
+    SUBCASE("whitespace_before")
+    {
+        CHECK_FALSE(csubstr(" 0").is_unsigned_integer());
+        CHECK_FALSE(csubstr(" 1").is_unsigned_integer());
+        CHECK_FALSE(csubstr(" -1").is_unsigned_integer());
+        CHECK_FALSE(csubstr(" 0.1").is_unsigned_integer());
+        CHECK_FALSE(csubstr(" -0.1").is_unsigned_integer());
+    }
+    SUBCASE("whitespace_after")
+    {
+        CHECK_FALSE(csubstr("0 ").is_unsigned_integer());
+        CHECK_FALSE(csubstr("1 ").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-1 ").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0.1 ").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0.1 ").is_unsigned_integer());
+    }
+    SUBCASE("whitespace_only")
+    {
+        CHECK_FALSE(csubstr("    ").is_unsigned_integer());
+        CHECK_FALSE(csubstr("\t\t\t\t").is_unsigned_integer());
+        CHECK_FALSE(csubstr("\n\n\n\n").is_unsigned_integer());
+        CHECK_FALSE(csubstr("\r\r\r\r").is_unsigned_integer());
+    }
+    SUBCASE("decimal")
+    {
+        CHECK_UNARY(csubstr("0").is_unsigned_integer());
+        CHECK_UNARY(csubstr("1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0.1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0.1").is_unsigned_integer());
+    }
+    SUBCASE("hexadecimal")
+    {
+        CHECK_FALSE(csubstr("0x").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0X").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0x1").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0X1").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0x0").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0X0").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xa").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0Xa").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xb").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0Xb").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xc").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0Xc").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xd").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0Xd").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xe").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0Xe").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xf").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0Xf").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xA").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0XA").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xB").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0XB").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xC").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0XC").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xD").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0XD").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xE").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0XE").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0xF").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0XF").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0xg").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0Xg").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0xG").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0XG").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0x1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0X1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0x0").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0X0").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xa").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0Xa").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xb").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0Xb").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xc").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0Xc").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xd").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0Xd").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xe").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0Xe").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xf").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0Xf").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xA").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0XA").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xB").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0XB").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xC").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0XC").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xD").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0XD").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xE").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0XE").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xF").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0XF").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xg").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0Xg").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0xG").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0XG").is_unsigned_integer());
+    }
+    SUBCASE("binary")
+    {
+        CHECK_FALSE(csubstr("0b").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0B").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0b0").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0B0").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0b1").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0B1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0b2").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0B2").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0b0").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0B0").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0b1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0B1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0b2").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0B2").is_unsigned_integer());
+    }
+    SUBCASE("octal")
+    {
+        CHECK_FALSE(csubstr("0o").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0O").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0o0").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0O0").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0o1").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0O1").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0o6").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0O6").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0o6").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0O6").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0o7").is_unsigned_integer());
+        CHECK_UNARY(csubstr("0O7").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0o8").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0O8").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0o9").is_unsigned_integer());
+        CHECK_FALSE(csubstr("0O9").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0o0").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0O0").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0o1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0O1").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0o6").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0O6").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0o6").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0O6").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0o7").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0O7").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0o8").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0O8").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0o9").is_unsigned_integer());
+        CHECK_FALSE(csubstr("-0O9").is_unsigned_integer());
+    }
+}
+
+TEST_CASE("substr.is_integer")
+{
+    SUBCASE("empty_string")
+    {
+        CHECK_FALSE(csubstr().is_integer());
+        CHECK_FALSE(csubstr("").is_integer());
+    }
+    SUBCASE("signs")
+    {
+        CHECK_FALSE(csubstr("-").is_integer());
+        CHECK_FALSE(csubstr("+").is_integer());
+        CHECK_UNARY(csubstr("-1").is_integer());
+        CHECK_UNARY(csubstr("+1").is_integer());
+    }
+    SUBCASE("whitespace_before")
+    {
+        CHECK_FALSE(csubstr(" 0").is_integer());
+        CHECK_FALSE(csubstr(" 1").is_integer());
+        CHECK_FALSE(csubstr(" -1").is_integer());
+        CHECK_FALSE(csubstr(" 0.1").is_integer());
+        CHECK_FALSE(csubstr(" -0.1").is_integer());
+    }
+    SUBCASE("whitespace_after")
+    {
+        CHECK_FALSE(csubstr("0 ").is_integer());
+        CHECK_FALSE(csubstr("1 ").is_integer());
+        CHECK_FALSE(csubstr("-1 ").is_integer());
+        CHECK_FALSE(csubstr("0.1 ").is_integer());
+        CHECK_FALSE(csubstr("-0.1 ").is_integer());
+    }
+    SUBCASE("whitespace_only")
+    {
+        CHECK_FALSE(csubstr("    ").is_integer());
+        CHECK_FALSE(csubstr("\t\t\t\t").is_integer());
+        CHECK_FALSE(csubstr("\n\n\n\n").is_integer());
+        CHECK_FALSE(csubstr("\r\r\r\r").is_integer());
+    }
+    SUBCASE("decimal")
+    {
+        CHECK_UNARY(csubstr("0").is_integer());
+        CHECK_UNARY(csubstr("1").is_integer());
+        CHECK_UNARY(csubstr("-1").is_integer());
+        CHECK_FALSE(csubstr("0.1").is_integer());
+        CHECK_FALSE(csubstr("-0.1").is_integer());
+    }
+    SUBCASE("hexadecimal")
+    {
+        CHECK_FALSE(csubstr("0x").is_integer());
+        CHECK_FALSE(csubstr("0X").is_integer());
+        CHECK_UNARY(csubstr("0x1").is_integer());
+        CHECK_UNARY(csubstr("0X1").is_integer());
+        CHECK_UNARY(csubstr("0x0").is_integer());
+        CHECK_UNARY(csubstr("0X0").is_integer());
+        CHECK_UNARY(csubstr("0xa").is_integer());
+        CHECK_UNARY(csubstr("0Xa").is_integer());
+        CHECK_UNARY(csubstr("0xb").is_integer());
+        CHECK_UNARY(csubstr("0Xb").is_integer());
+        CHECK_UNARY(csubstr("0xc").is_integer());
+        CHECK_UNARY(csubstr("0Xc").is_integer());
+        CHECK_UNARY(csubstr("0xd").is_integer());
+        CHECK_UNARY(csubstr("0Xd").is_integer());
+        CHECK_UNARY(csubstr("0xe").is_integer());
+        CHECK_UNARY(csubstr("0Xe").is_integer());
+        CHECK_UNARY(csubstr("0xf").is_integer());
+        CHECK_UNARY(csubstr("0Xf").is_integer());
+        CHECK_UNARY(csubstr("0xA").is_integer());
+        CHECK_UNARY(csubstr("0XA").is_integer());
+        CHECK_UNARY(csubstr("0xB").is_integer());
+        CHECK_UNARY(csubstr("0XB").is_integer());
+        CHECK_UNARY(csubstr("0xC").is_integer());
+        CHECK_UNARY(csubstr("0XC").is_integer());
+        CHECK_UNARY(csubstr("0xD").is_integer());
+        CHECK_UNARY(csubstr("0XD").is_integer());
+        CHECK_UNARY(csubstr("0xE").is_integer());
+        CHECK_UNARY(csubstr("0XE").is_integer());
+        CHECK_UNARY(csubstr("0xF").is_integer());
+        CHECK_UNARY(csubstr("0XF").is_integer());
+        CHECK_FALSE(csubstr("0xg").is_integer());
+        CHECK_FALSE(csubstr("0Xg").is_integer());
+        CHECK_FALSE(csubstr("0xG").is_integer());
+        CHECK_FALSE(csubstr("0XG").is_integer());
+        CHECK_UNARY(csubstr("-0x1").is_integer());
+        CHECK_UNARY(csubstr("-0X1").is_integer());
+        CHECK_UNARY(csubstr("-0x0").is_integer());
+        CHECK_UNARY(csubstr("-0X0").is_integer());
+        CHECK_UNARY(csubstr("-0xa").is_integer());
+        CHECK_UNARY(csubstr("-0Xa").is_integer());
+        CHECK_UNARY(csubstr("-0xb").is_integer());
+        CHECK_UNARY(csubstr("-0Xb").is_integer());
+        CHECK_UNARY(csubstr("-0xc").is_integer());
+        CHECK_UNARY(csubstr("-0Xc").is_integer());
+        CHECK_UNARY(csubstr("-0xd").is_integer());
+        CHECK_UNARY(csubstr("-0Xd").is_integer());
+        CHECK_UNARY(csubstr("-0xe").is_integer());
+        CHECK_UNARY(csubstr("-0Xe").is_integer());
+        CHECK_UNARY(csubstr("-0xf").is_integer());
+        CHECK_UNARY(csubstr("-0Xf").is_integer());
+        CHECK_UNARY(csubstr("-0xA").is_integer());
+        CHECK_UNARY(csubstr("-0XA").is_integer());
+        CHECK_UNARY(csubstr("-0xB").is_integer());
+        CHECK_UNARY(csubstr("-0XB").is_integer());
+        CHECK_UNARY(csubstr("-0xC").is_integer());
+        CHECK_UNARY(csubstr("-0XC").is_integer());
+        CHECK_UNARY(csubstr("-0xD").is_integer());
+        CHECK_UNARY(csubstr("-0XD").is_integer());
+        CHECK_UNARY(csubstr("-0xE").is_integer());
+        CHECK_UNARY(csubstr("-0XE").is_integer());
+        CHECK_UNARY(csubstr("-0xF").is_integer());
+        CHECK_UNARY(csubstr("-0XF").is_integer());
+        CHECK_FALSE(csubstr("-0xg").is_integer());
+        CHECK_FALSE(csubstr("-0Xg").is_integer());
+        CHECK_FALSE(csubstr("-0xG").is_integer());
+        CHECK_FALSE(csubstr("-0XG").is_integer());
+    }
+    SUBCASE("binary")
+    {
+        CHECK_FALSE(csubstr("0b").is_integer());
+        CHECK_FALSE(csubstr("0B").is_integer());
+        CHECK_UNARY(csubstr("0b0").is_integer());
+        CHECK_UNARY(csubstr("0B0").is_integer());
+        CHECK_UNARY(csubstr("0b1").is_integer());
+        CHECK_UNARY(csubstr("0B1").is_integer());
+        CHECK_FALSE(csubstr("0b2").is_integer());
+        CHECK_FALSE(csubstr("0B2").is_integer());
+        CHECK_UNARY(csubstr("-0b0").is_integer());
+        CHECK_UNARY(csubstr("-0B0").is_integer());
+        CHECK_UNARY(csubstr("-0b1").is_integer());
+        CHECK_UNARY(csubstr("-0B1").is_integer());
+        CHECK_FALSE(csubstr("-0b2").is_integer());
+        CHECK_FALSE(csubstr("-0B2").is_integer());
+    }
+    SUBCASE("octal")
+    {
+        CHECK_FALSE(csubstr("0o").is_integer());
+        CHECK_FALSE(csubstr("0O").is_integer());
+        CHECK_UNARY(csubstr("0o0").is_integer());
+        CHECK_UNARY(csubstr("0O0").is_integer());
+        CHECK_UNARY(csubstr("0o1").is_integer());
+        CHECK_UNARY(csubstr("0O1").is_integer());
+        CHECK_UNARY(csubstr("0o6").is_integer());
+        CHECK_UNARY(csubstr("0O6").is_integer());
+        CHECK_UNARY(csubstr("0o6").is_integer());
+        CHECK_UNARY(csubstr("0O6").is_integer());
+        CHECK_UNARY(csubstr("0o7").is_integer());
+        CHECK_UNARY(csubstr("0O7").is_integer());
+        CHECK_FALSE(csubstr("0o8").is_integer());
+        CHECK_FALSE(csubstr("0O8").is_integer());
+        CHECK_FALSE(csubstr("0o9").is_integer());
+        CHECK_FALSE(csubstr("0O9").is_integer());
+        CHECK_UNARY(csubstr("-0o0").is_integer());
+        CHECK_UNARY(csubstr("-0O0").is_integer());
+        CHECK_UNARY(csubstr("-0o1").is_integer());
+        CHECK_UNARY(csubstr("-0O1").is_integer());
+        CHECK_UNARY(csubstr("-0o6").is_integer());
+        CHECK_UNARY(csubstr("-0O6").is_integer());
+        CHECK_UNARY(csubstr("-0o6").is_integer());
+        CHECK_UNARY(csubstr("-0O6").is_integer());
+        CHECK_UNARY(csubstr("-0o7").is_integer());
+        CHECK_UNARY(csubstr("-0O7").is_integer());
+        CHECK_FALSE(csubstr("-0o8").is_integer());
+        CHECK_FALSE(csubstr("-0O8").is_integer());
+        CHECK_FALSE(csubstr("-0o9").is_integer());
+        CHECK_FALSE(csubstr("-0O9").is_integer());
+    }
+}
+
+TEST_CASE("substr.is_real")
+{
+    SUBCASE("empty_string")
+    {
+        CHECK_FALSE(csubstr().is_real());
+        CHECK_FALSE(csubstr("").is_real());
+    }
+    SUBCASE("signs")
+    {
+        CHECK_FALSE(csubstr("-").is_real());
+        CHECK_FALSE(csubstr("+").is_real());
+        CHECK_UNARY(csubstr("-1").is_real());
+        CHECK_UNARY(csubstr("+1").is_real());
+    }
+    SUBCASE("whitespace_before")
+    {
+        CHECK_FALSE(csubstr(" 0").is_real());
+        CHECK_FALSE(csubstr(" 1").is_real());
+        CHECK_FALSE(csubstr(" -1").is_real());
+        CHECK_FALSE(csubstr(" 0.1").is_real());
+        CHECK_FALSE(csubstr(" -0.1").is_real());
+    }
+    SUBCASE("whitespace_after")
+    {
+        CHECK_FALSE(csubstr("0 ").is_real());
+        CHECK_FALSE(csubstr("1 ").is_real());
+        CHECK_FALSE(csubstr("-1 ").is_real());
+        CHECK_FALSE(csubstr("0.1 ").is_real());
+        CHECK_FALSE(csubstr("-0.1 ").is_real());
+    }
+    SUBCASE("whitespace_only")
+    {
+        CHECK_FALSE(csubstr("    ").is_real());
+        CHECK_FALSE(csubstr("\t\t\t\t").is_real());
+        CHECK_FALSE(csubstr("\n\n\n\n").is_real());
+        CHECK_FALSE(csubstr("\r\r\r\r").is_real());
+    }
+    SUBCASE("decimal")
+    {
+        CHECK_UNARY(csubstr("0").is_real());
+        CHECK_UNARY(csubstr("1").is_real());
+        CHECK_UNARY(csubstr("-1").is_real());
+        CHECK_UNARY(csubstr("0.1").is_real());
+        CHECK_UNARY(csubstr("-0.1").is_real());
+    }
+    SUBCASE("hexadecimal")
+    {
+        CHECK_FALSE(csubstr("0x").is_real());
+        CHECK_FALSE(csubstr("0X").is_real());
+        CHECK_UNARY(csubstr("0x1").is_real());
+        CHECK_UNARY(csubstr("0X1").is_real());
+        CHECK_UNARY(csubstr("0x0").is_real());
+        CHECK_UNARY(csubstr("0X0").is_real());
+        CHECK_UNARY(csubstr("0xa").is_real());
+        CHECK_UNARY(csubstr("0Xa").is_real());
+        CHECK_UNARY(csubstr("0xb").is_real());
+        CHECK_UNARY(csubstr("0Xb").is_real());
+        CHECK_UNARY(csubstr("0xc").is_real());
+        CHECK_UNARY(csubstr("0Xc").is_real());
+        CHECK_UNARY(csubstr("0xd").is_real());
+        CHECK_UNARY(csubstr("0Xd").is_real());
+        CHECK_UNARY(csubstr("0xe").is_real());
+        CHECK_UNARY(csubstr("0Xe").is_real());
+        CHECK_UNARY(csubstr("0xf").is_real());
+        CHECK_UNARY(csubstr("0Xf").is_real());
+        CHECK_UNARY(csubstr("0xA").is_real());
+        CHECK_UNARY(csubstr("0XA").is_real());
+        CHECK_UNARY(csubstr("0xB").is_real());
+        CHECK_UNARY(csubstr("0XB").is_real());
+        CHECK_UNARY(csubstr("0xC").is_real());
+        CHECK_UNARY(csubstr("0XC").is_real());
+        CHECK_UNARY(csubstr("0xD").is_real());
+        CHECK_UNARY(csubstr("0XD").is_real());
+        CHECK_UNARY(csubstr("0xE").is_real());
+        CHECK_UNARY(csubstr("0XE").is_real());
+        CHECK_UNARY(csubstr("0xF").is_real());
+        CHECK_UNARY(csubstr("0XF").is_real());
+        CHECK_FALSE(csubstr("0xg").is_real());
+        CHECK_FALSE(csubstr("0Xg").is_real());
+        CHECK_FALSE(csubstr("0xG").is_real());
+        CHECK_FALSE(csubstr("0XG").is_real());
+        CHECK_UNARY(csubstr("-0x1").is_real());
+        CHECK_UNARY(csubstr("-0X1").is_real());
+        CHECK_UNARY(csubstr("-0x0").is_real());
+        CHECK_UNARY(csubstr("-0X0").is_real());
+        CHECK_UNARY(csubstr("-0xa").is_real());
+        CHECK_UNARY(csubstr("-0Xa").is_real());
+        CHECK_UNARY(csubstr("-0xb").is_real());
+        CHECK_UNARY(csubstr("-0Xb").is_real());
+        CHECK_UNARY(csubstr("-0xc").is_real());
+        CHECK_UNARY(csubstr("-0Xc").is_real());
+        CHECK_UNARY(csubstr("-0xd").is_real());
+        CHECK_UNARY(csubstr("-0Xd").is_real());
+        CHECK_UNARY(csubstr("-0xe").is_real());
+        CHECK_UNARY(csubstr("-0Xe").is_real());
+        CHECK_UNARY(csubstr("-0xf").is_real());
+        CHECK_UNARY(csubstr("-0Xf").is_real());
+        CHECK_UNARY(csubstr("-0xA").is_real());
+        CHECK_UNARY(csubstr("-0XA").is_real());
+        CHECK_UNARY(csubstr("-0xB").is_real());
+        CHECK_UNARY(csubstr("-0XB").is_real());
+        CHECK_UNARY(csubstr("-0xC").is_real());
+        CHECK_UNARY(csubstr("-0XC").is_real());
+        CHECK_UNARY(csubstr("-0xD").is_real());
+        CHECK_UNARY(csubstr("-0XD").is_real());
+        CHECK_UNARY(csubstr("-0xE").is_real());
+        CHECK_UNARY(csubstr("-0XE").is_real());
+        CHECK_UNARY(csubstr("-0xF").is_real());
+        CHECK_UNARY(csubstr("-0XF").is_real());
+        CHECK_FALSE(csubstr("-0xg").is_real());
+        CHECK_FALSE(csubstr("-0Xg").is_real());
+        CHECK_FALSE(csubstr("-0xG").is_real());
+        CHECK_FALSE(csubstr("-0XG").is_real());
+        CHECK_UNARY(csubstr("0x1.e8480p+19").is_real());
+        CHECK_UNARY(csubstr("0X1.e8480P+19").is_real());
+        CHECK_UNARY(csubstr("0x1.e8480P+19").is_real());
+        CHECK_UNARY(csubstr("0X1.e8480p+19").is_real());
+        CHECK_UNARY(csubstr("-0x1.e8480p+19").is_real());
+        CHECK_UNARY(csubstr("-0X1.e8480P+19").is_real());
+        CHECK_UNARY(csubstr("-0x1.e8480P+19").is_real());
+        CHECK_UNARY(csubstr("-0X1.e8480p+19").is_real());
+    }
+    SUBCASE("binary")
+    {
+        CHECK_FALSE(csubstr("0b").is_real());
+        CHECK_FALSE(csubstr("0B").is_real());
+        CHECK_UNARY(csubstr("0b0").is_real());
+        CHECK_UNARY(csubstr("0B0").is_real());
+        CHECK_UNARY(csubstr("0b1").is_real());
+        CHECK_UNARY(csubstr("0B1").is_real());
+        CHECK_FALSE(csubstr("0b2").is_real());
+        CHECK_FALSE(csubstr("0B2").is_real());
+        CHECK_UNARY(csubstr("-0b0").is_real());
+        CHECK_UNARY(csubstr("-0B0").is_real());
+        CHECK_UNARY(csubstr("-0b1").is_real());
+        CHECK_UNARY(csubstr("-0B1").is_real());
+        CHECK_FALSE(csubstr("-0b2").is_real());
+        CHECK_FALSE(csubstr("-0B2").is_real());
+    }
+    SUBCASE("octal")
+    {
+        CHECK_FALSE(csubstr("0o").is_real());
+        CHECK_FALSE(csubstr("0O").is_real());
+        CHECK_UNARY(csubstr("0o0").is_real());
+        CHECK_UNARY(csubstr("0O0").is_real());
+        CHECK_UNARY(csubstr("0o1").is_real());
+        CHECK_UNARY(csubstr("0O1").is_real());
+        CHECK_UNARY(csubstr("0o6").is_real());
+        CHECK_UNARY(csubstr("0O6").is_real());
+        CHECK_UNARY(csubstr("0o6").is_real());
+        CHECK_UNARY(csubstr("0O6").is_real());
+        CHECK_UNARY(csubstr("0o7").is_real());
+        CHECK_UNARY(csubstr("0O7").is_real());
+        CHECK_FALSE(csubstr("0o8").is_real());
+        CHECK_FALSE(csubstr("0O8").is_real());
+        CHECK_FALSE(csubstr("0o9").is_real());
+        CHECK_FALSE(csubstr("0O9").is_real());
+        CHECK_UNARY(csubstr("-0o0").is_real());
+        CHECK_UNARY(csubstr("-0O0").is_real());
+        CHECK_UNARY(csubstr("-0o1").is_real());
+        CHECK_UNARY(csubstr("-0O1").is_real());
+        CHECK_UNARY(csubstr("-0o6").is_real());
+        CHECK_UNARY(csubstr("-0O6").is_real());
+        CHECK_UNARY(csubstr("-0o6").is_real());
+        CHECK_UNARY(csubstr("-0O6").is_real());
+        CHECK_UNARY(csubstr("-0o7").is_real());
+        CHECK_UNARY(csubstr("-0O7").is_real());
+        CHECK_FALSE(csubstr("-0o8").is_real());
+        CHECK_FALSE(csubstr("-0O8").is_real());
+        CHECK_FALSE(csubstr("-0o9").is_real());
+        CHECK_FALSE(csubstr("-0O9").is_real());
+    }
+}
+
 typedef enum : uint8_t { kIsNone = 0, kIsUint = 1, kIsInt = 3, kIsReal = 7 } NumberClass;
 struct number
 {
@@ -1263,10 +1770,10 @@ struct number
     number(const char (&n)[N], NumberClass c) : num(n), cls(c) {}
     number(csubstr n, NumberClass c) : num(n), cls(c) {}
 
-
     void test(csubstr ref={})
     {
-        if(ref.empty()) ref = num;
+        if(ref.empty())
+            ref = num;
         switch(cls)
         {
         case kIsUint:
@@ -1274,6 +1781,7 @@ struct number
             CHECK_EQ(num.first_uint_span(), ref);
             CHECK_EQ(num.first_int_span(), ref);
             CHECK_EQ(num.first_real_span(), ref);
+            CHECK_UNARY(num.first_uint_span().is_unsigned_integer());
             CHECK_UNARY(num.first_uint_span().is_integer());
             CHECK_UNARY(num.first_uint_span().is_number());
             break;
@@ -1283,6 +1791,7 @@ struct number
             CHECK_EQ(num.first_uint_span(), "");
             CHECK_EQ(num.first_int_span(), ref);
             CHECK_EQ(num.first_real_span(), ref);
+            CHECK_FALSE(num.first_int_span().is_unsigned_integer());
             CHECK_UNARY(num.first_int_span().is_integer());
             CHECK_UNARY(num.first_int_span().is_number());
             break;
@@ -1292,6 +1801,7 @@ struct number
             CHECK_EQ(num.first_uint_span(), "");
             CHECK_EQ(num.first_int_span(), "");
             CHECK_EQ(num.first_real_span(), ref);
+            CHECK_FALSE(num.first_real_span().is_unsigned_integer());
             CHECK_FALSE(num.first_real_span().is_integer());
             CHECK_UNARY(num .first_real_span().is_number());
             break;
@@ -1301,6 +1811,7 @@ struct number
             CHECK_EQ(num.first_uint_span(), "");
             CHECK_EQ(num.first_int_span(), "");
             CHECK_EQ(num.first_real_span(), "");
+            CHECK_FALSE(num.is_unsigned_integer());
             CHECK_FALSE(num.is_integer());
             CHECK_FALSE(num.is_number());
             break;
@@ -1405,36 +1916,45 @@ const number numbers[] = {
 
 TEST_CASE("substr.is_number")
 {
-    for(number n : numbers)
+    SUBCASE("plain")
     {
-        n.test();
+        for(number n : numbers)
+        {
+            n.test();
+        }
     }
     char buf[128];
     csubstr garbage = "sdkjhsdfkju";
-    // adding anything before the number will make it not be a number
-    for(number n : numbers)
+    SUBCASE("prepend")
     {
-        for(int i = 0; i < 127; ++i)
+        // adding anything before the number will make it not be a number
+        for(number n : numbers)
         {
-            char c = (char)i;
-            csubstr fmtd = cat_sub(buf, garbage, c, n.num);
-            number cp(fmtd, kIsNone);
-            cp.test();
+            for(int i = 0; i < 127; ++i)
+            {
+                char c = (char)i;
+                csubstr fmtd = cat_sub(buf, garbage, c, n.num);
+                number cp(fmtd, kIsNone);
+                cp.test();
+            }
         }
     }
-    // adding after may or may not make it a number
-    for(number const& n : numbers)
+    SUBCASE("append")
     {
-        for(int i = 0; i < 127; ++i)
+        // adding after may or may not make it a number
+        for(number const& n : numbers)
         {
-            number cp = n;
-            char c = (char)i;
-            cp.num = cat_sub(buf, n.num, c, garbage);
-            if(!csubstr::_is_delim_char(c))
+            for(int i = 0; i < 127; ++i)
             {
-                cp.cls = kIsNone;
+                number cp = n;
+                char c = (char)i;
+                cp.num = cat_sub(buf, n.num, c, garbage);
+                if(!csubstr::_is_delim_char(c))
+                {
+                    cp.cls = kIsNone;
+                }
+                cp.test(n.num);
             }
-            cp.test(n.num);
         }
     }
 }
