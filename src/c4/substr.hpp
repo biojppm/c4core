@@ -756,7 +756,8 @@ public:
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
         for(size_t i = start; i < len; ++i)
         {
-            if(str[i] == c) return i;
+            if(str[i] == c)
+                return i;
         }
         return npos;
     }
@@ -768,7 +769,8 @@ public:
         if(start == npos) start = len;
         for(size_t i = start-1; i != size_t(-1); --i)
         {
-            if(str[i] == c) return i;
+            if(str[i] == c)
+                return i;
         }
         return npos;
     }
@@ -781,7 +783,8 @@ public:
         {
             for(size_t j = 0; j < chars.len; ++j)
             {
-                if(str[i] == chars[j]) return i;
+                if(str[i] == chars[j])
+                    return i;
             }
         }
         return npos;
@@ -796,7 +799,8 @@ public:
         {
             for(size_t j = 0; j < chars.len; ++j)
             {
-                if(str[i] == chars[j]) return i;
+                if(str[i] == chars[j])
+                    return i;
             }
         }
         return npos;
@@ -809,7 +813,8 @@ public:
         C4_ASSERT((start >= 0 && start <= len) || (start == len && len == 0));
         for(size_t i = start; i < len; ++i)
         {
-            if(str[i] != c) return i;
+            if(str[i] != c)
+                return i;
         }
         return npos;
     }
@@ -820,7 +825,8 @@ public:
         if(start == npos) start = len;
         for(size_t i = start-1; i != size_t(-1); --i)
         {
-            if(str[i] != c) return i;
+            if(str[i] != c)
+                return i;
         }
         return npos;
     }
@@ -957,32 +963,55 @@ public:
     /** @name Number-matching query methods */
     /** @{ */
 
-    /** @return true if the substring contents are a floating-point or integer number */
+    /** @return true if the substring contents are a floating-point or integer number.
+     * @note any leading or trailing whitespace will return false. */
     bool is_number() const
+    {
+        if(empty() || (first_non_empty_span().empty()))
+            return false;
+        if(first_uint_span() == *this)
+            return true;
+        if(first_int_span() == *this)
+            return true;
+        if(first_real_span() == *this)
+            return true;
+        return false;
+    }
+
+    /** @return true if the substring contents are a real number.
+     * @note any leading or trailing whitespace will return false. */
+    bool is_real() const
     {
         if(empty() || (first_non_empty_span().empty()))
             return false;
         if(first_real_span() == *this)
             return true;
-        if(first_int_span() == *this)
-            return true;
-        if(first_uint_span() == *this)
-            return true;
         return false;
     }
 
-    /** @return true if the substring contents are an integer number */
+    /** @return true if the substring contents are an integer number.
+     * @note any leading or trailing whitespace will return false. */
     bool is_integer() const
     {
         if(empty() || (first_non_empty_span().empty()))
             return false;
-        if(first_int_span() == *this)
-            return true;
         if(first_uint_span() == *this)
+            return true;
+        if(first_int_span() == *this)
             return true;
         return false;
     }
 
+    /** @return true if the substring contents are an unsigned integer number.
+     * @note any leading or trailing whitespace will return false. */
+    bool is_unsigned_integer() const
+    {
+        if(empty() || (first_non_empty_span().empty()))
+            return false;
+        if(first_uint_span() == *this)
+            return true;
+        return false;
+    }
 
     /** get the first span consisting exclusively of non-empty characters */
     basic_substring first_non_empty_span() const
@@ -1033,9 +1062,7 @@ public:
             for(size_t i = skip_start; i < len; ++i)
             {
                 if( ! _is_hex_char(str[i]))
-                {
                     return _is_delim_char(str[i]) ? first(i) : first(0);
-                }
             }
         }
         else if(first_of_any("0o", "0O")) // octal
@@ -1047,9 +1074,7 @@ public:
             {
                 char c = str[i];
                 if(c < '0' || c > '7')
-                {
                     return _is_delim_char(str[i]) ? first(i) : first(0);
-                }
             }
         }
         else if(first_of_any("0b", "0B")) // binary
@@ -1061,9 +1086,7 @@ public:
             {
                 char c = str[i];
                 if(c != '0' && c != '1')
-                {
                     return _is_delim_char(c) ? first(i) : first(0);
-                }
             }
         }
         else // otherwise, decimal
@@ -1074,9 +1097,7 @@ public:
             {
                 char c = str[i];
                 if(c < '0' || c > '9')
-                {
                     return _is_delim_char(c) ? first(i) : first(0);
-                }
             }
         }
         return *this;
@@ -1125,6 +1146,20 @@ public:
                 }
             }
         }
+        else if(ne.first_of_any("0o", "0O")) // octal
+        {
+            skip_start += 2;
+            if(ne.len == skip_start)
+                return ne.first(0);
+            for(size_t i = skip_start; i < ne.len; ++i)
+            {
+                char c = ne.str[i];
+                if((c < '0' || c > '7') && c != '.')
+                {
+                    return _is_delim_char(c) ? ne.first(i) : ne.first(0);
+                }
+            }
+        }
         else // assume decimal
         {
             if(ne.len == skip_start)
@@ -1161,6 +1196,12 @@ public:
     static constexpr C4_ALWAYS_INLINE bool _is_hex_char(char c) noexcept
     {
         return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
+
+    /** true if the character is in [0-9a-fA-F] */
+    static constexpr C4_ALWAYS_INLINE bool _is_oct_char(char c) noexcept
+    {
+        return (c >= '0' && c <= '7');
     }
 
     /** @} */
