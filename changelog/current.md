@@ -1,3 +1,24 @@
+
+### New features
+
+- Add amalgamation into [a single header file](./src_singleheader/c4/c4core_all.hpp) ([PR #48](https://github.com/biojppm/c4core/pull/48)). To use the amalgamated header do as follows:
+  - Include at will in any header of your project
+  - In one (and only one) of your project source files, `#define
+    C4CORE_SINGLE_HDR_DEFINE_NOW` and then include this header. This
+    will enable the function and class definitions in the header file.
+    For example, here's a sample program:
+    ```c++
+    #include <iostream>
+    #define C4CORE_SINGLE_HDR_DEFINE_NOW // do this before the include
+    #include <c4core_all.hpp>
+    int main()
+    {
+        for(csubstr s : csubstr("a/b/c/d").split("/"))
+            std::cout << s << "\n";
+    }
+    ```
+
+
 ### Fixes
 
 - Fix edge cases with empty strings in `span::first()`, `span::last()` and `span::range()`  ([PR #49](https://github.com/biojppm/c4core/pull/49).
