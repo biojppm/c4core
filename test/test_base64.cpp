@@ -1,8 +1,10 @@
 #include "c4/test.hpp"
+#ifndef C4CORE_SINGLE_HEADER
 #include "c4/std/string.hpp"
 #include "c4/std/vector.hpp"
 #include "c4/format.hpp"
 #include "c4/base64.hpp"
+#endif
 
 #include "c4/libtest/supprwarn_push.hpp"
 

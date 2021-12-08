@@ -34,6 +34,7 @@ function c4_show_info()
     echo "BM=$BM"
     echo "STD=$STD"
     echo "ARM=$ARM"
+    echo "LIBCXX=$LIBCXX"
     which cmake
     cmake --version
     case "$CXX_" in
@@ -193,6 +194,9 @@ function c4_cfg_test()
     if [ "$STD" != "" ] ; then
         _addcmkflags -DC4_CXX_STANDARD=$STD
         _addprojflags CXX_STANDARD=$STD
+    fi
+    if [ "$LIBCXX" != "" ] ; then
+        _addprojflags USE_LIBCXX=$LIBCXX
     fi
     #
     if [ "$DEV" != "OFF" ] ; then

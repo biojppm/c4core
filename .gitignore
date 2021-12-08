@@ -30,3 +30,4 @@ compile_commands.json
 .github/vagrant/*.log
 .github/vagrant/.vagrant
 .github/vagrant/macos/.vagrant
+src_singleheader/

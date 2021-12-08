@@ -307,17 +307,8 @@ public:
     /** true if there is overlap of at least one element between that and *this */
     inline bool overlaps(ro_substr const that) const
     {
-        CC * b =      begin(), * e =      end(),
-           *tb = that.begin(), *te = that.end();
-        return (
-                (tb <= b && te >  b)
-                ||
-                (tb <  e && te >= e)
-                ||
-                (tb >= b && te <= e)
-               )
-               &&
-               (b != nullptr && tb != nullptr);
+        // thanks @timwynants
+        return (that.end() > begin() && that.begin() < end());
     }
 
 public:

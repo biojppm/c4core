@@ -73,6 +73,18 @@
 #   ifdef __INTEL_COMPILER // check ICC before checking GCC, as ICC defines __GNUC__ too
 #       define C4_ICC
 #       define C4_ICC_VERSION __INTEL_COMPILER
+#   elif defined(__APPLE_CC__)
+#       define C4_XCODE
+#       if defined(__clang__)
+#           define C4_CLANG
+#           ifndef __apple_build_version__
+#               define C4_CLANG_VERSION C4_VERSION_ENCODED(__clang_major__, __clang_minor__, __clang_patchlevel__)
+#           else
+#               define C4_CLANG_VERSION __apple_build_version__
+#           endif
+#       else
+#           define C4_XCODE_VERSION __APPLE_CC__
+#       endif
 #   elif defined(__clang__)
 #       define C4_CLANG
 #       ifndef __apple_build_version__

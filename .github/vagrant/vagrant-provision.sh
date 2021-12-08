@@ -11,7 +11,7 @@ if [ -z "$done" ] ; then
 
 # C4STL
 # http://apt.llvm.org/
-deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.7 main
+#deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.7 main
 #deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.8 main
 deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.9 main
 deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-4.0 main
