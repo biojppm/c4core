@@ -1,4 +1,5 @@
 import re
+import os
 from os.path import abspath, dirname
 import sys
 import subprocess
@@ -107,5 +108,6 @@ result = catfiles(headers,
 result_with_only_first_includes = include_only_first(result)
 
 output_name = sys.argv[1]  # FIXME
+os.makedirs(os.path.dirname(output_name), exist_ok=True)
 with open(output_name, "w") as output:
     output.write(result_with_only_first_includes)

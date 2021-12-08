@@ -1,22 +1,25 @@
 
 ### New features
 
-- Add amalgamation into [a single header file](./src_singleheader/c4/c4core_all.hpp) ([PR #48](https://github.com/biojppm/c4core/pull/48)). To use the amalgamated header do as follows:
-  - Include at will in any header of your project
-  - In one (and only one) of your project source files, `#define
-    C4CORE_SINGLE_HDR_DEFINE_NOW` and then include this header. This
-    will enable the function and class definitions in the header file.
-    For example, here's a sample program:
-    ```c++
-    #include <iostream>
-    #define C4CORE_SINGLE_HDR_DEFINE_NOW // do this before the include
-    #include <c4core_all.hpp>
-    int main()
-    {
-        for(csubstr s : csubstr("a/b/c/d").split("/"))
-            std::cout << s << "\n";
-    }
+- Add amalgamation into a single header file ([PR #48](https://github.com/biojppm/c4core/pull/48)):
+  - The amalgamated header will be available together with the deliverables from each release.
+  - To generate the amalgamated header:
     ```
+    $ python tools/amalgamate.py c4core_all.hpp
+    ```
+  - To use the amalgamated header:
+    - Include at will in any header of your project.
+    - In one - and only one - of your project source files, `#define C4CORE_SINGLE_HDR_DEFINE_NOW` and then `#include <c4core_all.hpp>`. This will enable the function and class definitions in the header file. For example, here's a sample program:
+      ```c++
+      #include <iostream>
+      #define C4CORE_SINGLE_HDR_DEFINE_NOW // do this before the include
+      #include <c4core_all.hpp>
+      int main()
+      {
+          for(c4::csubstr s : c4::csubstr("a/b/c/d").split('/'))
+              std::cout << s << "\n";
+      }
+      ```
 
 
 ### Fixes

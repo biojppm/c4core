@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(c4core
     DESCRIPTION "Single header version of c4core library for testing"
     HOMEPAGE_URL "https://github.com/biojppm/c4core"
@@ -7,10 +7,20 @@ include(../../cmake/c4Project.cmake)
 c4_project(VERSION 0.1.7
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
-set(singleheaderdir ${CMAKE_CURRENT_LIST_DIR}/../../src_singleheader)
-set(singleheader ${singleheaderdir}/c4/c4core_all.hpp)
-if(NOT (EXISTS ${singleheader}))
-    message(FATAL_ERROR "cannot find single header for c4core: ${singleheader}")
+set(c4coredir "${CMAKE_CURRENT_LIST_DIR}/../..")
+set(singleheaderdir "${c4coredir}/src_singleheader")
+set(singleheader "${singleheaderdir}/c4/c4core_all.hpp")
+if(NOT (EXISTS "${singleheader}"))
+    # try generating a header
+    set(cmd python "${c4coredir}/tools/amalgamate.py" "${singleheader}")
+    message(STATUS "single header not found, attempting to generate... ${cmd}")
+    execute_process(COMMAND ${cmd}
+        COMMMAND_ECHO STDOUT
+        RESULT_VARIABLE status)
+    if((NOT (status EQUAL "0")) OR NOT (EXISTS "${singleheader}"))
+        message(FATAL_ERROR "cannot find or generate single header for c4core: ${singleheader}")
+    endif()
+    message(STATUS "single header successfully generated: ${singleheader}")
 endif()
 
 c4_add_library(c4core
