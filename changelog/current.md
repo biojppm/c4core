@@ -20,12 +20,12 @@
               std::cout << s << "\n";
       }
       ```
+- Add `csubstr::is_unsigned_integer()` and `csubstr::is_real()` ([PR #49](https://github.com/biojppm/c4core/pull/49)).
 
 
 ### Fixes
 
 - Fix edge cases with empty strings in `span::first()`, `span::last()` and `span::range()`  ([PR #49](https://github.com/biojppm/c4core/pull/49)).
-- Add `substr::is_unsigned_integer()` and `substr::is_real()` ([PR #49](https://github.com/biojppm/c4core/pull/49)).
 - Accept octal numbers in `substr::first_real_span()` and `substr::is_real()` ([PR #49](https://github.com/biojppm/c4core/pull/49)).
 - `substr`: fix coverage misses in number query methods ([PR #49](https://github.com/biojppm/c4core/pull/49)).
 - Use single-header version of fast_float ([PR #49](https://github.com/biojppm/c4core/pull/47)).
@@ -33,4 +33,5 @@
 - Add missing `inline` in [src/c4/ext/rng/rng.hpp](src/c4/ext/rng/rng.hpp) ([PR #49](https://github.com/biojppm/c4core/pull/47)).
 - Fix compilation of [src/c4/ext/rng/inplace_function.h](src/c4/ext/inplace_function.h) in C++11 ([PR #49](https://github.com/biojppm/c4core/pull/47)).
 - Change order of headers, notably in `windows_push.hpp` ([PR #49](https://github.com/biojppm/c4core/pull/47)).
+- In `c4/charconv.hpp`: do not use C4_ASSERT in `to_c_fmt()`, which is `constexpr`.
 

@@ -148,13 +148,15 @@ inline C4_CONSTEXPR14 char to_c_fmt(RealFormat_e f)
         'a',  // FTOA_HEXA
     };
     C4_STATIC_ASSERT(C4_COUNTOF(fmt) == _FTOA_COUNT);
+    #if C4_CPP > 14
     C4_ASSERT(f < _FTOA_COUNT);
+    #endif
     return fmt[f];
 }
 
 
 #if C4CORE_HAVE_STD_TOCHARS
-inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
+inline C4_CONSTEXPR14 std::chars_format to_std_fmt(RealFormat_e f)
 {
     constexpr const std::chars_format fmt[] = {
         std::chars_format::fixed,       // FTOA_FLOAT
@@ -163,7 +165,9 @@ inline constexpr std::chars_format to_std_fmt(RealFormat_e f)
         std::chars_format::hex,         // FTOA_HEXA
     };
     C4_STATIC_ASSERT(C4_COUNTOF(fmt) == _FTOA_COUNT);
+    #if C4_CPP >= 14
     C4_ASSERT(f < _FTOA_COUNT);
+    #endif
     return fmt[f];
 }
 #endif // C4CORE_HAVE_STD_TOCHARS
