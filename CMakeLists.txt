@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 include(./cmake/c4Project.cmake)
 project(c4core
     DESCRIPTION "Multiplatform low-level C++ utilities"

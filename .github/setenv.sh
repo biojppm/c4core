@@ -35,6 +35,7 @@ function c4_show_info()
     echo "STD=$STD"
     echo "ARM=$ARM"
     echo "LIBCXX=$LIBCXX"
+    echo "VERBOSE_MAKEFILES=$VERBOSE_MAKEFILES"
     which cmake
     cmake --version
     case "$CXX_" in
@@ -234,6 +235,9 @@ function c4_cfg_test()
         # export COVERALLS_REPO_TOKEN=.......
         _addprojflags COVERAGE_CODECOV=ON COVERAGE_CODECOV_SILENT=ON
         _addprojflags COVERAGE_COVERALLS=ON COVERAGE_COVERALLS_SILENT=ON
+    fi
+    if [ ! -z "$VERBOSE_MAKEFILES" ] ; then
+        _addcmkflags -DCMAKE_VERBOSE_MAKEFILES=$VERBOSE_MAKEFILES
     fi
     _addcmkflags -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
     if [ ! -z "$CMAKE_FLAGS" ] ; then
