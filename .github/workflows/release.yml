@@ -19,7 +19,7 @@ on:
       - master
   pull_request:
     branches:
-    - master
+      - master
 
 env:
   PROJ_PKG_NAME: c4core-
@@ -59,7 +59,7 @@ jobs:
           branch_name=`echo $branch_name | sed "s:refs/pull/\([0-9]*\)/\(.*\):pr0\1_\2:"`
           # sanitize the branch name; eg merge/foo-bar -> merge_foo_bar
           branch_name=`echo $branch_name | sed 's:[/.-]:_:g'`
-          SRC_TAG=$(git describe)  # eg v0.2.0-110-gda837e0
+          SRC_TAG=$(git describe || git rev-parse --short HEAD)  # eg v0.2.0-110-gda837e0
           SRC_VERSION="${branch_name}-${SRC_TAG}"
           cat <<EOF > vars.sh
           export SRC_TAG=$SRC_TAG
@@ -146,7 +146,6 @@ jobs:
       - name: Save artifacts
         uses: actions/upload-artifact@v1
         with: {name: assets, path: assets}
-
 
   #----------------------------------------------------------------------------
   release:
