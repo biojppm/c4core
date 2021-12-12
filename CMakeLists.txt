@@ -98,9 +98,7 @@ endif()
 
 c4_install_target(c4core)
 c4_install_exports()
-c4_pack_project()
 
 c4_add_dev_targets()
 
-c4_set_default_pack_properties(TYPE LIBRARY)
-include(CPack)
+c4_pack_project(TYPE LIBRARY)
