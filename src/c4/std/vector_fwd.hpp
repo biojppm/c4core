@@ -16,11 +16,13 @@ namespace std {
 template<typename> class allocator;
 #if defined(__EMSCRIPTEN__)
 inline namespace __2 {
+template<typename T, typename Alloc> class vector;
+} // namespace __2
 #else
 inline namespace __1 {
-#endif
 template<typename T, typename Alloc> class vector;
 } // namespace __1
+#endif
 } // namespace std
 #else
 #error "unknown standard library"

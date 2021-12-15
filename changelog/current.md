@@ -37,6 +37,7 @@
 - Change order of headers, notably in `windows_push.hpp` ([PR #47](https://github.com/biojppm/c4core/pull/47)).
 - In `c4/charconv.hpp`: do not use C4_ASSERT in `to_c_fmt()`, which is `constexpr`.
 - Fix [#53](https://github.com/biojppm/c4core/issues/53): cmake install targets were missing call to `export()` ([PR #55](https://github.com/biojppm/c4core/pull/55)).
+- Fix linking of subprojects with libc++: flags should be forwarded through `CMAKE_***_FLAGS` instead of being set explicitly per-target ([PR #54](https://github.com/biojppm/c4core/pull/54)).
 
 
 ### Thanks

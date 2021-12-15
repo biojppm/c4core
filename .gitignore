@@ -6,6 +6,7 @@
 .clangd/
 .cache/
 .cquery_cached_index/
+__pycache__/
 
 # Visual Studio files
 .vs/
