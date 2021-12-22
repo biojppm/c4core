@@ -103,6 +103,10 @@
 #   define C4_WORDSIZE 8
 #   define C4_BYTE_ORDER _C4EB
 
+#elif defined(__EMSCRIPTEN__)
+#   define C4_BYTE_ORDER _C4EL
+#   define C4_WORDSIZE 4
+
 #elif defined(SWIG)
    #error "please define CPU architecture macros when compiling with swig"
 
