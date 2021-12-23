@@ -22,6 +22,7 @@
       ```
 - Add `csubstr::is_unsigned_integer()` and `csubstr::is_real()` ([PR #49](https://github.com/biojppm/c4core/pull/49)).
 - CMake: add alias target c4core::c4core, guaranteeing that the same code can be used with `add_subdirectory()` and `find_package()`. (see [rapidyaml #173](https://github.com/biojppm/rapidyaml/issues/173))
+- Add support for compilation with emscripten (WebAssembly+javascript) ` ([PR #52](https://github.com/biojppm/c4core/pull/52)).
 
 
 ### Fixes
@@ -37,3 +38,6 @@
 - In `c4/charconv.hpp`: do not use C4_ASSERT in `to_c_fmt()`, which is `constexpr`.
 
 
+### Thanks
+
+- @cschreiber
