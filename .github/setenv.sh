@@ -298,6 +298,10 @@ function c4_cfg_test()
                   -DCMAKE_C_FLAGS="-std=c99 -m$bits" -DCMAKE_CXX_FLAGS="-m$bits"
             cmake --build $build_dir --target help | sed 1d | sort
             ;;
+        em++)
+            emcmake cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
+            ;;
         *)
             echo "unknown compiler"
             exit 1
@@ -367,7 +371,7 @@ function _c4_parallel_build_flags()
                 echo "-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=$NUM_JOBS_BUILD"
             fi
             ;;
-        *g++*|*gcc*|*clang*)
+        *g++*|*gcc*|*clang*|em++)
             if [ -z "$NUM_JOBS_BUILD" ] ; then
                 echo "-j $(nproc)"
             else
@@ -394,7 +398,7 @@ function _c4_generator_build_flags()
             # https://stackoverflow.com/questions/51153525/xcode-10-unable-to-attach-db-error
             echo "-UseModernBuildSystem=NO"
             ;;
-        *g++*|*gcc*|*clang*)
+        *g++*|*gcc*|*clang*|em++)
             ;;
         "") # allow empty compiler
             ;;

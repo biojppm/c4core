@@ -22,6 +22,8 @@ env:
   PROJ_PFX_CMAKE: C4CORE_
   CMAKE_FLAGS:
   NUM_JOBS_BUILD: # 4
+  EMSCRIPTEN_VERSION: 2.0.34
+  EMSCRIPTEN_CACHE_FOLDER: 'emsdk-cache'
 
 
 # ubuntu-20.04:
@@ -579,6 +581,36 @@ jobs:
       - {name: build, run: source .github/setenv.sh && c4_build_test arm}
       - {name: run, run: source .github/setenv.sh && c4_run_test arm}
       - {name: pack, run: source .github/setenv.sh && c4_package arm}
+
+  #----------------------------------------------------------------------------
+  emscripten:
+    name: emscripten/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {std: 11, cxx: em++, bt: Debug  , os: ubuntu-latest, bitlinks: static32}
+          - {std: 11, cxx: em++, bt: Release, os: ubuntu-latest, bitlinks: static32}
+          - {std: 20, cxx: em++, bt: Debug  , os: ubuntu-latest, bitlinks: static32}
+          - {std: 20, cxx: em++, bt: Release, os: ubuntu-latest, bitlinks: static32}
+    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+    steps:
+      - {name: checkout, uses: actions/checkout@v2, with: {submodules: recursive}}
+      - name: setup emscripten cache
+        id: cache-system-libraries
+        uses: actions/cache@v2
+        with: {path: "${{env.EMSCRIPTEN_CACHE_FOLDER}}", key: "${{env.EMSCRIPTEN_VERSION}}-${{runner.os}}"}
+      - name: setup emscripten
+        uses: mymindstorm/setup-emsdk@v11
+        with: {version: "${{env.EMSCRIPTEN_VERSION}}", actions-cache-folder: "${{env.EMSCRIPTEN_CACHE_FOLDER}}"}
+      - {name: show info, run: source .github/setenv.sh && c4_show_info}
+      - name: static32-configure---------------------------------------------------
+        run: source .github/setenv.sh && c4_cfg_test static32
+      - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
+      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
 
   #----------------------------------------------------------------------------
 #  # https://blog.kitware.com/static-checks-with-cmake-cdash-iwyu-clang-tidy-lwyu-cpplint-and-cppcheck/
