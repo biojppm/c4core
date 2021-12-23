@@ -1162,7 +1162,7 @@ void test_rtoa(substr buf, Real f, rtoa_fn_t<Real> rtoa_fn, int precision, const
     size_t ret;
 
     INFO("num=" << f << " precision=" << precision
-         << "'  hexa='" << hexa << "'  hexa_alternative='" << hexa_alternative << "'");
+         << "  hexa='" << hexa << "'  hexa_alternative='" << hexa_alternative << "'");
 
     memset(buf.str, 0, buf.len);
     ret = rtoa_fn(buf, f, precision, FTOA_SCIENT);
@@ -1186,7 +1186,7 @@ void test_rtoa(substr buf, Real f, rtoa_fn_t<Real> rtoa_fn, int precision, const
     std::string report;
     from_chars(buf.left_of(ret), &report);
     bool ok = buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative);
-    CHECK_MESSAGE(ok, "ret='" << report);
+    CHECK_MESSAGE(ok, "ret='" << report << "'");
 }
 
 
