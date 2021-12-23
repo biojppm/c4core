@@ -300,7 +300,7 @@ function c4_cfg_test()
             ;;
         em++)
             emcmake cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
-                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS -DCMAKE_CXX_FLAGS="-s DISABLE_EXCEPTION_CATCHING=0"
             ;;
         *)
             echo "unknown compiler"
