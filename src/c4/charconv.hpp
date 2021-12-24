@@ -1209,8 +1209,10 @@ inline bool atod(csubstr str, double * C4_RESTRICT v)
 inline size_t atof_first(csubstr str, float * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();
-    if(trimmed.len == 0) return csubstr::npos;
-    if(atof(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
+    if(trimmed.len == 0)
+        return csubstr::npos;
+    if(atof(trimmed, v))
+        return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
@@ -1222,8 +1224,10 @@ inline size_t atof_first(csubstr str, float * C4_RESTRICT v)
 inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();
-    if(trimmed.len == 0) return csubstr::npos;
-    if(atod(trimmed, v)) return static_cast<size_t>(trimmed.end() - str.begin());
+    if(trimmed.len == 0)
+        return csubstr::npos;
+    if(atod(trimmed, v))
+        return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
