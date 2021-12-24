@@ -14,7 +14,11 @@ template<typename T, typename Alloc> class vector;
 #elif defined(_LIBCPP_VERSION)
 namespace std {
 template<typename> class allocator;
+#if defined(__EMSCRIPTEN__)
+inline namespace __2 {
+#else
 inline namespace __1 {
+#endif
 template<typename T, typename Alloc> class vector;
 } // namespace __1
 } // namespace std

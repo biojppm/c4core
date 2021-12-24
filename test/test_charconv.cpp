@@ -1162,7 +1162,7 @@ void test_rtoa(substr buf, Real f, rtoa_fn_t<Real> rtoa_fn, int precision, const
     size_t ret;
 
     INFO("num=" << f << " precision=" << precision
-         << "'  hexa='" << hexa << "'  hexa_alternative='" << hexa_alternative << "'");
+         << "  hexa='" << hexa << "'  hexa_alternative='" << hexa_alternative << "'");
 
     memset(buf.str, 0, buf.len);
     ret = rtoa_fn(buf, f, precision, FTOA_SCIENT);
@@ -1186,7 +1186,7 @@ void test_rtoa(substr buf, Real f, rtoa_fn_t<Real> rtoa_fn, int precision, const
     std::string report;
     from_chars(buf.left_of(ret), &report);
     bool ok = buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative);
-    CHECK_MESSAGE(ok, "ret='" << report);
+    CHECK_MESSAGE(ok, "ret='" << report << "'");
 }
 
 
@@ -1195,6 +1195,18 @@ TEST_CASE("ftoa.basic")
     char bufc[128];
     substr buf(bufc);
     C4_ASSERT(buf.len == sizeof(bufc)-1);
+
+    // earlier versions of emscripten's sprintf() do not respect some
+    // precision values when printing in hexadecimal format.
+    //
+    // @see https://github.com/biojppm/c4core/pull/52
+    #if defined(__EMSCRIPTEN__) && __EMSCRIPTEN_major__ < 3
+    #define _c4emscripten_alt(alt) , alt
+    #define _c4emscripten_alt2(alt1, alt2) , alt2
+    #else
+    #define _c4emscripten_alt(alt)
+    #define _c4emscripten_alt2(alt1, alt2) , alt1
+    #endif
 
     float f = 1.1234123f;
     double d = 1.1234123;
@@ -1205,11 +1217,11 @@ TEST_CASE("ftoa.basic")
     test_rtoa(buf, f, &ftoa, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
     test_rtoa(buf, d, &dtoa, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
 
-    test_rtoa(buf, f, &ftoa, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
-    test_rtoa(buf, d, &dtoa, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0");
+    test_rtoa(buf, f, &ftoa, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0" _c4emscripten_alt("0x1.1f8p+0"));
+    test_rtoa(buf, d, &dtoa, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0" _c4emscripten_alt("0x1.1f8p+0"));
 
-    test_rtoa(buf, f, &ftoa, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
-    test_rtoa(buf, d, &dtoa, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0");
+    test_rtoa(buf, f, &ftoa, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0" _c4emscripten_alt("0x1.1f98p+0"));
+    test_rtoa(buf, d, &dtoa, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0" _c4emscripten_alt("0x1.1f98p+0"));
 
     test_rtoa(buf, f, &ftoa, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
     test_rtoa(buf, d, &dtoa, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
@@ -1226,8 +1238,8 @@ TEST_CASE("ftoa.basic")
     test_rtoa(buf, f, &ftoa, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
     test_rtoa(buf, d, &dtoa, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
 
-    test_rtoa(buf, f, &ftoa, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
-    test_rtoa(buf, d, &dtoa, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0", /*hexa*/"0x1.032p+0");
+    test_rtoa(buf, f, &ftoa, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0" _c4emscripten_alt2("0x1.032p+0", "0x1.0328p+0"));
+    test_rtoa(buf, d, &dtoa, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0" _c4emscripten_alt2("0x1.032p+0", "0x1.0328p+0"));
 
     test_rtoa(buf, f, &ftoa, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
     test_rtoa(buf, d, &dtoa, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
