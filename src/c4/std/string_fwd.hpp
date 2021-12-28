@@ -13,10 +13,9 @@
 
 // forward declarations for std::string
 #if defined(__GLIBCXX__) || defined(__GLIBCPP__)
-// use the fwd header in stdlibc++
-#include <bits/stringfwd.h>
+#include <bits/stringfwd.h>  // use the fwd header in glibcxx
 #elif defined(_LIBCPP_VERSION) || defined(__APPLE_CC__)
-#include <iosfwd>
+#include <iosfwd>  // use the fwd header in stdlibc++
 #elif defined(_MSC_VER)
 //! @todo is there a fwd header in msvc?
 namespace std {

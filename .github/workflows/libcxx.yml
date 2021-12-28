@@ -69,8 +69,6 @@ jobs:
           - {std: 14, cxx: clang++-10 , bt: Release, os: ubuntu-18.04, bitlinks: shared64 static32}
           - {std: 11, cxx: clang++-10 , bt: Debug  , os: ubuntu-18.04, bitlinks: shared64 static32}
           - {std: 11, cxx: clang++-10 , bt: Release, os: ubuntu-18.04, bitlinks: shared64 static32}
-          - {std: 20, cxx: clang++-6.0, bt: Debug  , os: ubuntu-18.04, bitlinks: shared64 static32}
-          - {std: 20, cxx: clang++-6.0, bt: Release, os: ubuntu-18.04, bitlinks: shared64 static32}
           - {std: 17, cxx: clang++-6.0, bt: Debug  , os: ubuntu-18.04, bitlinks: shared64 static32}
           - {std: 17, cxx: clang++-6.0, bt: Release, os: ubuntu-18.04, bitlinks: shared64 static32}
           - {std: 14, cxx: clang++-6.0, bt: Debug  , os: ubuntu-18.04, bitlinks: shared64 static32}
