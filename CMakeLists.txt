@@ -4,7 +4,7 @@ project(c4core
     DESCRIPTION "Multiplatform low-level C++ utilities"
     HOMEPAGE_URL "https://github.com/biojppm/c4core"
     LANGUAGES CXX)
-c4_project(VERSION 0.1.7
+c4_project(VERSION 0.1.8
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
 option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
