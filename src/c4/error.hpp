@@ -77,7 +77,7 @@ struct fail_type__ {};
 #endif
 
 namespace c4 {
-bool is_debugger_attached();
+bool C4CORE_EXPORT is_debugger_attached();
 } // namespace c4
 
 
@@ -123,13 +123,13 @@ typedef enum : uint32_t {
     ON_ERROR_DEFAULTS = ON_ERROR_DEBUGBREAK|ON_ERROR_LOG|ON_ERROR_CALLBACK|ON_ERROR_ABORT
 } ErrorFlags_e;
 using error_flags = uint32_t;
-void set_error_flags(error_flags f);
-error_flags get_error_flags();
+C4CORE_EXPORT void set_error_flags(error_flags f);
+C4CORE_EXPORT error_flags get_error_flags();
 
 
 using error_callback_type = void (*)(const char* msg, size_t msg_size);
-void set_error_callback(error_callback_type cb);
-error_callback_type get_error_callback();
+C4CORE_EXPORT void set_error_callback(error_callback_type cb);
+C4CORE_EXPORT error_callback_type get_error_callback();
 
 
 //-----------------------------------------------------------------------------
@@ -171,8 +171,8 @@ struct ScopedErrorSettings
 /** source location */
 struct srcloc;
 
-void handle_error(srcloc s, const char *fmt, ...);
-void handle_warning(srcloc s, const char *fmt, ...);
+C4CORE_EXPORT void handle_error(srcloc s, const char *fmt, ...);
+C4CORE_EXPORT void handle_warning(srcloc s, const char *fmt, ...);
 
 
 #   define C4_ERROR(msg, ...)                               \

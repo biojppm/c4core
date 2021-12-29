@@ -6,7 +6,7 @@
 namespace c4 {
 
 #ifndef DOXYGEN
-template<class C> struct basic_substring;
+template<class C> struct C4CORE_EXPORT basic_substring;
 using csubstr = C4CORE_EXPORT basic_substring<const char>;
 using substr = C4CORE_EXPORT basic_substring<char>;
 #endif // !DOXYGEN
