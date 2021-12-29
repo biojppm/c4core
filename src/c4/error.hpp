@@ -77,7 +77,7 @@ struct fail_type__ {};
 #endif
 
 namespace c4 {
-bool C4CORE_EXPORT is_debugger_attached();
+C4CORE_EXPORT bool is_debugger_attached();
 } // namespace c4
 
 

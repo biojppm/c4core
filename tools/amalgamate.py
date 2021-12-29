@@ -18,7 +18,6 @@ def amalgamate_fastfloat():
     ], cwd=fastfloatdir).check_returncode()
 
 
-
 def amalgamate_c4core(filename: str,
                       with_stl: bool=True,
                       with_fastfloat: bool=True):
@@ -26,6 +25,11 @@ def amalgamate_c4core(filename: str,
         amalgamate_fastfloat()
     repo = "https://github.com/biojppm/c4core"
     defmacro = "C4CORE_SINGLE_HDR_DEFINE_NOW"
+    exports_def_code = f"""// shared library: export when defining
+#if defined(C4CORE_SHARED) && defined({defmacro}) && !defined(C4CORE_EXPORTS)
+#define C4CORE_EXPORTS
+#endif
+"""
     srcblocks = [
         am.cmttext(f"""
 c4core - C++ utilities
@@ -41,8 +45,12 @@ INSTRUCTIONS:
     #define {defmacro} and then include this header.
     This will enable the function and class definitions in
     the header file.
+  - To compile into a shared library, just define the
+    preprocessor symbol C4CORE_SHARED . This will take
+    care of symbol export/import.
 """),
         am.cmtfile("LICENSE.txt"),
+        am.injcode(exports_def_code),
         "src/c4/export.hpp",
         "src/c4/preprocessor.hpp",
         "src/c4/platform.hpp",
