@@ -3,7 +3,7 @@
 
 #if defined(_WIN64) || defined(_WIN32)
 #include "c4/windows_push.hpp"
-#include <Windows.h>
+#include <windows.h>
 #include "c4/windows_pop.hpp"
 #endif
 
