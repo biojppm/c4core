@@ -815,26 +815,28 @@ void test_false_parse(Function fn, csubstr numstr)
 
 TEST_CASE_TEMPLATE("atoi.false_parse", T, int8_t, int16_t, int32_t, int64_t, int, long, intptr_t)
 {
-    Fi(int8_t, "");
-    Fi(int8_t, "...");
-    Fi(int8_t, "-");
-    Fi(int8_t, "2345kjhiuy3245");
-    Fi(int8_t, "02345kjhiuy3245");
-    Fi(int8_t, "0x");
-    Fi(int8_t, "0x12ggg");
-    Fi(int8_t, "0X");
-    Fi(int8_t, "0X12GGG");
-    Fi(int8_t, "0o");
-    Fi(int8_t, "0o12888");
-    Fi(int8_t, "0O");
-    Fi(int8_t, "0O12888");
-    Fi(int8_t, "0b");
-    Fi(int8_t, "0b12121");
-    Fi(int8_t, "0B");
-    Fi(int8_t, "0B12121");
-    Fi(int8_t, "----");
-    Fi(int8_t, "===");
-    Fi(int8_t, "???");
+    Fi(T, "");
+    Fi(T, "...");
+    Fi(T, "-");
+    Fi(T, "2345kjhiuy3245");
+    Fi(T, "02345kjhiuy3245");
+    Fi(T, "0x");
+    Fi(T, "0x12ggg");
+    Fi(T, "0X");
+    Fi(T, "0X12GGG");
+    Fi(T, "0o");
+    Fi(T, "0o12888");
+    Fi(T, "0O");
+    Fi(T, "0O12888");
+    Fi(T, "0b");
+    Fi(T, "0b12121");
+    Fi(T, "0B");
+    Fi(T, "0B12121");
+    Fi(T, "----");
+    Fi(T, "===");
+    Fi(T, "???");
+    Fi(T, "infinity");
+    Fi(T, "somevalue");
 
     int dec = -1;
     CHECK(!atoi("-", &dec));
@@ -849,26 +851,28 @@ TEST_CASE_TEMPLATE("atoi.false_parse", T, int8_t, int16_t, int32_t, int64_t, int
 
 TEST_CASE_TEMPLATE("atou.false_parse", T, uint8_t, uint16_t, uint32_t, uint64_t, unsigned int, unsigned long, uintptr_t)
 {
-    Fu(uint8_t, "");
-    Fu(uint8_t, "...");
-    Fu(uint8_t, "-");
-    Fu(uint8_t, "2345kjhiuy3245");
-    Fu(uint8_t, "02345kjhiuy3245");
-    Fu(uint8_t, "0x");
-    Fu(uint8_t, "0x12ggg");
-    Fu(uint8_t, "0X");
-    Fu(uint8_t, "0X12GGG");
-    Fu(uint8_t, "0o");
-    Fu(uint8_t, "0o12888");
-    Fu(uint8_t, "0O");
-    Fu(uint8_t, "0O12888");
-    Fu(uint8_t, "0b");
-    Fu(uint8_t, "0b12121");
-    Fu(uint8_t, "0B");
-    Fu(uint8_t, "0B12121");
-    Fu(uint8_t, "----");
-    Fu(uint8_t, "===");
-    Fu(uint8_t, "???");
+    Fu(T, "");
+    Fu(T, "...");
+    Fu(T, "-");
+    Fu(T, "2345kjhiuy3245");
+    Fu(T, "02345kjhiuy3245");
+    Fu(T, "0x");
+    Fu(T, "0x12ggg");
+    Fu(T, "0X");
+    Fu(T, "0X12GGG");
+    Fu(T, "0o");
+    Fu(T, "0o12888");
+    Fu(T, "0O");
+    Fu(T, "0O12888");
+    Fu(T, "0b");
+    Fu(T, "0b12121");
+    Fu(T, "0B");
+    Fu(T, "0B12121");
+    Fu(T, "----");
+    Fu(T, "===");
+    Fu(T, "???");
+    Fu(T, "infinity");
+    Fu(T, "somevalue");
 }
 
 
@@ -1270,6 +1274,36 @@ TEST_CASE_TEMPLATE("atof.basic", T, float, double)
     t_(s.first(3), 123);
     t_(s.first(2), 12);
     t_(s.first(1), 1);
+
+    T pinf = std::numeric_limits<T>::infinity();
+    T ninf = -std::numeric_limits<T>::infinity();
+    T nan = std::numeric_limits<T>::quiet_NaN();
+    T rval = {};
+    CHECK(atox("infinity", &rval));
+    CHECK_EQ(memcmp(&rval, &pinf, sizeof(T)), 0);
+    CHECK(atox("-infinity", &rval));
+    CHECK_EQ(memcmp(&rval, &ninf, sizeof(T)), 0);
+    CHECK(atox("inf", &rval));
+    CHECK_EQ(memcmp(&rval, &pinf, sizeof(T)), 0);
+    CHECK(atox("-inf", &rval));
+    CHECK_EQ(memcmp(&rval, &ninf, sizeof(T)), 0);
+    CHECK(atox("nan", &rval));
+    CHECK_EQ(memcmp(&rval, &nan, sizeof(T)), 0);
+}
+
+TEST_CASE_TEMPLATE("atof.fail_parse", T, float, double)
+{
+    auto t_ = [](csubstr str){
+        INFO("str=" << str);
+        T rval;
+        CHECK_EQ(atox(str, &rval), false);
+    };
+    t_(".inf");
+    t_("-.inf");
+    t_(".nan");
+    t_("-.nan");
+    t_("not a float!");
+    //t_("123.45not a float!");
 }
 
 
