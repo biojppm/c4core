@@ -1163,7 +1163,7 @@ inline size_t dtoa(substr str, double v, int precision=-1, RealFormat_e formatti
  */
 inline bool atof(csubstr str, float * C4_RESTRICT v)
 {
-    C4_ASSERT(str == str.first_real_span());
+    C4_ASSERT(str.triml(" \r\t\n").len == str.len);
 #if C4CORE_HAVE_FAST_FLOAT
     fast_float::from_chars_result result;
     result = fast_float::from_chars(str.str, str.str + str.len, *v);
@@ -1187,7 +1187,7 @@ inline bool atof(csubstr str, float * C4_RESTRICT v)
  */
 inline bool atod(csubstr str, double * C4_RESTRICT v)
 {
-    C4_ASSERT(str == str.first_real_span());
+    C4_ASSERT(str.triml(" \r\t\n").len == str.len);
 #if C4CORE_HAVE_FAST_FLOAT
     fast_float::from_chars_result result;
     result = fast_float::from_chars(str.str, str.str + str.len, *v);
@@ -1205,7 +1205,8 @@ inline bool atod(csubstr str, double * C4_RESTRICT v)
 
 /** Convert a string to a single precision real number.
  * Leading whitespace is skipped until valid characters are found.
- * @return true iff the conversion succeeded */
+ * @return the number of characters read from the string, or npos if
+ * conversion was not successful or if the string was empty */
 inline size_t atof_first(csubstr str, float * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();
@@ -1219,8 +1220,8 @@ inline size_t atof_first(csubstr str, float * C4_RESTRICT v)
 
 /** Convert a string to a double precision real number.
  * Leading whitespace is skipped until valid characters are found.
- * @return true iff the conversion succeeded
- */
+ * @return the number of characters read from the string, or npos if
+ * conversion was not successful or if the string was empty */
 inline size_t atod_first(csubstr str, double * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_real_span();

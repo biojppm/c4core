@@ -1253,6 +1253,72 @@ TEST_CASE("substr.first_real_span")
     CHECK_EQ(csubstr("-0x1.e8480p-19 asdkjh").first_real_span(), "-0x1.e8480p-19");
     CHECK_EQ(csubstr("+0x1.e8480p+19 asdkjh").first_real_span(), "+0x1.e8480p+19");
     CHECK_EQ(csubstr("+0x1.e8480p-19 asdkjh").first_real_span(), "+0x1.e8480p-19");
+    CHECK_EQ(csubstr("infinity").first_real_span(), "infinity");
+    CHECK_EQ(csubstr(" infinity").first_real_span(), "infinity");
+    CHECK_EQ(csubstr("-infinity").first_real_span(), "-infinity");
+    CHECK_EQ(csubstr(" -infinity").first_real_span(), "-infinity");
+    CHECK_EQ(csubstr("+infinity").first_real_span(), "+infinity");
+    CHECK_EQ(csubstr(" +infinity").first_real_span(), "+infinity");
+    CHECK_EQ(csubstr("infinity ").first_real_span(), "infinity");
+    CHECK_EQ(csubstr(" infinity ").first_real_span(), "infinity");
+    CHECK_EQ(csubstr("-infinity ").first_real_span(), "-infinity");
+    CHECK_EQ(csubstr(" -infinity ").first_real_span(), "-infinity");
+    CHECK_EQ(csubstr("+infinity ").first_real_span(), "+infinity");
+    CHECK_EQ(csubstr(" +infinity ").first_real_span(), "+infinity");
+    CHECK_EQ(csubstr("infinity1").first_real_span(), "");
+    CHECK_EQ(csubstr(" infinity1").first_real_span(), "");
+    CHECK_EQ(csubstr("-infinity1").first_real_span(), "");
+    CHECK_EQ(csubstr(" -infinity1").first_real_span(), "");
+    CHECK_EQ(csubstr("+infinity1").first_real_span(), "");
+    CHECK_EQ(csubstr(" +infinity1").first_real_span(), "");
+    CHECK_EQ(csubstr("infin").first_real_span(), "");
+    CHECK_EQ(csubstr(" infin").first_real_span(), "");
+    CHECK_EQ(csubstr("-infin").first_real_span(), "");
+    CHECK_EQ(csubstr(" -infin").first_real_span(), "");
+    CHECK_EQ(csubstr("+infin").first_real_span(), "");
+    CHECK_EQ(csubstr(" +infin").first_real_span(), "");
+    CHECK_EQ(csubstr("inflated").first_real_span(), "");
+    CHECK_EQ(csubstr(" inflated").first_real_span(), "");
+    CHECK_EQ(csubstr("-inflated").first_real_span(), "");
+    CHECK_EQ(csubstr(" -inflated").first_real_span(), "");
+    CHECK_EQ(csubstr("+inflated").first_real_span(), "");
+    CHECK_EQ(csubstr(" +inflated").first_real_span(), "");
+    CHECK_EQ(csubstr("inf").first_real_span(), "inf");
+    CHECK_EQ(csubstr(" inf").first_real_span(), "inf");
+    CHECK_EQ(csubstr("-inf").first_real_span(), "-inf");
+    CHECK_EQ(csubstr(" -inf").first_real_span(), "-inf");
+    CHECK_EQ(csubstr("+inf").first_real_span(), "+inf");
+    CHECK_EQ(csubstr(" +inf").first_real_span(), "+inf");
+    CHECK_EQ(csubstr("inf ").first_real_span(), "inf");
+    CHECK_EQ(csubstr(" inf ").first_real_span(), "inf");
+    CHECK_EQ(csubstr("-inf ").first_real_span(), "-inf");
+    CHECK_EQ(csubstr(" -inf ").first_real_span(), "-inf");
+    CHECK_EQ(csubstr("+inf ").first_real_span(), "+inf");
+    CHECK_EQ(csubstr(" +inf ").first_real_span(), "+inf");
+    CHECK_EQ(csubstr("inf1").first_real_span(), "");
+    CHECK_EQ(csubstr(" inf1").first_real_span(), "");
+    CHECK_EQ(csubstr("-inf1").first_real_span(), "");
+    CHECK_EQ(csubstr(" -inf1").first_real_span(), "");
+    CHECK_EQ(csubstr("+inf1").first_real_span(), "");
+    CHECK_EQ(csubstr(" +inf1").first_real_span(), "");
+    CHECK_EQ(csubstr("nan").first_real_span(), "nan");
+    CHECK_EQ(csubstr(" nan").first_real_span(), "nan");
+    CHECK_EQ(csubstr("-nan").first_real_span(), "-nan");
+    CHECK_EQ(csubstr(" -nan").first_real_span(), "-nan");
+    CHECK_EQ(csubstr("+nan").first_real_span(), "+nan");
+    CHECK_EQ(csubstr(" +nan").first_real_span(), "+nan");
+    CHECK_EQ(csubstr("nan ").first_real_span(), "nan");
+    CHECK_EQ(csubstr(" nan ").first_real_span(), "nan");
+    CHECK_EQ(csubstr("-nan ").first_real_span(), "-nan");
+    CHECK_EQ(csubstr(" -nan ").first_real_span(), "-nan");
+    CHECK_EQ(csubstr("+nan ").first_real_span(), "+nan");
+    CHECK_EQ(csubstr(" +nan ").first_real_span(), "+nan");
+    CHECK_EQ(csubstr("nan1").first_real_span(), "");
+    CHECK_EQ(csubstr(" nan1").first_real_span(), "");
+    CHECK_EQ(csubstr("-nan1").first_real_span(), "");
+    CHECK_EQ(csubstr(" -nan1").first_real_span(), "");
+    CHECK_EQ(csubstr("+nan1").first_real_span(), "");
+    CHECK_EQ(csubstr(" +nan1").first_real_span(), "");
 }
 
 // start with some obvious direct tests
@@ -1760,6 +1826,81 @@ TEST_CASE("substr.is_real")
         CHECK_FALSE(csubstr("-0o9").is_real());
         CHECK_FALSE(csubstr("-0O9").is_real());
     }
+    SUBCASE("infinity")
+    {
+        CHECK_UNARY(csubstr("infinity").is_real());
+        CHECK_FALSE(csubstr(" infinity").is_real());
+        CHECK_UNARY(csubstr("-infinity").is_real());
+        CHECK_FALSE(csubstr(" -infinity").is_real());
+        CHECK_UNARY(csubstr("+infinity").is_real());
+        CHECK_FALSE(csubstr(" +infinity").is_real());
+        CHECK_FALSE(csubstr("infinity ").is_real());
+        CHECK_FALSE(csubstr(" infinity ").is_real());
+        CHECK_FALSE(csubstr("-infinity ").is_real());
+        CHECK_FALSE(csubstr(" -infinity ").is_real());
+        CHECK_FALSE(csubstr("+infinity ").is_real());
+        CHECK_FALSE(csubstr(" +infinity ").is_real());
+        CHECK_FALSE(csubstr("infinity1").is_real());
+        CHECK_FALSE(csubstr(" infinity1").is_real());
+        CHECK_FALSE(csubstr("-infinity1").is_real());
+        CHECK_FALSE(csubstr(" -infinity1").is_real());
+        CHECK_FALSE(csubstr("+infinity1").is_real());
+        CHECK_FALSE(csubstr(" +infinity1").is_real());
+        CHECK_FALSE(csubstr("infin").is_real());
+        CHECK_FALSE(csubstr(" infin").is_real());
+        CHECK_FALSE(csubstr("-infin").is_real());
+        CHECK_FALSE(csubstr(" -infin").is_real());
+        CHECK_FALSE(csubstr("+infin").is_real());
+        CHECK_FALSE(csubstr(" +infin").is_real());
+        CHECK_FALSE(csubstr("inflated").is_real());
+        CHECK_FALSE(csubstr(" inflated").is_real());
+        CHECK_FALSE(csubstr("-inflated").is_real());
+        CHECK_FALSE(csubstr(" -inflated").is_real());
+        CHECK_FALSE(csubstr("+inflated").is_real());
+        CHECK_FALSE(csubstr(" +inflated").is_real());
+    }
+    SUBCASE("inf")
+    {
+        CHECK_UNARY(csubstr("inf").is_real());
+        CHECK_FALSE(csubstr(" inf").is_real());
+        CHECK_UNARY(csubstr("-inf").is_real());
+        CHECK_FALSE(csubstr(" -inf").is_real());
+        CHECK_UNARY(csubstr("+inf").is_real());
+        CHECK_FALSE(csubstr(" +inf").is_real());
+        CHECK_FALSE(csubstr("inf ").is_real());
+        CHECK_FALSE(csubstr(" inf ").is_real());
+        CHECK_FALSE(csubstr("-inf ").is_real());
+        CHECK_FALSE(csubstr(" -inf ").is_real());
+        CHECK_FALSE(csubstr("+inf ").is_real());
+        CHECK_FALSE(csubstr(" +inf ").is_real());
+        CHECK_FALSE(csubstr("inf1").is_real());
+        CHECK_FALSE(csubstr(" inf1").is_real());
+        CHECK_FALSE(csubstr("-inf1").is_real());
+        CHECK_FALSE(csubstr(" -inf1").is_real());
+        CHECK_FALSE(csubstr("+inf1").is_real());
+        CHECK_FALSE(csubstr(" +inf1").is_real());
+    }
+    SUBCASE("nan")
+    {
+        CHECK_UNARY(csubstr("nan").is_real());
+        CHECK_FALSE(csubstr(" nan").is_real());
+        CHECK_UNARY(csubstr("-nan").is_real());
+        CHECK_FALSE(csubstr(" -nan").is_real());
+        CHECK_UNARY(csubstr("+nan").is_real());
+        CHECK_FALSE(csubstr(" +nan").is_real());
+        CHECK_FALSE(csubstr("nan ").is_real());
+        CHECK_FALSE(csubstr(" nan ").is_real());
+        CHECK_FALSE(csubstr("-nan ").is_real());
+        CHECK_FALSE(csubstr(" -nan ").is_real());
+        CHECK_FALSE(csubstr("+nan ").is_real());
+        CHECK_FALSE(csubstr(" +nan ").is_real());
+        CHECK_FALSE(csubstr("nan1").is_real());
+        CHECK_FALSE(csubstr(" nan1").is_real());
+        CHECK_FALSE(csubstr("-nan1").is_real());
+        CHECK_FALSE(csubstr(" -nan1").is_real());
+        CHECK_FALSE(csubstr("+nan1").is_real());
+        CHECK_FALSE(csubstr(" +nan1").is_real());
+    }
 }
 
 typedef enum : uint8_t { kIsNone = 0, kIsUint = 1, kIsInt = 3, kIsReal = 7 } NumberClass;
@@ -1829,7 +1970,9 @@ struct number
 
 const number numbers[] = {
     {"", kIsNone},
-    // TODO: {".", kIsNone},
+    //{".", kIsNone},
+    {"a", kIsNone},
+    {"b", kIsNone},
     {".0", kIsReal},
     {"0.", kIsReal},
     {"0.0", kIsReal},
@@ -1914,6 +2057,13 @@ const number numbers[] = {
     {"-1.0e123", kIsReal},
     {"-1.0e-123", kIsReal},
     {"-1.0e+123", kIsReal},
+    {"infinity", kIsReal},
+    {"-infinity", kIsReal},
+    {"+infinity", kIsReal},
+    {"inf", kIsReal},
+    {"-inf", kIsReal},
+    {"+inf", kIsReal},
+    {"nan", kIsReal},
 };
 
 TEST_CASE("substr.is_number")

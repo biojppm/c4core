@@ -1168,7 +1168,33 @@ public:
                             continue;
                         }
                     }
-                    return _is_delim_char(c) ? ne.first(i) : ne.first(0);
+                    else if(i == skip_start)
+                    {
+                        if(c == 'i')
+                        {
+                            if(ne.len >= skip_start + 8 && ne.sub(skip_start, 8) == "infinity")
+                                return _is_delim_char(ne.str[skip_start + 8]) ? ne.first(skip_start + 8) : ne.first(0);
+                            else if(ne.len >= skip_start + 3 && ne.sub(skip_start, 3) == "inf")
+                                return _is_delim_char(ne.str[skip_start + 3]) ? ne.first(skip_start + 3) : ne.first(0);
+                            else
+                                return ne.first(0);
+                        }
+                        else if(c == 'n')
+                        {
+                            if(ne.len >= skip_start + 3 && ne.sub(skip_start, 3) == "nan")
+                                return _is_delim_char(ne.str[skip_start + 3]) ? ne.first(skip_start + 3) : ne.first(0);
+                            else
+                                return ne.first(0);
+                        }
+                        else
+                        {
+                            return ne.first(0);
+                        }
+                    }
+                    else
+                    {
+                        return _is_delim_char(c) ? ne.first(i) : ne.first(0);
+                    }
                 }
             }
         }
