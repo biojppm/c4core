@@ -11,19 +11,40 @@ namespace std {
 template<typename> class allocator;
 template<typename T, typename Alloc> class vector;
 } // namespace std
-#elif defined(_LIBCPP_VERSION)
+#elif defined(_LIBCPP_VERSION) || defined(__APPLE_CC__)
+#   if defined(__EMSCRIPTEN__)
 namespace std {
 template<typename> class allocator;
-#if defined(__EMSCRIPTEN__)
 inline namespace __2 {
 template<typename T, typename Alloc> class vector;
 } // namespace __2
-#else
+} // namespace std
+#   else // !defined(__EMSCRIPTEN__)
+#       if !defined(__APPLE_CC__)
+namespace std {
+template<typename> class allocator;
 inline namespace __1 {
 template<typename T, typename Alloc> class vector;
 } // namespace __1
-#endif
 } // namespace std
+#       else // defined(__APPLE_CC__)
+#           if (__clang_major__ >= 13)
+namespace std {
+template<typename> class allocator;
+inline namespace __1 {
+template<typename T, typename Alloc> class vector;
+} // namespace __1
+} // namespace std
+#           else // if __clang_major__ < 13
+namespace std {
+inline namespace __1 {
+template<typename> class allocator;
+template<typename T, typename Alloc> class vector;
+} // namespace __1
+} // namespace std
+#           endif // __clang_major < 13
+#       endif // defined(__APPLE_CC__)
+#   endif // !defined(__EMSCRIPTEN__)
 #else
 #error "unknown standard library"
 #endif
