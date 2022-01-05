@@ -757,7 +757,8 @@ public:
     size_t last_of(const C c, size_t start=npos) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
-        if(start == npos) start = len;
+        if(start == npos)
+            start = len;
         for(size_t i = start-1; i != size_t(-1); --i)
         {
             if(str[i] == c)
@@ -785,7 +786,8 @@ public:
     size_t last_of(ro_substr chars, size_t start=npos) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
-        if(start == npos) start = len;
+        if(start == npos)
+            start = len;
         for(size_t i = start-1; i != size_t(-1); --i)
         {
             for(size_t j = 0; j < chars.len; ++j)
@@ -813,7 +815,8 @@ public:
     size_t last_not_of(const C c, size_t start=npos) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
-        if(start == npos) start = len;
+        if(start == npos)
+            start = len;
         for(size_t i = start-1; i != size_t(-1); --i)
         {
             if(str[i] != c)
@@ -847,8 +850,9 @@ public:
     size_t last_not_of(ro_substr chars, size_t start=npos) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
-        if(start == npos) start = len;
-        for(size_t i = len-1; i != size_t(-1); --i)
+        if(start == npos)
+            start = len;
+        for(size_t i = start-1; i != size_t(-1); --i)
         {
             bool gotit = true;
             for(size_t j = 0; j < chars.len; ++j)
@@ -880,9 +884,11 @@ public:
     basic_substring pair_range(CC open, CC close) const
     {
         size_t b = find(open);
-        if(b == npos) return basic_substring();
+        if(b == npos)
+            return basic_substring();
         size_t e = find(close, b+1);
-        if(e == npos) return basic_substring();
+        if(e == npos)
+            return basic_substring();
         basic_substring ret = range(b, e+1);
         C4_ASSERT(ret.sub(1).find(open) == npos);
         return ret;

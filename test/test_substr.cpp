@@ -562,6 +562,19 @@ TEST_CASE("substr.first_of")
     CHECK_EQ(csubstr("012345").first_of("012345"), 0u);
     CHECK_EQ(csubstr("012345").first_of("543210"), 0u);
 
+    CHECK_EQ(csubstr("012345").first_of('0', 2u), npos);
+    CHECK_EQ(csubstr("012345").first_of("0", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_of("01", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_of("10", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_of("012", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("210", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("0123", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("3210", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("01234", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("43210", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("012345", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("543210", 2u), 2u);
+
     CHECK_EQ(csubstr("012345").first_of('5'), 5u);
     CHECK_EQ(csubstr("012345").first_of("5"), 5u);
     CHECK_EQ(csubstr("012345").first_of("45"), 4u);
@@ -575,6 +588,21 @@ TEST_CASE("substr.first_of")
     CHECK_EQ(csubstr("012345").first_of("012345"), 0u);
     CHECK_EQ(csubstr("012345").first_of("543210"), 0u);
 
+    CHECK_EQ(csubstr("012345").first_of('5', 2u), 5u);
+    CHECK_EQ(csubstr("012345").first_of("5", 2u), 5u);
+    CHECK_EQ(csubstr("012345").first_of("45", 2u), 4u);
+    CHECK_EQ(csubstr("012345").first_of("54", 2u), 4u);
+    CHECK_EQ(csubstr("012345").first_of("345", 2u), 3u);
+    CHECK_EQ(csubstr("012345").first_of("543", 2u), 3u);
+    CHECK_EQ(csubstr("012345").first_of("2345", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("5432", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("12345", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("54321", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("012345", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_of("543210", 2u), 2u);
+
+    CHECK_EQ(csubstr{}.first_of('0'), npos);
+    CHECK_EQ(csubstr{}.first_of('0', 0u), npos);
     CHECK_EQ(csubstr("012345").first_of('0', 6u), npos);
     CHECK_EQ(csubstr("012345").first_of('5', 6u), npos);
     CHECK_EQ(csubstr("012345").first_of("012345", 6u), npos);
@@ -600,6 +628,19 @@ TEST_CASE("substr.last_of")
     CHECK_EQ(csubstr("012345").last_of("012345"), 5u);
     CHECK_EQ(csubstr("012345").last_of("543210"), 5u);
 
+    CHECK_EQ(csubstr("012345").last_of('0', 2u), 0u);
+    CHECK_EQ(csubstr("012345").last_of("0", 2u), 0u);
+    CHECK_EQ(csubstr("012345").last_of("01", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("10", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("012", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("210", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("0123", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("3210", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("01234", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("43210", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("012345", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("543210", 2u), 1u);
+
     CHECK_EQ(csubstr("012345").last_of('5'), 5u);
     CHECK_EQ(csubstr("012345").last_of("5"), 5u);
     CHECK_EQ(csubstr("012345").last_of("45"), 5u);
@@ -613,6 +654,20 @@ TEST_CASE("substr.last_of")
     CHECK_EQ(csubstr("012345").last_of("012345"), 5u);
     CHECK_EQ(csubstr("012345").last_of("543210"), 5u);
 
+    CHECK_EQ(csubstr("012345").last_of('5', 2u), npos);
+    CHECK_EQ(csubstr("012345").last_of("5", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_of("45", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_of("54", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_of("345", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_of("543", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_of("2345", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_of("5432", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_of("12345", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("54321", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("012345", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_of("543210", 2u), 1u);
+
+    CHECK_EQ(csubstr{}.last_of('?'), npos);
     CHECK_EQ(csubstr("012345").last_of('0', 6u), 0u);
     CHECK_EQ(csubstr("012345").last_of('5', 6u), 5u);
     CHECK_EQ(csubstr("012345").last_of("012345", 6u), 5u);
@@ -638,6 +693,19 @@ TEST_CASE("substr.first_not_of")
     CHECK_EQ(csubstr("012345").first_not_of("012345"), npos);
     CHECK_EQ(csubstr("012345").first_not_of("543210"), npos);
 
+    CHECK_EQ(csubstr("012345").first_not_of('0', 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("0", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("01", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("10", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("012", 2u), 3u);
+    CHECK_EQ(csubstr("012345").first_not_of("210", 2u), 3u);
+    CHECK_EQ(csubstr("012345").first_not_of("0123", 2u), 4u);
+    CHECK_EQ(csubstr("012345").first_not_of("3210", 2u), 4u);
+    CHECK_EQ(csubstr("012345").first_not_of("01234", 2u), 5u);
+    CHECK_EQ(csubstr("012345").first_not_of("43210", 2u), 5u);
+    CHECK_EQ(csubstr("012345").first_not_of("012345", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_not_of("543210", 2u), npos);
+
     CHECK_EQ(csubstr("012345").first_not_of('5'), 0u);
     CHECK_EQ(csubstr("012345").first_not_of("5"), 0u);
     CHECK_EQ(csubstr("012345").first_not_of("45"), 0u);
@@ -650,6 +718,19 @@ TEST_CASE("substr.first_not_of")
     CHECK_EQ(csubstr("012345").first_not_of("54321"), 0u);
     CHECK_EQ(csubstr("012345").first_not_of("012345"), npos);
     CHECK_EQ(csubstr("012345").first_not_of("543210"), npos);
+
+    CHECK_EQ(csubstr("012345").first_not_of('5', 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("5", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("45", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("54", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("345", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("543", 2u), 2u);
+    CHECK_EQ(csubstr("012345").first_not_of("2345", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_not_of("5432", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_not_of("12345", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_not_of("54321", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_not_of("012345", 2u), npos);
+    CHECK_EQ(csubstr("012345").first_not_of("543210", 2u), npos);
 
     CHECK_EQ(csubstr("").first_not_of('0', 0u), npos);
     CHECK_EQ(csubstr("012345").first_not_of('5', 6u), npos);
@@ -676,6 +757,19 @@ TEST_CASE("substr.last_not_of")
     CHECK_EQ(csubstr("012345").last_not_of("012345"), npos);
     CHECK_EQ(csubstr("012345").last_not_of("543210"), npos);
 
+    CHECK_EQ(csubstr("012345").last_not_of('5', 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("5", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("45", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("54", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("345", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("543", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("2345", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("5432", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("12345", 2u), 0u);
+    CHECK_EQ(csubstr("012345").last_not_of("54321", 2u), 0u);
+    CHECK_EQ(csubstr("012345").last_not_of("012345", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("543210", 2u), npos);
+
     CHECK_EQ(csubstr("012345").last_not_of('0'), 5u);
     CHECK_EQ(csubstr("012345").last_not_of("0"), 5u);
     CHECK_EQ(csubstr("012345").last_not_of("01"), 5u);
@@ -689,8 +783,21 @@ TEST_CASE("substr.last_not_of")
     CHECK_EQ(csubstr("012345").last_not_of("012345"), npos);
     CHECK_EQ(csubstr("012345").last_not_of("543210"), npos);
 
+    CHECK_EQ(csubstr("012345").last_not_of('0', 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("0", 2u), 1u);
+    CHECK_EQ(csubstr("012345").last_not_of("01", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("10", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("012", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("210", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("0123", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("3210", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("01234", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("43210", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("012345", 2u), npos);
+    CHECK_EQ(csubstr("012345").last_not_of("543210", 2u), npos);
+
     CHECK_EQ(csubstr("").last_not_of('0', 0u), npos);
-    CHECK_EQ(csubstr("012345").last_not_of('5', 6u), 4);
+    CHECK_EQ(csubstr("012345").last_not_of('5', 6u), 4u);
 }
 
 TEST_CASE("substr.left_of")
