@@ -115,7 +115,7 @@
 #    define C4_CONSTEXPR11
 #    define C4_CONSTEXPR14
 //#    define C4_NOEXCEPT
-#  elif __cplusplus >= 201103
+#  elif __cplusplus == 201103
 #    define C4_CONSTEXPR11 constexpr
 #    define C4_CONSTEXPR14
 //#    define C4_NOEXCEPT noexcept
