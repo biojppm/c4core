@@ -257,8 +257,8 @@ public:
 
     C4_ALWAYS_INLINE int compare(ro_substr const that) const { return this->compare(that.str, that.len); }
 
-    C4_ALWAYS_INLINE bool operator== (std::nullptr_t) const { return str == nullptr; }
-    C4_ALWAYS_INLINE bool operator!= (std::nullptr_t) const { return str != nullptr; }
+    C4_ALWAYS_INLINE bool operator== (std::nullptr_t) const { return str == nullptr || len == 0; }
+    C4_ALWAYS_INLINE bool operator!= (std::nullptr_t) const { return str != nullptr || len == 0; }
 
     C4_ALWAYS_INLINE bool operator== (C const c) const { return this->compare(c) == 0; }
     C4_ALWAYS_INLINE bool operator!= (C const c) const { return this->compare(c) != 0; }
