@@ -52,8 +52,6 @@ set(C4CORE_SRC_FILES
     c4/substr.hpp
     c4/substr_fwd.hpp
     c4/szconv.hpp
-    c4/time.hpp
-    c4/time.cpp
     c4/type_name.hpp
     c4/types.hpp
     c4/unrestrict.hpp
