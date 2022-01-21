@@ -87,7 +87,6 @@ INSTRUCTIONS:
         am.onlyif(with_stl, "src/c4/std/string.hpp"),
         am.onlyif(with_stl, "src/c4/std/vector.hpp"),
         am.onlyif(with_stl, "src/c4/std/tuple.hpp"),
-        "src/c4/time.hpp",
         "src/c4/ext/rng/rng.hpp",
         "src/c4/ext/sg14/inplace_function.h",
         am.ignfile("src/c4/common.hpp"),
@@ -105,7 +104,6 @@ INSTRUCTIONS:
         "src/c4/windows_push.hpp",
         "src/c4/windows.hpp",
         "src/c4/windows_pop.hpp", # do NOT include this before windows.hpp
-        "src/c4/time.cpp",
         "src/c4/error.cpp",
     ]
     result = am.catfiles(srcblocks,

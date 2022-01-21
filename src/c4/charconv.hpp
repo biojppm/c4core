@@ -367,6 +367,7 @@ size_t write_bin(substr buf, T v)
 
 namespace detail {
 template<class U> using NumberWriter = size_t (*)(substr, U);
+/** @todo pass the writer as a template parameter */
 template<class T>
 size_t write_num_digits(NumberWriter<T> writer, substr buf, T v, size_t num_digits)
 {
@@ -1024,9 +1025,7 @@ size_t print_one(substr str, const char* full_fmt, T v)
     C4_ASSERT(iret >= 0);
     size_t ret = (size_t) iret;
     if(ret >= str.len)
-    {
         ++ret; /* snprintf() reserves the last character to write \0 */
-    }
     return ret;
 #endif
 }
@@ -1083,13 +1082,9 @@ size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX
         _c4append('x');
     }
     if(precision == -1)
-    {
         result = std::to_chars(buf.str + pos, buf.str + buf.len, v, to_std_fmt(formatting));
-    }
     else
-    {
         result = std::to_chars(buf.str + pos, buf.str + buf.len, v, to_std_fmt(formatting), precision);
-    }
     if(result.ec == std::errc())
     {
         // all good, no errors.
@@ -1404,9 +1399,7 @@ inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v)
 {
     csubstr trimmed = buf.first_non_empty_span();
     if(trimmed.len == 0 || !from_chars(buf, v))
-    {
         return csubstr::npos;
-    }
     return trimmed.len;
 }
 
@@ -1416,7 +1409,8 @@ inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v)
 
 inline size_t to_chars(substr buf, char v)
 {
-    if(buf.len > 0) buf[0] = v;
+    if(buf.len > 0)
+        buf[0] = v;
     return 1;
 }
 
@@ -1459,7 +1453,8 @@ inline bool from_chars(csubstr buf, csubstr *C4_RESTRICT v)
 inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v)
 {
     csubstr trimmed = buf.first_non_empty_span();
-    if(trimmed.len == 0) return csubstr::npos;
+    if(trimmed.len == 0)
+        return csubstr::npos;
     *v = trimmed;
     return static_cast<size_t>(trimmed.end() - buf.begin());
 }
@@ -1493,10 +1488,12 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v)
 {
     csubstr trimmed = buf.first_non_empty_span();
     C4_ASSERT(!trimmed.overlaps(*v));
-    if(C4_UNLIKELY(trimmed.len == 0)) return csubstr::npos;
+    if(C4_UNLIKELY(trimmed.len == 0))
+        return csubstr::npos;
     size_t len = trimmed.len > v->len ? v->len : trimmed.len;
     memcpy(v->str, trimmed.str, len);
-    if(C4_UNLIKELY(trimmed.len > v->len)) return csubstr::npos;
+    if(C4_UNLIKELY(trimmed.len > v->len))
+        return csubstr::npos;
     return static_cast<size_t>(trimmed.end() - buf.begin());
 }
 
