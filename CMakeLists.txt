@@ -55,6 +55,8 @@ set(C4CORE_SRC_FILES
     c4/type_name.hpp
     c4/types.hpp
     c4/unrestrict.hpp
+    c4/utf.hpp
+    c4/utf.cpp
     c4/windows.hpp
     c4/windows_pop.hpp
     c4/windows_push.hpp
