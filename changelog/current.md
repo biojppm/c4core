@@ -2,6 +2,11 @@
 
 - fix [#63](https://github.com/biojppm/c4core/issues/63): remove `c4/time.hpp` and `c4/time.cpp` which prevented compilation in bare-metal mode ([PR #64](https://github.com/biojppm/c4core/issues/64)).
 
+### New features
+
+- Added decoding of UTF codepoints: `c4::decode_code_point()`.
+- Added macro `C4_IF_CONSTEXPR` resolving to `if constexpr (...)` if the c++ standard is at least c++17.
+
 
 ### Fixes
 
@@ -13,9 +18,6 @@
 - `c4/substr_fwd.hpp`: fix compilation failure in Xcode 12 and earlier, where the forward declaration for `std::allocator` is inside the `inline namespace __1`, unlike later versions [PR #61](https://github.com/biojppm/c4core/pull/61), reported in [rapidyaml#185](https://github.com/biojppm/rapidyaml/issues/185).
 - `c4/error.hpp`: fix compilation failure in debug mode in Xcode 12 and earlier: `__clang_major__` does not mean the same as in the common clang, and as a result the warning `-Wgnu-inline-cpp-without-extern` does not exist there.
 
-### New features
-
-- Added macro `C4_IF_CONSTEXPR` resolving to `if constexpr (...)` if the c++ standard is at least c++17.
 
 ### Thanks
 
