@@ -6,6 +6,7 @@
 
 - Added decoding of UTF codepoints: `c4::decode_code_point()`.
 - Added macro `C4_IF_CONSTEXPR` resolving to `if constexpr (...)` if the c++ standard is at least c++17.
+- `csubstr`: add `count(csubstr)` overload.
 
 
 ### Fixes

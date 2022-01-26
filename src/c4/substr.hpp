@@ -541,6 +541,20 @@ public:
         return num;
     }
 
+    /** count the number of occurrences of s */
+    inline size_t count(ro_substr c, size_t pos=0) const
+    {
+        C4_ASSERT(pos >= 0 && pos <= len);
+        size_t num = 0;
+        pos = find(c, pos);
+        while(pos != npos)
+        {
+            ++num;
+            pos = find(c, pos + c.len);
+        }
+        return num;
+    }
+
     /** get the substr consisting of the first occurrence of @p c after @p pos, or an empty substr if none occurs */
     inline basic_substring select(const C c, size_t pos=0) const
     {
