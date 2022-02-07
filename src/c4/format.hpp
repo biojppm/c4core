@@ -413,9 +413,7 @@ size_t to_chars(substr buf, fmt::left_<T> const& C4_RESTRICT align)
 {
     size_t ret = to_chars(buf, align.val);
     if(ret >= buf.len || ret >= align.width)
-    {
         return ret > align.width ? ret : align.width;
-    }
     buf.first(align.width).sub(ret).fill(align.pad);
     to_chars(buf, align.val);
     return align.width;
@@ -426,9 +424,7 @@ size_t to_chars(substr buf, fmt::right_<T> const& C4_RESTRICT align)
 {
     size_t ret = to_chars(buf, align.val);
     if(ret >= buf.len || ret >= align.width)
-    {
         return ret > align.width ? ret : align.width;
-    }
     size_t rem = static_cast<size_t>(align.width - ret);
     buf.first(rem).fill(align.pad);
     to_chars(buf.sub(rem), align.val);
@@ -503,6 +499,131 @@ size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
         return csubstr::npos;
     return out + num;
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** */
+struct DumpResults
+{
+    enum : size_t { noarg = (size_t)-1 };
+    size_t bufsize = 0;
+    size_t lastok = noarg;
+    bool success_until(size_t expected) const { return lastok == noarg ? false : lastok >= expected; }
+    bool write_arg(size_t arg) const { return lastok == noarg || arg > lastok; }
+    size_t argfail() const { return lastok + 1; }
+};
+/** type of the function to dump characters */
+using DumperPfn = void (*)(csubstr buf);
+
+
+/// @cond dev
+// terminates the variadic recursion
+template<DumperPfn dumpfn>
+inline size_t cat_dump(substr /*buf*/)
+{
+    return 0;
+}
+template<class DumperFn>
+inline size_t cat_dump(DumperFn &&, substr /*buf*/)
+{
+    return 0;
+}
+/// @endcond
+
+/** take the function pointer as a function argument */
+template<class DumperFn, class Arg, class... Args>
+size_t cat_dump(DumperFn &&dumpfn, substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+{
+    size_t size_for_a = to_chars(buf, a);
+    if(C4_LIKELY(size_for_a <= buf.len))
+        dumpfn(buf.first(size_for_a));
+    else
+        buf = buf.first(0); // ensure no more calls
+    size_t size_for_more = cat_dump(dumpfn, buf, more...);
+    return size_for_more > size_for_a ? size_for_more : size_for_a;
+}
+
+/** take the function pointer as a template argument */
+template<DumperPfn dumpfn,class Arg, class... Args>
+size_t cat_dump(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+{
+    size_t size_for_a = to_chars(buf, a);
+    if(C4_LIKELY(size_for_a <= buf.len))
+        dumpfn(buf.first(size_for_a));
+    else
+        buf = buf.first(0); // ensure no more calls
+    size_t size_for_more = cat_dump<dumpfn>(buf, more...);
+    return size_for_more > size_for_a ? size_for_more : size_for_a;
+}
+
+/// @cond dev
+namespace detail {
+
+// terminates the variadic recursion
+template<size_t currarg, DumperPfn dumpfn>
+DumpResults cat_dump_resume(DumpResults dr, substr)
+{
+    return dr;
+}
+
+// terminates the variadic recursion
+template<size_t currarg, class DumperFn>
+DumpResults cat_dump_resume(DumperFn &&, DumpResults dr, substr)
+{
+    return dr;
+}
+
+template<size_t currarg, DumperPfn dumpfn, class Arg, class... Args>
+DumpResults cat_dump_resume(DumpResults results, substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+{
+    size_t size_for_a = 0;
+    if(C4_LIKELY(results.write_arg(currarg)))
+    {
+        size_for_a = to_chars(buf, a);
+        results.bufsize = size_for_a > results.bufsize ? size_for_a : results.bufsize;
+        if(C4_LIKELY(currarg == results.lastok + 1 && size_for_a <= buf.len))
+        {
+            results.lastok = currarg;
+            dumpfn(buf.first(size_for_a));
+        }
+    }
+    return cat_dump_resume<currarg + 1u, dumpfn>(results, buf, more...);
+}
+
+template<size_t currarg, class DumperFn, class Arg, class... Args>
+DumpResults cat_dump_resume(DumperFn &&dumpfn, DumpResults results, substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+{
+    size_t size_for_a = 0;
+    if(C4_LIKELY(results.write_arg(currarg)))
+    {
+        size_for_a = to_chars(buf, a);
+        results.bufsize = size_for_a > results.bufsize ? size_for_a : results.bufsize;
+        if(C4_LIKELY(currarg == results.lastok + 1 && size_for_a <= buf.len))
+        {
+            results.lastok = currarg;
+            dumpfn(buf.first(size_for_a));
+        }
+    }
+    return cat_dump_resume<currarg + 1u>(dumpfn, results, buf, more...);
+}
+} // namespace detail
+/// @endcond
+
+template<DumperPfn dumpfn, class Arg, class... Args>
+C4_ALWAYS_INLINE DumpResults cat_dump_resume(DumpResults results, substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+{
+    return detail::cat_dump_resume<0u, dumpfn>(results, buf, a, more...);
+}
+
+template<class DumperFn, class Arg, class... Args>
+C4_ALWAYS_INLINE DumpResults cat_dump_resume(DumperFn &&dumpfn, DumpResults results, substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+{
+    return detail::cat_dump_resume<0u>(dumpfn, results, buf, a, more...);
+}
+
 
 
 //-----------------------------------------------------------------------------
