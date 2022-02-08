@@ -881,7 +881,7 @@ inline size_t format(substr buf, csubstr fmt)
 {
     return to_chars(buf, fmt);
 }
-// @endcond
+/// @endcond
 
 
 /** using a format string, serialize the arguments into the given
@@ -936,7 +936,7 @@ inline size_t unformat(csubstr /*buf*/, csubstr fmt)
 {
     return fmt.len;
 }
-// @endcond
+/// @endcond
 
 
 /** using a format string, deserialize the arguments from the given
@@ -965,26 +965,49 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
 }
 
 
+/** take the function pointer as a function argument */
+template<class DumperFn>
+C4_ALWAYS_INLINE size_t format_dump(DumperFn &&dumpfn, substr buf, csubstr fmt)
+{
+    // we can dump without using buf
+    // but we'll only dump if the buffer is ok
+    if(C4_LIKELY(buf.len > 0))
+        dumpfn(fmt);
+    return 0u;
+}
+
+/** take the function pointer as a function argument */
+template<DumperPfn dumpfn>
+C4_ALWAYS_INLINE size_t format_dump(substr buf, csubstr fmt)
+{
+    // we can dump without using buf
+    // but we'll only dump if the buffer is ok
+    if(C4_LIKELY(buf.len > 0))
+        dumpfn(fmt);
+    return 0u;
+}
 
 /** take the function pointer as a function argument */
 template<class DumperFn, class Arg, class... Args>
 size_t format_dump(DumperFn &&dumpfn, substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
+    // we can dump without using buf
+    // but we'll only dump if the buffer is ok
     size_t pos = fmt.find("{}"); // @todo use _find_fmt()
     if(C4_UNLIKELY(pos == csubstr::npos))
     {
-        dumpfn(fmt);
-        return fmt.len;
+        if(C4_LIKELY(buf.len > 0))
+            dumpfn(fmt);
+        return 0u;
     }
-    if(C4_LIKELY(pos <= buf.len))
-        dumpfn(fmt.first(pos));
-    else
-        buf = buf.first(0); // ensure no more calls
+    if(C4_LIKELY(buf.len > 0))
+        dumpfn(fmt.first(pos)); // we can dump without using buf
+    fmt = fmt.sub(pos + 2); // do this before assigning to pos again
     pos = to_chars(buf, a);
     if(C4_LIKELY(pos <= buf.len))
         dumpfn(buf.first(pos));
     else
-        buf = buf.first(0); // ensure no more calls
+        buf.len = 0; // ensure no more calls to dump
     size_t size_for_more = format_dump(dumpfn, buf, fmt, more...);
     return size_for_more > pos ? size_for_more : pos;
 }
@@ -993,109 +1016,158 @@ size_t format_dump(DumperFn &&dumpfn, substr buf, csubstr fmt, Arg const& C4_RES
 template<DumperPfn dumpfn, class Arg, class... Args>
 size_t format_dump(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
+    // we can dump without using buf
+    // but we'll only dump if the buffer is ok
     size_t pos = fmt.find("{}"); // @todo use _find_fmt()
     if(C4_UNLIKELY(pos == csubstr::npos))
     {
-        dumpfn(fmt);
-        return fmt.len;
+        if(C4_LIKELY(buf.len > 0))
+            dumpfn(fmt);
+        return 0u;
     }
-    if(C4_LIKELY(pos <= buf.len))
-        dumpfn(fmt.first(pos));
-    else
-        buf = buf.first(0); // ensure no more calls
+    if(C4_LIKELY(buf.len > 0))
+        dumpfn(fmt.first(pos)); // we can dump without using buf
+    fmt = fmt.sub(pos + 2); // do this before assigning to pos again
     pos = to_chars(buf, a);
     if(C4_LIKELY(pos <= buf.len))
         dumpfn(buf.first(pos));
     else
-        buf = buf.first(0); // ensure no more calls
+        buf.len = 0; // ensure no more calls to dump
     size_t size_for_more = format_dump<dumpfn>(buf, fmt, more...);
     return size_for_more > pos ? size_for_more : pos;
 }
 
-#ifdef WIP
+
+/// @cond dev
 namespace detail {
 
-template<size_t currarg, DumperPfn dumpfn, class Arg, class... Args>
-C4_ALWAYS_INLINE DumpResults format_dump_resume(DumpResults results, substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+template<DumperPfn dumpfn>
+DumpResults format_dump_resume(size_t currarg, DumpResults results, substr buf, csubstr fmt)
 {
-    if(C4_LIKELY(results.write_arg(currarg)))
+    // we can dump without using buf
+    // but we'll only dump if the buffer is ok
+    if(C4_LIKELY(buf.len > 0))
     {
-        size_t pos = fmt.find("{}");
-        if(C4_UNLIKELY(pos == csubstr::npos))
-        {
-            dumpfn(fmt);
-            return fmt.len;
-        }
-        if(C4_UNLIKELY(pos == csubstr::npos))
-            return format_dump<dumpfn>(buf, fmt);
-        results.bufsize = sz > results.bufsize ? sz : results.bufsize;
-        if(C4_LIKELY(currarg == results.lastok + 1 && sz <= buf.len))
-        {
-            results.lastok = currarg;
-            dumpfn(buf.first(sz));
-            if C4_IF_CONSTEXPR (sizeof...(more))
-            {
-                sz = to_chars(buf, sep);
-                results.bufsize = sz > results.bufsize ? sz : results.bufsize;
-                if(C4_LIKELY(currarg == results.lastok + 1 && sz <= buf.len))
-                {
-                    results.lastok = currarg;
-                    dumpfn(buf.first(sz));
-                }
-                else
-                {
-                    --results.lastok;
-                }
-            }
-        }
+        dumpfn(fmt);
+        results.lastok = currarg;
     }
-    return format_dump_resume<currarg + 1u, dumpfn>(results, buf, fmt, more...);
+    return results;
 }
 
-template<size_t currarg, class DumperFn, class Arg, class... Args>
-C4_ALWAYS_INLINE DumpResults format_dump_resume(DumperFn &&dumpfn, DumpResults results, substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+template<class DumperFn>
+DumpResults format_dump_resume(size_t currarg, DumperFn &&dumpfn, DumpResults results, substr buf, csubstr fmt)
 {
-    if(C4_LIKELY(results.write_arg(currarg)))
+    // we can dump without using buf
+    // but we'll only dump if the buffer is ok
+    if(C4_LIKELY(buf.len > 0))
     {
-        size_t sz = to_chars(buf, a);
-        results.bufsize = sz > results.bufsize ? sz : results.bufsize;
-        if(C4_LIKELY(currarg == results.lastok + 1 && sz <= buf.len))
-        {
-            results.lastok = currarg;
-            dumpfn(buf.first(sz));
-            if C4_IF_CONSTEXPR (sizeof...(more))
-            {
-                sz = to_chars(buf, sep);
-                results.bufsize = sz > results.bufsize ? sz : results.bufsize;
-                if(C4_LIKELY(currarg == results.lastok + 1 && sz <= buf.len))
-                {
-                    results.lastok = currarg;
-                    dumpfn(buf.first(sz));
-                }
-                else
-                {
-                    --results.lastok;
-                }
-            }
-        }
+        dumpfn(fmt);
+        results.lastok = currarg;
     }
-    return format_dump_resume<currarg + 1u>(dumpfn, results, buf, fmt, more...);
+    return results;
 }
 
+template<DumperPfn dumpfn, class Arg, class... Args>
+DumpResults format_dump_resume(size_t currarg, DumpResults results, substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+{
+    // we need to process the format even if we're not
+    // going to print the first arguments because we're resuming
+    size_t pos = fmt.find("{}"); // @todo use _find_fmt()
+    // we can dump without using buf
+    // but we'll only dump if the buffer is ok
+    if(C4_LIKELY(results.write_arg(currarg)))
+    {
+        if(C4_UNLIKELY(pos == csubstr::npos))
+        {
+            if(C4_LIKELY(buf.len > 0))
+            {
+                results.lastok = currarg;
+                dumpfn(fmt);
+            }
+            return results;
+        }
+        if(C4_LIKELY(buf.len > 0))
+        {
+            results.lastok = currarg;
+            dumpfn(fmt.first(pos));
+        }
+    }
+    fmt = fmt.sub(pos + 2);
+    if(C4_LIKELY(results.write_arg(currarg + 1)))
+    {
+         pos = to_chars(buf, a);
+        results.bufsize = pos > results.bufsize ? pos : results.bufsize;
+        if(C4_LIKELY(pos <= buf.len))
+        {
+            dumpfn(buf.first(pos));
+            results.lastok = currarg + 1;
+        }
+        else
+        {
+            buf.len = 0;
+        }
+    }
+    return format_dump_resume<dumpfn>(currarg + 2u, results, buf, fmt, more...);
+}
+/// @endcond
+
+
+template<class DumperFn, class Arg, class... Args>
+DumpResults format_dump_resume(size_t currarg, DumperFn &&dumpfn, DumpResults results, substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
+{
+    // we need to process the format even if we're not
+    // going to print the first arguments because we're resuming
+    size_t pos = fmt.find("{}"); // @todo use _find_fmt()
+    // we can dump without using buf
+    // but we'll only dump if the buffer is ok
+    if(C4_LIKELY(results.write_arg(currarg)))
+    {
+        if(C4_UNLIKELY(pos == csubstr::npos))
+        {
+            if(C4_LIKELY(buf.len > 0))
+            {
+                results.lastok = currarg;
+                dumpfn(fmt);
+            }
+            return results;
+        }
+        if(C4_LIKELY(buf.len > 0))
+        {
+            results.lastok = currarg;
+            dumpfn(fmt.first(pos));
+        }
+    }
+    fmt = fmt.sub(pos + 2);
+    if(C4_LIKELY(results.write_arg(currarg + 1)))
+    {
+        pos = to_chars(buf, a);
+        results.bufsize = pos > results.bufsize ? pos : results.bufsize;
+        if(C4_LIKELY(pos <= buf.len))
+        {
+            dumpfn(buf.first(pos));
+            results.lastok = currarg + 1;
+        }
+        else
+        {
+            buf.len = 0;
+        }
+    }
+    return format_dump_resume(currarg + 2u, dumpfn, results, buf, fmt, more...);
+}
 } // namespace detail
+
 
 template<DumperPfn dumpfn, class Arg, class... Args>
 C4_ALWAYS_INLINE DumpResults format_dump_resume(DumpResults results, substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    return detail::format_dump_resume<0u, dumpfn>(results, buf, fmt, a, more...);
+    return detail::format_dump_resume<dumpfn>(0u, results, buf, fmt, a, more...);
 }
 
 template<class DumperFn, class Arg, class... Args>
 C4_ALWAYS_INLINE DumpResults format_dump_resume(DumperFn &&dumpfn, DumpResults results, substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    return detail::format_dump_resume<0u>(dumpfn, results, buf, fmt, a, more...);
+    return detail::format_dump_resume(0u, dumpfn, results, buf, fmt, a, more...);
 }
-#endif
 
 
 //-----------------------------------------------------------------------------

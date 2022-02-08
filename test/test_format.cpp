@@ -403,6 +403,7 @@ size_t DumpChecker::s_num_calls = 0;
 char DumpChecker::s_target[100] = {};
 size_t DumpChecker::s_accum_pos = {};
 char DumpChecker::s_accum[100] = {};
+
 struct CatDumpTplArg
 {
     template<class ...Args>
@@ -425,7 +426,18 @@ struct CatDumpTplArg
     {
         return catsep_dump_resume<&DumpChecker::s_dump>(std::forward<Args>(args)...);
     }
+    template<class ...Args>
+    static size_t call_format_dump(Args&& ...args)
+    {
+        return format_dump<&DumpChecker::s_dump>(std::forward<Args>(args)...);
+    }
+    template<class ...Args>
+    static DumpResults call_format_dump_resume(Args&& ...args)
+    {
+        return format_dump_resume<&DumpChecker::s_dump>(std::forward<Args>(args)...);
+    }
 };
+
 struct CatDumpFnArg
 {
     template<class ...Args>
@@ -448,7 +460,18 @@ struct CatDumpFnArg
     {
         return catsep_dump_resume(&DumpChecker::s_dump, std::forward<Args>(args)...);
     }
+    template<class ...Args>
+    static size_t call_format_dump(Args&& ...args)
+    {
+        return format_dump(&DumpChecker::s_dump, std::forward<Args>(args)...);
+    }
+    template<class ...Args>
+    static DumpResults call_format_dump_resume(Args&& ...args)
+    {
+        return format_dump_resume(&DumpChecker::s_dump, std::forward<Args>(args)...);
+    }
 };
+
 namespace buffers {
 csubstr b1 = "1";
 csubstr b2 = "22";
@@ -1184,6 +1207,219 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
 }
 
 
+TEST_CASE_TEMPLATE("format_dump", T, CatDumpTplArg, CatDumpFnArg)
+{
+    using namespace buffers;
+    size_t needed_size;
+    substr buf = DumpChecker::s_target;
+    auto accum = [&]{ return csubstr(DumpChecker::s_accum).first(DumpChecker::s_accum_pos); };
+    SUBCASE("0")
+    {
+        csubstr fmt = "01234567890123456789";
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(0), fmt, b1, b2, b3, b4);
+        CHECK_EQ(needed_size, 0); // the longest sized argument format argument
+        CHECK_EQ(DumpChecker::s_num_calls, 0); // no calls when the buffer is empty
+        CHECK_EQ(buf.first(needed_size), csubstr("")); // nothing was written
+        CHECK_EQ(accum(), csubstr("")); // dumped the full format string
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf, fmt, b1, b2, b3, b4);
+        CHECK_EQ(needed_size, 0); // the longest sized argument format argument
+        CHECK_EQ(DumpChecker::s_num_calls, 1);
+        CHECK_EQ(buf.first(needed_size), csubstr("")); // nothing was written
+        CHECK_EQ(accum(), fmt); // dumped the full format string
+    }
+    SUBCASE("1")
+    {
+        //             ____1____ 2  __3__
+        csubstr fmt = "012345678_{}_34567";
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(0), fmt, b1);
+        CHECK_EQ(needed_size, b1.len); // the longest sized argument format argument
+        CHECK_EQ(DumpChecker::s_num_calls, 0);
+        CHECK_EQ(buf.first(2), csubstr("++")); // nothing was written
+        CHECK_EQ(accum(), csubstr("")); // dumped first part of the format string
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b1.len), fmt, b1);
+        CHECK_EQ(needed_size, b1.len);
+        CHECK_EQ(DumpChecker::s_num_calls, 3);
+        CHECK_EQ(buf.first(2), csubstr("_3"));
+        CHECK_EQ(accum(), csubstr("012345678_1_34567"));
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b1.len), fmt, b1, b2, b3, b4); // check that extra arguments are ignored
+        CHECK_EQ(needed_size, b1.len);
+        CHECK_EQ(DumpChecker::s_num_calls, 3);
+        CHECK_EQ(buf.first(2), csubstr("_3"));
+        CHECK_EQ(accum(), csubstr("012345678_1_34567"));
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b1.len), fmt); // check that missing arguments are skipped
+        CHECK_EQ(needed_size, 0u);
+        CHECK_EQ(DumpChecker::s_num_calls, 1);
+        CHECK_EQ(buf.first(2), csubstr("01"));
+        CHECK_EQ(accum(), csubstr("012345678_{}_34567"));
+    }
+    SUBCASE("1 2")
+    {
+        //             ____1____ 2  __3__ 4  _5_
+        csubstr fmt = "012345678_{}_34567_{}_aaa";
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(0), fmt, b1, b2);
+        CHECK_EQ(needed_size, b2.len); // the longest sized argument format argument
+        CHECK_EQ(DumpChecker::s_num_calls, 0);
+        CHECK_EQ(buf.first(2), csubstr("++")); // nothing was written
+        CHECK_EQ(accum(), csubstr("")); // dumped first part of the format string
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b1.len), fmt, b1, b2);
+        CHECK_EQ(needed_size, b2.len);
+        CHECK_EQ(DumpChecker::s_num_calls, 3);
+        CHECK_EQ(buf.first(2), csubstr("23"));
+        CHECK_EQ(accum(), csubstr("012345678_1_34567_"));
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b2.len), fmt, b1, b2);
+        CHECK_EQ(needed_size, b2.len);
+        CHECK_EQ(DumpChecker::s_num_calls, 5);
+        CHECK_EQ(buf.first(2), csubstr("_a"));
+        CHECK_EQ(accum(), csubstr("012345678_1_34567_22_aaa"));
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b1.len), fmt); // check that missing arguments are skipped
+        CHECK_EQ(needed_size, 0u);
+        CHECK_EQ(DumpChecker::s_num_calls, 1);
+        CHECK_EQ(buf.first(2), csubstr("01"));
+        CHECK_EQ(accum(), csubstr("012345678_{}_34567_{}_aaa"));
+    }
+    SUBCASE("1 2 3")
+    {
+        //             1         2  3     4  5     6
+        csubstr fmt = "012345678_{}_34567_{}_aaa___{}";
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(0), fmt, b1, b2, b3);
+        CHECK_EQ(needed_size, b3.len); // the longest sized argument format argument
+        CHECK_EQ(DumpChecker::s_num_calls, 0);
+        CHECK_EQ(buf.first(2), csubstr("++")); // nothing was written
+        CHECK_EQ(accum(), csubstr("")); // dumped first part of the format string
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b1.len), fmt, b1, b2, b3);
+        CHECK_EQ(needed_size, b3.len);
+        CHECK_EQ(DumpChecker::s_num_calls, 3);
+        CHECK_EQ(buf.first(2), csubstr("23"));
+        CHECK_EQ(accum(), csubstr("012345678_1_34567_"));
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b2.len), fmt, b1, b2, b3);
+        CHECK_EQ(needed_size, b3.len);
+        CHECK_EQ(DumpChecker::s_num_calls, 5);
+        CHECK_EQ(buf.first(2), csubstr("33"));
+        CHECK_EQ(accum(), csubstr("012345678_1_34567_22_aaa___"));
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf.first(b3.len), fmt, b1, b2, b3);
+        CHECK_EQ(needed_size, b3.len);
+        CHECK_EQ(DumpChecker::s_num_calls, 7);
+        CHECK_EQ(buf.first(2), csubstr("33"));
+        CHECK_EQ(accum(), csubstr("012345678_1_34567_22_aaa___333"));
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf, fmt); // check that missing arguments are skipped
+        CHECK_EQ(needed_size, 0u);
+        CHECK_EQ(DumpChecker::s_num_calls, 1);
+        CHECK_EQ(buf.first(2), csubstr("01"));
+        CHECK_EQ(accum(), csubstr("012345678_{}_34567_{}_aaa___{}"));
+        DumpChecker::s_reset();
+        needed_size = T::call_format_dump(buf, fmt, b1); // check that missing arguments are skipped
+        CHECK_EQ(needed_size, b1.len);
+        CHECK_EQ(DumpChecker::s_num_calls, 3);
+        CHECK_EQ(buf.first(2), csubstr("_3"));
+        CHECK_EQ(accum(), csubstr("012345678_1_34567_{}_aaa___{}"));
+    }
+}
+TEST_CASE_TEMPLATE("format_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
+{
+    using namespace buffers;
+    substr buf = DumpChecker::s_target;
+    auto accum = [&]{ return csubstr(DumpChecker::s_accum).first(DumpChecker::s_accum_pos); };
+    SUBCASE("1")
+    {
+        csubstr fmt = "aaa_then_{}_then_bbb";
+        DumpChecker::s_reset();
+        DumpResults ret = T::call_format_dump_resume(DumpResults{}, buf.first(0), fmt, b1);
+        CHECK_UNARY(!ret.success_until(0));
+        CHECK_UNARY(!ret.success_until(1));
+        CHECK_UNARY(!ret.success_until(2));
+        CHECK_EQ(ret.bufsize, 1);
+        CHECK_EQ(ret.lastok, DumpResults::noarg);
+        CHECK_EQ(ret.argfail(), 0);
+        CHECK_EQ(DumpChecker::s_num_calls, 0); // no calls to dump
+        CHECK_EQ(buf.first(1), csubstr("+")); // nothing was written
+        CHECK_EQ(accum(), csubstr(""));
+        ret = T::call_format_dump_resume(ret, buf.first(1), fmt, b1);
+        CHECK_UNARY(ret.success_until(0));
+        CHECK_UNARY(ret.success_until(1));
+        CHECK_UNARY(ret.success_until(2));
+        CHECK_EQ(ret.bufsize, 1);
+        CHECK_EQ(ret.lastok, 2);
+        CHECK_EQ(ret.argfail(), 3);
+        CHECK_EQ(DumpChecker::s_num_calls, 3);
+        CHECK_EQ(buf.first(2), csubstr("_t"));
+        CHECK_EQ(accum(), csubstr("aaa_then_1_then_bbb"));
+    }
+    SUBCASE("2")
+    {
+        csubstr fmt = "aaa_then_{}_then_bbb_then_{}__then_epilogue";
+        DumpChecker::s_reset();
+        DumpResults ret = T::call_format_dump_resume(DumpResults{}, buf.first(0), fmt, b1, b2);
+        CHECK_UNARY(!ret.success_until(0));
+        CHECK_EQ(ret.bufsize, 2);
+        CHECK_EQ(ret.lastok, DumpResults::noarg);
+        CHECK_EQ(ret.argfail(), 0);
+        CHECK_EQ(DumpChecker::s_num_calls, 0); // no calls to dump
+        CHECK_EQ(buf.first(1), csubstr("+")); // nothing was written
+        CHECK_EQ(accum(), csubstr(""));
+        ret = T::call_format_dump_resume(ret, buf.first(1), fmt, b1, b2);
+        CHECK_UNARY(ret.success_until(0));
+        CHECK_UNARY(ret.success_until(1));
+        CHECK_UNARY(ret.success_until(2));
+        CHECK_UNARY(!ret.success_until(3));
+        CHECK_EQ(ret.bufsize, 2);
+        CHECK_EQ(ret.lastok, 2);
+        CHECK_EQ(ret.argfail(), 3);
+        CHECK_EQ(DumpChecker::s_num_calls, 3);
+        CHECK_EQ(buf.first(2), csubstr("2t"));
+        CHECK_EQ(accum(), csubstr("aaa_then_1_then_bbb_then_"));
+        ret = T::call_format_dump_resume(ret, buf.first(2), fmt, b1, b2);
+        CHECK_UNARY(ret.success_until(0));
+        CHECK_UNARY(ret.success_until(1));
+        CHECK_UNARY(ret.success_until(2));
+        CHECK_UNARY(ret.success_until(3));
+        CHECK_UNARY(ret.success_until(4));
+        CHECK_EQ(ret.bufsize, 2);
+        CHECK_EQ(ret.lastok, 4);
+        CHECK_EQ(ret.argfail(), 5);
+        CHECK_EQ(DumpChecker::s_num_calls, 5);
+        CHECK_EQ(buf.first(2), csubstr("__"));
+        CHECK_EQ(accum(), csubstr("aaa_then_1_then_bbb_then_22__then_epilogue"));
+    }
+    SUBCASE("no args")
+    {
+        csubstr fmt = "no args { -- }";
+        DumpChecker::s_reset();
+        DumpResults ret = T::call_format_dump_resume(DumpResults{}, buf.first(0), fmt, b1, b2);
+        CHECK_UNARY(!ret.success_until(0));
+        CHECK_EQ(ret.bufsize, 0);
+        CHECK_EQ(ret.lastok, DumpResults::noarg);
+        CHECK_EQ(ret.argfail(), 0);
+        CHECK_EQ(DumpChecker::s_num_calls, 0); // no calls to dump
+        CHECK_EQ(buf.first(1), csubstr("+")); // nothing was written
+        CHECK_EQ(accum(), csubstr(""));
+        ret = T::call_format_dump_resume(ret, buf.first(1), fmt, b1, b2);
+        CHECK_UNARY(ret.success_until(0));
+        CHECK_UNARY(!ret.success_until(1));
+        CHECK_EQ(ret.bufsize, 0);
+        CHECK_EQ(ret.lastok, 0);
+        CHECK_EQ(ret.argfail(), 1);
+        CHECK_EQ(DumpChecker::s_num_calls, 1);
+        CHECK_EQ(buf.first(2), fmt.first(2));
+        CHECK_EQ(accum(), fmt);
+    }
+}
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1372,6 +1608,11 @@ TEST_CASE("format.vars")
     CHECK_EQ(sz, 23);
     result = sp.left_of(sz);
     CHECK_EQ(result, "{} and {} and {} and {}");
+
+    sz = format(buf, "{} args only at the begin", 1);
+    CHECK_EQ(sz, csubstr("1 args only at the begin").len);
+    result = sp.left_of(sz);
+    CHECK_EQ(result, csubstr("1 args only at the begin"));
 }
 
 TEST_CASE("format.empty_buffer")
