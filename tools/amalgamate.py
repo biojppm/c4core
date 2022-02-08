@@ -79,6 +79,7 @@ INSTRUCTIONS:
         "src/c4/charconv.hpp",
         "src/c4/utf.hpp",
         "src/c4/format.hpp",
+        "src/c4/dump.hpp",
         "src/c4/enum.hpp",
         "src/c4/bitmask.hpp",
         "src/c4/span.hpp",

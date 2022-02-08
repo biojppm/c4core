@@ -25,6 +25,7 @@ set(C4CORE_SRC_FILES
     c4/config.hpp
     c4/cpu.hpp
     c4/ctor_dtor.hpp
+    c4/dump.hpp
     c4/enum.hpp
     c4/error.cpp
     c4/error.hpp
