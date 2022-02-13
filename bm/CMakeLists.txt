@@ -25,6 +25,10 @@ c4_add_target_benchmark(c4core-bm-format cat FILTER "^cat_.*")
 c4_add_target_benchmark(c4core-bm-format catsep FILTER "^catsep_.*")
 c4_add_target_benchmark(c4core-bm-format format FILTER "^format_.*")
 
+c4_add_target_benchmark(c4core-bm-format catfile FILTER "^catfile_.*")
+c4_add_target_benchmark(c4core-bm-format catsepfile FILTER "^catsepfile_.*")
+c4_add_target_benchmark(c4core-bm-format formatfile FILTER "^formatfile_.*")
+
 
 #----------------------------------------------
 
