@@ -30,6 +30,12 @@ def amalgamate_c4core(filename: str,
 #define C4CORE_EXPORTS
 #endif
 """
+    required_gcc4_8_include = """// these includes are needed to work around conditional
+// includes in the gcc4.8 shim
+#include <cstdint>
+#include <type_traits>
+#include <cstring>
+"""
     srcblocks = [
         am.cmttext(f"""
 c4core - C++ utilities
@@ -56,6 +62,8 @@ INSTRUCTIONS:
         "src/c4/platform.hpp",
         "src/c4/cpu.hpp",
         "src/c4/compiler.hpp",
+        am.injcode(required_gcc4_8_include),
+        "src/c4/compat/gcc-4.8.hpp",
         "src/c4/language.hpp",
         "src/c4/types.hpp",
         "src/c4/config.hpp",

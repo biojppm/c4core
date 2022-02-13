@@ -4,6 +4,8 @@ project(c4core
     DESCRIPTION "Multiplatform low-level C++ utilities"
     HOMEPAGE_URL "https://github.com/biojppm/c4core"
     LANGUAGES CXX)
+include(./compat.cmake)
+
 c4_project(VERSION 0.1.8
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
@@ -22,6 +24,7 @@ set(C4CORE_SRC_FILES
     c4/char_traits.hpp
     c4/common.hpp
     c4/compiler.hpp
+    c4/compat/gcc-4.8.hpp
     c4/config.hpp
     c4/cpu.hpp
     c4/ctor_dtor.hpp
