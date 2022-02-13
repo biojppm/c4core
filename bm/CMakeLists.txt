@@ -1,18 +1,5 @@
 c4_setup_benchmarking()
 
-#----------------------------------------------
-
-# libraries to compare
-
-c4_require_subproject(fp
-  REMOTE
-    GIT_REPOSITORY https://github.com/jk-jeon/fp
-    GIT_TAG master
-  EXCLUDE_FROM_ALL)
-
-# ryu requires too much code; use an include for clarity
-include(./ryu.cmake)
-
 
 #----------------------------------------------
 
@@ -32,11 +19,27 @@ c4_add_target_benchmark(c4core-bm-format formatfile FILTER "^formatfile_.*")
 
 #----------------------------------------------
 
+# libraries to compare
+
+c4_require_subproject(fp
+  REMOTE
+    GIT_REPOSITORY https://github.com/jk-jeon/fp
+    GIT_TAG master
+  EXCLUDE_FROM_ALL)
+
+# ryu requires too much code; use an include for clarity
+include(./ryu.cmake)
+
 c4_add_executable(c4core-bm-charconv
     SOURCES bm_charconv.cpp
-    LIBS c4core benchmark ryu_c4
+    LIBS c4core benchmark
     INC_DIRS ${C4CORE_SRC_DIR}/c4/ext/fast_float/include
     FOLDER bm)
+
+if(C4CORE_BM_USE_RYU)
+    target_link_libraries(c4core-bm-charconv PUBLIC ryu_c4)
+    target_compile_definitions(c4core-bm-charconv PUBLIC -DC4CORE_BM_USE_RYU)
+endif()
 
 get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)
 if(cxx_std_17 IN_LIST known_features)

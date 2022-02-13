@@ -61,8 +61,10 @@ double getrange(std::vector<double> const& v)
 
 #include <benchmark/benchmark.h>
 #include <fast_float/fast_float.h>
+#ifdef C4CORE_BM_USE_RYU
 #include <ryu/ryu.h>
 #include <ryu/ryu_parse.h>
+#endif
 #if C4_CPP >= 17
 #include <jkj/fp/from_chars/from_chars.h>
 #include <charconv>
@@ -662,6 +664,7 @@ atox_std_stod(bm::State &st)
 
 //-----------------------------------------------------------------------------
 
+#ifdef C4CORE_BM_USE_RYU
 C4FOR(T, isfloat)
 atox_ryu_s2f(bm::State &st)
 {
@@ -711,7 +714,7 @@ xtoa_ryu_d2s(bm::State &st)
     }
     report<T>(st);
 }
-
+#endif // C4CORE_BM_USE_RYU
 
 //-----------------------------------------------------------------------------
 
@@ -1144,7 +1147,9 @@ C4BM_TEMPLATE(xtoa_sstream,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_ftoa,  float);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  float);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  float);
+#ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(xtoa_ryu_f2s,  float);
+#endif
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  float);
 C4BM_TEMPLATE(xtoa_std_to_string,  float);
 C4BM_TEMPLATE(xtoa_sprintf,  float);
@@ -1154,7 +1159,9 @@ C4BM_TEMPLATE(xtoa_sstream,  float);
 C4BM_TEMPLATE(xtoa_c4_dtoa,  double);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  double);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  double);
+#ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(xtoa_ryu_d2s,  double);
+#endif
 C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  double);
 C4BM_TEMPLATE(xtoa_std_to_string,  double);
 C4BM_TEMPLATE(xtoa_sprintf,  double);
@@ -1281,7 +1288,9 @@ C4BM_TEMPLATE(atox_sstream_reuse,   int64_t);
 C4BM_TEMPLATE(atox_c4_atof,  float);
 C4BM_TEMPLATE(atox_c4_atox,  float);
 C4BM_TEMPLATE(atox_c4_from_chars, float);
+#ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(atox_ryu_s2f,  float);
+#endif
 C4BM_TEMPLATE(atox_fast_float,  float);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, float);
 C4BM_FP_BENCHMARK(atox_fp_from_chars_limited,  float);
@@ -1296,7 +1305,9 @@ C4BM_TEMPLATE(atox_sstream_reuse,   float);
 C4BM_TEMPLATE(atox_c4_atod,  double);
 C4BM_TEMPLATE(atox_c4_atox,  double);
 C4BM_TEMPLATE(atox_c4_from_chars, double);
+#ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(atox_ryu_s2d,  double);
+#endif
 C4BM_TEMPLATE(atox_fast_float,  double);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, double);
 C4BM_FP_BENCHMARK(atox_fp_from_chars_limited,  double);
