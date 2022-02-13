@@ -287,6 +287,110 @@ atox_c4_read_bin(bm::State& st)
     report<T>(st);
 }
 
+C4FOR(T, isuint)
+xtoa_c4_write_dec(bm::State& st)
+{
+    string_buffer buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        c4::write_dec(buf, i++);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isiint)
+xtoa_c4_write_dec(bm::State& st)
+{
+    string_buffer buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        if(i < 0)
+            i = 0;
+        c4::write_dec(buf, i++);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isuint)
+xtoa_c4_write_hex(bm::State& st)
+{
+    string_buffer buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        c4::write_hex(buf, i++);
+    }
+    report<T>(st);
+}
+#include <iostream>
+C4FOR(T, isiint)
+xtoa_c4_write_hex(bm::State& st)
+{
+    string_buffer buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        if(i < 0)
+            i = 0;
+        c4::write_hex(buf, i++);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isuint)
+xtoa_c4_write_oct(bm::State& st)
+{
+    string_buffer buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        c4::write_oct(buf, i++);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isiint)
+xtoa_c4_write_oct(bm::State& st)
+{
+    string_buffer buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        if(i < 0)
+            i = 0;
+        c4::write_oct(buf, i++);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isuint)
+xtoa_c4_write_bin(bm::State& st)
+{
+    string_buffer buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        c4::write_bin(buf, i++);
+    }
+    report<T>(st);
+}
+
+C4FOR(T, isiint)
+xtoa_c4_write_bin(bm::State& st)
+{
+    string_buffer buf;
+    T i = 0;
+    for(auto _ : st)
+    {
+        if(i < 0)
+            i = 0;
+        c4::write_bin(buf, i++);
+    }
+    report<T>(st);
+}
+
 C4FOR(T, isiint)
 xtoa_c4_itoa(bm::State& st)
 {
@@ -933,6 +1037,10 @@ void atox_std_from_chars(bm::State& st)
 
 //-----------------------------------------------------------------------------
 
+C4BM_TEMPLATE(xtoa_c4_write_dec,  uint8_t);
+C4BM_TEMPLATE(xtoa_c4_write_hex,  uint8_t);
+C4BM_TEMPLATE(xtoa_c4_write_oct,  uint8_t);
+C4BM_TEMPLATE(xtoa_c4_write_bin,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_utoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint8_t);
@@ -942,6 +1050,10 @@ C4BM_TEMPLATE(xtoa_sprintf,  uint8_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t);
 C4BM_TEMPLATE(xtoa_sstream,  uint8_t);
 
+C4BM_TEMPLATE(xtoa_c4_write_dec,  int8_t);
+C4BM_TEMPLATE(xtoa_c4_write_hex,  int8_t);
+C4BM_TEMPLATE(xtoa_c4_write_oct,  int8_t);
+C4BM_TEMPLATE(xtoa_c4_write_bin,  int8_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int8_t);
@@ -951,6 +1063,10 @@ C4BM_TEMPLATE(xtoa_sprintf,  int8_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t);
 C4BM_TEMPLATE(xtoa_sstream,   int8_t);
 
+C4BM_TEMPLATE(xtoa_c4_write_dec,  uint16_t);
+C4BM_TEMPLATE(xtoa_c4_write_hex,  uint16_t);
+C4BM_TEMPLATE(xtoa_c4_write_oct,  uint16_t);
+C4BM_TEMPLATE(xtoa_c4_write_bin,  uint16_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint16_t);
@@ -960,6 +1076,10 @@ C4BM_TEMPLATE(xtoa_sprintf,  uint16_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t);
 C4BM_TEMPLATE(xtoa_sstream, uint16_t);
 
+C4BM_TEMPLATE(xtoa_c4_write_dec,  int16_t);
+C4BM_TEMPLATE(xtoa_c4_write_hex,  int16_t);
+C4BM_TEMPLATE(xtoa_c4_write_oct,  int16_t);
+C4BM_TEMPLATE(xtoa_c4_write_bin,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int16_t);
@@ -969,6 +1089,10 @@ C4BM_TEMPLATE(xtoa_sprintf,  int16_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t);
 C4BM_TEMPLATE(xtoa_sstream,  int16_t);
 
+C4BM_TEMPLATE(xtoa_c4_write_dec,  uint32_t);
+C4BM_TEMPLATE(xtoa_c4_write_hex,  uint32_t);
+C4BM_TEMPLATE(xtoa_c4_write_oct,  uint32_t);
+C4BM_TEMPLATE(xtoa_c4_write_bin,  uint32_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint32_t);
@@ -978,6 +1102,10 @@ C4BM_TEMPLATE(xtoa_sprintf,  uint32_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t);
 C4BM_TEMPLATE(xtoa_sstream, uint32_t);
 
+C4BM_TEMPLATE(xtoa_c4_write_dec,  int32_t);
+C4BM_TEMPLATE(xtoa_c4_write_hex,  int32_t);
+C4BM_TEMPLATE(xtoa_c4_write_oct,  int32_t);
+C4BM_TEMPLATE(xtoa_c4_write_bin,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int32_t);
@@ -987,6 +1115,10 @@ C4BM_TEMPLATE(xtoa_sprintf,  int32_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t);
 C4BM_TEMPLATE(xtoa_sstream,  int32_t);
 
+C4BM_TEMPLATE(xtoa_c4_write_dec,  uint64_t);
+C4BM_TEMPLATE(xtoa_c4_write_hex,  uint64_t);
+C4BM_TEMPLATE(xtoa_c4_write_oct,  uint64_t);
+C4BM_TEMPLATE(xtoa_c4_write_bin,  uint64_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint64_t);
@@ -996,6 +1128,10 @@ C4BM_TEMPLATE(xtoa_sprintf,  uint64_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t);
 C4BM_TEMPLATE(xtoa_sstream, uint64_t);
 
+C4BM_TEMPLATE(xtoa_c4_write_dec,  int64_t);
+C4BM_TEMPLATE(xtoa_c4_write_hex,  int64_t);
+C4BM_TEMPLATE(xtoa_c4_write_oct,  int64_t);
+C4BM_TEMPLATE(xtoa_c4_write_bin,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int64_t);
