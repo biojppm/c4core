@@ -60,7 +60,7 @@ double getrange(std::vector<double> const& v)
 #endif
 
 #include <benchmark/benchmark.h>
-#include <fast_float/fast_float.h>
+#include <c4/ext/fast_float.hpp>
 #ifdef C4CORE_BM_USE_RYU
 #include <ryu/ryu.h>
 #include <ryu/ryu_parse.h>
