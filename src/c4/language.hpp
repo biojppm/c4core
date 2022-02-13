@@ -143,7 +143,7 @@
 
 #if C4_CPP < 17
 #define C4_IF_CONSTEXPR
-#define C4_INLINE_CONSTEXPR
+#define C4_INLINE_CONSTEXPR constexpr
 #else
 #define C4_IF_CONSTEXPR constexpr
 #define C4_INLINE_CONSTEXPR inline constexpr
