@@ -10,7 +10,7 @@
 - `csubstr`: add `count(csubstr)` overload.
 - Add support for RISC-V architectures ([PR #69](https://github.com/biojppm/c4core/issues/69)).
 - Add support for bare-metal compilation ([PR #64](https://github.com/biojppm/c4core/issues/64)).
-- gcc >= 4.8 support using polyfills for missing templates and features ([PR #68](https://github.com/biojppm/c4core/pull/68))
+- gcc >= 4.8 support using polyfills for missing templates and features ([PR #74](https://github.com/biojppm/c4core/pull/74) and [PR #68](https://github.com/biojppm/c4core/pull/68)).
 
 ### Fixes
 
@@ -28,3 +28,4 @@
 - @danngreen
 - @Xeonacid
 - @aviktorov
+- @fargies
