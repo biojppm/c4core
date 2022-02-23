@@ -24,7 +24,6 @@ set(C4CORE_SRC_FILES
     c4/char_traits.hpp
     c4/common.hpp
     c4/compiler.hpp
-    c4/compat/gcc-4.8.hpp
     c4/config.hpp
     c4/cpu.hpp
     c4/ctor_dtor.hpp

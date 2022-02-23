@@ -101,7 +101,8 @@
 #       endif
 #       if __GNUC__ < 5
 #           if __GNUC__ == 4 && __GNUC_MINOR__ >= 8
-#               include "c4/compat/gcc-4.8.hpp"
+// provided by cmake sub-project
+#               include "c4/gcc-4.8.hpp"
 #           else
 // we do not support GCC < 4.8:
 //  * misses std::is_trivially_copyable

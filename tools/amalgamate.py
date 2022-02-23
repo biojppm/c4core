@@ -63,7 +63,7 @@ INSTRUCTIONS:
         "src/c4/cpu.hpp",
         "src/c4/compiler.hpp",
         am.injcode(required_gcc4_8_include),
-        "src/c4/compat/gcc-4.8.hpp",
+        "cmake/compat/c4/gcc-4.8.hpp",
         "src/c4/language.hpp",
         "src/c4/types.hpp",
         "src/c4/config.hpp",
