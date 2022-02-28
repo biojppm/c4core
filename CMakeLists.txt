@@ -10,6 +10,7 @@ c4_project(VERSION 0.1.9
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
 option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
+option(C4CORE_OVERFLOW_DETECT "detect integer overflows in parser" OFF)
 
 set(C4CORE_SRC_FILES
     c4/allocator.hpp
@@ -96,6 +97,9 @@ if(NOT C4CORE_WITH_FASTFLOAT)
     target_compile_definitions(c4core PUBLIC -DC4CORE_NO_FAST_FLOAT)
 endif()
 
+if(C4CORE_OVERFLOW_DETECT)
+    target_compile_definitions(c4core PUBLIC -DC4CORE_OVERFLOW_DETECT)
+endif()
 
 #-------------------------------------------------------
 

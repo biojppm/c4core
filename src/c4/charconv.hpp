@@ -371,6 +371,23 @@ size_t write_oct(substr buf, T val, size_t num_digits)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+#ifdef C4CORE_OVERFLOW_DETECT
+
+template<size_t radix, class I>
+C4_ALWAYS_INLINE bool _test_overflow(I value, uint8_t symbol)
+{
+    return (value > std::integral_constant<I, std::numeric_limits<I>::max() / radix>::value) ||
+        (value == std::integral_constant<I, std::numeric_limits<I>::max() / radix>::value &&
+            symbol > std::integral_constant<I, std::numeric_limits<I>::max() % radix>::value);
+}
+
+#else
+
+template<size_t radix, class I>
+C4_ALWAYS_INLINE bool _test_overflow(I, uint8_t) { return false; }
+
+#endif
+
 /** read a decimal integer from a string. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
@@ -381,13 +398,16 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
     *v = 0;
+    bool ret = true;
+
     for(char c : s)
     {
-        if(C4_UNLIKELY(c < '0' || c > '9'))
-            return false;
-        *v = (*v) * I(10) + (I(c) - I('0'));
+        const uint8_t cv = static_cast<uint8_t>(c - '0');
+        if(C4_UNLIKELY(cv > 9 || _test_overflow<10>(*v, cv)))
+            ret = false;
+        *v = (*v) * I(10) + cv;
     }
-    return true;
+    return ret;
 }
 
 /** read an hexadecimal integer from a string. This is the
@@ -401,20 +421,24 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
     *v = 0;
-    for(char c : s)
+    bool ret = true;
+
+    for (char c : s)
     {
-        I cv;
-        if(c >= '0' && c <= '9')
-            cv = I(c) - I('0');
-        else if(c >= 'a' && c <= 'f')
-            cv = I(10) + (I(c) - I('a'));
-        else if(c >= 'A' && c <= 'F')
-            cv = I(10) + (I(c) - I('A'));
+        uint8_t cv = static_cast<uint8_t>(c);
+        if(cv >= '0' && cv <= '9')
+            cv -= '0';
+        else if(cv >= 'a' && cv <= 'f')
+            cv -= 'a' - 10;
+        else if(cv >= 'A' && cv <= 'F')
+            cv -= 'A' - 10;
         else
-            return false;
+            ret = false;
+        if(C4_UNLIKELY(_test_overflow<16>(*v, cv)))
+            ret = false;
         *v = (*v) * I(16) + cv;
     }
-    return true;
+    return ret;
 }
 
 /** read a binary integer from a string. This is the
@@ -428,15 +452,20 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
     *v = 0;
+    bool ret = true;
+
     for(char c : s)
     {
+        uint8_t cv = static_cast<uint8_t>(c - '0');
+        if (C4_UNLIKELY(_test_overflow<2>(*v, cv)))
+            ret = false;
         *v <<= 1;
-        if(c == '1')
+        if(cv == 1)
             *v |= 1;
-        else if(c != '0')
-            return false;
+        else if(cv != 0)
+            ret = false;
     }
-    return true;
+    return ret;
 }
 
 /** read an octal integer from a string. This is the
@@ -450,13 +479,16 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
     *v = 0;
+    bool ret = true;
+
     for(char c : s)
     {
-        if(C4_UNLIKELY(c < '0' || c > '7'))
-            return false;
-        *v = (*v) * I(8) + (I(c) - I('0'));
+        const uint8_t cv = static_cast<uint8_t>(c - '0');
+        if(C4_UNLIKELY(cv > 7 || _test_overflow<8>(*v, cv)))
+            ret = false;
+        *v = (*v) * I(8) + cv;
     }
-    return true;
+    return ret;
 }
 
 
@@ -776,71 +808,30 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
 
     if(C4_UNLIKELY(str.len == 0))
         return false;
-
-    T sign = 1;
-    size_t start = 0;
-    if(str.str[0] == '-')
+    else if(str.str[0] == '-')
     {
         if(C4_UNLIKELY(str.len == 1))
             return false;
-        ++start;
-        sign = -1;
-    }
-
-    if(str.str[start] != '0')
-    {
-        if(C4_UNLIKELY( ! read_dec(str.sub(start), v)))
+        typename std::make_unsigned<T>::type uv;
+        if(C4_UNLIKELY( ! atou(str.sub(1), &uv)))
             return false;
+        *v = T(-uv);
+#ifdef C4CORE_OVERFLOW_DETECT
+        return (*v <= 0);
+#else
+        return true;
+#endif
     }
     else
     {
-        if(str.len == start+1)
-        {
-            *v = 0; // because the first character is 0
-            return true;
-        }
-        else
-        {
-            char pfx = str.str[start+1];
-            if(pfx == 'x' || pfx == 'X') // hexadecimal
-            {
-                if(C4_UNLIKELY(str.len <= start + 2))
-                    return false;
-                if(C4_UNLIKELY( ! read_hex(str.sub(start + 2), v)))
-                    return false;
-            }
-            else if(pfx == 'b' || pfx == 'B') // binary
-            {
-                if(C4_UNLIKELY(str.len <= start + 2))
-                    return false;
-                if(C4_UNLIKELY( ! read_bin(str.sub(start + 2), v)))
-                    return false;
-            }
-            else if(pfx == 'o' || pfx == 'O') // octal
-            {
-                if(C4_UNLIKELY(str.len <= start + 2))
-                    return false;
-                if(C4_UNLIKELY( ! read_oct(str.sub(start + 2), v)))
-                    return false;
-            }
-            else
-            {
-                // we know the first character is 0
-                auto fno = str.first_not_of('0', start + 1);
-                if(fno == csubstr::npos)
-                {
-                    *v = 0;
-                    return true;
-                }
-                if(C4_UNLIKELY( ! read_dec(str.sub(fno), v)))
-                {
-                    return false;
-                }
-            }
-        }
+        if(C4_UNLIKELY( ! atou(str, reinterpret_cast<typename std::make_unsigned<T>::type *>(v))))
+            return false;
+#ifdef C4CORE_OVERFLOW_DETECT
+        return (*v >= 0);
+#else
+        return true;
+#endif
     }
-    *v *= sign;
-    return true;
 }
 
 
