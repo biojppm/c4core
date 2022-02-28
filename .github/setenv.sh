@@ -18,7 +18,7 @@ function c4_show_info()
     pwd
     ls -lFhp
     echo "BITLINKS=$BITLINKS"
-    for bl in shared64 static64 shared32 static32 ; do
+    for bl in shared64 static64 shared32 static32 arm64 arm64shared arm64static shared64arm static64arm arm32 arm32shared arm32static shared32arm static32arm arm ; do
         if _c4skipbitlink $bl ; then
             echo "skip $bl"
         else
@@ -60,8 +60,8 @@ function c4_show_info()
 function _c4bits()
 {
     case "$1" in
-        shared64|static64|arm64) echo 64 ;;
-        shared32|static32|arm32|arm) echo 32 ;;
+        shared64|static64|static64arm|shared64arm|arm64static|arm64shared|arm64) echo 64 ;;
+        shared32|static32|static32arm|shared32arm|arm32static|arm32shared|arm32|arm) echo 32 ;;
         *) exit 1 ;;
     esac
 }
@@ -69,8 +69,20 @@ function _c4bits()
 function _c4linktype()
 {
     case "$1" in
-        shared64|shared32) echo shared ;;
-        static64|static32) echo static ;;
+        shared64|shared32|arm64static|arm32static|static64arm|static32arm) echo shared ;;
+        static64|static32|arm64shared|arm32shared|shared64arm|shared32arm|arm64|arm32|arm) echo static ;;
+        *) exit 1 ;;
+    esac
+}
+
+function _c4vsarchtype()
+{
+    # https://cmake.org/cmake/help/git-stage/generator/Visual%20Studio%2016%202019.html
+    case "$1" in
+        shared64|static64) echo x64 ;;
+        shared32|static32) echo Win32 ;;
+        arm64|arm64shared|arm64static|shared64arm|static64arm) echo ARM64 ;;
+        arm32|arm32shared|arm32static|shared32arm|static32arm|arm) echo ARM ;;
         *) exit 1 ;;
     esac
 }
@@ -257,19 +269,21 @@ function c4_cfg_test()
     # quoted strings in variables and then expand the variables with correct quotes
     # so we have to do this precious jewell of chicanery:
     case "$CXX_" in
-        vs2019)
-            g='Visual Studio 16 2019'
-            case "$bits" in
-                64) a=x64 ;;
-                32) a=Win32 ;;
-            esac
+        vs2022)
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
-                  -DCMAKE_BUILD_TYPE=$BT -G "$g" -A $a $CMFLAGS
+                  -G 'Visual Studio 17 2022' -A $(_c4vsarchtype $id) \
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
+            ;;
+        vs2019)
+            cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
+                  -G 'Visual Studio 16 2019' -A $(_c4vsarchtype $id) \
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
             ;;
         vs2017)
             case "$bits" in
                 64) g="Visual Studio 15 2017 Win64" ;;
                 32) g="Visual Studio 15 2017" ;;
+                *) exit 1 ;;
             esac
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_BUILD_TYPE=$BT -G "$g" $CMFLAGS
@@ -353,7 +367,7 @@ function _addprojflags()
 function _c4_parallel_build_flags()
 {
     case "$CXX_" in
-        vs2019|vs2017|vs2015)
+        vs2022|vs2019|vs2017|vs2015)
             # https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-command-line-reference?view=vs-2019
             # https://stackoverflow.com/questions/2619198/how-to-get-number-of-cores-in-win32
             if [ -z "$NUM_JOBS_BUILD" ] ; then
@@ -390,7 +404,7 @@ function _c4_parallel_build_flags()
 function _c4_generator_build_flags()
 {
     case "$CXX_" in
-        vs2019|vs2017|vs2015)
+        vs2022|vs2019|vs2017|vs2015)
             ;;
         xcode)
             # WTF???
