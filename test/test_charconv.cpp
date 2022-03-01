@@ -1195,6 +1195,217 @@ TEST_CASE("atou.range_u64")
 #undef Ti
 #undef Tu
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+template<class T, class ...Args>
+void test_overflows(std::initializer_list<const char *> args)
+{
+    for(const char *s : args)
+        CHECK_MESSAGE(overflows<T>(to_csubstr(s)), "num=" << s);
+}
+
+template<class T, class ...Args>
+void test_no_overflows(std::initializer_list<const char *> args)
+{
+    for(const char *s : args)
+        CHECK_MESSAGE(!overflows<T>(to_csubstr(s)), "num=" << s);
+}
+
+template<class T>
+void test_overflows_hex()
+{
+    T x;
+    std::string str;
+    if (std::is_unsigned<T>::value)
+    {
+        /* with leading zeroes */
+        str = "0x0" + std::string(sizeof (T) * 2, 'F');
+        CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::max(), x);
+
+        str = "0x01" + std::string(sizeof (T) * 2, '0');
+        CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::min(), x);
+    }
+    else
+    {
+        /* with leading zeroes */
+        str = "0x07" + std::string(sizeof (T) * 2 - 1, 'F');
+        CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::max(), x);
+
+        str = "0x0" + std::string(sizeof (T) * 2, 'F');
+        CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(-1, x);
+        
+        str = "-0x08" + std::string(sizeof (T) * 2 - 1, '0');
+        CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::min(), x);
+
+        str = "-0x08" + std::string(sizeof (T) * 2 - 2, '0') + "1";
+        CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::max(), x);
+    }
+}
+
+template<class T>
+void test_overflows_bin()
+{
+    T x;
+    std::string str;
+    if (std::is_unsigned<T>::value)
+    {
+        /* with leading zeroes */
+        str = "0b0" + std::string(sizeof (T) * 8, '1');
+        CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::max(), x);
+        
+        str = "0b01" + std::string(sizeof (T) * 8, '0');
+        CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::min(), x);
+    }
+    else
+    {
+        /* with leading zeroes */
+        str = "0b0" + std::string(sizeof (T) * 8 - 1, '1');
+        CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::max(), x);
+        
+        str = "0b0" + std::string(sizeof (T) * 8, '1');
+        CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(-1, x);
+
+        str = "-0b01" + std::string(sizeof (T) * 8 - 1, '0');
+        CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::min(), x);
+
+        str = "-0b01" + std::string(sizeof (T) * 8 - 2, '0') + "1";
+        CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<T>::max(), x);
+    }
+}
+
+template<class T>
+void test_overflows()
+{
+    for(int radix : { 2, 8, 10, 16 })
+    {
+        char bufc[100] = {0};
+        substr s(bufc);
+
+        uint64_t max = std::numeric_limits<T>::max();
+        auto sz = utoa<uint64_t>(s, max, uint64_t(radix));
+        CHECK_MESSAGE(!overflows<T>(s.first(sz)), "num=" << s);
+        memset(s.str, 0, s.len);
+        sz = utoa<uint64_t>(s, max + 1, uint64_t(radix));
+        CHECK_MESSAGE(overflows<T>(s.first(sz)), "num=" << s);
+
+        if (std::is_signed<T>::value)
+        {
+            int64_t min = std::numeric_limits<T>::min();
+            sz = itoa<int64_t>(s, min, uint64_t(radix));
+            CHECK_MESSAGE(!overflows<T>(s.first(sz)), "num=" << s);
+            memset(s.str, 0, s.len);
+            sz = itoa<int64_t>(s, min - 1, uint64_t(radix));
+            CHECK_MESSAGE(overflows<T>(s.first(sz)), "num=" << s);
+        }
+    }
+
+    test_overflows_hex<T>();
+    test_overflows_bin<T>();
+}
+
+TEST_CASE("overflows")
+{
+    test_no_overflows<int>({ "", "0", "000", "0b0", "0B0", "0x0", "0X0", "0o0", "0O0" });
+    test_no_overflows<int>({ "-", "-0", "-000", "-0b0", "-0B0", "-0x0", "-0X0", "-0o0", "-0O0" });
+}
+
+TEST_CASE("overflows.u8")
+{
+    test_overflows<uint8_t>();
+}
+
+TEST_CASE("overflows.u16")
+{
+    test_overflows<uint16_t>();
+}
+
+TEST_CASE("overflows.u32")
+{
+    test_overflows<uint32_t>();
+}
+
+TEST_CASE("overflows.u64")
+{
+    CHECK(!overflows<uint64_t>("18446744073709551615"));
+    CHECK(overflows<uint64_t>("18446744073709551616"));
+    
+    { /* with leading zeroes */
+        std::string str;
+        uint64_t x;
+        str = "0o01" + std::string(21, '7');
+        CHECK_MESSAGE(!overflows<uint64_t>(to_csubstr(str)), "num=" << str);
+        str = "0o02" + std::string(21, '0');
+        CHECK_MESSAGE(overflows<uint64_t>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(0, x);
+    }
+
+    test_overflows_hex<uint64_t>();
+    test_overflows_bin<uint64_t>();
+}
+
+TEST_CASE("overflows.i8")
+{
+    test_overflows<int8_t>();
+}
+
+TEST_CASE("overflows.i16")
+{
+    test_overflows<int16_t>();
+}
+
+TEST_CASE("overflows.i32")
+{
+    test_overflows<int32_t>();
+}
+
+TEST_CASE("overflows.i64")
+{
+    CHECK(!overflows<int64_t>("9223372036854775807"));
+    CHECK(overflows<int64_t>("9223372036854775808"));
+    CHECK(!overflows<int64_t>("-9223372036854775808"));
+    CHECK(overflows<int64_t>("-9223372036854775809"));
+    
+    { /* with leading zeroes */
+        std::string str;
+        int64_t x;
+        str = "0o0" + std::string(21, '7');
+        CHECK_MESSAGE(!overflows<int64_t>(to_csubstr(str)), "num=" << str);
+        str = "0o01" + std::string(21, '0');
+        CHECK_MESSAGE(overflows<int64_t>(to_csubstr(str)), "num=" << str);
+        CHECK(atox(to_csubstr(str), &x));
+        CHECK_EQ(std::numeric_limits<int64_t>::min(), x);
+    }
+
+    test_overflows_hex<int64_t>();
+    test_overflows_bin<int64_t>();
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

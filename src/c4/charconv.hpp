@@ -963,6 +963,242 @@ inline size_t atou_first(csubstr str, T *v)
 #   pragma GCC diagnostic pop
 #endif
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+namespace detail {
+template<class T> struct overflow_max {};
+template<> struct overflow_max<uint8_t>
+{
+    static csubstr value_dec() { return csubstr("255"); }
+    static bool is_oct_overflow(csubstr str) {
+        return !((str.len < 3) || (str.len == 3 && str[0] <= '3'));
+    }
+};
+template<> struct overflow_max<uint16_t>
+{
+    static csubstr value_dec() { return csubstr("65535"); }
+    static bool is_oct_overflow(csubstr str) {
+        return !((str.len < 6) || (str.len == 6 && str[0] <= '1'));
+    }
+};
+template<> struct overflow_max<uint32_t>
+{
+    static csubstr value_dec() { return csubstr("4294967295"); }
+    static bool is_oct_overflow(csubstr str) {
+        return !((str.len < 11) || (str.len == 11 && str[0] <= '3'));
+    }
+};
+template<> struct overflow_max<uint64_t>
+{
+    static csubstr value_dec() { return csubstr("18446744073709551615"); }
+    static bool is_oct_overflow(csubstr str) {
+        return !((str.len < 22) || (str.len == 22 && str[0] <= '1'));
+    }
+};
+template<> struct overflow_max<int8_t>
+{
+    static csubstr value_dec() { return csubstr("127"); }
+    static bool is_oct_overflow(csubstr str) {
+        return !((str.len < 3) || (str.len == 3 && str[0] <= '1'));
+    }
+};
+template<> struct overflow_max<int16_t>
+{
+    static csubstr value_dec() { return csubstr("32767"); }
+    static bool is_oct_overflow(csubstr str) {
+        return !((str.len < 6));
+    }
+};
+template<> struct overflow_max<int32_t>
+{
+    static csubstr value_dec() { return csubstr("2147483647"); }
+    static bool is_oct_overflow(csubstr str) {
+        return !((str.len < 11) || (str.len == 11 && str[0] <= '1'));
+    }
+};
+template<> struct overflow_max<int64_t>
+{
+    static csubstr value_dec() { return csubstr("9223372036854775807"); }
+    static bool is_oct_overflow(csubstr str) {
+        return !((str.len < 22));
+    }
+};
+
+
+inline bool check_overflow(csubstr str, csubstr limit)
+{
+    if(str.len == limit.len)
+    {
+        for(size_t i = 0; i < limit.len; ++i)
+        {
+            if(str[i] < limit[i])
+                return false;
+            else if(str[i] > limit[i])
+                return true;
+        }
+        return false;
+    }
+    else
+        return str.len > limit.len;
+}
+}
+
+/** Test if the following string would overflow when converted to associated
+ * types.
+ * @return true if number will overflow, false if it fits (or doesn't parse)
+ */
+template<class T>
+typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubstr str)
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+
+    if(C4_UNLIKELY(str.len == 0))
+        return false;
+    else if(str.str[0] == '0')
+    {
+        if (str.len == 1)
+            return false;
+
+        switch (str.str[1])
+        {
+            case 'x':
+            case 'X':
+            {
+                auto fno = str.first_not_of('0', 2);
+                if (fno == csubstr::npos)
+                    return false;
+                return !(str.len - fno <= (sizeof (T) * 2));
+            }
+            case 'b':
+            case 'B':
+            {
+                auto fno = str.first_not_of('0', 2);
+                if (fno == csubstr::npos)
+                    return false;
+                return !(str.len - fno <= (sizeof (T) * 8));
+            }
+            case 'o':
+            case 'O':
+            {
+                auto fno = str.first_not_of('0', 2);
+                if(fno == csubstr::npos)
+                    return false;
+                return detail::overflow_max<T>::is_oct_overflow(str.sub(fno));
+            }
+            default:
+            {
+                auto fno = str.first_not_of('0', 1);
+                if(fno == csubstr::npos)
+                    return false;
+                return detail::check_overflow(str.sub(fno), detail::overflow_max<T>::value_dec());
+            }
+        }
+    }
+    else
+        return detail::check_overflow(str, detail::overflow_max<T>::value_dec());
+}
+
+/** Test if the following string would overflow when converted to associated
+ * types.
+ * @return true if number will overflow, false if it fits (or doesn't parse)
+ */
+template<class T>
+typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr str)
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+
+    if(C4_UNLIKELY(str.len == 0))
+        return false;
+    if (str.str[0] == '-')
+    {
+        if(str.str[1] == '0')
+        {
+            if (str.len == 2)
+                return false;
+
+            switch (str.str[2])
+            {
+                case 'x':
+                case 'X':
+                {
+                    auto fno = str.first_not_of('0', 3);
+                    if (fno == csubstr::npos)
+                        return false;
+                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof (T)>::value_hex());
+                }
+                case 'b':
+                case 'B':
+                {
+                    auto fno = str.first_not_of('0', 3);
+                    if (fno == csubstr::npos)
+                        return false;
+                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof (T)>::value_bin());
+                }
+                case 'o':
+                case 'O':
+                {
+                    auto fno = str.first_not_of('0', 3);
+                    if(fno == csubstr::npos)
+                        return false;
+                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof (T)>::value_oct());
+                }
+                default:
+                {
+                    auto fno = str.first_not_of('0', 2);
+                    if(fno == csubstr::npos)
+                        return false;
+                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof (T)>::value_dec());
+                }
+            }
+        }
+        else
+            return detail::check_overflow(str.sub(1), detail::itoa_min<sizeof (T)>::value_dec());
+    }
+    else if(str.str[0] == '0')
+    {
+        if (str.len == 1)
+            return false;
+
+        switch (str.str[1])
+        {
+            case 'x':
+            case 'X':
+            {
+                auto fno = str.first_not_of('0', 2);
+                if (fno == csubstr::npos)
+                    return false;
+                const size_t len = str.len - fno;
+                return !((len < sizeof (T) * 2) || (len == sizeof (T) * 2 && str[fno] <= '7'));
+            }
+            case 'b':
+            case 'B':
+            {
+                auto fno = str.first_not_of('0', 2);
+                if (fno == csubstr::npos)
+                    return false;
+                return !(str.len - fno <= (sizeof (T) * 8 - 1));
+            }
+            case 'o':
+            case 'O':
+            {
+                auto fno = str.first_not_of('0', 2);
+                if(fno == csubstr::npos)
+                    return false;
+                return detail::overflow_max<T>::is_oct_overflow(str.sub(fno));
+            }
+            default:
+            {
+                auto fno = str.first_not_of('0', 1);
+                if(fno == csubstr::npos)
+                    return false;
+                return detail::check_overflow(str.sub(fno), detail::overflow_max<T>::value_dec());
+            }
+        }
+    }
+    else
+        return detail::check_overflow(str, detail::overflow_max<T>::value_dec());
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
