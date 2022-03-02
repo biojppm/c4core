@@ -5,6 +5,7 @@
 #include <c4/std/std.hpp>
 #include <c4/charconv.hpp>
 #include <c4/format.hpp>
+#include <c4/memory_util.hpp>
 #include <inttypes.h>
 #include <stdio.h>
 #include <algorithm>
@@ -41,10 +42,15 @@ double getrange(std::vector<double> const& v)
 // makes the program return a nonzero exit code when it finishes. So
 // we resort to the preprocessor to conditionally disable these
 // benchmarks
-#if C4_CPP >= 17 && defined(__cpp_lib_to_chars)
-#define C4BM_TEMPLATE_CPP17(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
+#if defined(__cpp_lib_to_chars)
+#define C4BM_TEMPLATE_TO_CHARS_INT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
+#define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
+#elif C4_CPP >= 17
+#define C4BM_TEMPLATE_TO_CHARS_INT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
+#define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) void shutup_extra_semicolon()
 #else
-#define C4BM_TEMPLATE_CPP17(fn, ...) void shutup_extra_semicolon()
+#define C4BM_TEMPLATE_TO_CHARS_INT(fn, ...) void shutup_extra_semicolon()
+#define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) void shutup_extra_semicolon()
 #endif
 
 #ifdef __clang__
@@ -98,40 +104,92 @@ namespace bm = benchmark;
 
 /** convenience wrapper to avoid boilerplate code */
 template<class T>
-void report(bm::State &st)
+void report(bm::State &st, size_t numvals=1)
 {
-    st.SetBytesProcessed(static_cast<int64_t>(st.iterations() * sizeof(T)));
-    st.SetItemsProcessed(static_cast<int64_t>(st.iterations()));
+    int64_t iters = (int64_t)(st.iterations() * numvals);
+    int64_t bytes = (int64_t)(st.iterations() * numvals * sizeof(T));
+    st.SetBytesProcessed(bytes);
+    st.SetItemsProcessed(iters);
 }
 
+template<class T>
+constexpr bool is_pot(T val)
+{
+    return val > 0 && (val & (val-T(1))) == 0;
+}
+
+constexpr const uint64_t kSeed = 37;
+constexpr const size_t kNumValues = 16384;
+C4_STATIC_ASSERT(is_pot(kNumValues));
+
+
+template<class T, class Eng, class Dist>
+T gen(Dist &dist, Eng &eng)
+{
+    return static_cast<T>(dist(eng));
+}
+
+template<class T, class Eng, class Dist>
+T gen_pos(Dist &dist, Eng &eng)
+{
+    T val = static_cast<T>(dist(eng));
+    while(val < T(0))
+        val = static_cast<T>(dist(eng));
+    return val;
+}
 
 /** generate in place a random sequence of values: integral version*/
 C4FOR(T, isint)
 generate_n(T *begin, T *end)
 {
-    c4::rng::pcg rng;
+    // do not use T in the distribution:
+    //  N4659 29.6.1.1 [rand.req.genl]/1e requires one of short, int, long, long long, unsigned short, unsigned int, unsigned long, or unsigned long long
+    std::uniform_int_distribution<uint64_t> idist;
+    c4::rng::pcg rng(kSeed);
+    for(; begin != end; ++begin)
+        *begin = gen<T>(idist, rng);
+}
+
+C4FOR(T, isint)
+generate_n_positive(T *begin, T *end)
+{
     // do not use T in the distribution:
     //  N4659 29.6.1.1 [rand.req.genl]/1e requires one of short, int, long, long long, unsigned short, unsigned int, unsigned long, or unsigned long long
     std::uniform_int_distribution<uint32_t> idist;
-    std::generate(begin, end, [&](){ return (T) idist(rng); });
+    c4::rng::pcg rng(kSeed);
+    for(; begin != end; ++begin)
+        *begin = gen_pos<T>(idist, rng);
 }
-
 
 /** generate in place a random sequence of values: real-number version*/
 C4FOR(T, isreal)
 generate_n(T *begin, T *end)
 {
-    c4::rng::pcg rng;
+    c4::rng::pcg rng(kSeed);
     // make sure we also have some integral numbers in the real sequence
     T *rstart = begin + (std::distance(begin, end) / 20); // 5% integral numbers
     std::uniform_int_distribution<uint32_t> idist;
     std::uniform_real_distribution<T> rdist;
-    std::generate(begin , rstart, [&](){ return idist(rng); });
-    std::generate(rstart,    end, [&](){ return rdist(rng); });
+    for(; begin != rstart; ++begin)
+        *begin = gen<T>(idist, rng);
+    for(; begin != end; ++begin)
+        *begin = gen<T>(rdist, rng);
 }
 
-
-constexpr const size_t kNumValues = 16384;
+/** generate in place a random sequence of values: real-number version*/
+C4FOR(T, isreal)
+generate_n_positive(T *begin, T *end)
+{
+    c4::rng::pcg rng(kSeed);
+    // make sure we also have some integral numbers in the real sequence
+    T *rstart = begin + (std::distance(begin, end) / 20); // 5% integral numbers
+    std::uniform_int_distribution<uint32_t> idist;
+    std::uniform_real_distribution<T> rdist;
+    for(; begin != rstart; ++begin)
+        *begin = gen_pos<T>(idist, rng);
+    for(; begin != end; ++begin)
+        *begin = gen_pos<T>(rdist, rng);
+}
 
 
 /** a ring buffer with input values for xtoa benchmarks */
@@ -139,75 +197,149 @@ template<class T>
 struct random_values
 {
     std::vector<T> v;
-    size_t curr;
-    T next() { T f = v[curr]; curr = (curr + 1) % v.size(); return f; }
-
-    random_values(size_t sz=kNumValues) : v(sz), curr(0)
+    mutable size_t curr;
+    size_t szm1;
+    T next() const { T f = v[curr]; curr = (curr + 1) & szm1; return f; }
+    random_values(bool positive_only, size_t sz) : v(sz), curr(0), szm1(sz)
     {
-        generate_n<T>(&v.front(), &v.back());
+        C4_CHECK(is_pot(sz));
+        if(positive_only)
+            generate_n_positive<T>(&v.front(), &v.back());
+        else
+            generate_n<T>(&v.front(), &v.back());
     }
 };
+template<class T>
+using random_values_cref = random_values<T> const&;
+
+template<class T>
+random_values_cref<T> mkvals()
+{
+    static random_values<T> vals(/*positive_only*/false, kNumValues);
+    return vals;
+}
+template<class T>
+random_values_cref<T> mkvals_positive()
+{
+    static random_values<T> vals(/*positive_only*/true, kNumValues);
+    return vals;
+}
 
 
 /** a ring buffer with input strings for atox benchmarks */
 struct random_strings
 {
     std::vector<std::string> v;
-    size_t curr;
-    c4::csubstr next() { c4::csubstr f = c4::to_csubstr(v[curr]); curr = (curr + 1) % v.size(); return f; }
-    std::string const& next_s() { std::string const& f = v[curr]; curr = (curr + 1) % v.size(); return f; }
+    mutable size_t curr;
+    size_t szm1;
+    c4::csubstr next() const { c4::csubstr f = c4::to_csubstr(v[curr]); curr = (curr + 1) & szm1; return f; }
+    std::string const& next_s() const { std::string const& f = v[curr]; curr = (curr + 1) & szm1; return f; }
 
-    random_strings(size_t sz=kNumValues) : v(sz), curr(0) {}
+    random_strings() = default;
 
     template<class T>
-    void init_as()
+    void _init(random_values<T> const& tmp)
     {
-        random_values<T> tmp(v.size());
-        generate_n<T>(&tmp.v.front(), &tmp.v.back());
+        C4_CHECK(is_pot(tmp.v.size()));
+        v.resize(tmp.v.size());
+        curr = 0;
+        szm1 = tmp.v.size() - 1;
+    }
+
+    template<class T>
+    void init_as(random_values<T> const& tmp)
+    {
+        _init(tmp);
         for(size_t i = 0; i < v.size(); ++i)
-        {
             c4::catrs(&v[i], tmp.v[i]);
-        }
     }
-
     template<class T>
-    void init_as_hex()
+    void init_as_hex(random_values<T> const& tmp)
     {
-        random_values<T> tmp(v.size());
-        generate_n<T>(&tmp.v.front(), &tmp.v.back());
+        _init(tmp);
         for(size_t i = 0; i < v.size(); ++i)
-        {
             c4::catrs(&v[i], c4::fmt::hex(tmp.v[i]));
-        }
     }
     template<class T>
-    void init_as_oct()
+    void init_as_oct(random_values<T> const& tmp)
     {
-        random_values<T> tmp(v.size());
-        generate_n<T>(&tmp.v.front(), &tmp.v.back());
+        _init(tmp);
         for(size_t i = 0; i < v.size(); ++i)
-        {
             c4::catrs(&v[i], c4::fmt::oct(tmp.v[i]));
-        }
     }
     template<class T>
-    void init_as_bin()
+    void init_as_bin(random_values<T> const& tmp)
     {
-        random_values<T> tmp(v.size());
-        generate_n<T>(&tmp.v.front(), &tmp.v.back());
+        _init(tmp);
         for(size_t i = 0; i < v.size(); ++i)
-        {
             c4::catrs(&v[i], c4::fmt::bin(tmp.v[i]));
-        }
     }
 
 };
+using random_strings_cref = random_strings const&;
 
 template<class T>
-random_strings mkstrings()
+random_strings_cref mkstrings()
 {
-    random_strings rs;
-    rs.init_as<T>();
+    static random_strings rs;
+    if(rs.v.empty())
+        rs.init_as<T>(mkvals<T>());
+    return rs;
+}
+template<class T>
+random_strings_cref mkstrings_positive()
+{
+    static random_strings rs;
+    if(rs.v.empty())
+        rs.init_as<T>(mkvals_positive<T>());
+    return rs;
+}
+template<class T>
+random_strings_cref mkstrings_hex()
+{
+    static random_strings rs;
+    if(rs.v.empty())
+        rs.init_as_hex<T>(mkvals<T>());
+    return rs;
+}
+template<class T>
+random_strings_cref mkstrings_hex_positive()
+{
+    static random_strings rs;
+    if(rs.v.empty())
+        rs.init_as_hex<T>(mkvals_positive<T>());
+    return rs;
+}
+template<class T>
+random_strings_cref mkstrings_oct()
+{
+    static random_strings rs;
+    if(rs.v.empty())
+        rs.init_as_oct<T>(mkvals<T>());
+    return rs;
+}
+template<class T>
+random_strings_cref mkstrings_oct_positive()
+{
+    static random_strings rs;
+    if(rs.v.empty())
+        rs.init_as_oct<T>(mkvals_positive<T>());
+    return rs;
+}
+template<class T>
+random_strings_cref mkstrings_bin()
+{
+    static random_strings rs;
+    if(rs.v.empty())
+        rs.init_as_bin<T>(mkvals<T>());
+    return rs;
+}
+template<class T>
+random_strings_cref mkstrings_bin_positive()
+{
+    static random_strings rs;
+    if(rs.v.empty())
+        rs.init_as_bin<T>(mkvals_positive<T>());
     return rs;
 }
 
@@ -238,220 +370,176 @@ using string_buffer = sbuf<>;
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+#define C4DOALL(n) for(size_t elm = 0; elm < n; ++elm)
+
+
 C4FOR(T, isint)
 atox_c4_read_dec(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val;
     for(auto _ : st)
     {
-        c4::read_dec(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::read_dec(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isint)
 atox_c4_read_hex(bm::State& st)
 {
-    random_strings strings;
-    strings.init_as_hex<T>();
+    random_strings_cref strings = mkstrings_hex_positive<T>();
     T val;
     for(auto _ : st)
     {
-        c4::read_hex(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::read_hex(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isint)
 atox_c4_read_oct(bm::State& st)
 {
-    random_strings strings;
-    strings.init_as_oct<T>();
+    random_strings_cref strings = mkstrings_oct_positive<T>();
     T val;
     for(auto _ : st)
     {
-        c4::read_oct(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::read_oct(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isint)
 atox_c4_read_bin(bm::State& st)
 {
-    random_strings strings;
-    strings.init_as_bin<T>();
+    random_strings_cref strings = mkstrings_bin_positive<T>();
     T val;
     for(auto _ : st)
     {
-        c4::read_bin(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::read_bin(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-C4FOR(T, isuint)
+C4FOR(T, isint)
 xtoa_c4_write_dec(bm::State& st)
 {
     string_buffer buf;
-    T i = 0;
+    random_values_cref<T> values = mkvals_positive<T>();
     for(auto _ : st)
     {
-        c4::write_dec(buf, i++);
+        C4DOALL(kNumValues)
+            c4::write_dec(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-C4FOR(T, isiint)
-xtoa_c4_write_dec(bm::State& st)
-{
-    string_buffer buf;
-    T i = 0;
-    for(auto _ : st)
-    {
-        if(i < 0)
-            i = 0;
-        c4::write_dec(buf, i++);
-    }
-    report<T>(st);
-}
-
-C4FOR(T, isuint)
+C4FOR(T, isint)
 xtoa_c4_write_hex(bm::State& st)
 {
     string_buffer buf;
-    T i = 0;
+    random_values_cref<T> values = mkvals_positive<T>();
     for(auto _ : st)
     {
-        c4::write_hex(buf, i++);
+        C4DOALL(kNumValues)
+            c4::write_hex(buf, values.next());
     }
-    report<T>(st);
-}
-#include <iostream>
-C4FOR(T, isiint)
-xtoa_c4_write_hex(bm::State& st)
-{
-    string_buffer buf;
-    T i = 0;
-    for(auto _ : st)
-    {
-        if(i < 0)
-            i = 0;
-        c4::write_hex(buf, i++);
-    }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-C4FOR(T, isuint)
+C4FOR(T, isint)
 xtoa_c4_write_oct(bm::State& st)
 {
     string_buffer buf;
-    T i = 0;
+    random_values_cref<T> values = mkvals_positive<T>();
     for(auto _ : st)
     {
-        c4::write_oct(buf, i++);
+        C4DOALL(kNumValues)
+            c4::write_oct(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-C4FOR(T, isiint)
-xtoa_c4_write_oct(bm::State& st)
-{
-    string_buffer buf;
-    T i = 0;
-    for(auto _ : st)
-    {
-        if(i < 0)
-            i = 0;
-        c4::write_oct(buf, i++);
-    }
-    report<T>(st);
-}
-
-C4FOR(T, isuint)
+C4FOR(T, isint)
 xtoa_c4_write_bin(bm::State& st)
 {
     string_buffer buf;
-    T i = 0;
+    random_values_cref<T> values = mkvals_positive<T>();
     for(auto _ : st)
     {
-        c4::write_bin(buf, i++);
+        C4DOALL(kNumValues)
+            c4::write_bin(buf, values.next());
     }
-    report<T>(st);
-}
-
-C4FOR(T, isiint)
-xtoa_c4_write_bin(bm::State& st)
-{
-    string_buffer buf;
-    T i = 0;
-    for(auto _ : st)
-    {
-        if(i < 0)
-            i = 0;
-        c4::write_bin(buf, i++);
-    }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isiint)
 xtoa_c4_itoa(bm::State& st)
 {
     string_buffer buf;
-    T i = -10;
+    random_values_cref<T> values = mkvals_positive<T>();
     for(auto _ : st)
     {
-        c4::itoa(buf, ++i);
+        C4DOALL(kNumValues)
+            c4::itoa(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isuint)
 xtoa_c4_utoa(bm::State& st)
 {
     string_buffer buf;
-    T i = 0;
+    random_values_cref<T> values = mkvals_positive<T>();
     for(auto _ : st)
     {
-        ++i;
-        c4::utoa(buf, ++i);
+        C4DOALL(kNumValues)
+            c4::utoa(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isfloat)
 xtoa_c4_ftoa(bm::State& st)
 {
     string_buffer buf;
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
     for(auto _ : st)
     {
-        c4::ftoa(buf, values.next());
+        C4DOALL(kNumValues)
+            c4::ftoa(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isdouble)
 xtoa_c4_dtoa(bm::State& st)
 {
     string_buffer buf;
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
     for(auto _ : st)
     {
-        c4::dtoa(buf, values.next());
+        C4DOALL(kNumValues)
+            c4::dtoa(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 template<class T>
 void xtoa_c4_xtoa(bm::State& st)
 {
     string_buffer buf;
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
     for(auto _ : st)
     {
-        c4::xtoa(buf, values.next());
+        C4DOALL(kNumValues)
+            c4::xtoa(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 
@@ -460,61 +548,79 @@ void xtoa_c4_xtoa(bm::State& st)
 C4FOR(T, isiint)
 atox_c4_atoi(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    random_strings_cref strings = mkstrings_positive<T>();
+    T val;
     for(auto _ : st)
     {
-        c4::atoi(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::atoi(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isuint)
 atox_c4_atou(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    random_strings_cref strings = mkstrings_positive<T>();
+    T val;
     for(auto _ : st)
     {
-        c4::atou(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::atou(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isfloat)
 atox_c4_atof(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    random_strings_cref strings = mkstrings<T>();
+    T val;
     for(auto _ : st)
     {
-        c4::atof(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::atof(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isdouble)
 atox_c4_atod(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    random_strings_cref strings = mkstrings<T>();
+    T val;
     for(auto _ : st)
     {
-        c4::atod(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::atod(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-template<class T>
-void atox_c4_atox(bm::State& st)
+C4FOR(T, isint)
+atox_c4_atox(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    random_strings_cref strings = mkstrings_positive<T>();
+    T val;
     for(auto _ : st)
     {
-        c4::atox(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::atox(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isreal)
+atox_c4_atox(bm::State& st)
+{
+    random_strings_cref strings = mkstrings<T>();
+    T val;
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            c4::atox(strings.next(), &val);
+    }
+    report<T>(st, kNumValues);
 }
 
 
@@ -523,37 +629,40 @@ void atox_c4_atox(bm::State& st)
 C4FOR(T, isint)
 atox_std_atoi(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = (T) std::atoi(strings.next().data());
+        C4DOALL(kNumValues)
+            val = (T) std::atoi(strings.next().data());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isint)
 atox_std_atol(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = (T) std::atol(strings.next().data());
+        C4DOALL(kNumValues)
+            val = (T) std::atol(strings.next().data());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 atox_std_atof(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = (T) std::atof(strings.next().data());
+        C4DOALL(kNumValues)
+            val = (T) std::atof(strings.next().data());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 
@@ -562,103 +671,123 @@ atox_std_atof(bm::State& st)
 C4FOR(T, isint)
 atox_std_strtol(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = strings.next();
-        val = (T) std::strtol(s.begin(), nullptr, 10);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            val = (T) std::strtol(s.begin(), nullptr, 10);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isint)
 atox_std_strtoll(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = strings.next();
-        val = (T) std::strtoll(s.begin(), nullptr, 10);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            val = (T) std::strtoll(s.begin(), nullptr, 10);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isint)
 atox_std_strtoul(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = strings.next();
-        val = (T) std::strtoul(s.begin(), nullptr, 10);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            val = (T) std::strtoul(s.begin(), nullptr, 10);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isint)
 atox_std_strtoull(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = strings.next();
-        val = (T) std::strtoull(s.begin(), nullptr, 10);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            val = (T) std::strtoull(s.begin(), nullptr, 10);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 atox_std_strtof(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = strings.next();
-        val = (T) std::strtof(s.begin(), nullptr);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            val = (T) std::strtof(s.begin(), nullptr);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 atox_std_strtod(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        auto s = strings.next();
-        val = (T) std::strtod(s.begin(), nullptr);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            val = (T) std::strtod(s.begin(), nullptr);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 atox_std_stof(bm::State &st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = std::stof(strings.next_s());
+        C4DOALL(kNumValues)
+            val = std::stof(strings.next_s());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 atox_std_stod(bm::State &st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        val = std::stod(strings.next_s());
+        C4DOALL(kNumValues)
+            val = std::stod(strings.next_s());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 
@@ -668,53 +797,62 @@ atox_std_stod(bm::State &st)
 C4FOR(T, isfloat)
 atox_ryu_s2f(bm::State &st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = strings.next_s();
-        s2f_n(s.data(), (int) s.size(), &val);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            s2f_n(s.data(), (int) s.size(), &val);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isdouble)
 atox_ryu_s2d(bm::State &st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = strings.next_s();
-        s2d_n(s.data(), (int) s.size(), &val);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            s2d_n(s.data(), (int) s.size(), &val);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isfloat)
 xtoa_ryu_f2s(bm::State &st)
 {
     string_buffer buf;
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
     for(auto _ : st)
     {
-        f2s_buffered_n(values.next(), buf.buf.str);
+        C4DOALL(kNumValues)
+            f2s_buffered_n(values.next(), buf.buf.str);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isdouble)
 xtoa_ryu_d2s(bm::State &st)
 {
     string_buffer buf;
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
     for(auto _ : st)
     {
-        d2s_buffered_n(values.next(), buf.buf.str);
+        C4DOALL(kNumValues)
+            d2s_buffered_n(values.next(), buf.buf.str);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 #endif // C4CORE_BM_USE_RYU
+
 
 //-----------------------------------------------------------------------------
 
@@ -729,44 +867,53 @@ xtoa_ryu_d2s(bm::State &st)
 C4FOR(T, isreal)
 atox_fp_from_chars_limited(bm::State &st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = strings.next_s();
-        val = jkj::fp::from_chars_limited<T>(s.data(), s.data()+s.size()).to_float();
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            val = jkj::fp::from_chars_limited<T>(s.begin(), s.end()).to_float();
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 atox_fp_from_chars_unlimited(bm::State &st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = strings.next_s();
-        val = jkj::fp::from_chars_unlimited<T>(s.data(), s.data()+s.size()).to_float();
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            val = jkj::fp::from_chars_unlimited<T>(s.begin(), s.end()).to_float();
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 #endif
 
 
 //-----------------------------------------------------------------------------
 
-template<class T>
-void atox_fast_float(bm::State &st)
+C4FOR(T, isreal)
+atox_fast_float(bm::State &st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = strings.next_s();
-        fast_float::from_chars(s.data(), s.data()+s.size(), val);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            fast_float::from_chars(s.begin(), s.end(), val);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 
@@ -810,37 +957,54 @@ C4FOR(T, isint)
 xtoa_sprintf(bm::State& st)
 {
     string_buffer buf;
-    T i = 0;
+    random_values_cref<T> values = mkvals_positive<T>();
     for(auto _ : st)
     {
-        ++i;
-        ::snprintf(buf.buf.str, buf.buf.len, fmtspec<T>::w, i);
+        C4DOALL(kNumValues)
+        {
+            ::snprintf(buf.buf.str, buf.buf.len, fmtspec<T>::w, values.next());
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 xtoa_sprintf(bm::State& st)
 {
     string_buffer buf;
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
     for(auto _ : st)
     {
-        ::snprintf(buf.buf.str, buf.buf.len, fmtspec<T>::w, values.next());
+        C4DOALL(kNumValues)
+            ::snprintf(buf.buf.str, buf.buf.len, fmtspec<T>::w, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-template<class T>
-void atox_scanf(bm::State& st)
+C4FOR(T, isint)
+atox_scanf(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        ::sscanf(strings.next().str, fmtspec<T>::r, &val);
+        C4DOALL(kNumValues)
+            ::sscanf(strings.next().str, fmtspec<T>::r, &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isreal)
+atox_scanf(bm::State& st)
+{
+    random_strings_cref strings = mkstrings<T>();
+    T val; C4_UNUSED(val);
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            ::sscanf(strings.next().str, fmtspec<T>::r, &val);
+    }
+    report<T>(st, kNumValues);
 }
 
 
@@ -849,87 +1013,141 @@ void atox_scanf(bm::State& st)
 C4FOR(T, isint)
 xtoa_sstream(bm::State& st)
 {
-    T i = 0;
+    random_values_cref<T> values = mkvals_positive<T>();
     std::string out; C4_UNUSED(out);
     for(auto _ : st)
     {
-        std::stringstream ss;
-        ss << ++i;
-        out = ss.str();
+        C4DOALL(kNumValues)
+        {
+            std::stringstream ss;
+            ss << values.next();
+            out = ss.str();
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 xtoa_sstream(bm::State& st)
 {
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
     std::string out; C4_UNUSED(out);
     for(auto _ : st)
     {
-        std::stringstream ss;
-        ss << values.next();
-        out = ss.str();
+        C4DOALL(kNumValues)
+        {
+            std::stringstream ss;
+            ss << values.next();
+            out = ss.str();
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isint)
 xtoa_sstream_reuse(bm::State& st)
 {
+    random_values_cref<T> values = mkvals_positive<T>();
     std::stringstream ss;
     std::string out; C4_UNUSED(out);
-    T i = 0;
     for(auto _ : st)
     {
-        ss.clear();
-        ss.str("");
-        ss << ++i;
+        C4DOALL(kNumValues)
+        {
+            ss.clear();
+            ss.str("");
+            ss << values.next();
+            out = ss.str();
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 xtoa_sstream_reuse(bm::State& st)
 {
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
     std::stringstream ss;
     std::string out; C4_UNUSED(out);
     for(auto _ : st)
     {
-        ss.clear();
-        ss.str("");
-        ss << values.next();
+        C4DOALL(kNumValues)
+        {
+            ss.clear();
+            ss.str("");
+            ss << values.next();
+            out = ss.str();
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-template<class T>
-void atox_sstream(bm::State& st)
+C4FOR(T, isint)
+atox_sstream(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::stringstream ss(strings.next_s());
-        ss >> val;
+        C4DOALL(kNumValues)
+        {
+            std::stringstream ss(strings.next_s());
+            ss >> val;
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-template<class T>
-void atox_sstream_reuse(bm::State& st)
+C4FOR(T, isreal)
+atox_sstream(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings<T>();
+    T val; C4_UNUSED(val);
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+        {
+            std::stringstream ss(strings.next_s());
+            ss >> val;
+        }
+    }
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isint)
+atox_sstream_reuse(bm::State& st)
+{
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     std::stringstream ss;
     for(auto _ : st)
     {
-        ss.clear();
-        ss.str(strings.next_s());
-        ss >> val;
+        C4DOALL(kNumValues)
+        {
+            ss.clear();
+            ss.str(strings.next_s());
+            ss >> val;
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isreal)
+atox_sstream_reuse(bm::State& st)
+{
+    random_strings_cref strings = mkstrings<T>();
+    T val; C4_UNUSED(val);
+    std::stringstream ss;
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+        {
+            ss.clear();
+            ss.str(strings.next_s());
+            ss >> val;
+        }
+    }
+    report<T>(st, kNumValues);
 }
 
 
@@ -938,25 +1156,27 @@ void atox_sstream_reuse(bm::State& st)
 C4FOR(T, isint)
 xtoa_std_to_string(bm::State& st)
 {
-    T i = 0;
+    random_values_cref<T> values = mkvals_positive<T>();
+    std::string out;
     for(auto _ : st)
     {
-        std::string out = std::to_string(++i);
-        C4_UNUSED(out);
+        C4DOALL(kNumValues)
+            out = std::to_string(values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 xtoa_std_to_string(bm::State& st)
 {
-    random_values<T> values;
+    random_values_cref<T> values = mkvals<T>();
+    std::string out;
     for(auto _ : st)
     {
-        std::string out = std::to_string(values.next());
-        C4_UNUSED(out);
+        C4DOALL(kNumValues)
+            out = std::to_string(values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 
@@ -965,40 +1185,56 @@ xtoa_std_to_string(bm::State& st)
 C4FOR(T, isint)
 xtoa_c4_to_chars(bm::State& st)
 {
+    random_values_cref<T> values = mkvals_positive<T>();
     string_buffer buf;
-    T i = 0;
     for(auto _ : st)
     {
-        c4::to_chars(buf, ++i);
+        C4DOALL(kNumValues)
+            c4::to_chars(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 xtoa_c4_to_chars(bm::State& st)
 {
+    random_values_cref<T> values = mkvals<T>();
     string_buffer buf;
-    random_values<T> values;
     for(auto _ : st)
     {
-        c4::to_chars(buf, values.next());
+        C4DOALL(kNumValues)
+            c4::to_chars(buf, values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 struct with_overflow_checked {};
 
 template<class T, class opt = void>
-typename  std::enable_if<std::is_same<opt, void>::value>::type
+typename std::enable_if<isint(T) && std::is_same<opt, void>::value>::type
 atox_c4_from_chars(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val;
     for(auto _ : st)
     {
-        c4::from_chars(strings.next(), &val);
+        C4DOALL(kNumValues)
+            c4::from_chars(strings.next(), &val);
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isreal)
+atox_c4_from_chars(bm::State& st)
+{
+    random_strings_cref strings = mkstrings<T>();
+    T val;
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            c4::from_chars(strings.next(), &val);
+    }
+    report<T>(st, kNumValues);
 }
 
 template<class T, class opt = void>
@@ -1018,38 +1254,59 @@ atox_c4_from_chars(bm::State& st)
 C4FOR(T, isint)
 xtoa_std_to_chars(bm::State& st)
 {
+    random_values_cref<T> values = mkvals_positive<T>();
     string_buffer buf;
-    T i = 0;
     for(auto _ : st)
     {
-        std::to_chars(buf.begin(), buf.end(), ++i);
+        C4DOALL(kNumValues)
+            std::to_chars(buf.begin(), buf.end(), values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
 C4FOR(T, isreal)
 xtoa_std_to_chars(bm::State& st)
 {
+    random_values_cref<T> values = mkvals<T>();
     string_buffer buf;
-    random_values<T> values;
     for(auto _ : st)
     {
-        std::to_chars(buf.begin(), buf.end(), values.next());
+        C4DOALL(kNumValues)
+            std::to_chars(buf.begin(), buf.end(), values.next());
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
 }
 
-template<class T>
-void atox_std_from_chars(bm::State& st)
+C4FOR(T, isint)
+atox_std_from_chars(bm::State& st)
 {
-    random_strings strings = mkstrings<T>();
+    random_strings_cref strings = mkstrings_positive<T>();
     T val; C4_UNUSED(val);
     for(auto _ : st)
     {
-        std::string const& s = strings.next_s();
-        std::from_chars(s.data(), s.data()+s.size(), val);
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            std::from_chars(s.begin(), s.end(), val);
+        }
     }
-    report<T>(st);
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isreal)
+atox_std_from_chars(bm::State& st)
+{
+    random_strings_cref strings = mkstrings<T>();
+    T val; C4_UNUSED(val);
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+        {
+            c4::csubstr s = strings.next();
+            std::from_chars(s.begin(), s.end(), val);
+        }
+    }
+    report<T>(st, kNumValues);
 }
 #endif
 
@@ -1063,7 +1320,7 @@ C4BM_TEMPLATE(xtoa_c4_write_bin,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_utoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint8_t);
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint8_t);
+C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  uint8_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  uint8_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint8_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t);
@@ -1076,7 +1333,7 @@ C4BM_TEMPLATE(xtoa_c4_write_bin,  int8_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int8_t);
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int8_t);
+C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  int8_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  int8_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int8_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t);
@@ -1089,7 +1346,7 @@ C4BM_TEMPLATE(xtoa_c4_write_bin,  uint16_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint16_t);
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint16_t);
+C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  uint16_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  uint16_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint16_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t);
@@ -1102,7 +1359,7 @@ C4BM_TEMPLATE(xtoa_c4_write_bin,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int16_t);
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int16_t);
+C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  int16_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  int16_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int16_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t);
@@ -1115,7 +1372,7 @@ C4BM_TEMPLATE(xtoa_c4_write_bin,  uint32_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint32_t);
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint32_t);
+C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  uint32_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  uint32_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint32_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t);
@@ -1128,7 +1385,7 @@ C4BM_TEMPLATE(xtoa_c4_write_bin,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int32_t);
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int32_t);
+C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  int32_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  int32_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int32_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t);
@@ -1141,7 +1398,7 @@ C4BM_TEMPLATE(xtoa_c4_write_bin,  uint64_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint64_t);
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  uint64_t);
+C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  uint64_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  uint64_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint64_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t);
@@ -1154,7 +1411,7 @@ C4BM_TEMPLATE(xtoa_c4_write_bin,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int64_t);
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  int64_t);
+C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  int64_t);
 C4BM_TEMPLATE(xtoa_std_to_string,  int64_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int64_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int64_t);
@@ -1166,7 +1423,7 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  float);
 #ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(xtoa_ryu_f2s,  float);
 #endif
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  float);
+C4BM_TEMPLATE_TO_CHARS_FLOAT(xtoa_std_to_chars,  float);
 C4BM_TEMPLATE(xtoa_std_to_string,  float);
 C4BM_TEMPLATE(xtoa_sprintf,  float);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  float);
@@ -1178,7 +1435,7 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  double);
 #ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(xtoa_ryu_d2s,  double);
 #endif
-C4BM_TEMPLATE_CPP17(xtoa_std_to_chars,  double);
+C4BM_TEMPLATE_TO_CHARS_FLOAT(xtoa_std_to_chars,  double);
 C4BM_TEMPLATE(xtoa_std_to_string,  double);
 C4BM_TEMPLATE(xtoa_sprintf,  double);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  double);
@@ -1197,12 +1454,12 @@ C4BM_TEMPLATE(atox_c4_atou,  uint8_t);
 C4BM_TEMPLATE(atox_c4_atox,  uint8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint8_t, with_overflow_checked);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint8_t);
+C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint8_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint8_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint8_t);
 C4BM_TEMPLATE(atox_scanf,   uint8_t);
-C4BM_TEMPLATE(atox_sstream,   uint8_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint8_t);
+C4BM_TEMPLATE(atox_sstream,   uint8_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, int8_t);
 C4BM_TEMPLATE(atox_c4_read_hex, int8_t);
@@ -1212,12 +1469,12 @@ C4BM_TEMPLATE(atox_c4_atoi,   int8_t);
 C4BM_TEMPLATE(atox_c4_atox,   int8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int8_t, with_overflow_checked);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, int8_t);
+C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int8_t);
 C4BM_TEMPLATE(atox_std_atoi,   int8_t);
 C4BM_TEMPLATE(atox_std_strtol,   int8_t);
 C4BM_TEMPLATE(atox_scanf,   int8_t);
-C4BM_TEMPLATE(atox_sstream,   int8_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   int8_t);
+C4BM_TEMPLATE(atox_sstream,   int8_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, uint16_t);
 C4BM_TEMPLATE(atox_c4_read_hex, uint16_t);
@@ -1227,12 +1484,12 @@ C4BM_TEMPLATE(atox_c4_atou, uint16_t);
 C4BM_TEMPLATE(atox_c4_atox, uint16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint16_t, with_overflow_checked);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint16_t);
+C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint16_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint16_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint16_t);
 C4BM_TEMPLATE(atox_scanf,   uint16_t);
-C4BM_TEMPLATE(atox_sstream,   uint16_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint16_t);
+C4BM_TEMPLATE(atox_sstream,   uint16_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, int16_t);
 C4BM_TEMPLATE(atox_c4_read_hex, int16_t);
@@ -1242,12 +1499,12 @@ C4BM_TEMPLATE(atox_c4_atoi,  int16_t);
 C4BM_TEMPLATE(atox_c4_atox,  int16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int16_t, with_overflow_checked);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, int16_t);
+C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int16_t);
 C4BM_TEMPLATE(atox_std_atoi,   int16_t);
 C4BM_TEMPLATE(atox_std_strtol,   int16_t);
 C4BM_TEMPLATE(atox_scanf,   int16_t);
-C4BM_TEMPLATE(atox_sstream,   int16_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   int16_t);
+C4BM_TEMPLATE(atox_sstream,   int16_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, uint32_t);
 C4BM_TEMPLATE(atox_c4_read_hex, uint32_t);
@@ -1257,12 +1514,12 @@ C4BM_TEMPLATE(atox_c4_atou, uint32_t);
 C4BM_TEMPLATE(atox_c4_atox, uint32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint32_t, with_overflow_checked);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint32_t);
+C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint32_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint32_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint32_t);
 C4BM_TEMPLATE(atox_scanf,   uint32_t);
-C4BM_TEMPLATE(atox_sstream,   uint32_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint32_t);
+C4BM_TEMPLATE(atox_sstream,   uint32_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, int32_t);
 C4BM_TEMPLATE(atox_c4_read_hex, int32_t);
@@ -1272,12 +1529,12 @@ C4BM_TEMPLATE(atox_c4_atoi,  int32_t);
 C4BM_TEMPLATE(atox_c4_atox,  int32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int32_t, with_overflow_checked);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, int32_t);
+C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int32_t);
 C4BM_TEMPLATE(atox_std_atoi,   int32_t);
 C4BM_TEMPLATE(atox_std_strtol,   int32_t);
 C4BM_TEMPLATE(atox_scanf,   int32_t);
-C4BM_TEMPLATE(atox_sstream,   int32_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   int32_t);
+C4BM_TEMPLATE(atox_sstream,   int32_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, uint64_t);
 C4BM_TEMPLATE(atox_c4_read_hex, uint64_t);
@@ -1287,12 +1544,12 @@ C4BM_TEMPLATE(atox_c4_atou, uint64_t);
 C4BM_TEMPLATE(atox_c4_atox, uint64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint64_t, with_overflow_checked);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint64_t);
+C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_std_atol,   uint64_t);
 C4BM_TEMPLATE(atox_std_strtoull,   uint64_t);
 C4BM_TEMPLATE(atox_scanf,   uint64_t);
-C4BM_TEMPLATE(atox_sstream,   uint64_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   uint64_t);
+C4BM_TEMPLATE(atox_sstream,   uint64_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, int64_t);
 C4BM_TEMPLATE(atox_c4_read_hex, int64_t);
@@ -1302,12 +1559,12 @@ C4BM_TEMPLATE(atox_c4_atoi,  int64_t);
 C4BM_TEMPLATE(atox_c4_atox,  int64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int64_t, with_overflow_checked);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, int64_t);
+C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int64_t);
 C4BM_TEMPLATE(atox_std_atol,   int64_t);
 C4BM_TEMPLATE(atox_std_strtoll,   int64_t);
 C4BM_TEMPLATE(atox_scanf,   int64_t);
-C4BM_TEMPLATE(atox_sstream,   int64_t);
 C4BM_TEMPLATE(atox_sstream_reuse,   int64_t);
+C4BM_TEMPLATE(atox_sstream,   int64_t);
 
 C4BM_TEMPLATE(atox_c4_atof,  float);
 C4BM_TEMPLATE(atox_c4_atox,  float);
@@ -1316,15 +1573,15 @@ C4BM_TEMPLATE(atox_c4_from_chars, float);
 C4BM_TEMPLATE(atox_ryu_s2f,  float);
 #endif
 C4BM_TEMPLATE(atox_fast_float,  float);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, float);
+C4BM_TEMPLATE_TO_CHARS_FLOAT(atox_std_from_chars, float);
 C4BM_FP_BENCHMARK(atox_fp_from_chars_limited,  float);
 C4BM_FP_BENCHMARK(atox_fp_from_chars_unlimited,  float);
 C4BM_TEMPLATE(atox_std_atof,   float);
 C4BM_TEMPLATE(atox_std_strtof,   float);
 C4BM_TEMPLATE(atox_std_stof,   float);
 C4BM_TEMPLATE(atox_scanf,   float);
-C4BM_TEMPLATE(atox_sstream,   float);
 C4BM_TEMPLATE(atox_sstream_reuse,   float);
+C4BM_TEMPLATE(atox_sstream,   float);
 
 C4BM_TEMPLATE(atox_c4_atod,  double);
 C4BM_TEMPLATE(atox_c4_atox,  double);
@@ -1333,15 +1590,15 @@ C4BM_TEMPLATE(atox_c4_from_chars, double);
 C4BM_TEMPLATE(atox_ryu_s2d,  double);
 #endif
 C4BM_TEMPLATE(atox_fast_float,  double);
-C4BM_TEMPLATE_CPP17(atox_std_from_chars, double);
+C4BM_TEMPLATE_TO_CHARS_FLOAT(atox_std_from_chars, double);
 C4BM_FP_BENCHMARK(atox_fp_from_chars_limited,  double);
 C4BM_FP_BENCHMARK(atox_fp_from_chars_unlimited,  double);
 C4BM_TEMPLATE(atox_std_atof,   double);
 C4BM_TEMPLATE(atox_std_strtod,   double);
 C4BM_TEMPLATE(atox_std_stod,   double);
 C4BM_TEMPLATE(atox_scanf,   double);
-C4BM_TEMPLATE(atox_sstream,   double);
 C4BM_TEMPLATE(atox_sstream_reuse,   double);
+C4BM_TEMPLATE(atox_sstream,   double);
 
 
 //-----------------------------------------------------------------------------
