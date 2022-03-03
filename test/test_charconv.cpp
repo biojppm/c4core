@@ -1298,56 +1298,77 @@ void test_overflows_bin()
         CHECK_EQ(std::numeric_limits<T>::max(), x);
     }
 }
+    
+// TODO: test_overflows_oct
 
 template<class T>
-void test_overflows()
+typename std::enable_if<std::is_unsigned<T>::value, void>::type
+test_overflows()
 {
     for(int radix : { 2, 8, 10, 16 })
     {
         char bufc[100] = {0};
         substr s(bufc);
+        INFO("radix=" << radix << " num=" << s);
 
-        uint64_t max = std::numeric_limits<T>::max();
-        auto sz = utoa<uint64_t>(s, max, uint64_t(radix));
-        CHECK_MESSAGE(!overflows<T>(s.first(sz)), "num=" << s);
+        uint64_t max = (uint64_t) std::numeric_limits<T>::max();
+        size_t sz = utoa<uint64_t>(s, max, (uint64_t)radix);
+        ASSERT_LE(sz, s.size());
+        CHECK(!overflows<T>(s.first(sz)));
         memset(s.str, 0, s.len);
-        sz = utoa<uint64_t>(s, max + 1, uint64_t(radix));
-        CHECK_MESSAGE(overflows<T>(s.first(sz)), "num=" << s);
-
-        if (std::is_signed<T>::value)
-        {
-            int64_t min = std::numeric_limits<T>::min();
-            sz = itoa<int64_t>(s, min, uint64_t(radix));
-            CHECK_MESSAGE(!overflows<T>(s.first(sz)), "num=" << s);
-            memset(s.str, 0, s.len);
-            sz = itoa<int64_t>(s, min - 1, uint64_t(radix));
-            CHECK_MESSAGE(overflows<T>(s.first(sz)), "num=" << s);
-        }
+        sz = utoa<uint64_t>(s, max + 1, (uint64_t)radix);
+        ASSERT_LE(sz, s.size());
+        CHECK(overflows<T>(s.first(sz)));
     }
 
     test_overflows_hex<T>();
     test_overflows_bin<T>();
+    // TODO: octal
 }
 
-TEST_CASE("overflows")
+template<class T>
+typename std::enable_if<std::is_signed<T>::value, void>::type
+test_overflows()
+{
+    for(int radix : { 2, 8, 10, 16 })
+    {
+        char bufc[100] = {0};
+        substr s(bufc);
+        INFO("radix=" << radix << " num=" << s);
+
+        uint64_t max = (uint64_t) std::numeric_limits<T>::max();
+        size_t sz = itoa<uint64_t>(s, max, (uint64_t)radix);
+        ASSERT_LE(sz, s.size());
+        CHECK(!overflows<T>(s.first(sz)));
+        memset(s.str, 0, s.len);
+        sz = itoa<uint64_t>(s, max + 1, (uint64_t)radix);
+        ASSERT_LE(sz, s.size());
+        CHECK(overflows<T>(s.first(sz)));
+
+        int64_t min = (int64_t) std::numeric_limits<T>::min();
+        sz = itoa<int64_t>(s, min, (int64_t)radix);
+        ASSERT_LE(sz, s.size());
+        CHECK(!overflows<T>(s.first(sz)));
+        memset(s.str, 0, s.len);
+        sz = itoa<int64_t>(s, min - 1, (int64_t)radix);
+        ASSERT_LE(sz, s.size());
+        CHECK(overflows<T>(s.first(sz)));
+    }
+
+    test_overflows_hex<T>();
+    test_overflows_bin<T>();
+    // TODO: octal
+}
+
+TEST_CASE("overflows.zeroes")
 {
     test_no_overflows<int>({ "", "0", "000", "0b0", "0B0", "0x0", "0X0", "0o0", "0O0" });
     test_no_overflows<int>({ "-", "-0", "-000", "-0b0", "-0B0", "-0x0", "-0X0", "-0o0", "-0O0" });
 }
 
-TEST_CASE("overflows.u8")
+TEST_CASE_TEMPLATE("overflows.8bit_32bit", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t)
 {
-    test_overflows<uint8_t>();
-}
-
-TEST_CASE("overflows.u16")
-{
-    test_overflows<uint16_t>();
-}
-
-TEST_CASE("overflows.u32")
-{
-    test_overflows<uint32_t>();
+    test_overflows<T>();
 }
 
 TEST_CASE("overflows.u64")
@@ -1368,21 +1389,6 @@ TEST_CASE("overflows.u64")
 
     test_overflows_hex<uint64_t>();
     test_overflows_bin<uint64_t>();
-}
-
-TEST_CASE("overflows.i8")
-{
-    test_overflows<int8_t>();
-}
-
-TEST_CASE("overflows.i16")
-{
-    test_overflows<int16_t>();
-}
-
-TEST_CASE("overflows.i32")
-{
-    test_overflows<int32_t>();
 }
 
 TEST_CASE("overflows.i64")
