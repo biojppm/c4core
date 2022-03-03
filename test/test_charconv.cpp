@@ -1364,6 +1364,7 @@ TEST_CASE("overflows.zeroes")
 {
     test_no_overflows<int>({ "", "0", "000", "0b0", "0B0", "0x0", "0X0", "0o0", "0O0" });
     test_no_overflows<int>({ "-", "-0", "-000", "-0b0", "-0B0", "-0x0", "-0X0", "-0o0", "-0O0" });
+    test_no_overflows<unsigned int>({ "", "0", "000", "0b0", "0B0", "0x0", "0X0", "0o0", "0O0" });
 }
 
 TEST_CASE_TEMPLATE("overflows.8bit_32bit", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t)
@@ -1373,8 +1374,12 @@ TEST_CASE_TEMPLATE("overflows.8bit_32bit", T, uint8_t, int8_t, uint16_t, int16_t
 
 TEST_CASE("overflows.u64")
 {
+    CHECK(!overflows<uint64_t>("18446744073709551614"));
     CHECK(!overflows<uint64_t>("18446744073709551615"));
     CHECK(overflows<uint64_t>("18446744073709551616"));
+
+    // more chars but leading zeroes
+    CHECK(!overflows<uint64_t>("0018446744073709551615"));
     
     { /* with leading zeroes */
         std::string str;
@@ -1393,10 +1398,15 @@ TEST_CASE("overflows.u64")
 
 TEST_CASE("overflows.i64")
 {
+    CHECK(!overflows<int64_t>("9223372036854775806"));
     CHECK(!overflows<int64_t>("9223372036854775807"));
     CHECK(overflows<int64_t>("9223372036854775808"));
     CHECK(!overflows<int64_t>("-9223372036854775808"));
     CHECK(overflows<int64_t>("-9223372036854775809"));
+
+    // more chars, but leading zeroes
+    CHECK(!overflows<int64_t>("0009223372036854775807"));
+    CHECK(!overflows<int64_t>("-0009223372036854775807"));
     
     { /* with leading zeroes */
         std::string str;
