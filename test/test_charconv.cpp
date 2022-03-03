@@ -45,12 +45,12 @@ TEST_CASE("itoa.shortbuf")
                                                             \
         buf0.fill('?');                                     \
         size_t ret0 = fn(buf0, in, rdx);                    \
-        CHECK_EQ(ret0, expected.len);                       \
+        CHECK_GE(ret0, expected.len);                       \
                                                             \
         buf1.fill('?');                                     \
         CHECK_EQ(buf1, "?");                                \
         size_t ret1 = fn(buf1, in, rdx);                    \
-        CHECK_EQ(ret1, expected.len);                       \
+        CHECK_GE(ret1, expected.len);                       \
         if(ret1 <= buf1.len && buf1.len >= expected.len)    \
         {                                                   \
             CHECK_EQ(buf1.first(ret1), expected);           \
@@ -59,7 +59,7 @@ TEST_CASE("itoa.shortbuf")
         buf2.fill('?');                                     \
         CHECK_EQ(buf2, "??");                               \
         size_t ret2 = fn(buf2, in, rdx);                    \
-        CHECK_EQ(ret2, expected.len);                       \
+        CHECK_GE(ret2, expected.len);                       \
         if(ret2 <= buf2.len && buf2.len >= expected.len)    \
         {                                                   \
             CHECK_EQ(buf2.first(ret2), expected);           \
@@ -68,7 +68,7 @@ TEST_CASE("itoa.shortbuf")
         buf3.fill('?');                                     \
         CHECK_EQ(buf3, "???");                              \
         size_t ret3 = fn(buf3, in, rdx);                    \
-        CHECK_EQ(ret3, expected.len);                       \
+        CHECK_GE(ret3, expected.len);                       \
         if(ret3 <= buf3.len && buf3.len >= expected.len)    \
         {                                                   \
             CHECK_EQ(buf3.first(ret3), expected);           \
@@ -77,7 +77,7 @@ TEST_CASE("itoa.shortbuf")
         buf4.fill('?');                                     \
         CHECK_EQ(buf4, "????");                             \
         size_t ret4 = fn(buf4, in, rdx);                    \
-        CHECK_EQ(ret4, expected.len);                       \
+        CHECK_GE(ret4, expected.len);                       \
         if(ret4 <= buf4.len && buf4.len >= expected.len)    \
         {                                                   \
             CHECK_EQ(buf4.first(ret4), expected);           \
@@ -132,7 +132,7 @@ void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)
     INFO("num=" << num);
     _c4clbuf();
     ret = rfn(emp, num, 2);
-    CHECK_EQ(ret, ss2.len);
+    CHECK_GE(ret, ss2.len);
     CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 2);
@@ -140,7 +140,7 @@ void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)
 
     _c4clbuf();
     ret = rfn(emp, num, 8);
-    CHECK_EQ(ret, ss8.len);
+    CHECK_GE(ret, ss8.len);
     CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 8);
@@ -148,7 +148,7 @@ void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)
 
     _c4clbuf();
     ret = rfn(emp, num, 10);
-    CHECK_EQ(ret, ss10.len);
+    CHECK_GE(ret, ss10.len);
     CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 10);
@@ -156,7 +156,7 @@ void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)
 
     _c4clbuf();
     ret = fn(emp, num);
-    CHECK_EQ(ret, ss10.len);
+    CHECK_GE(ret, ss10.len);
     CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = fn(buf, num);
@@ -164,7 +164,7 @@ void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)
 
     _c4clbuf();
     ret = rfn(emp, num, 16);
-    CHECK_EQ(ret, ss16.len);
+    CHECK_GE(ret, ss16.len);
     CHECK_EQ(buf.first(2), "aa");
     _c4clbuf();
     ret = rfn(buf, num, 16);
@@ -204,7 +204,7 @@ void test_itoa_num_digits(substr buf, T val, T radix, size_t digits, csubstr exp
         buf.fill('?');
         ret = xtoa_fn(buf.first(i), val, radix, digits);
         CHECK_EQ(buf.sub(i).first_not_of('?'), (size_t)substr::npos);
-        CHECK_EQ(ret, expected.len);
+        CHECK_GE(ret, expected.len);
     }
 
     buf.fill('?');
@@ -893,7 +893,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("vanilla itoa");
         ret = itoa(substr{}, val);
-        CHECK_EQ(ret, dec.len);
+        CHECK_GE(ret, dec.len);
         ret = itoa(buf, val);
         CHECK_EQ(ret, dec.len);
         CHECK_EQ(buf.first(ret), dec);
@@ -901,7 +901,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("radix itoa, 10");
         ret = itoa(substr{}, val, T(10));
-        CHECK_EQ(ret, dec.len);
+        CHECK_GE(ret, dec.len);
         ret = itoa(buf, val, T(10));
         CHECK_EQ(ret, dec.len);
         CHECK_EQ(buf.first(ret), dec);
@@ -915,7 +915,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("radix itoa, 16");
         ret = itoa({}, val, T(16));
-        CHECK_EQ(ret, hex.len);
+        CHECK_GE(ret, hex.len);
         ret = itoa(buf, val, T(16));
         CHECK_EQ(ret, hex.len);
         CHECK_EQ(buf.first(ret), hex);
@@ -929,7 +929,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("radix itoa, 8");
         ret = itoa({}, val, T(8));
-        CHECK_EQ(ret, oct.len);
+        CHECK_GE(ret, oct.len);
         ret = itoa(buf, val, T(8));
         CHECK_EQ(ret, oct.len);
         CHECK_EQ(buf.first(ret), oct);
@@ -943,7 +943,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("radix itoa, 2");
         ret = itoa({}, val, T(2));
-        CHECK_EQ(ret, bin.len);
+        CHECK_GE(ret, bin.len);
         ret = itoa(buf, val, T(2));
         CHECK_EQ(ret, bin.len);
         CHECK_EQ(buf.first(ret), bin);
@@ -1584,8 +1584,8 @@ TEST_CASE_TEMPLATE("to_chars.empty_buffer", T, uint8_t, int8_t, uint16_t, int16_
 {
     char buf_[100];
     substr buf = buf_;
-    CHECK_EQ(to_chars({}, T(101)), to_chars(buf_, T(101)));
-    CHECK_EQ(to_chars({}, T(101)), to_chars(buf , T(101)));
+    CHECK_GE(to_chars({}, T(101)), to_chars(buf_, T(101)));
+    CHECK_GE(to_chars({}, T(101)), to_chars(buf , T(101)));
 }
 // due to an implementation quirk with sprintf, for floats the empty is GE
 TEST_CASE_TEMPLATE("to_chars.empty_buffer", T, float, double)

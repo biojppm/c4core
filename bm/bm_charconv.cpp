@@ -529,8 +529,21 @@ xtoa_c4_dtoa(bm::State& st)
     report<T>(st, kNumValues);
 }
 
-template<class T>
-void xtoa_c4_xtoa(bm::State& st)
+C4FOR(T, isint)
+xtoa_c4_xtoa(bm::State& st)
+{
+    string_buffer buf;
+    random_values<T> values = mkvals_positive<T>();
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            c4::xtoa(buf, values.next());
+    }
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isreal)
+xtoa_c4_xtoa(bm::State& st)
 {
     string_buffer buf;
     random_values_cref<T> values = mkvals<T>();
@@ -1224,6 +1237,20 @@ atox_c4_from_chars(bm::State& st)
     report<T>(st, kNumValues);
 }
 
+template<class T, class opt = void>
+typename std::enable_if<isint(T) && std::is_same<opt, with_overflow_checked>::value>::type
+atox_c4_from_chars(bm::State& st)
+{
+    random_strings_cref strings = mkstrings_positive<T>();
+    T val;
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            c4::from_chars(strings.next(), c4::fmt::overflow_checked(val));
+    }
+    report<T>(st, kNumValues);
+}
+
 C4FOR(T, isreal)
 atox_c4_from_chars(bm::State& st)
 {
@@ -1237,20 +1264,7 @@ atox_c4_from_chars(bm::State& st)
     report<T>(st, kNumValues);
 }
 
-template<class T, class opt = void>
-typename std::enable_if<std::is_same<opt, with_overflow_checked>::value>::type
-atox_c4_from_chars(bm::State& st)
-{
-    random_strings strings = mkstrings<T>();
-    T val;
-    for(auto _ : st)
-    {
-        c4::from_chars(strings.next(), c4::fmt::overflow_checked(val));
-    }
-    report<T>(st);
-}
-
-#if (C4_CPP >= 17) && defined(__cpp_lib_to_chars)
+#if defined(__cpp_lib_to_chars) || (C4_CPP >= 17)
 C4FOR(T, isint)
 xtoa_std_to_chars(bm::State& st)
 {
@@ -1263,7 +1277,9 @@ xtoa_std_to_chars(bm::State& st)
     }
     report<T>(st, kNumValues);
 }
+#endif
 
+#if defined(__cpp_lib_to_chars)
 C4FOR(T, isreal)
 xtoa_std_to_chars(bm::State& st)
 {
@@ -1276,7 +1292,9 @@ xtoa_std_to_chars(bm::State& st)
     }
     report<T>(st, kNumValues);
 }
+#endif
 
+#if defined(__cpp_lib_to_chars) || (C4_CPP >= 17)
 C4FOR(T, isint)
 atox_std_from_chars(bm::State& st)
 {
@@ -1292,7 +1310,9 @@ atox_std_from_chars(bm::State& st)
     }
     report<T>(st, kNumValues);
 }
+#endif
 
+#if defined(__cpp_lib_to_chars)
 C4FOR(T, isreal)
 atox_std_from_chars(bm::State& st)
 {
