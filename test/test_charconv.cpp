@@ -1313,11 +1313,11 @@ test_overflows()
 
         uint64_t max = (uint64_t) std::numeric_limits<T>::max();
         size_t sz = utoa<uint64_t>(s, max, (uint64_t)radix);
-        ASSERT_LE(sz, s.size());
+        REQUIRE_LE(sz, s.size());
         CHECK(!overflows<T>(s.first(sz)));
         memset(s.str, 0, s.len);
         sz = utoa<uint64_t>(s, max + 1, (uint64_t)radix);
-        ASSERT_LE(sz, s.size());
+        REQUIRE_LE(sz, s.size());
         CHECK(overflows<T>(s.first(sz)));
     }
 
@@ -1336,22 +1336,22 @@ test_overflows()
         substr s(bufc);
         INFO("radix=" << radix << " num=" << s);
 
-        uint64_t max = (uint64_t) std::numeric_limits<T>::max();
-        size_t sz = itoa<uint64_t>(s, max, (uint64_t)radix);
-        ASSERT_LE(sz, s.size());
+        int64_t max = (int64_t) std::numeric_limits<T>::max();
+        size_t sz = itoa<int64_t>(s, max, (int64_t)radix);
+        REQUIRE_LE(sz, s.size());
         CHECK(!overflows<T>(s.first(sz)));
         memset(s.str, 0, s.len);
-        sz = itoa<uint64_t>(s, max + 1, (uint64_t)radix);
-        ASSERT_LE(sz, s.size());
+        sz = itoa<int64_t>(s, max + 1, (int64_t)radix);
+        REQUIRE_LE(sz, s.size());
         CHECK(overflows<T>(s.first(sz)));
 
         int64_t min = (int64_t) std::numeric_limits<T>::min();
         sz = itoa<int64_t>(s, min, (int64_t)radix);
-        ASSERT_LE(sz, s.size());
+        REQUIRE_LE(sz, s.size());
         CHECK(!overflows<T>(s.first(sz)));
         memset(s.str, 0, s.len);
         sz = itoa<int64_t>(s, min - 1, (int64_t)radix);
-        ASSERT_LE(sz, s.size());
+        REQUIRE_LE(sz, s.size());
         CHECK(overflows<T>(s.first(sz)));
     }
 
