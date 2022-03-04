@@ -971,58 +971,42 @@ template<class T> struct overflow_max {};
 template<> struct overflow_max<uint8_t>
 {
     static csubstr value_dec() { return csubstr("255"); }
-    static bool is_oct_overflow(csubstr str) {
-        return !((str.len < 3) || (str.len == 3 && str[0] <= '3'));
-    }
+    static bool is_oct_overflow(csubstr str) { return !((str.len < 3) || (str.len == 3 && str[0] <= '3')); }
 };
 template<> struct overflow_max<uint16_t>
 {
     static csubstr value_dec() { return csubstr("65535"); }
-    static bool is_oct_overflow(csubstr str) {
-        return !((str.len < 6) || (str.len == 6 && str[0] <= '1'));
-    }
+    static bool is_oct_overflow(csubstr str) { return !((str.len < 6) || (str.len == 6 && str[0] <= '1')); }
 };
 template<> struct overflow_max<uint32_t>
 {
     static csubstr value_dec() { return csubstr("4294967295"); }
-    static bool is_oct_overflow(csubstr str) {
-        return !((str.len < 11) || (str.len == 11 && str[0] <= '3'));
-    }
+    static bool is_oct_overflow(csubstr str) { return !((str.len < 11) || (str.len == 11 && str[0] <= '3')); }
 };
 template<> struct overflow_max<uint64_t>
 {
     static csubstr value_dec() { return csubstr("18446744073709551615"); }
-    static bool is_oct_overflow(csubstr str) {
-        return !((str.len < 22) || (str.len == 22 && str[0] <= '1'));
-    }
+    static bool is_oct_overflow(csubstr str) { return !((str.len < 22) || (str.len == 22 && str[0] <= '1')); }
 };
 template<> struct overflow_max<int8_t>
 {
     static csubstr value_dec() { return csubstr("127"); }
-    static bool is_oct_overflow(csubstr str) {
-        return !((str.len < 3) || (str.len == 3 && str[0] <= '1'));
-    }
+    static bool is_oct_overflow(csubstr str) { return !((str.len < 3) || (str.len == 3 && str[0] <= '1')); }
 };
 template<> struct overflow_max<int16_t>
 {
     static csubstr value_dec() { return csubstr("32767"); }
-    static bool is_oct_overflow(csubstr str) {
-        return !((str.len < 6));
-    }
+    static bool is_oct_overflow(csubstr str) { return !((str.len < 6)); }
 };
 template<> struct overflow_max<int32_t>
 {
     static csubstr value_dec() { return csubstr("2147483647"); }
-    static bool is_oct_overflow(csubstr str) {
-        return !((str.len < 11) || (str.len == 11 && str[0] <= '1'));
-    }
+    static bool is_oct_overflow(csubstr str) { return !((str.len < 11) || (str.len == 11 && str[0] <= '1')); }
 };
 template<> struct overflow_max<int64_t>
 {
     static csubstr value_dec() { return csubstr("9223372036854775807"); }
-    static bool is_oct_overflow(csubstr str) {
-        return !((str.len < 22));
-    }
+    static bool is_oct_overflow(csubstr str) { return !((str.len < 22)); }
 };
 
 
