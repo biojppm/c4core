@@ -349,7 +349,7 @@ C4_INLINE_CONSTEXPR const char hexchars[] = "0123456789abcdef";
  * even if the string is not long enough for the result.
  * No writes are done past the end of the string. */
 template<class T>
-size_t write_dec(substr buf, T v) noexcept
+C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
@@ -372,7 +372,7 @@ size_t write_dec(substr buf, T v) noexcept
  * even if the string is not long enough for the result.
  * No writes are done past the end of the string. */
 template<class T>
-size_t write_hex(substr buf, T v) noexcept
+C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
@@ -395,7 +395,7 @@ size_t write_hex(substr buf, T v) noexcept
  * even if the string is not long enough for the result.
  * No writes are done past the end of the string. */
 template<class T>
-size_t write_oct(substr buf, T v) noexcept
+C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
@@ -418,7 +418,7 @@ size_t write_oct(substr buf, T v) noexcept
  * even if the string is not long enough for the result.
  * No writes are done past the end of the string. */
 template<class T>
-size_t write_bin(substr buf, T v) noexcept
+C4_ALWAYS_INLINE size_t write_bin(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
@@ -459,7 +459,7 @@ size_t write_num_digits(substr buf, T v, size_t num_digits) noexcept
  * such that the resulting string is @p num_digits wide.
  * If the given number is wider than num_digits, then the number prevails. */
 template<class T>
-size_t write_dec(substr buf, T val, size_t num_digits) noexcept
+C4_ALWAYS_INLINE size_t write_dec(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_dec<T>>(buf, val, num_digits);
 }
@@ -468,7 +468,7 @@ size_t write_dec(substr buf, T val, size_t num_digits) noexcept
  * such that the resulting string is @p num_digits wide.
  * If the given number is wider than num_digits, then the number prevails. */
 template<class T>
-size_t write_hex(substr buf, T val, size_t num_digits) noexcept
+C4_ALWAYS_INLINE size_t write_hex(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_hex<T>>(buf, val, num_digits);
 }
@@ -477,7 +477,7 @@ size_t write_hex(substr buf, T val, size_t num_digits) noexcept
  * such that the resulting string is @p num_digits wide.
  * If the given number is wider than num_digits, then the number prevails. */
 template<class T>
-size_t write_bin(substr buf, T val, size_t num_digits) noexcept
+C4_ALWAYS_INLINE size_t write_bin(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_bin<T>>(buf, val, num_digits);
 }
@@ -486,7 +486,7 @@ size_t write_bin(substr buf, T val, size_t num_digits) noexcept
  * such that the resulting string is @p num_digits wide.
  * If the given number is wider than num_digits, then the number prevails. */
 template<class T>
-size_t write_oct(substr buf, T val, size_t num_digits) noexcept
+C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_oct<T>>(buf, val, num_digits);
 }
@@ -719,7 +719,7 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
  * Writing stops at the buffer's end.
  * @return the number of characters needed for the result, even if the buffer size is insufficient */
 template<class T>
-size_t itoa(substr buf, T v) noexcept
+C4_ALWAYS_INLINE size_t itoa(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     if(v >= T(0))
