@@ -345,9 +345,12 @@ C4_INLINE_CONSTEXPR const char hexchars[] = "0123456789abcdef";
 /** write an integer to a string in decimal format. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
- * @return the number of characters required for the string,
- * even if the string is not long enough for the result.
- * No writes are done past the end of the string. */
+ *
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
 {
@@ -360,7 +363,8 @@ C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
         buf.str[pos++] = (char)('0' + (v % T(10)));
         v /= T(10);
     } while(v);
-    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    C4_ASSERT(pos <= buf.len);
+    buf.reverse_range(0, pos);
     return pos;
 }
 
@@ -368,9 +372,11 @@ C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
 /** write an integer to a string in hexadecimal format. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
- * @return the number of characters required for the string,
- * even if the string is not long enough for the result.
- * No writes are done past the end of the string. */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
 {
@@ -383,17 +389,21 @@ C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
         buf.str[pos++] = hexchars[v & T(15)];
         v >>= 4;
     } while(v);
-    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    C4_ASSERT(pos <= buf.len);
+    buf.reverse_range(0, pos);
     return pos;
 }
+
 
 /** write an integer to a string in octal format. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note does not prefix with 0o
- * @return the number of characters required for the string,
- * even if the string is not long enough for the result.
- * No writes are done past the end of the string. */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
 {
@@ -406,17 +416,21 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
         buf.str[pos++] = (char)('0' + (v & T(7)));
         v >>= 3;
     } while(v);
-    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    C4_ASSERT(pos <= buf.len);
+    buf.reverse_range(0, pos);
     return pos;
 }
+
 
 /** write an integer to a string in binary format. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note does not prefix with 0b
- * @return the number of characters required for the string,
- * even if the string is not long enough for the result.
- * No writes are done past the end of the string. */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_bin(substr buf, T v) noexcept
 {
@@ -429,7 +443,8 @@ C4_ALWAYS_INLINE size_t write_bin(substr buf, T v) noexcept
         buf.str[pos++] = (char)('0' + (v & T(1)));
         v >>= 1;
     } while(v);
-    buf.reverse_range(0, pos <= buf.len ? pos : buf.len);
+    C4_ASSERT(pos <= buf.len);
+    buf.reverse_range(0, pos);
     return pos;
 }
 
@@ -717,7 +732,11 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
 /** convert an integral signed decimal to a string.
  * The resulting string is NOT zero-terminated.
  * Writing stops at the buffer's end.
- * @return the number of characters needed for the result, even if the buffer size is insufficient */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t itoa(substr buf, T v) noexcept
 {
@@ -754,7 +773,11 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v) noexcept
  *
  * The resulting string is NOT zero-terminated.
  * Writing stops at the buffer's end.
- * @return the number of characters needed for the result, even if the buffer size is insufficient */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
 {
@@ -803,8 +826,11 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
  * resulting string is NOT zero-terminated.  Writing stops at the
  * buffer's end.
  *
- * @return the number of characters needed for the result, even if
- * the buffer size is insufficient */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexcept
 {
@@ -863,7 +889,11 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
 /** convert an integral unsigned decimal to a string.
  * The resulting string is NOT zero-terminated.
  * Writing stops at the buffer's end.
- * @return the number of characters needed for the result, even if the buffer size is insufficient */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t utoa(substr buf, T v) noexcept
 {
@@ -875,7 +905,11 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v) noexcept
 /** convert an integral unsigned integer to a string, using a specific radix. The radix must be 2, 8, 10 or 16.
  * The resulting string is NOT zero-terminated.
  * Writing stops at the buffer's end.
- * @return the number of characters needed for the result, even if the buffer size is insufficient */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
 {
@@ -911,8 +945,11 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
  * occurs only if the buffer is large enough to contain the largest
  * value of the type or @p num_digits if it is larger.
  *
- * @return the number of characters needed for the result, even if
- * the buffer size is insufficient */
+ * @return the number of characters required for the string, if the
+ * buffer is large enough to accomodate the largest number of this
+ * type. Otherwise it returns the latter. This allows reporting the
+ * size of a successful write, or the size needed for any number of
+ * this type. */
 template<class T>
 C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexcept
 {
