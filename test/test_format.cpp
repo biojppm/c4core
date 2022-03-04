@@ -147,6 +147,17 @@ TEST_CASE_TEMPLATE("to_chars.fmt.zpad", T, uint8_t, int8_t)
     CHECK_EQ(to_chars_sub(buf, zpad(oct(nullptr), 5u)), "0o00000");
 }
 
+TEST_CASE("from_chars.fmt.overflow_checked")
+{
+    /* overflows<T>() is tested separatedly */
+    uint8_t val = 1;
+    using namespace fmt;
+    CHECK(from_chars(to_csubstr("255"), overflow_checked(val)));
+    CHECK_EQ(255, val);
+    val = 1;
+    CHECK(!from_chars(to_csubstr("256"), overflow_checked(val)));
+    CHECK_EQ(1, val);
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

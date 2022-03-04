@@ -210,8 +210,21 @@ inline integral_<T> bin(T v)
     return integral_<T>(v, T(2));
 }
 
-} // namespace fmt
+template<class T>
+struct overflow_checked_
+{
+    static_assert(std::is_integral<T>::value, "range checking only for integral types");
+    C4_ALWAYS_INLINE overflow_checked_(T &val_) : val(&val_) {}
+    T *val;
+};
 
+template<class T>
+C4_ALWAYS_INLINE overflow_checked_<T> overflow_checked(T &val)
+{
+   return overflow_checked_<T>(val);
+}
+
+} // namespace fmt
 
 /** format an integral_ signed type */
 template<typename T>
@@ -247,6 +260,13 @@ to_chars(substr buf, fmt::integral_padded_<T> fmt)
     return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
 }
 
+template<class T>
+C4_ALWAYS_INLINE bool from_chars(csubstr s, fmt::overflow_checked_<T> wrapper)
+{
+    if(overflows<T>(s))
+        return false;
+    return atox(s, wrapper.val);
+}
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

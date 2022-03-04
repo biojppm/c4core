@@ -986,14 +986,30 @@ xtoa_c4_to_chars(bm::State& st)
     report<T>(st);
 }
 
-template<class T>
-void atox_c4_from_chars(bm::State& st)
+struct with_overflow_checked {};
+
+template<class T, class opt = void>
+typename  std::enable_if<std::is_same<opt, void>::value>::type
+atox_c4_from_chars(bm::State& st)
 {
     random_strings strings = mkstrings<T>();
     T val;
     for(auto _ : st)
     {
         c4::from_chars(strings.next(), &val);
+    }
+    report<T>(st);
+}
+
+template<class T, class opt = void>
+typename std::enable_if<std::is_same<opt, with_overflow_checked>::value>::type
+atox_c4_from_chars(bm::State& st)
+{
+    random_strings strings = mkstrings<T>();
+    T val;
+    for(auto _ : st)
+    {
+        c4::from_chars(strings.next(), c4::fmt::overflow_checked(val));
     }
     report<T>(st);
 }
@@ -1180,6 +1196,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, uint8_t);
 C4BM_TEMPLATE(atox_c4_atou,  uint8_t);
 C4BM_TEMPLATE(atox_c4_atox,  uint8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint8_t);
+C4BM_TEMPLATE(atox_c4_from_chars, uint8_t, with_overflow_checked);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint8_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint8_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint8_t);
@@ -1194,6 +1211,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, int8_t);
 C4BM_TEMPLATE(atox_c4_atoi,   int8_t);
 C4BM_TEMPLATE(atox_c4_atox,   int8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int8_t);
+C4BM_TEMPLATE(atox_c4_from_chars, int8_t, with_overflow_checked);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, int8_t);
 C4BM_TEMPLATE(atox_std_atoi,   int8_t);
 C4BM_TEMPLATE(atox_std_strtol,   int8_t);
@@ -1208,6 +1226,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, uint16_t);
 C4BM_TEMPLATE(atox_c4_atou, uint16_t);
 C4BM_TEMPLATE(atox_c4_atox, uint16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint16_t);
+C4BM_TEMPLATE(atox_c4_from_chars, uint16_t, with_overflow_checked);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint16_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint16_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint16_t);
@@ -1222,6 +1241,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, int16_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int16_t);
 C4BM_TEMPLATE(atox_c4_atox,  int16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int16_t);
+C4BM_TEMPLATE(atox_c4_from_chars, int16_t, with_overflow_checked);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, int16_t);
 C4BM_TEMPLATE(atox_std_atoi,   int16_t);
 C4BM_TEMPLATE(atox_std_strtol,   int16_t);
@@ -1236,6 +1256,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, uint32_t);
 C4BM_TEMPLATE(atox_c4_atou, uint32_t);
 C4BM_TEMPLATE(atox_c4_atox, uint32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint32_t);
+C4BM_TEMPLATE(atox_c4_from_chars, uint32_t, with_overflow_checked);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint32_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint32_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint32_t);
@@ -1250,6 +1271,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, int32_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int32_t);
 C4BM_TEMPLATE(atox_c4_atox,  int32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int32_t);
+C4BM_TEMPLATE(atox_c4_from_chars, int32_t, with_overflow_checked);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, int32_t);
 C4BM_TEMPLATE(atox_std_atoi,   int32_t);
 C4BM_TEMPLATE(atox_std_strtol,   int32_t);
@@ -1264,6 +1286,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, uint64_t);
 C4BM_TEMPLATE(atox_c4_atou, uint64_t);
 C4BM_TEMPLATE(atox_c4_atox, uint64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint64_t);
+C4BM_TEMPLATE(atox_c4_from_chars, uint64_t, with_overflow_checked);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_std_atol,   uint64_t);
 C4BM_TEMPLATE(atox_std_strtoull,   uint64_t);
@@ -1278,6 +1301,7 @@ C4BM_TEMPLATE(atox_c4_read_bin, int64_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int64_t);
 C4BM_TEMPLATE(atox_c4_atox,  int64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int64_t);
+C4BM_TEMPLATE(atox_c4_from_chars, int64_t, with_overflow_checked);
 C4BM_TEMPLATE_CPP17(atox_std_from_chars, int64_t);
 C4BM_TEMPLATE(atox_std_atol,   int64_t);
 C4BM_TEMPLATE(atox_std_strtoll,   int64_t);
