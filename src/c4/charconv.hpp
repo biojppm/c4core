@@ -708,29 +708,22 @@ size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
 template<class T>
 size_t itoa(substr buf, T v) noexcept
 {
-    if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
-        return detail::xtoa_digits<T>::maxdigits_dec;
     C4_STATIC_ASSERT(std::is_signed<T>::value);
-    if(v >= 0)
+    if(v >= T(0))
     {
+        // write_dec() checks the buffer size, so no need to check here
         return write_dec(buf, v);
     }
     else
     {
+        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
+            return detail::xtoa_digits<T>::maxdigits_dec;
         // when T is the min value (eg i8: -128), negating it
-        // will overflow, treat the min as a special case
+        // will overflow, so treat the min as a special case
         if(C4_LIKELY(v != std::numeric_limits<T>::min()))
         {
-            if(C4_LIKELY(buf.len > 0))
-            {
-                buf.str[0] = '-';
-                return size_t(1) + write_dec(buf.sub(1), -v);
-            }
-            else
-            {
-                return size_t(1) + write_dec({}, -v);
-            }
-            C4_UNREACHABLE();
+            buf.str[0] = '-';
+            return size_t(1) + write_dec(buf.sub(1), -v);
         }
         else
         {
@@ -755,7 +748,7 @@ size_t itoa(substr buf, T v, T radix) noexcept
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
     if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_hex)) // at the very least, the buffer should accomodate this
-        return detail::xtoa_digits<T>::maxdigits_dec;
+        return detail::xtoa_digits<T>::maxdigits_hex;
     // when T is the min value (eg i8: -128), negating it
     // will overflow, treat the min as a special case
     if(C4_LIKELY(v != std::numeric_limits<T>::min()))
