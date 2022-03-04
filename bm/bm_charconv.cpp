@@ -377,12 +377,16 @@ C4FOR(T, isint)
 atox_c4_read_dec(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::read_dec(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -390,12 +394,16 @@ C4FOR(T, isint)
 atox_c4_read_hex(bm::State& st)
 {
     random_strings_cref strings = mkstrings_hex_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::read_hex(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -403,12 +411,16 @@ C4FOR(T, isint)
 atox_c4_read_oct(bm::State& st)
 {
     random_strings_cref strings = mkstrings_oct_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::read_oct(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -416,14 +428,23 @@ C4FOR(T, isint)
 atox_c4_read_bin(bm::State& st)
 {
     random_strings_cref strings = mkstrings_bin_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::read_bin(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 C4FOR(T, isint)
 xtoa_c4_write_dec(bm::State& st)
@@ -476,6 +497,11 @@ xtoa_c4_write_bin(bm::State& st)
     }
     report<T>(st, kNumValues);
 }
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 C4FOR(T, isiint)
 xtoa_c4_itoa(bm::State& st)
@@ -562,12 +588,16 @@ C4FOR(T, isiint)
 atox_c4_atoi(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::atoi(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -575,12 +605,16 @@ C4FOR(T, isuint)
 atox_c4_atou(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::atou(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -588,12 +622,16 @@ C4FOR(T, isfloat)
 atox_c4_atof(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::atof(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -601,12 +639,16 @@ C4FOR(T, isdouble)
 atox_c4_atod(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::atod(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -614,12 +656,16 @@ C4FOR(T, isint)
 atox_c4_atox(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::atox(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -627,12 +673,16 @@ C4FOR(T, isreal)
 atox_c4_atox(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::atox(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -643,12 +693,16 @@ C4FOR(T, isint)
 atox_std_atoi(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             val = (T) std::atoi(strings.next().data());
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -656,12 +710,16 @@ C4FOR(T, isint)
 atox_std_atol(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             val = (T) std::atol(strings.next().data());
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -669,12 +727,16 @@ C4FOR(T, isreal)
 atox_std_atof(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             val = (T) std::atof(strings.next().data());
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -685,15 +747,17 @@ C4FOR(T, isint)
 atox_std_strtol(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             val = (T) std::strtol(s.begin(), nullptr, 10);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -701,15 +765,17 @@ C4FOR(T, isint)
 atox_std_strtoll(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             val = (T) std::strtoll(s.begin(), nullptr, 10);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -717,15 +783,17 @@ C4FOR(T, isint)
 atox_std_strtoul(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             val = (T) std::strtoul(s.begin(), nullptr, 10);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -733,15 +801,17 @@ C4FOR(T, isint)
 atox_std_strtoull(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             val = (T) std::strtoull(s.begin(), nullptr, 10);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -749,15 +819,17 @@ C4FOR(T, isreal)
 atox_std_strtof(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             val = (T) std::strtof(s.begin(), nullptr);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -765,15 +837,17 @@ C4FOR(T, isreal)
 atox_std_strtod(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             val = (T) std::strtod(s.begin(), nullptr);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -781,12 +855,16 @@ C4FOR(T, isreal)
 atox_std_stof(bm::State &st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             val = std::stof(strings.next_s());
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -794,12 +872,16 @@ C4FOR(T, isreal)
 atox_std_stod(bm::State &st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             val = std::stod(strings.next_s());
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -811,15 +893,17 @@ C4FOR(T, isfloat)
 atox_ryu_s2f(bm::State &st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             s2f_n(s.data(), (int) s.size(), &val);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -827,15 +911,17 @@ C4FOR(T, isdouble)
 atox_ryu_s2d(bm::State &st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             s2d_n(s.data(), (int) s.size(), &val);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -881,15 +967,17 @@ C4FOR(T, isreal)
 atox_fp_from_chars_limited(bm::State &st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             val = jkj::fp::from_chars_limited<T>(s.begin(), s.end()).to_float();
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -897,15 +985,17 @@ C4FOR(T, isreal)
 atox_fp_from_chars_unlimited(bm::State &st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             val = jkj::fp::from_chars_unlimited<T>(s.begin(), s.end()).to_float();
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 #endif
@@ -917,15 +1007,17 @@ C4FOR(T, isreal)
 atox_fast_float(bm::State &st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             fast_float::from_chars(s.begin(), s.end(), val);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -998,12 +1090,16 @@ C4FOR(T, isint)
 atox_scanf(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             ::sscanf(strings.next().str, fmtspec<T>::r, &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1011,12 +1107,16 @@ C4FOR(T, isreal)
 atox_scanf(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             ::sscanf(strings.next().str, fmtspec<T>::r, &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1099,15 +1199,17 @@ C4FOR(T, isint)
 atox_sstream(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             std::stringstream ss(strings.next_s());
             ss >> val;
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1115,15 +1217,17 @@ C4FOR(T, isreal)
 atox_sstream(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             std::stringstream ss(strings.next_s());
             ss >> val;
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1131,8 +1235,8 @@ C4FOR(T, isint)
 atox_sstream_reuse(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
     std::stringstream ss;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
@@ -1140,8 +1244,10 @@ atox_sstream_reuse(bm::State& st)
             ss.clear();
             ss.str(strings.next_s());
             ss >> val;
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1149,8 +1255,8 @@ C4FOR(T, isreal)
 atox_sstream_reuse(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
     std::stringstream ss;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
@@ -1158,8 +1264,10 @@ atox_sstream_reuse(bm::State& st)
             ss.clear();
             ss.str(strings.next_s());
             ss >> val;
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1222,18 +1330,22 @@ xtoa_c4_to_chars(bm::State& st)
 }
 
 struct with_overflow_checked {};
-
+#include <iostream>
 template<class T, class opt = void>
 typename std::enable_if<isint(T) && std::is_same<opt, void>::value>::type
 atox_c4_from_chars(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::from_chars(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1242,12 +1354,16 @@ typename std::enable_if<isint(T) && std::is_same<opt, with_overflow_checked>::va
 atox_c4_from_chars(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::from_chars(strings.next(), c4::fmt::overflow_checked(val));
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1255,12 +1371,16 @@ C4FOR(T, isreal)
 atox_c4_from_chars(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val;
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
+        {
             c4::from_chars(strings.next(), &val);
+            sum += val;
+        }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 
@@ -1299,15 +1419,17 @@ C4FOR(T, isint)
 atox_std_from_chars(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             std::from_chars(s.begin(), s.end(), val);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 #endif
@@ -1317,15 +1439,17 @@ C4FOR(T, isreal)
 atox_std_from_chars(bm::State& st)
 {
     random_strings_cref strings = mkstrings<T>();
-    T val; C4_UNUSED(val);
+    T val = {}, sum = {};
     for(auto _ : st)
     {
         C4DOALL(kNumValues)
         {
             c4::csubstr s = strings.next();
             std::from_chars(s.begin(), s.end(), val);
+            sum += val;
         }
     }
+    bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
 #endif
