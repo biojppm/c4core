@@ -216,111 +216,121 @@ struct is_fixed_length
 #endif
 
 namespace detail {
-template<bool is_signed, size_t num_bits> struct xtoa_digits_;
-template<class T> using xtoa_digits = xtoa_digits_<std::is_signed<T>::value, sizeof(T) * 8>;
+template<size_t num_bytes, bool is_signed> struct xtoa_digits_;
+template<class T> using xtoa_digits = xtoa_digits_<sizeof(T), std::is_signed<T>::value>;
 
-template<> struct xtoa_digits_<true, 8u>
+/* python command to get the values below:
+def dec(v):
+    return str(v)
+for bits in (8, 16, 32, 64):
+    imin, imax, umax = (-(1 << (bits - 1))), (1 << (bits - 1)) - 1, (1 << bits) - 1
+    for vname, v in (("imin", imin), ("imax", imax), ("umax", umax)):
+        for f in (bin, oct, dec, hex):
+            print(f"{bits}b: {vname}={v} {f.__name__}: len={len(f(v)):2d}: {v} {f(v)}")
+*/
+
+template<> struct xtoa_digits_<1u, true>
 {
     enum : size_t {
-        maxdigits_bin = 1 + 2 + 8, // -128==-0b10000000
-        maxdigits_oct = 1 + 2 + 3, // -128==-0o200
-        maxdigits_dec = 1     + 3, // -128
-        maxdigits_hex = 1 + 2 + 2, // -128==-0x80
-        maxdigits_bin_nopfx = 8, // -128==-0b10000000
-        maxdigits_oct_nopfx = 3, // -128==-0o200
-        maxdigits_dec_nopfx = 3, // -128
-        maxdigits_hex_nopfx = 2, // -128==-0x80
+        maxdigits_bin       = 1 + 2 + 8, // -128==-0b10000000
+        maxdigits_oct       = 1 + 2 + 3, // -128==-0o200
+        maxdigits_dec       = 1     + 3, // -128
+        maxdigits_hex       = 1 + 2 + 2, // -128==-0x80
+        maxdigits_bin_nopfx =         8, // -128==-0b10000000
+        maxdigits_oct_nopfx =         3, // -128==-0o200
+        maxdigits_dec_nopfx =         3, // -128
+        maxdigits_hex_nopfx =         2, // -128==-0x80
     };
 };
-template<> struct xtoa_digits_<false, 8u>
+template<> struct xtoa_digits_<1u, false>
 {
     enum : size_t {
-        maxdigits_bin = 2 + 8, // 255 0b11111111
-        maxdigits_oct = 2 + 3, // 255 0o377
-        maxdigits_dec =     3, // 255
-        maxdigits_hex = 2 + 2, // 255 0xff
-        maxdigits_bin_nopfx = 8, // 255 0b11111111
-        maxdigits_oct_nopfx = 3, // 255 0o377
-        maxdigits_dec_nopfx = 3, // 255
-        maxdigits_hex_nopfx = 2, // 255 0xff
+        maxdigits_bin       = 2 + 8, // 255 0b11111111
+        maxdigits_oct       = 2 + 3, // 255 0o377
+        maxdigits_dec       =     3, // 255
+        maxdigits_hex       = 2 + 2, // 255 0xff
+        maxdigits_bin_nopfx =     8, // 255 0b11111111
+        maxdigits_oct_nopfx =     3, // 255 0o377
+        maxdigits_dec_nopfx =     3, // 255
+        maxdigits_hex_nopfx =     2, // 255 0xff
     };
 };
-template<> struct xtoa_digits_<true, 16u>
+template<> struct xtoa_digits_<2u, true>
 {
     enum : size_t {
-        maxdigits_bin = 1 + 2 + 16, // -32768 -0b1000000000000000
-        maxdigits_oct = 1 + 2 +  6, // -32768 -0o100000
-        maxdigits_dec = 1     +  5, // -32768 -32768
-        maxdigits_hex = 1 + 2 +  4, // -32768 -0x8000
-        maxdigits_bin_nopfx = 16,   // -32768 -0b1000000000000000
-        maxdigits_oct_nopfx =  6,   // -32768 -0o100000
-        maxdigits_dec_nopfx =  5,   // -32768 -32768
-        maxdigits_hex_nopfx =  4,   // -32768 -0x8000
+        maxdigits_bin       = 1 + 2 + 16, // -32768 -0b1000000000000000
+        maxdigits_oct       = 1 + 2 +  6, // -32768 -0o100000
+        maxdigits_dec       = 1     +  5, // -32768 -32768
+        maxdigits_hex       = 1 + 2 +  4, // -32768 -0x8000
+        maxdigits_bin_nopfx =         16, // -32768 -0b1000000000000000
+        maxdigits_oct_nopfx =          6, // -32768 -0o100000
+        maxdigits_dec_nopfx =          5, // -32768 -32768
+        maxdigits_hex_nopfx =          4, // -32768 -0x8000
     };
 };
-template<> struct xtoa_digits_<false, 16u>
+template<> struct xtoa_digits_<2u, false>
 {
     enum : size_t {
-        maxdigits_bin = 2 + 16, // 65535 0b1111111111111111
-        maxdigits_oct = 2 +  6, // 65535 0o177777
-        maxdigits_dec =      6, // 65535 65535
-        maxdigits_hex = 2 +  4, // 65535 0xffff
-        maxdigits_bin_nopfx = 16, // 65535 0b1111111111111111
-        maxdigits_oct_nopfx =  6, // 65535 0o177777
-        maxdigits_dec_nopfx =  6, // 65535 65535
-        maxdigits_hex_nopfx =  4, // 65535 0xffff
+        maxdigits_bin       = 2 + 16, // 65535 0b1111111111111111
+        maxdigits_oct       = 2 +  6, // 65535 0o177777
+        maxdigits_dec       =      6, // 65535 65535
+        maxdigits_hex       = 2 +  4, // 65535 0xffff
+        maxdigits_bin_nopfx =     16, // 65535 0b1111111111111111
+        maxdigits_oct_nopfx =      6, // 65535 0o177777
+        maxdigits_dec_nopfx =      6, // 65535 65535
+        maxdigits_hex_nopfx =      4, // 65535 0xffff
     };
 };
-template<> struct xtoa_digits_<true, 32u>
+template<> struct xtoa_digits_<4u, true>
 {
     enum : size_t {
-        maxdigits_bin = 1 + 2 + 32, // len=35: -2147483648 -0b10000000000000000000000000000000
-        maxdigits_oct = 1 + 2 + 11, // len=14: -2147483648 -0o20000000000
-        maxdigits_dec = 1     + 10, // len=11: -2147483648 -2147483648
-        maxdigits_hex = 1 + 2 +  8, // len=11: -2147483648 -0x80000000
-        maxdigits_bin_nopfx = 32, // len=35: -2147483648 -0b10000000000000000000000000000000
-        maxdigits_oct_nopfx = 11, // len=14: -2147483648 -0o20000000000
-        maxdigits_dec_nopfx = 10, // len=11: -2147483648 -2147483648
-        maxdigits_hex_nopfx =  8, // len=11: -2147483648 -0x80000000
+        maxdigits_bin       = 1 + 2 + 32, // len=35: -2147483648 -0b10000000000000000000000000000000
+        maxdigits_oct       = 1 + 2 + 11, // len=14: -2147483648 -0o20000000000
+        maxdigits_dec       = 1     + 10, // len=11: -2147483648 -2147483648
+        maxdigits_hex       = 1 + 2 +  8, // len=11: -2147483648 -0x80000000
+        maxdigits_bin_nopfx =         32, // len=35: -2147483648 -0b10000000000000000000000000000000
+        maxdigits_oct_nopfx =         11, // len=14: -2147483648 -0o20000000000
+        maxdigits_dec_nopfx =         10, // len=11: -2147483648 -2147483648
+        maxdigits_hex_nopfx =          8, // len=11: -2147483648 -0x80000000
     };
 };
-template<> struct xtoa_digits_<false, 32u>
+template<> struct xtoa_digits_<4u, false>
 {
     enum : size_t {
-        maxdigits_bin = 2 + 32, // len=34: 4294967295 0b11111111111111111111111111111111
-        maxdigits_oct = 2 + 11, // len=13: 4294967295 0o37777777777
-        maxdigits_dec =     10, // len=10: 4294967295 4294967295
-        maxdigits_hex = 2 +  8, // len=10: 4294967295 0xffffffff
-        maxdigits_bin_nopfx = 32, // len=34: 4294967295 0b11111111111111111111111111111111
-        maxdigits_oct_nopfx = 11, // len=13: 4294967295 0o37777777777
-        maxdigits_dec_nopfx = 10, // len=10: 4294967295 4294967295
-        maxdigits_hex_nopfx =  8, // len=10: 4294967295 0xffffffff
+        maxdigits_bin       = 2 + 32, // len=34: 4294967295 0b11111111111111111111111111111111
+        maxdigits_oct       = 2 + 11, // len=13: 4294967295 0o37777777777
+        maxdigits_dec       =     10, // len=10: 4294967295 4294967295
+        maxdigits_hex       = 2 +  8, // len=10: 4294967295 0xffffffff
+        maxdigits_bin_nopfx =     32, // len=34: 4294967295 0b11111111111111111111111111111111
+        maxdigits_oct_nopfx =     11, // len=13: 4294967295 0o37777777777
+        maxdigits_dec_nopfx =     10, // len=10: 4294967295 4294967295
+        maxdigits_hex_nopfx =      8, // len=10: 4294967295 0xffffffff
     };
 };
-template<> struct xtoa_digits_<true, 64u>
+template<> struct xtoa_digits_<8u, true>
 {
     enum : size_t {
-        maxdigits_bin = 1 + 2 + 64, // len=67: -9223372036854775808 -0b1000000000000000000000000000000000000000000000000000000000000000
-        maxdigits_oct = 1 + 2 + 22, // len=25: -9223372036854775808 -0o1000000000000000000000
-        maxdigits_dec = 1     + 19, // len=20: -9223372036854775808 -9223372036854775808
-        maxdigits_hex = 1 + 2 + 16, // len=19: -9223372036854775808 -0x8000000000000000
-        maxdigits_bin_nopfx = 64, // len=67: -9223372036854775808 -0b1000000000000000000000000000000000000000000000000000000000000000
-        maxdigits_oct_nopfx = 22, // len=25: -9223372036854775808 -0o1000000000000000000000
-        maxdigits_dec_nopfx = 19, // len=20: -9223372036854775808 -9223372036854775808
-        maxdigits_hex_nopfx = 16, // len=19: -9223372036854775808 -0x8000000000000000
+        maxdigits_bin       = 1 + 2 + 64, // len=67: -9223372036854775808 -0b1000000000000000000000000000000000000000000000000000000000000000
+        maxdigits_oct       = 1 + 2 + 22, // len=25: -9223372036854775808 -0o1000000000000000000000
+        maxdigits_dec       = 1     + 19, // len=20: -9223372036854775808 -9223372036854775808
+        maxdigits_hex       = 1 + 2 + 16, // len=19: -9223372036854775808 -0x8000000000000000
+        maxdigits_bin_nopfx =         64, // len=67: -9223372036854775808 -0b1000000000000000000000000000000000000000000000000000000000000000
+        maxdigits_oct_nopfx =         22, // len=25: -9223372036854775808 -0o1000000000000000000000
+        maxdigits_dec_nopfx =         19, // len=20: -9223372036854775808 -9223372036854775808
+        maxdigits_hex_nopfx =         16, // len=19: -9223372036854775808 -0x8000000000000000
     };
 };
-template<> struct xtoa_digits_<false, 64u>
+template<> struct xtoa_digits_<8u, false>
 {
     enum : size_t {
-        maxdigits_bin = 2 + 64, // len=66: 18446744073709551615 0b1111111111111111111111111111111111111111111111111111111111111111
-        maxdigits_oct = 2 + 22, // len=24: 18446744073709551615 0o1777777777777777777777
-        maxdigits_dec =     20, // len=20: 18446744073709551615 18446744073709551615
-        maxdigits_hex = 2 + 16, // len=18: 18446744073709551615 0xffffffffffffffff
-        maxdigits_bin_nopfx = 64, // len=66: 18446744073709551615 0b1111111111111111111111111111111111111111111111111111111111111111
-        maxdigits_oct_nopfx = 22, // len=24: 18446744073709551615 0o1777777777777777777777
-        maxdigits_dec_nopfx = 20, // len=20: 18446744073709551615 18446744073709551615
-        maxdigits_hex_nopfx = 16, // len=18: 18446744073709551615 0xffffffffffffffff
+        maxdigits_bin       = 2 + 64, // len=66: 18446744073709551615 0b1111111111111111111111111111111111111111111111111111111111111111
+        maxdigits_oct       = 2 + 22, // len=24: 18446744073709551615 0o1777777777777777777777
+        maxdigits_dec       =     20, // len=20: 18446744073709551615 18446744073709551615
+        maxdigits_hex       = 2 + 16, // len=18: 18446744073709551615 0xffffffffffffffff
+        maxdigits_bin_nopfx =     64, // len=66: 18446744073709551615 0b1111111111111111111111111111111111111111111111111111111111111111
+        maxdigits_oct_nopfx =     22, // len=24: 18446744073709551615 0o1777777777777777777777
+        maxdigits_dec_nopfx =     20, // len=20: 18446744073709551615 18446744073709551615
+        maxdigits_hex_nopfx =     16, // len=18: 18446744073709551615 0xffffffffffffffff
     };
 };
 } // namespace detail
@@ -904,7 +914,7 @@ size_t utoa(substr buf, T v, T radix, size_t num_digits) noexcept
         needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_dec ? num_digits : detail::xtoa_digits<T>::maxdigits_dec;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
-        /*............................*/return pos + write_dec(buf.sub(pos), v, num_digits);
+        /*........................................*/return pos + write_dec(buf.sub(pos), v, num_digits);
     case 16:
         needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_hex ? num_digits : detail::xtoa_digits<T>::maxdigits_hex;
         if(C4_UNLIKELY(buf.len < needed_digits))
