@@ -624,78 +624,91 @@ template<> struct itoa_min<8>
 };
 inline size_t _itoa2buf(substr buf, size_t pos, csubstr val) noexcept
 {
-    if(C4_LIKELY(pos + val.len <= buf.len))
-        memcpy(buf.str + pos, val.str, val.len);
+    C4_ASSERT(pos + val.len <= buf.len);
+    memcpy(buf.str + pos, val.str, val.len);
     return pos + val.len;
 }
 inline size_t _itoa2bufwithdigits(substr buf, size_t pos, size_t num_digits, csubstr val) noexcept
 {
     num_digits = num_digits > val.len ? num_digits - val.len : 0;
+    C4_ASSERT(num_digits + val.len <= buf.len);
     for(size_t i = 0; i < num_digits; ++i)
         _c4append('0');
-    return _itoa2buf(buf, pos, val);
+    return detail::_itoa2buf(buf, pos, val);
 }
 template<class T>
-size_t _itoadec2buf(substr buf) noexcept
+C4_NO_INLINE size_t _itoadec2buf(substr buf) noexcept
 {
-    if(C4_LIKELY(buf.len > 0))
-    {
-        buf.str[0] = '-';
-        return detail::_itoa2buf(buf, 1, detail::itoa_min<sizeof(T)>::value_dec());
-    }
-    else
-    {
-        return detail::_itoa2buf({}, 1, detail::itoa_min<sizeof(T)>::value_dec());
-    }
-    C4_UNREACHABLE();
+    if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
+        return detail::xtoa_digits<T>::maxdigits_dec;
+    buf.str[0] = '-';
+    return detail::_itoa2buf(buf, 1, detail::itoa_min<sizeof(T)>::value_dec());
 }
 template<class I>
-size_t _itoa2buf(substr buf, I radix) noexcept
+C4_NO_INLINE size_t _itoa2buf(substr buf, I radix) noexcept
 {
-    C4_ASSERT(buf.len > 1); // bailout before calling this function
     size_t pos = 0;
-    buf.str[pos++] = '-';
+    if(C4_LIKELY(buf.len > 0))
+        buf.str[pos++] = '-';
     switch(radix)
     {
     case I(10):
-        C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_dec);
+        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<I>::maxdigits_dec))
+            return detail::xtoa_digits<I>::maxdigits_dec;
         /*.......................................*/ return _itoa2buf(buf, pos, itoa_min<sizeof(I)>::value_dec());
     case I(16):
-        C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_hex);
+        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<I>::maxdigits_hex))
+            return detail::xtoa_digits<I>::maxdigits_hex;
         buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return _itoa2buf(buf, pos, itoa_min<sizeof(I)>::value_hex());
     case I( 2):
-        C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_bin);
+        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<I>::maxdigits_bin))
+            return detail::xtoa_digits<I>::maxdigits_bin;
         buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return _itoa2buf(buf, pos, itoa_min<sizeof(I)>::value_bin());
     case I( 8):
-        C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_oct);
+        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<I>::maxdigits_oct))
+            return detail::xtoa_digits<I>::maxdigits_oct;
         buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return _itoa2buf(buf, pos, itoa_min<sizeof(I)>::value_oct());
     }
-    C4_ERROR("unknown radix");
+    C4_UNREACHABLE();
     return 0;
 }
 template<class I>
-size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
+C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
 {
-    C4_ASSERT(buf.len > 1); // bailout before calling this function
-    C4_ASSERT(buf.len >= num_digits); // bailout before calling this function
     size_t pos = 0;
-    buf.str[pos++] = '-';
+    size_t needed_digits = 0;
+    if(C4_LIKELY(buf.len > 0))
+        buf.str[pos++] = '-';
     switch(radix)
     {
     case I(10):
-        C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_dec);
+        // add 1 to account for -
+        needed_digits = num_digits+1 > detail::xtoa_digits<I>::maxdigits_dec ? num_digits+1 : detail::xtoa_digits<I>::maxdigits_dec;
+        if(C4_UNLIKELY(buf.len < needed_digits))
+            return needed_digits;
         /*.......................................*/ return _itoa2bufwithdigits(buf, pos, num_digits, itoa_min<sizeof(I)>::value_dec());
     case I(16):
-        C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_hex);
+        // add 3 to account for -0x
+        needed_digits = num_digits+3 > detail::xtoa_digits<I>::maxdigits_hex ? num_digits+3 : detail::xtoa_digits<I>::maxdigits_hex;
+        if(C4_UNLIKELY(buf.len < needed_digits))
+            return needed_digits;
         buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return _itoa2bufwithdigits(buf, pos, num_digits, itoa_min<sizeof(I)>::value_hex());
     case I( 2):
+        // add 3 to account for -0b
+        needed_digits = num_digits+3 > detail::xtoa_digits<I>::maxdigits_bin ? num_digits+3 : detail::xtoa_digits<I>::maxdigits_bin;
+        if(C4_UNLIKELY(buf.len < needed_digits))
+            return needed_digits;
         C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_bin);
         buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return _itoa2bufwithdigits(buf, pos, num_digits, itoa_min<sizeof(I)>::value_bin());
     case I( 8):
+        // add 3 to account for -0o
+        needed_digits = num_digits+3 > detail::xtoa_digits<I>::maxdigits_oct ? num_digits+3 : detail::xtoa_digits<I>::maxdigits_oct;
+        if(C4_UNLIKELY(buf.len < needed_digits))
+            return needed_digits;
         C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_oct);
         buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return _itoa2bufwithdigits(buf, pos, num_digits, itoa_min<sizeof(I)>::value_oct());
     }
-    C4_ERROR("unknown radix");
+    C4_UNREACHABLE();
     return 0;
 }
 } // namespace detail
@@ -747,17 +760,16 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
-    if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_hex)) // at the very least, the buffer should accomodate this
-        return detail::xtoa_digits<T>::maxdigits_hex;
     // when T is the min value (eg i8: -128), negating it
-    // will overflow, treat the min as a special case
+    // will overflow, so treat the min as a special case
     if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
         size_t pos = 0;
         if(v < 0)
         {
             v = -v;
-            buf.str[pos++] = '-';
+            if(C4_LIKELY(buf.len > 0))
+                buf.str[pos++] = '-';
         }
         switch(radix)
         {
@@ -766,7 +778,8 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
                 return detail::xtoa_digits<T>::maxdigits_dec;
             /*........................................*/return pos + write_dec(buf.sub(pos), v);
         case T(16):
-            // buffer size was checked above
+            if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_hex))
+                return detail::xtoa_digits<T>::maxdigits_hex;
             buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v);
         case T( 2):
             if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_bin))
@@ -785,9 +798,10 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
 
 
 /** same as c4::itoa(), but pad with zeroes on the left such that the
- * resulting string is @p num_digits wide. The @p radix must be 2,
- * 8, 10 or 16.  The resulting string is NOT zero-terminated.  Writing
- * stops at the buffer's end.
+ * resulting string is @p num_digits wide, not account for radix
+ * prefix (0x,0o,0b). The @p radix must be 2, 8, 10 or 16.  The
+ * resulting string is NOT zero-terminated.  Writing stops at the
+ * buffer's end.
  *
  * @return the number of characters needed for the result, even if
  * the buffer size is insufficient */
@@ -796,37 +810,41 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
-    // at the very least, the buffer should accomodate this:
-    size_t needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_hex ? num_digits : detail::xtoa_digits<T>::maxdigits_hex;
-    if(C4_UNLIKELY(buf.len < needed_digits))
-        return needed_digits;
+    size_t needed_digits;
     // when T is the min value (eg i8: -128), negating it
-    // will overflow, treat the min as a special case
+    // will overflow, so treat the min as a special case
     if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
         size_t pos = 0;
         if(v < 0)
         {
             v = -v;
-            buf.str[pos++] = '-';
+            if(C4_LIKELY(buf.len > 0))
+                buf.str[pos++] = '-';
         }
         switch(radix)
         {
-        case 10:
-            needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_dec ? num_digits : detail::xtoa_digits<T>::maxdigits_dec;
+        case T(10):
+            // add 1 to account for -
+            needed_digits = num_digits+1 > detail::xtoa_digits<T>::maxdigits_dec ? num_digits+1 : detail::xtoa_digits<T>::maxdigits_dec;
             if(C4_UNLIKELY(buf.len < needed_digits))
                 return needed_digits;
             /*.......................................*/ return pos + write_dec(buf.sub(pos), v, num_digits);
-        case 16:
-            // buffer size was checked above
+        case T(16):
+            // add 3 to account for -0x
+            needed_digits = num_digits+3 > detail::xtoa_digits<T>::maxdigits_hex ? num_digits+3 : detail::xtoa_digits<T>::maxdigits_hex;
+            if(C4_UNLIKELY(buf.len < needed_digits))
+                return needed_digits;
             buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v, num_digits);
-        case 2:
-            needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_bin ? num_digits : detail::xtoa_digits<T>::maxdigits_bin;
+        case T(2):
+            // add 3 to account for -0b
+            needed_digits = num_digits+3 > detail::xtoa_digits<T>::maxdigits_bin ? num_digits+3 : detail::xtoa_digits<T>::maxdigits_bin;
             if(C4_UNLIKELY(buf.len < needed_digits))
                 return needed_digits;
             buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v, num_digits);
-        case 8:
-            needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_oct ? num_digits : detail::xtoa_digits<T>::maxdigits_oct;
+        case T(8):
+            // add 3 to account for -0o
+            needed_digits = num_digits+3 > detail::xtoa_digits<T>::maxdigits_oct ? num_digits+3 : detail::xtoa_digits<T>::maxdigits_oct;
             if(C4_UNLIKELY(buf.len < needed_digits))
                 return needed_digits;
             buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v, num_digits);
@@ -866,19 +884,19 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
     size_t pos = 0;
     switch(radix)
     {
-    case 10:
+    case T(10):
         if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
             return detail::xtoa_digits<T>::maxdigits_dec;
         /*............................*/return pos + write_dec(buf, v);
-    case 16:
+    case T(16):
         if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_hex))
             return detail::xtoa_digits<T>::maxdigits_hex;
         buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v);
-    case 2:
+    case T(2):
         if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_bin))
             return detail::xtoa_digits<T>::maxdigits_bin;
         buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v);
-    case 8:
+    case T(8):
         if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_oct))
             return detail::xtoa_digits<T>::maxdigits_oct;
         buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v);
@@ -889,8 +907,9 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
 
 /** same as c4::utoa(), but pad with zeroes on the left such that the
  * resulting string is @p num_digits wide. The @p radix must be 2,
- * 8, 10 or 16.  The resulting string is NOT zero-terminated.  Writing
- * stops at the buffer's end.
+ * 8, 10 or 16.  The resulting string is NOT zero-terminated. Writing
+ * occurs only if the buffer is large enough to contain the largest
+ * value of the type or @p num_digits if it is larger.
  *
  * @return the number of characters needed for the result, even if
  * the buffer size is insufficient */
@@ -903,23 +922,26 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexce
     size_t pos = 0;
     switch(radix)
     {
-    case 10:
+    case T(10):
         needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_dec ? num_digits : detail::xtoa_digits<T>::maxdigits_dec;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
-        /*........................................*/return pos + write_dec(buf.sub(pos), v, num_digits);
-    case 16:
-        needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_hex ? num_digits : detail::xtoa_digits<T>::maxdigits_hex;
+        /*........................................*/return write_dec(buf, v, num_digits);
+    case T(16):
+        // add 2 to account for 0x
+        needed_digits = num_digits+2 > detail::xtoa_digits<T>::maxdigits_hex ? num_digits+2 : detail::xtoa_digits<T>::maxdigits_hex;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v, num_digits);
-    case 2:
-        needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_bin ? num_digits : detail::xtoa_digits<T>::maxdigits_bin;
+    case T(2):
+        // add 2 to account for 0b
+        needed_digits = num_digits+2 > detail::xtoa_digits<T>::maxdigits_bin ? num_digits+2 : detail::xtoa_digits<T>::maxdigits_bin;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v, num_digits);
-    case 8:
-        needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_oct ? num_digits : detail::xtoa_digits<T>::maxdigits_oct;
+    case T(8):
+        // add 2 to account for 0o
+        needed_digits = num_digits+2 > detail::xtoa_digits<T>::maxdigits_oct ? num_digits+2 : detail::xtoa_digits<T>::maxdigits_oct;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v, num_digits);
@@ -933,12 +955,13 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexce
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** Convert a trimmed string to a signed integral value. The string
- * can be formatted as decimal, binary (prefix 0b or 0B), octal
+/** Convert a trimmed string to a signed integral value. The input
+ * string can be formatted as decimal, binary (prefix 0b or 0B), octal
  * (prefix 0o or 0O) or hexadecimal (prefix 0x or 0X). Strings with
- * leading zeroes are considered as decimal. Every character in the
- * input string is read for the conversion; it must not contain any
- * leading or trailing whitespace.
+ * leading zeroes are considered as decimal and not octal (unlike the
+ * C/C++ convention). Every character in the input string is read for
+ * the conversion; the input string must not contain any leading or
+ * trailing whitespace.
  *
  * @return true if the conversion was successful.
  *

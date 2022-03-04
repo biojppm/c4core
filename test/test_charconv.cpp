@@ -195,7 +195,7 @@ template<class T> using xtoaNumDigitsFn = size_t (*)(substr, T, T, size_t);
 template<class T, xtoaNumDigitsFn<T> xtoa_fn>
 void test_itoa_num_digits(substr buf, T val, T radix, size_t digits, csubstr expected)
 {
-    INFO("val=" << val << "  radix=" << radix << "  digits=" << digits);
+    INFO("val=" << val << "  radix=" << radix << "  digits=" << digits << "  expected=[" << expected.len << "]" << expected);
     size_t ret;
 
     for(size_t i = 0; i < 16; ++i)
