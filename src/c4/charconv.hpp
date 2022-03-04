@@ -743,7 +743,7 @@ size_t itoa(substr buf, T v) noexcept
  * Writing stops at the buffer's end.
  * @return the number of characters needed for the result, even if the buffer size is insufficient */
 template<class T>
-size_t itoa(substr buf, T v, T radix) noexcept
+C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
@@ -792,7 +792,7 @@ size_t itoa(substr buf, T v, T radix) noexcept
  * @return the number of characters needed for the result, even if
  * the buffer size is insufficient */
 template<class T>
-size_t itoa(substr buf, T v, T radix, size_t num_digits) noexcept
+C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexcept
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
@@ -859,7 +859,7 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v) noexcept
  * Writing stops at the buffer's end.
  * @return the number of characters needed for the result, even if the buffer size is insufficient */
 template<class T>
-size_t utoa(substr buf, T v, T radix) noexcept
+C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
 {
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
     C4_ASSERT(radix == 10 || radix == 16 || radix == 2 || radix == 8);
@@ -895,7 +895,7 @@ size_t utoa(substr buf, T v, T radix) noexcept
  * @return the number of characters needed for the result, even if
  * the buffer size is insufficient */
 template<class T>
-size_t utoa(substr buf, T v, T radix, size_t num_digits) noexcept
+C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexcept
 {
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
     C4_ASSERT(radix == 10 || radix == 16 || radix == 2 || radix == 8);
@@ -949,7 +949,7 @@ size_t utoa(substr buf, T v, T radix, size_t num_digits) noexcept
  *
  * @see atoi_first() if the string is not trimmed to the value to read. */
 template<class T>
-bool atoi(csubstr str, T * C4_RESTRICT v)
+C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_STATIC_ASSERT(std::is_signed<T>::value);
@@ -1031,7 +1031,7 @@ bool atoi(csubstr str, T * C4_RESTRICT v)
  * @see atoi() if the string is already trimmed to the value to read.
  * @see csubstr::first_int_span() */
 template<class T>
-inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
+C4_ALWAYS_INLINE size_t atoi_first(csubstr str, T * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_int_span();
     if(trimmed.len == 0)
@@ -1060,7 +1060,7 @@ inline size_t atoi_first(csubstr str, T * C4_RESTRICT v)
  *
  * @see atou_first() if the string is not trimmed to the value to read. */
 template<class T>
-bool atou(csubstr str, T * C4_RESTRICT v)
+C4_ALWAYS_INLINE bool atou(csubstr str, T * C4_RESTRICT v)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
 
@@ -1124,7 +1124,7 @@ bool atou(csubstr str, T * C4_RESTRICT v)
  * @see atou() if the string is already trimmed to the value to read.
  * @see csubstr::first_uint_span() */
 template<class T>
-inline size_t atou_first(csubstr str, T *v)
+C4_ALWAYS_INLINE size_t atou_first(csubstr str, T *v)
 {
     csubstr trimmed = str.first_uint_span();
     if(trimmed.len == 0)
