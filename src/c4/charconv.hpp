@@ -216,8 +216,6 @@ struct is_fixed_length
 #endif
 
 namespace detail {
-template<size_t num_bytes, bool is_signed> struct xtoa_digits_;
-template<class T> using xtoa_digits = xtoa_digits_<sizeof(T), std::is_signed<T>::value>;
 
 /* python command to get the values below:
 def dec(v):
@@ -229,7 +227,13 @@ for bits in (8, 16, 32, 64):
             print(f"{bits}b: {vname}={v} {f.__name__}: len={len(f(v)):2d}: {v} {f(v)}")
 */
 
-template<> struct xtoa_digits_<1u, true>
+// do not use the type as the template argument because in some
+// platforms long!=int32 and long!=int64. Just use the numbytes
+// which is more generic and spares lengthy SFINAE code.
+template<size_t num_bytes, bool is_signed> struct charconv_digits_;
+template<class T> using charconv_digits = charconv_digits_<sizeof(T), std::is_signed<T>::value>;
+
+template<> struct charconv_digits_<1u, true> // int8_t
 {
     enum : size_t {
         maxdigits_bin       = 1 + 2 + 8, // -128==-0b10000000
@@ -241,8 +245,15 @@ template<> struct xtoa_digits_<1u, true>
         maxdigits_dec_nopfx =         3, // -128
         maxdigits_hex_nopfx =         2, // -128==-0x80
     };
+    // min values without sign!
+    static constexpr csubstr min_value_dec() noexcept { return csubstr("128"); }
+    static constexpr csubstr min_value_hex() noexcept { return csubstr("80"); }
+    static constexpr csubstr min_value_oct() noexcept { return csubstr("200"); }
+    static constexpr csubstr min_value_bin() noexcept { return csubstr("10000000"); }
+    static constexpr csubstr max_value_dec() noexcept { return csubstr("127"); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 3) || (str.len == 3 && str[0] <= '1')); }
 };
-template<> struct xtoa_digits_<1u, false>
+template<> struct charconv_digits_<1u, false> // uint8_t
 {
     enum : size_t {
         maxdigits_bin       = 2 + 8, // 255 0b11111111
@@ -254,8 +265,10 @@ template<> struct xtoa_digits_<1u, false>
         maxdigits_dec_nopfx =     3, // 255
         maxdigits_hex_nopfx =     2, // 255 0xff
     };
+    static constexpr csubstr max_value_dec() noexcept { return csubstr("255"); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 3) || (str.len == 3 && str[0] <= '3')); }
 };
-template<> struct xtoa_digits_<2u, true>
+template<> struct charconv_digits_<2u, true> // int16_t
 {
     enum : size_t {
         maxdigits_bin       = 1 + 2 + 16, // -32768 -0b1000000000000000
@@ -267,8 +280,15 @@ template<> struct xtoa_digits_<2u, true>
         maxdigits_dec_nopfx =          5, // -32768 -32768
         maxdigits_hex_nopfx =          4, // -32768 -0x8000
     };
+    // min values without sign!
+    static constexpr csubstr min_value_dec() noexcept { return csubstr("32768"); }
+    static constexpr csubstr min_value_hex() noexcept { return csubstr("8000"); }
+    static constexpr csubstr min_value_oct() noexcept { return csubstr("100000"); }
+    static constexpr csubstr min_value_bin() noexcept { return csubstr("1000000000000000"); }
+    static constexpr csubstr max_value_dec() noexcept { return csubstr("32767"); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 6)); }
 };
-template<> struct xtoa_digits_<2u, false>
+template<> struct charconv_digits_<2u, false> // uint16_t
 {
     enum : size_t {
         maxdigits_bin       = 2 + 16, // 65535 0b1111111111111111
@@ -280,8 +300,10 @@ template<> struct xtoa_digits_<2u, false>
         maxdigits_dec_nopfx =      6, // 65535 65535
         maxdigits_hex_nopfx =      4, // 65535 0xffff
     };
+    static constexpr csubstr max_value_dec() noexcept { return csubstr("65535"); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 6) || (str.len == 6 && str[0] <= '1')); }
 };
-template<> struct xtoa_digits_<4u, true>
+template<> struct charconv_digits_<4u, true> // int32_t
 {
     enum : size_t {
         maxdigits_bin       = 1 + 2 + 32, // len=35: -2147483648 -0b10000000000000000000000000000000
@@ -293,8 +315,15 @@ template<> struct xtoa_digits_<4u, true>
         maxdigits_dec_nopfx =         10, // len=11: -2147483648 -2147483648
         maxdigits_hex_nopfx =          8, // len=11: -2147483648 -0x80000000
     };
+    // min values without sign!
+    static constexpr csubstr min_value_dec() noexcept { return csubstr("2147483648"); }
+    static constexpr csubstr min_value_hex() noexcept { return csubstr("80000000"); }
+    static constexpr csubstr min_value_oct() noexcept { return csubstr("20000000000"); }
+    static constexpr csubstr min_value_bin() noexcept { return csubstr("10000000000000000000000000000000"); }
+    static constexpr csubstr max_value_dec() noexcept { return csubstr("2147483647"); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 11) || (str.len == 11 && str[0] <= '1')); }
 };
-template<> struct xtoa_digits_<4u, false>
+template<> struct charconv_digits_<4u, false> // uint32_t
 {
     enum : size_t {
         maxdigits_bin       = 2 + 32, // len=34: 4294967295 0b11111111111111111111111111111111
@@ -306,8 +335,10 @@ template<> struct xtoa_digits_<4u, false>
         maxdigits_dec_nopfx =     10, // len=10: 4294967295 4294967295
         maxdigits_hex_nopfx =      8, // len=10: 4294967295 0xffffffff
     };
+    static constexpr csubstr max_value_dec() noexcept { return csubstr("4294967295"); }
+    static constexpr bool is_oct_overflow(csubstr str) noexcept { return !((str.len < 11) || (str.len == 11 && str[0] <= '3')); }
 };
-template<> struct xtoa_digits_<8u, true>
+template<> struct charconv_digits_<8u, true> // int32_t
 {
     enum : size_t {
         maxdigits_bin       = 1 + 2 + 64, // len=67: -9223372036854775808 -0b1000000000000000000000000000000000000000000000000000000000000000
@@ -319,8 +350,14 @@ template<> struct xtoa_digits_<8u, true>
         maxdigits_dec_nopfx =         19, // len=20: -9223372036854775808 -9223372036854775808
         maxdigits_hex_nopfx =         16, // len=19: -9223372036854775808 -0x8000000000000000
     };
+    static constexpr csubstr min_value_dec() noexcept { return csubstr("9223372036854775808"); }
+    static constexpr csubstr min_value_hex() noexcept { return csubstr("8000000000000000"); }
+    static constexpr csubstr min_value_oct() noexcept { return csubstr("1000000000000000000000"); }
+    static constexpr csubstr min_value_bin() noexcept { return csubstr("1000000000000000000000000000000000000000000000000000000000000000"); }
+    static constexpr csubstr max_value_dec() noexcept { return csubstr("9223372036854775807"); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 22)); }
 };
-template<> struct xtoa_digits_<8u, false>
+template<> struct charconv_digits_<8u, false>
 {
     enum : size_t {
         maxdigits_bin       = 2 + 64, // len=66: 18446744073709551615 0b1111111111111111111111111111111111111111111111111111111111111111
@@ -332,8 +369,11 @@ template<> struct xtoa_digits_<8u, false>
         maxdigits_dec_nopfx =     20, // len=20: 18446744073709551615 18446744073709551615
         maxdigits_hex_nopfx =     16, // len=18: 18446744073709551615 0xffffffffffffffff
     };
+    static constexpr csubstr max_value_dec() noexcept { return csubstr("18446744073709551615"); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 22) || (str.len == 22 && str[0] <= '1')); }
 };
 } // namespace detail
+
 
 // Helper macros, undefined below
 #define _c4append(c) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
@@ -356,8 +396,8 @@ C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
-        return detail::xtoa_digits<T>::maxdigits_dec;
+    if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_dec))
+        return detail::charconv_digits<T>::maxdigits_dec;
     size_t pos = 0;
     do {
         buf.str[pos++] = (char)('0' + (v % T(10)));
@@ -382,8 +422,8 @@ C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_hex_nopfx)) // take 2 because we're not writing the prefix
-        return detail::xtoa_digits<T>::maxdigits_hex_nopfx;
+    if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_hex_nopfx))
+        return detail::charconv_digits<T>::maxdigits_hex_nopfx;
     size_t pos = 0;
     do {
         buf.str[pos++] = hexchars[v & T(15)];
@@ -409,8 +449,8 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_oct_nopfx)) // take 2 because we're not writing the prefix
-        return detail::xtoa_digits<T>::maxdigits_oct_nopfx;
+    if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_oct_nopfx))
+        return detail::charconv_digits<T>::maxdigits_oct_nopfx;
     size_t pos = 0;
     do {
         buf.str[pos++] = (char)('0' + (v & T(7)));
@@ -436,8 +476,8 @@ C4_ALWAYS_INLINE size_t write_bin(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_bin_nopfx)) // take 2 because we're not writing the prefix
-        return detail::xtoa_digits<T>::maxdigits_bin_nopfx;
+    if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_bin_nopfx))
+        return detail::charconv_digits<T>::maxdigits_bin_nopfx;
     size_t pos = 0;
     do {
         buf.str[pos++] = (char)('0' + (v & T(1)));
@@ -451,7 +491,6 @@ C4_ALWAYS_INLINE size_t write_bin(substr buf, T v) noexcept
 
 namespace detail {
 template<class U> using NumberWriter = size_t (*)(substr, U);
-/** @todo pass the writer as a template parameter */
 template<class T, NumberWriter<T> writer>
 size_t write_num_digits(substr buf, T v, size_t num_digits) noexcept
 {
@@ -605,38 +644,6 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v) noexcept
 //-----------------------------------------------------------------------------
 
 namespace detail {
-// do not use the type as the template argument because in some
-// platforms long!=int32 and long!=int64. Just use the numbytes
-// which is more generic and spares lengthy SFINAE code.
-template<size_t numbytes> struct itoa_min;
-template<> struct itoa_min<1>
-{
-    static constexpr csubstr value_dec() noexcept { return csubstr("128"); }
-    static constexpr csubstr value_hex() noexcept { return csubstr("80"); }
-    static constexpr csubstr value_oct() noexcept { return csubstr("200"); }
-    static constexpr csubstr value_bin() noexcept { return csubstr("10000000"); }
-};
-template<> struct itoa_min<2>
-{
-    static constexpr csubstr value_dec() noexcept { return csubstr("32768"); }
-    static constexpr csubstr value_hex() noexcept { return csubstr("8000"); }
-    static constexpr csubstr value_oct() noexcept { return csubstr("100000"); }
-    static constexpr csubstr value_bin() noexcept { return csubstr("1000000000000000"); }
-};
-template<> struct itoa_min<4>
-{
-    static constexpr csubstr value_dec() noexcept { return csubstr("2147483648"); }
-    static constexpr csubstr value_hex() noexcept { return csubstr("80000000"); }
-    static constexpr csubstr value_oct() noexcept { return csubstr("20000000000"); }
-    static constexpr csubstr value_bin() noexcept { return csubstr("10000000000000000000000000000000"); }
-};
-template<> struct itoa_min<8>
-{
-    static constexpr csubstr value_dec() noexcept { return csubstr("9223372036854775808"); }
-    static constexpr csubstr value_hex() noexcept { return csubstr("8000000000000000"); }
-    static constexpr csubstr value_oct() noexcept { return csubstr("1000000000000000000000"); }
-    static constexpr csubstr value_bin() noexcept { return csubstr("1000000000000000000000000000000000000000000000000000000000000000"); }
-};
 inline size_t _itoa2buf(substr buf, size_t pos, csubstr val) noexcept
 {
     C4_ASSERT(pos + val.len <= buf.len);
@@ -651,38 +658,40 @@ inline size_t _itoa2bufwithdigits(substr buf, size_t pos, size_t num_digits, csu
         _c4append('0');
     return detail::_itoa2buf(buf, pos, val);
 }
-template<class T>
+template<class I>
 C4_NO_INLINE size_t _itoadec2buf(substr buf) noexcept
 {
-    if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
-        return detail::xtoa_digits<T>::maxdigits_dec;
+    using digits_type = detail::charconv_digits<I>;
+    if(C4_UNLIKELY(buf.len < digits_type::maxdigits_dec))
+        return digits_type::maxdigits_dec;
     buf.str[0] = '-';
-    return detail::_itoa2buf(buf, 1, detail::itoa_min<sizeof(T)>::value_dec());
+    return detail::_itoa2buf(buf, 1, digits_type::min_value_dec());
 }
 template<class I>
 C4_NO_INLINE size_t _itoa2buf(substr buf, I radix) noexcept
 {
+    using digits_type = detail::charconv_digits<I>;
     size_t pos = 0;
     if(C4_LIKELY(buf.len > 0))
         buf.str[pos++] = '-';
     switch(radix)
     {
     case I(10):
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<I>::maxdigits_dec))
-            return detail::xtoa_digits<I>::maxdigits_dec;
-        /*.......................................*/ return _itoa2buf(buf, pos, itoa_min<sizeof(I)>::value_dec());
+        if(C4_UNLIKELY(buf.len < digits_type::maxdigits_dec))
+            return digits_type::maxdigits_dec;
+        /*.......................................*/ return _itoa2buf(buf, pos, digits_type::min_value_dec());
     case I(16):
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<I>::maxdigits_hex))
-            return detail::xtoa_digits<I>::maxdigits_hex;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return _itoa2buf(buf, pos, itoa_min<sizeof(I)>::value_hex());
+        if(C4_UNLIKELY(buf.len < digits_type::maxdigits_hex))
+            return digits_type::maxdigits_hex;
+        buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return _itoa2buf(buf, pos, digits_type::min_value_hex());
     case I( 2):
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<I>::maxdigits_bin))
-            return detail::xtoa_digits<I>::maxdigits_bin;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return _itoa2buf(buf, pos, itoa_min<sizeof(I)>::value_bin());
+        if(C4_UNLIKELY(buf.len < digits_type::maxdigits_bin))
+            return digits_type::maxdigits_bin;
+        buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return _itoa2buf(buf, pos, digits_type::min_value_bin());
     case I( 8):
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<I>::maxdigits_oct))
-            return detail::xtoa_digits<I>::maxdigits_oct;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return _itoa2buf(buf, pos, itoa_min<sizeof(I)>::value_oct());
+        if(C4_UNLIKELY(buf.len < digits_type::maxdigits_oct))
+            return digits_type::maxdigits_oct;
+        buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return _itoa2buf(buf, pos, digits_type::min_value_oct());
     }
     C4_UNREACHABLE();
     return 0;
@@ -690,6 +699,7 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix) noexcept
 template<class I>
 C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
 {
+    using digits_type = detail::charconv_digits<I>;
     size_t pos = 0;
     size_t needed_digits = 0;
     if(C4_LIKELY(buf.len > 0))
@@ -698,30 +708,30 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
     {
     case I(10):
         // add 1 to account for -
-        needed_digits = num_digits+1 > detail::xtoa_digits<I>::maxdigits_dec ? num_digits+1 : detail::xtoa_digits<I>::maxdigits_dec;
+        needed_digits = num_digits+1 > digits_type::maxdigits_dec ? num_digits+1 : digits_type::maxdigits_dec;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
-        /*.......................................*/ return _itoa2bufwithdigits(buf, pos, num_digits, itoa_min<sizeof(I)>::value_dec());
+        /*.......................................*/ return _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_dec());
     case I(16):
         // add 3 to account for -0x
-        needed_digits = num_digits+3 > detail::xtoa_digits<I>::maxdigits_hex ? num_digits+3 : detail::xtoa_digits<I>::maxdigits_hex;
+        needed_digits = num_digits+3 > digits_type::maxdigits_hex ? num_digits+3 : digits_type::maxdigits_hex;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return _itoa2bufwithdigits(buf, pos, num_digits, itoa_min<sizeof(I)>::value_hex());
+        buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_hex());
     case I( 2):
         // add 3 to account for -0b
-        needed_digits = num_digits+3 > detail::xtoa_digits<I>::maxdigits_bin ? num_digits+3 : detail::xtoa_digits<I>::maxdigits_bin;
+        needed_digits = num_digits+3 > digits_type::maxdigits_bin ? num_digits+3 : digits_type::maxdigits_bin;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
-        C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_bin);
-        buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return _itoa2bufwithdigits(buf, pos, num_digits, itoa_min<sizeof(I)>::value_bin());
+        C4_ASSERT(buf.len >= digits_type::maxdigits_bin);
+        buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_bin());
     case I( 8):
         // add 3 to account for -0o
-        needed_digits = num_digits+3 > detail::xtoa_digits<I>::maxdigits_oct ? num_digits+3 : detail::xtoa_digits<I>::maxdigits_oct;
+        needed_digits = num_digits+3 > digits_type::maxdigits_oct ? num_digits+3 : digits_type::maxdigits_oct;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
-        C4_ASSERT(buf.len >= detail::xtoa_digits<I>::maxdigits_oct);
-        buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return _itoa2bufwithdigits(buf, pos, num_digits, itoa_min<sizeof(I)>::value_oct());
+        C4_ASSERT(buf.len >= digits_type::maxdigits_oct);
+        buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_oct());
     }
     C4_UNREACHABLE();
     return 0;
@@ -748,8 +758,8 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v) noexcept
     }
     else
     {
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
-            return detail::xtoa_digits<T>::maxdigits_dec;
+        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_dec))
+            return detail::charconv_digits<T>::maxdigits_dec;
         // when T is the min value (eg i8: -128), negating it
         // will overflow, so treat the min as a special case
         if(C4_LIKELY(v != std::numeric_limits<T>::min()))
@@ -797,20 +807,20 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
         switch(radix)
         {
         case T(10):
-            if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
-                return detail::xtoa_digits<T>::maxdigits_dec;
+            if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_dec))
+                return detail::charconv_digits<T>::maxdigits_dec;
             /*........................................*/return pos + write_dec(buf.sub(pos), v);
         case T(16):
-            if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_hex))
-                return detail::xtoa_digits<T>::maxdigits_hex;
+            if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_hex))
+                return detail::charconv_digits<T>::maxdigits_hex;
             buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v);
         case T( 2):
-            if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_bin))
-                return detail::xtoa_digits<T>::maxdigits_bin;
+            if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_bin))
+                return detail::charconv_digits<T>::maxdigits_bin;
             buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v);
         case T( 8):
-            if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_oct))
-                return detail::xtoa_digits<T>::maxdigits_oct;
+            if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_oct))
+                return detail::charconv_digits<T>::maxdigits_oct;
             buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v);
         }
     }
@@ -836,7 +846,6 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
-    size_t needed_digits;
     // when T is the min value (eg i8: -128), negating it
     // will overflow, so treat the min as a special case
     if(C4_LIKELY(v != std::numeric_limits<T>::min()))
@@ -851,29 +860,37 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
         switch(radix)
         {
         case T(10):
+        {
             // add 1 to account for -
-            needed_digits = num_digits+1 > detail::xtoa_digits<T>::maxdigits_dec ? num_digits+1 : detail::xtoa_digits<T>::maxdigits_dec;
+            size_t needed_digits = num_digits+1 > detail::charconv_digits<T>::maxdigits_dec ? num_digits+1 : detail::charconv_digits<T>::maxdigits_dec;
             if(C4_UNLIKELY(buf.len < needed_digits))
                 return needed_digits;
             /*.......................................*/ return pos + write_dec(buf.sub(pos), v, num_digits);
+        }
         case T(16):
+        {
             // add 3 to account for -0x
-            needed_digits = num_digits+3 > detail::xtoa_digits<T>::maxdigits_hex ? num_digits+3 : detail::xtoa_digits<T>::maxdigits_hex;
+            size_t needed_digits = num_digits+3 > detail::charconv_digits<T>::maxdigits_hex ? num_digits+3 : detail::charconv_digits<T>::maxdigits_hex;
             if(C4_UNLIKELY(buf.len < needed_digits))
                 return needed_digits;
             buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v, num_digits);
+        }
         case T(2):
+        {
             // add 3 to account for -0b
-            needed_digits = num_digits+3 > detail::xtoa_digits<T>::maxdigits_bin ? num_digits+3 : detail::xtoa_digits<T>::maxdigits_bin;
+            size_t needed_digits = num_digits+3 > detail::charconv_digits<T>::maxdigits_bin ? num_digits+3 : detail::charconv_digits<T>::maxdigits_bin;
             if(C4_UNLIKELY(buf.len < needed_digits))
                 return needed_digits;
             buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v, num_digits);
+        }
         case T(8):
+        {
             // add 3 to account for -0o
-            needed_digits = num_digits+3 > detail::xtoa_digits<T>::maxdigits_oct ? num_digits+3 : detail::xtoa_digits<T>::maxdigits_oct;
+            size_t needed_digits = num_digits+3 > detail::charconv_digits<T>::maxdigits_oct ? num_digits+3 : detail::charconv_digits<T>::maxdigits_oct;
             if(C4_UNLIKELY(buf.len < needed_digits))
                 return needed_digits;
             buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v, num_digits);
+        }
         }
     }
     // when T is the min value (eg i8: -128), negating it
@@ -919,20 +936,20 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
     switch(radix)
     {
     case T(10):
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_dec))
-            return detail::xtoa_digits<T>::maxdigits_dec;
+        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_dec))
+            return detail::charconv_digits<T>::maxdigits_dec;
         /*............................*/return pos + write_dec(buf, v);
     case T(16):
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_hex))
-            return detail::xtoa_digits<T>::maxdigits_hex;
+        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_hex))
+            return detail::charconv_digits<T>::maxdigits_hex;
         buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v);
     case T(2):
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_bin))
-            return detail::xtoa_digits<T>::maxdigits_bin;
+        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_bin))
+            return detail::charconv_digits<T>::maxdigits_bin;
         buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v);
     case T(8):
-        if(C4_UNLIKELY(buf.len < detail::xtoa_digits<T>::maxdigits_oct))
-            return detail::xtoa_digits<T>::maxdigits_oct;
+        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_oct))
+            return detail::charconv_digits<T>::maxdigits_oct;
         buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v);
     }
     C4_UNREACHABLE();
@@ -960,25 +977,25 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexce
     switch(radix)
     {
     case T(10):
-        needed_digits = num_digits > detail::xtoa_digits<T>::maxdigits_dec ? num_digits : detail::xtoa_digits<T>::maxdigits_dec;
+        needed_digits = num_digits > detail::charconv_digits<T>::maxdigits_dec ? num_digits : detail::charconv_digits<T>::maxdigits_dec;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         /*........................................*/return write_dec(buf, v, num_digits);
     case T(16):
         // add 2 to account for 0x
-        needed_digits = num_digits+2 > detail::xtoa_digits<T>::maxdigits_hex ? num_digits+2 : detail::xtoa_digits<T>::maxdigits_hex;
+        needed_digits = num_digits+2 > detail::charconv_digits<T>::maxdigits_hex ? num_digits+2 : detail::charconv_digits<T>::maxdigits_hex;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v, num_digits);
     case T(2):
         // add 2 to account for 0b
-        needed_digits = num_digits+2 > detail::xtoa_digits<T>::maxdigits_bin ? num_digits+2 : detail::xtoa_digits<T>::maxdigits_bin;
+        needed_digits = num_digits+2 > detail::charconv_digits<T>::maxdigits_bin ? num_digits+2 : detail::charconv_digits<T>::maxdigits_bin;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v, num_digits);
     case T(8):
         // add 2 to account for 0o
-        needed_digits = num_digits+2 > detail::xtoa_digits<T>::maxdigits_oct ? num_digits+2 : detail::xtoa_digits<T>::maxdigits_oct;
+        needed_digits = num_digits+2 > detail::charconv_digits<T>::maxdigits_oct ? num_digits+2 : detail::charconv_digits<T>::maxdigits_oct;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v, num_digits);
@@ -1203,54 +1220,12 @@ C4_ALWAYS_INLINE size_t atou_first(csubstr str, T *v)
 #   pragma GCC diagnostic pop
 #endif
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 namespace detail {
-template<class T> struct overflow_max {};
-template<> struct overflow_max<uint8_t>
-{
-    static csubstr value_dec() { return csubstr("255"); }
-    static bool is_oct_overflow(csubstr str) { return !((str.len < 3) || (str.len == 3 && str[0] <= '3')); }
-};
-template<> struct overflow_max<uint16_t>
-{
-    static csubstr value_dec() { return csubstr("65535"); }
-    static bool is_oct_overflow(csubstr str) { return !((str.len < 6) || (str.len == 6 && str[0] <= '1')); }
-};
-template<> struct overflow_max<uint32_t>
-{
-    static csubstr value_dec() { return csubstr("4294967295"); }
-    static bool is_oct_overflow(csubstr str) { return !((str.len < 11) || (str.len == 11 && str[0] <= '3')); }
-};
-template<> struct overflow_max<uint64_t>
-{
-    static csubstr value_dec() { return csubstr("18446744073709551615"); }
-    static bool is_oct_overflow(csubstr str) { return !((str.len < 22) || (str.len == 22 && str[0] <= '1')); }
-};
-template<> struct overflow_max<int8_t>
-{
-    static csubstr value_dec() { return csubstr("127"); }
-    static bool is_oct_overflow(csubstr str) { return !((str.len < 3) || (str.len == 3 && str[0] <= '1')); }
-};
-template<> struct overflow_max<int16_t>
-{
-    static csubstr value_dec() { return csubstr("32767"); }
-    static bool is_oct_overflow(csubstr str) { return !((str.len < 6)); }
-};
-template<> struct overflow_max<int32_t>
-{
-    static csubstr value_dec() { return csubstr("2147483647"); }
-    static bool is_oct_overflow(csubstr str) { return !((str.len < 11) || (str.len == 11 && str[0] <= '1')); }
-};
-template<> struct overflow_max<int64_t>
-{
-    static csubstr value_dec() { return csubstr("9223372036854775807"); }
-    static bool is_oct_overflow(csubstr str) { return !((str.len < 22)); }
-};
-
-
-inline bool check_overflow(csubstr str, csubstr limit)
+inline bool check_overflow(csubstr str, csubstr limit) noexcept
 {
     if(str.len == limit.len)
     {
@@ -1266,24 +1241,26 @@ inline bool check_overflow(csubstr str, csubstr limit)
     else
         return str.len > limit.len;
 }
-}
+} // namespace detail
+
 
 /** Test if the following string would overflow when converted to associated
  * types.
  * @return true if number will overflow, false if it fits (or doesn't parse)
  */
 template<class T>
-typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubstr str)
+typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubstr str) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
 
     if(C4_UNLIKELY(str.len == 0))
+    {
         return false;
+    }
     else if(str.str[0] == '0')
     {
         if (str.len == 1)
             return false;
-
         switch (str.str[1])
         {
             case 'x':
@@ -1308,19 +1285,21 @@ typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubst
                 size_t fno = str.first_not_of('0', 2);
                 if(fno == csubstr::npos)
                     return false;
-                return detail::overflow_max<T>::is_oct_overflow(str.sub(fno));
+                return detail::charconv_digits<T>::is_oct_overflow(str.sub(fno));
             }
             default:
             {
                 size_t fno = str.first_not_of('0', 1);
                 if(fno == csubstr::npos)
                     return false;
-                return detail::check_overflow(str.sub(fno), detail::overflow_max<T>::value_dec());
+                return detail::check_overflow(str.sub(fno), detail::charconv_digits<T>::max_value_dec());
             }
         }
     }
     else
-        return detail::check_overflow(str, detail::overflow_max<T>::value_dec());
+    {
+        return detail::check_overflow(str, detail::charconv_digits<T>::max_value_dec());
+    }
 }
 
 
@@ -1348,7 +1327,7 @@ typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr 
                     size_t fno = str.first_not_of('0', 3);
                     if (fno == csubstr::npos)
                         return false;
-                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof(T)>::value_hex());
+                    return detail::check_overflow(str.sub(fno), detail::charconv_digits<T>::min_value_hex());
                 }
                 case 'b':
                 case 'B':
@@ -1356,7 +1335,7 @@ typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr 
                     size_t fno = str.first_not_of('0', 3);
                     if (fno == csubstr::npos)
                         return false;
-                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof(T)>::value_bin());
+                    return detail::check_overflow(str.sub(fno), detail::charconv_digits<T>::min_value_bin());
                 }
                 case 'o':
                 case 'O':
@@ -1364,19 +1343,19 @@ typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr 
                     size_t fno = str.first_not_of('0', 3);
                     if(fno == csubstr::npos)
                         return false;
-                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof(T)>::value_oct());
+                    return detail::check_overflow(str.sub(fno), detail::charconv_digits<T>::min_value_oct());
                 }
                 default:
                 {
                     size_t fno = str.first_not_of('0', 2);
                     if(fno == csubstr::npos)
                         return false;
-                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof(T)>::value_dec());
+                    return detail::check_overflow(str.sub(fno), detail::charconv_digits<T>::min_value_dec());
                 }
             }
         }
         else
-            return detail::check_overflow(str.sub(1), detail::itoa_min<sizeof(T)>::value_dec());
+            return detail::check_overflow(str.sub(1), detail::charconv_digits<T>::min_value_dec());
     }
     else if(str.str[0] == '0')
     {
@@ -1399,7 +1378,7 @@ typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr 
                 size_t fno = str.first_not_of('0', 2);
                 if (fno == csubstr::npos)
                     return false;
-                return !(str.len - fno <= (sizeof(T) * 8 - 1));
+                return !(str.len <= fno + (sizeof(T) * 8 - 1));
             }
             case 'o':
             case 'O':
@@ -1407,19 +1386,19 @@ typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr 
                 size_t fno = str.first_not_of('0', 2);
                 if(fno == csubstr::npos)
                     return false;
-                return detail::overflow_max<T>::is_oct_overflow(str.sub(fno));
+                return detail::charconv_digits<T>::is_oct_overflow(str.sub(fno));
             }
             default:
             {
                 size_t fno = str.first_not_of('0', 1);
                 if(fno == csubstr::npos)
                     return false;
-                return detail::check_overflow(str.sub(fno), detail::overflow_max<T>::value_dec());
+                return detail::check_overflow(str.sub(fno), detail::charconv_digits<T>::max_value_dec());
             }
         }
     }
     else
-        return detail::check_overflow(str, detail::overflow_max<T>::value_dec());
+        return detail::check_overflow(str, detail::charconv_digits<T>::max_value_dec());
 }
 
 
