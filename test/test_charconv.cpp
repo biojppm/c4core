@@ -23,7 +23,7 @@ namespace c4 {
 template<class T> using xtoafunc = size_t (*)(substr buf, T val, T radix);
 
 template<class T, xtoafunc<T> fn, size_t N>
-void test_shortbuf_hex_n(T in, csubstr expected, char *file, int line)
+void test_shortbuf_hex_n(T in, csubstr expected, const char *file, int line)
 {
     T radix = T(16);
     char buf_[N+1];
@@ -56,7 +56,7 @@ void test_shortbuf_hex_n(T in, csubstr expected, char *file, int line)
 }
 
 template<class T, xtoafunc<T> fn>
-void test_shortbuf_hex(T in, csubstr expected, char *file, int line)
+void test_shortbuf_hex(T in, csubstr expected, const char *file, int line)
 {
     test_shortbuf_hex_n<T, fn,   1>(in, expected, file, line);
     test_shortbuf_hex_n<T, fn,   2>(in, expected, file, line);
@@ -82,17 +82,17 @@ TEST_CASE("itoa.shortbuf")
     _chktoa(unsigned, utoa,  15u,  "0xf");
     _chktoa(int     , itoa, -15 , "-0xf");
 
-    _chktoa(int     , itoa, 255, "0xff");
-    _chktoa(unsigned, utoa, 255u, "0xff");
-    _chktoa(int     , itoa, -255, "-0xff");
+    _chktoa(int     , itoa,  255 ,  "0xff");
+    _chktoa(unsigned, utoa,  255u,  "0xff");
+    _chktoa(int     , itoa, -255 , "-0xff");
 
-    _chktoa(int     , itoa, 256, "0x100");
-    _chktoa(unsigned, utoa, 256u, "0x100");
-    _chktoa(int     , itoa, -256, "-0x100");
+    _chktoa(int     , itoa,  256 ,  "0x100");
+    _chktoa(unsigned, utoa,  256u,  "0x100");
+    _chktoa(int     , itoa, -256 , "-0x100");
 
-    _chktoa(int     , itoa, 4096, "0x1000");
-    _chktoa(unsigned, utoa, 4096u, "0x1000");
-    _chktoa(int     , itoa, -4096, "-0x1000");
+    _chktoa(int     , itoa,  4096 ,  "0x1000");
+    _chktoa(unsigned, utoa,  4096u,  "0x1000");
+    _chktoa(int     , itoa, -4096 , "-0x1000");
 
     #undef _chktoa
 }
@@ -1398,7 +1398,7 @@ TEST_CASE("overflows.i64")
 
     { /* with leading zeroes */
         std::string str;
-        int64_t x;
+        int64_t x = {};
         str = "0o0" + std::string(21, '7');
         CHECK_MESSAGE(!overflows<int64_t>(to_csubstr(str)), "num=" << str);
         str = "0o01" + std::string(21, '0');
