@@ -1289,30 +1289,30 @@ typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubst
             case 'x':
             case 'X':
             {
-                auto fno = str.first_not_of('0', 2);
+                size_t fno = str.first_not_of('0', 2);
                 if (fno == csubstr::npos)
                     return false;
-                return !(str.len - fno <= (sizeof (T) * 2));
+                return !(str.len <= fno + (sizeof(T) * 2));
             }
             case 'b':
             case 'B':
             {
-                auto fno = str.first_not_of('0', 2);
+                size_t fno = str.first_not_of('0', 2);
                 if (fno == csubstr::npos)
                     return false;
-                return !(str.len - fno <= (sizeof (T) * 8));
+                return !(str.len <= fno +(sizeof(T) * 8));
             }
             case 'o':
             case 'O':
             {
-                auto fno = str.first_not_of('0', 2);
+                size_t fno = str.first_not_of('0', 2);
                 if(fno == csubstr::npos)
                     return false;
                 return detail::overflow_max<T>::is_oct_overflow(str.sub(fno));
             }
             default:
             {
-                auto fno = str.first_not_of('0', 1);
+                size_t fno = str.first_not_of('0', 1);
                 if(fno == csubstr::npos)
                     return false;
                 return detail::check_overflow(str.sub(fno), detail::overflow_max<T>::value_dec());
@@ -1322,6 +1322,7 @@ typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubst
     else
         return detail::check_overflow(str, detail::overflow_max<T>::value_dec());
 }
+
 
 /** Test if the following string would overflow when converted to associated
  * types.
@@ -1331,89 +1332,86 @@ template<class T>
 typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr str)
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
-
     if(C4_UNLIKELY(str.len == 0))
         return false;
-    if (str.str[0] == '-')
+    if(str.str[0] == '-')
     {
         if(str.str[1] == '0')
         {
-            if (str.len == 2)
+            if(str.len == 2)
                 return false;
-
-            switch (str.str[2])
+            switch(str.str[2])
             {
                 case 'x':
                 case 'X':
                 {
-                    auto fno = str.first_not_of('0', 3);
+                    size_t fno = str.first_not_of('0', 3);
                     if (fno == csubstr::npos)
                         return false;
-                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof (T)>::value_hex());
+                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof(T)>::value_hex());
                 }
                 case 'b':
                 case 'B':
                 {
-                    auto fno = str.first_not_of('0', 3);
+                    size_t fno = str.first_not_of('0', 3);
                     if (fno == csubstr::npos)
                         return false;
-                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof (T)>::value_bin());
+                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof(T)>::value_bin());
                 }
                 case 'o':
                 case 'O':
                 {
-                    auto fno = str.first_not_of('0', 3);
+                    size_t fno = str.first_not_of('0', 3);
                     if(fno == csubstr::npos)
                         return false;
-                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof (T)>::value_oct());
+                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof(T)>::value_oct());
                 }
                 default:
                 {
-                    auto fno = str.first_not_of('0', 2);
+                    size_t fno = str.first_not_of('0', 2);
                     if(fno == csubstr::npos)
                         return false;
-                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof (T)>::value_dec());
+                    return detail::check_overflow(str.sub(fno), detail::itoa_min<sizeof(T)>::value_dec());
                 }
             }
         }
         else
-            return detail::check_overflow(str.sub(1), detail::itoa_min<sizeof (T)>::value_dec());
+            return detail::check_overflow(str.sub(1), detail::itoa_min<sizeof(T)>::value_dec());
     }
     else if(str.str[0] == '0')
     {
         if (str.len == 1)
             return false;
-
-        switch (str.str[1])
+        switch(str.str[1])
         {
             case 'x':
             case 'X':
             {
-                auto fno = str.first_not_of('0', 2);
+                size_t fno = str.first_not_of('0', 2);
                 if (fno == csubstr::npos)
                     return false;
                 const size_t len = str.len - fno;
-                return !((len < sizeof (T) * 2) || (len == sizeof (T) * 2 && str[fno] <= '7'));
+                return !((len < sizeof (T) * 2) || (len == sizeof(T) * 2 && str[fno] <= '7'));
             }
             case 'b':
             case 'B':
             {
-                auto fno = str.first_not_of('0', 2);
+                size_t fno = str.first_not_of('0', 2);
                 if (fno == csubstr::npos)
                     return false;
-                return !(str.len - fno <= (sizeof (T) * 8 - 1));
+                return !(str.len - fno <= (sizeof(T) * 8 - 1));
             }
             case 'o':
             case 'O':
             {
-                auto fno = str.first_not_of('0', 2);
+                size_t fno = str.first_not_of('0', 2);
                 if(fno == csubstr::npos)
                     return false;
                 return detail::overflow_max<T>::is_oct_overflow(str.sub(fno));
             }
             default:
             {
-                auto fno = str.first_not_of('0', 1);
+                size_t fno = str.first_not_of('0', 1);
                 if(fno == csubstr::npos)
                     return false;
                 return detail::check_overflow(str.sub(fno), detail::overflow_max<T>::value_dec());
@@ -1423,6 +1421,7 @@ typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr 
     else
         return detail::check_overflow(str, detail::overflow_max<T>::value_dec());
 }
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
