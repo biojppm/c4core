@@ -1026,7 +1026,7 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexce
  *
  * @see atoi_first() if the string is not trimmed to the value to read. */
 template<class T>
-C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v)
+C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_STATIC_ASSERT(std::is_signed<T>::value);
@@ -1137,7 +1137,7 @@ C4_ALWAYS_INLINE size_t atoi_first(csubstr str, T * C4_RESTRICT v)
  *
  * @see atou_first() if the string is not trimmed to the value to read. */
 template<class T>
-C4_ALWAYS_INLINE bool atou(csubstr str, T * C4_RESTRICT v)
+bool atou(csubstr str, T * C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
 
@@ -1780,13 +1780,13 @@ C4_ALWAYS_INLINE substr to_chars_sub(substr buf, T const& C4_RESTRICT v) noexcep
 //-----------------------------------------------------------------------------
 // bool implementation
 
-inline size_t to_chars(substr buf, bool v)
+C4_ALWAYS_INLINE size_t to_chars(substr buf, bool v) noexcept
 {
     int val = v;
     return to_chars(buf, val);
 }
 
-inline bool from_chars(csubstr buf, bool * C4_RESTRICT v)
+inline bool from_chars(csubstr buf, bool * C4_RESTRICT v) noexcept
 {
     if(buf == '0')
     {
@@ -1830,7 +1830,7 @@ inline bool from_chars(csubstr buf, bool * C4_RESTRICT v)
     return ret;
 }
 
-inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v)
+inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v) noexcept
 {
     csubstr trimmed = buf.first_non_empty_span();
     if(trimmed.len == 0 || !from_chars(buf, v))
@@ -1842,7 +1842,7 @@ inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 // single-char implementation
 
-inline size_t to_chars(substr buf, char v)
+inline size_t to_chars(substr buf, char v) noexcept
 {
     if(buf.len > 0)
         buf[0] = v;
@@ -1851,7 +1851,7 @@ inline size_t to_chars(substr buf, char v)
 
 /** extract a single character from a substring
  * @note to extract a string instead and not just a single character, use the csubstr overload */
-inline bool from_chars(csubstr buf, char * C4_RESTRICT v)
+inline bool from_chars(csubstr buf, char * C4_RESTRICT v) noexcept
 {
     if(buf.len != 1)
         return false;
@@ -1859,7 +1859,7 @@ inline bool from_chars(csubstr buf, char * C4_RESTRICT v)
     return true;
 }
 
-inline size_t from_chars_first(csubstr buf, char * C4_RESTRICT v)
+inline size_t from_chars_first(csubstr buf, char * C4_RESTRICT v) noexcept
 {
     if(buf.len < 1)
         return csubstr::npos;
@@ -1871,7 +1871,7 @@ inline size_t from_chars_first(csubstr buf, char * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 // csubstr implementation
 
-inline size_t to_chars(substr buf, csubstr v)
+inline size_t to_chars(substr buf, csubstr v) noexcept
 {
     C4_ASSERT(!buf.overlaps(v));
     size_t len = buf.len < v.len ? buf.len : v.len;
@@ -1879,13 +1879,13 @@ inline size_t to_chars(substr buf, csubstr v)
     return v.len;
 }
 
-inline bool from_chars(csubstr buf, csubstr *C4_RESTRICT v)
+inline bool from_chars(csubstr buf, csubstr *C4_RESTRICT v) noexcept
 {
     *v = buf;
     return true;
 }
 
-inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v)
+inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v) noexcept
 {
     csubstr trimmed = buf.first_non_empty_span();
     if(trimmed.len == 0)
@@ -1898,7 +1898,7 @@ inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 // substr
 
-inline size_t to_chars(substr buf, substr v)
+inline size_t to_chars(substr buf, substr v) noexcept
 {
     C4_ASSERT(!buf.overlaps(v));
     size_t len = buf.len < v.len ? buf.len : v.len;
@@ -1906,7 +1906,7 @@ inline size_t to_chars(substr buf, substr v)
     return v.len;
 }
 
-inline bool from_chars(csubstr buf, substr * C4_RESTRICT v)
+inline bool from_chars(csubstr buf, substr * C4_RESTRICT v) noexcept
 {
     C4_ASSERT(!buf.overlaps(*v));
     if(buf.len <= v->len)
@@ -1919,7 +1919,7 @@ inline bool from_chars(csubstr buf, substr * C4_RESTRICT v)
     return false;
 }
 
-inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v)
+inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v) noexcept
 {
     csubstr trimmed = buf.first_non_empty_span();
     C4_ASSERT(!trimmed.overlaps(*v));
@@ -1936,13 +1936,13 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v)
 //-----------------------------------------------------------------------------
 
 template<size_t N>
-inline size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N])
+inline size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N]) noexcept
 {
     csubstr sp(v);
     return to_chars(buf, sp);
 }
 
-inline size_t to_chars(substr buf, const char * C4_RESTRICT v)
+inline size_t to_chars(substr buf, const char * C4_RESTRICT v) noexcept
 {
     return to_chars(buf, to_csubstr(v));
 }
