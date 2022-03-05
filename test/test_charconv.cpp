@@ -1216,7 +1216,7 @@ void test_no_overflows(std::initializer_list<const char *> args)
 template<class T>
 void test_overflows_hex()
 {
-    T x;
+    T x = {};
     std::string str;
     if (std::is_unsigned<T>::value)
     {
@@ -1243,7 +1243,7 @@ void test_overflows_hex()
         CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
         CHECK(atox(to_csubstr(str), &x));
         CHECK_EQ(-1, x);
-        
+
         str = "-0x08" + std::string(sizeof (T) * 2 - 1, '0');
         CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
         CHECK(atox(to_csubstr(str), &x));
@@ -1259,7 +1259,7 @@ void test_overflows_hex()
 template<class T>
 void test_overflows_bin()
 {
-    T x;
+    T x = {};
     std::string str;
     if (std::is_unsigned<T>::value)
     {
@@ -1268,7 +1268,7 @@ void test_overflows_bin()
         CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
         CHECK(atox(to_csubstr(str), &x));
         CHECK_EQ(std::numeric_limits<T>::max(), x);
-        
+
         str = "0b01" + std::string(sizeof (T) * 8, '0');
         CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
         CHECK(atox(to_csubstr(str), &x));
@@ -1281,7 +1281,7 @@ void test_overflows_bin()
         CHECK_MESSAGE(!overflows<T>(to_csubstr(str)), "num=" << str);
         CHECK(atox(to_csubstr(str), &x));
         CHECK_EQ(std::numeric_limits<T>::max(), x);
-        
+
         str = "0b0" + std::string(sizeof (T) * 8, '1');
         CHECK_MESSAGE(overflows<T>(to_csubstr(str)), "num=" << str);
         CHECK(atox(to_csubstr(str), &x));
@@ -1298,7 +1298,7 @@ void test_overflows_bin()
         CHECK_EQ(std::numeric_limits<T>::max(), x);
     }
 }
-    
+
 // TODO: test_overflows_oct
 
 template<class T>
@@ -1380,10 +1380,10 @@ TEST_CASE("overflows.u64")
 
     // more chars but leading zeroes
     CHECK(!overflows<uint64_t>("0018446744073709551615"));
-    
+
     { /* with leading zeroes */
         std::string str;
-        uint64_t x;
+        uint64_t x = {};
         str = "0o01" + std::string(21, '7');
         CHECK_MESSAGE(!overflows<uint64_t>(to_csubstr(str)), "num=" << str);
         str = "0o02" + std::string(21, '0');
