@@ -20,93 +20,81 @@
 
 namespace c4 {
 
+template<class T> using xtoafunc = size_t (*)(substr buf, T val, T radix);
+
+template<class T, xtoafunc<T> fn, size_t N>
+void test_shortbuf_hex_n(T in, csubstr expected, char *file, int line)
+{
+    T radix = T(16);
+    char buf_[N+1];
+    substr buf = buf_;
+    REQUIRE_EQ(buf.len, N);
+
+    INFO(file << ":" << line << ": in=" << in << " expected=" << expected << " N=" << N);
+
+    buf.fill('?');
+    REQUIRE_EQ(buf.first_not_of('?'), csubstr::npos);
+    size_t ret = fn(buf, in, radix);
+    CHECK_GE(ret, expected.len);
+    if(ret <= buf.len && buf.len >= expected.len)
+    {
+        CHECK_EQ(buf.first(ret), expected);
+    }
+    else
+    {
+        // if the buffer is not large enough,
+        // nothing must have been written, except for the sign
+        // (for efficiency reasons)
+        INFO("ret=" << ret << "  buf=" << buf);
+        if(in < 0)
+        {
+            CHECK_EQ(buf[0], '-');
+            buf = buf.sub(1);
+        }
+        CHECK_EQ(buf.first_not_of('?'), csubstr::npos);
+    }
+}
+
+template<class T, xtoafunc<T> fn>
+void test_shortbuf_hex(T in, csubstr expected, char *file, int line)
+{
+    test_shortbuf_hex_n<T, fn,   1>(in, expected, file, line);
+    test_shortbuf_hex_n<T, fn,   2>(in, expected, file, line);
+    test_shortbuf_hex_n<T, fn,   3>(in, expected, file, line);
+    test_shortbuf_hex_n<T, fn,   4>(in, expected, file, line);
+    test_shortbuf_hex_n<T, fn, 128>(in, expected, file, line);
+}
+
+
 TEST_CASE("itoa.shortbuf")
 {
-    char buf0_[1];
-    char buf1_[2];
-    char buf2_[3];
-    char buf3_[4];
-    char buf4_[5];
-    substr buf0 = buf0_;
-    substr buf1 = buf1_;
-    substr buf2 = buf2_;
-    substr buf3 = buf3_;
-    substr buf4 = buf4_;
-    CHECK_EQ(buf0.len, 0);
-    CHECK_EQ(buf1.len, 1);
-    CHECK_EQ(buf2.len, 2);
-    CHECK_EQ(buf3.len, 3);
-    CHECK_EQ(buf4.len, 4);
+    #define _chktoa(ty, fn, in, expected_) test_shortbuf_hex<ty, &fn<ty>>(in, expected_, __FILE__, __LINE__)
 
-#define _chktoa(fn, in, expected_)                          \
-    {                                                       \
-        csubstr expected = expected_;                       \
-        auto rdx = decltype(in)(16);                        \
-                                                            \
-        buf0.fill('?');                                     \
-        size_t ret0 = fn(buf0, in, rdx);                    \
-        CHECK_GE(ret0, expected.len);                       \
-                                                            \
-        buf1.fill('?');                                     \
-        CHECK_EQ(buf1, "?");                                \
-        size_t ret1 = fn(buf1, in, rdx);                    \
-        CHECK_GE(ret1, expected.len);                       \
-        if(ret1 <= buf1.len && buf1.len >= expected.len)    \
-        {                                                   \
-            CHECK_EQ(buf1.first(ret1), expected);           \
-        }                                                   \
-                                                            \
-        buf2.fill('?');                                     \
-        CHECK_EQ(buf2, "??");                               \
-        size_t ret2 = fn(buf2, in, rdx);                    \
-        CHECK_GE(ret2, expected.len);                       \
-        if(ret2 <= buf2.len && buf2.len >= expected.len)    \
-        {                                                   \
-            CHECK_EQ(buf2.first(ret2), expected);           \
-        }                                                   \
-                                                            \
-        buf3.fill('?');                                     \
-        CHECK_EQ(buf3, "???");                              \
-        size_t ret3 = fn(buf3, in, rdx);                    \
-        CHECK_GE(ret3, expected.len);                       \
-        if(ret3 <= buf3.len && buf3.len >= expected.len)    \
-        {                                                   \
-            CHECK_EQ(buf3.first(ret3), expected);           \
-        }                                                   \
-                                                            \
-        buf4.fill('?');                                     \
-        CHECK_EQ(buf4, "????");                             \
-        size_t ret4 = fn(buf4, in, rdx);                    \
-        CHECK_GE(ret4, expected.len);                       \
-        if(ret4 <= buf4.len && buf4.len >= expected.len)    \
-        {                                                   \
-            CHECK_EQ(buf4.first(ret4), expected);           \
-        }                                                   \
-    }
+    _chktoa(int     , itoa,  0 ,  "0x0");
+    _chktoa(unsigned, utoa,  0u,  "0x0");
+    _chktoa(int     , itoa, -0 ,  "0x0");
 
-    _chktoa(itoa, 0, "0x0");
-    _chktoa(utoa, 0u, "0x0");
-    _chktoa(itoa, -0, "0x0");
+    _chktoa(int     , itoa,  1 ,  "0x1");
+    _chktoa(unsigned, utoa,  1u,  "0x1");
+    _chktoa(int     , itoa, -1 , "-0x1");
 
-    _chktoa(itoa, 1, "0x1");
-    _chktoa(utoa, 1u, "0x1");
-    _chktoa(itoa, -1, "-0x1");
+    _chktoa(int     , itoa,  15 ,  "0xf");
+    _chktoa(unsigned, utoa,  15u,  "0xf");
+    _chktoa(int     , itoa, -15 , "-0xf");
 
-    _chktoa(itoa, 15, "0xf");
-    _chktoa(utoa, 15u, "0xf");
-    _chktoa(itoa, -15, "-0xf");
+    _chktoa(int     , itoa, 255, "0xff");
+    _chktoa(unsigned, utoa, 255u, "0xff");
+    _chktoa(int     , itoa, -255, "-0xff");
 
-    _chktoa(itoa, 255, "0xff");
-    _chktoa(utoa, 255u, "0xff");
-    _chktoa(itoa, -255, "-0xff");
+    _chktoa(int     , itoa, 256, "0x100");
+    _chktoa(unsigned, utoa, 256u, "0x100");
+    _chktoa(int     , itoa, -256, "-0x100");
 
-    _chktoa(itoa, 256, "0x100");
-    _chktoa(utoa, 256u, "0x100");
-    _chktoa(itoa, -256, "-0x100");
+    _chktoa(int     , itoa, 4096, "0x1000");
+    _chktoa(unsigned, utoa, 4096u, "0x1000");
+    _chktoa(int     , itoa, -4096, "-0x1000");
 
-    _chktoa(itoa, 4096, "0x1000");
-    _chktoa(utoa, 4096u, "0x1000");
-    _chktoa(itoa, -4096, "-0x1000");
+    #undef _chktoa
 }
 
 
@@ -1407,7 +1395,7 @@ TEST_CASE("overflows.i64")
     // more chars, but leading zeroes
     CHECK(!overflows<int64_t>("0009223372036854775807"));
     CHECK(!overflows<int64_t>("-0009223372036854775807"));
-    
+
     { /* with leading zeroes */
         std::string str;
         int64_t x;
@@ -1422,6 +1410,7 @@ TEST_CASE("overflows.i64")
     test_overflows_hex<int64_t>();
     test_overflows_bin<int64_t>();
 }
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
