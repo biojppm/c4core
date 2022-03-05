@@ -3,7 +3,30 @@
 - Improve performance of charconv `xtoa` functions by 10%-20% for integral types by returning early when the buffer may not fit the type ([PR#77](https://github.com/biojppm/c4core/pull/77)).
   - `write_dec()`, `write_hex()`, `write_bin()`, `write_oct()`: these functions now return early if the output buffer is smaller than each type's largest possible stringified number, and return the size required to accomodate that largest number. For example, with `int8_t` the largest stringified decimal number is `-128` (note that largest is understood not in magnitude but in the size of its string representation), so `write_dec()` now returns 4 if the output buffer does not have at least that size - even if the input number is 6 (which only takes a single character in decimal format). If the buffer size is larger or equal to 4, then the returned size is the actually used size (in this example, 1). So repeated calls to `write_dec()`and friends with the same input value will return a size that will diminish from the max possible size if the buffer size is not enough to the actually used size once the buffer is large enough to accomodate any possible value for that type.
   - This improves the performance because it eliminates the need to check the buffer size on appending every character. It enables a single buffer size check at the beginning of the function; thereupon, every character can be added with full confidence that the output buffer can accomodate the character.
-  - This change has subtle implications in client functions: now `write_dec()` et al (and all the functions which use any of these as a building block) may return different sizes depending in the input buffer size, so `catrs()` and friends must resize their output buffers with the latest size obtained.
+  - This change has subtle implications in client functions: now `write_dec()` *et al* (and all the functions which use any of these as a building block) may return different sizes depending in the input buffer size, so client functions must resize their output buffers with the latest size obtained. So existing client code will break if it does not use the latest size. For example, code like this will break:
+  ```c++
+  int val = 0xbeef;
+  std::vector<char> buf; // start empty
+  size_t sz = c4::itoa(to_substr(buf), val); // try with empty buffer
+  buf.resize(sz);
+  sz = c4::itoa(to_substr(buf), val); // try with large-enough buffer:
+                                      // will return smaller size
+  for(char c : buf) // ERROR: reads past the end of the written string
+                    // (but not past the end of buf)
+     ... // do something.
+  ```
+  But this is safe for the current changeset:
+  ```c++
+  int val = 0xbeef;
+  std::vector<char> buf; // start empty
+  size_t sz = c4::itoa(to_substr(buf), val); // try with empty buffer
+  buf.resize(sz);
+  sz = c4::itoa(to_substr(buf), val); // try with large-enough buffer:
+                                      // will return smaller size
+  buf.resize(sz); // <--- HERE. always trim to the latest return value
+  for(char c : buf) // OK, buf is now trimmed to the written string
+     ... // do something.
+  ```
   - Add `C4_ALWAYS_INLINE` to these functions and `atoi()`, `atou()`, `atox()`, `itoa()`, `utoa()`, `xtoa()` to improve performance. Previously there was a large performance gap in benchmarks where `read_dec()` and friends were much faster (anywhere between 3x and 20x faster) than `utoa()` and friends. Adding `C4_ALWAYS_INLINE` to `utoa()` al brought their performances to similar levels as `read_dec()` et al. See [eg this thread](https://github.com/biojppm/c4core/pull/77#issuecomment-1059019667) for some example figures before and after the improvement.
   - Improved the charconv benchmarks to ensure full consistency across benchmarks, to ensure comparison of apples-to-apples.
 
