@@ -375,11 +375,246 @@ template<> struct charconv_digits_<8u, false>
 } // namespace detail
 
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 // Helper macros, undefined below
 #define _c4append(c) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = static_cast<char>(c); } else { ++pos; } }
 #define _c4appendhex(i) { if(C4_LIKELY(pos < buf.len)) { buf.str[pos++] = hexchars[i]; } else { ++pos; } }
 
+/** @name digits_dec return the number of digits required to encode a
+ * decimal number.
+ *
+ * @note At first sight this code may look heavily branchy and
+ * therefore inefficient. However, measurements revealed this to be
+ * the fastest among the alternatives.
+ *
+ * @see https://github.com/biojppm/c4core/pull/77 */
+/** @{ */
+
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE
+auto digits_dec(T v) noexcept
+    -> typename std::enable_if<sizeof(T) == 1u, unsigned>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    return ((v >= 100) ? 3u : ((v >= 10) ? 2u : 1u));
+}
+
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE
+auto digits_dec(T v) noexcept
+    -> typename std::enable_if<sizeof(T) == 2u, unsigned>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    return ((v >= 10000) ? 5u : (v >= 1000) ? 4u : (v >= 100) ? 3u : (v >= 10) ? 2u : 1u);
+}
+
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE
+auto digits_dec(T v) noexcept
+    -> typename std::enable_if<sizeof(T) == 4u, unsigned>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    return ((v >= 1000000000) ? 10u : (v >= 100000000) ? 9u : (v >= 10000000) ? 8u :
+            (v >= 1000000) ? 7u : (v >= 100000) ? 6u : (v >= 10000) ? 5u :
+            (v >= 1000) ? 4u : (v >= 100) ? 3u : (v >= 10) ? 2u : 1u);
+}
+
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE
+auto digits_dec(T v) noexcept
+    -> typename std::enable_if<sizeof(T) == 8u, unsigned>::type
+{
+    // thanks @fargies!!!
+    // https://github.com/biojppm/c4core/pull/77#issuecomment-1063753568
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    if(v >= 1000000000) // 10
+    {
+        if(v >= 100000000000000) // 15 [15-20] range
+        {
+            if(v >= 100000000000000000) // 18 (15 + (20 - 15) / 2)
+            {
+                if((typename std::make_unsigned<T>::type)v >= 10000000000000000000u) // 20
+                    return 20u;
+                else
+                    return (v >= 1000000000000000000) ? 19u : 18u;
+            }
+            else if(v >= 10000000000000000) // 17
+                return 17u;
+            else
+                return(v >= 1000000000000000) ? 16u : 15u;
+        }
+        else if(v >= 1000000000000) // 13
+            return (v >= 10000000000000) ? 14u : 13u;
+        else if(v >= 100000000000) // 12
+            return 12;
+        else
+            return(v >= 10000000000) ? 11u : 10u;
+    }
+    else if(v >= 10000) // 5 [5-9] range
+    {
+        if(v >= 10000000) // 8
+            return (v >= 100000000) ? 9u : 8u;
+        else if(v >= 1000000) // 7
+            return 7;
+        else
+            return (v >= 100000) ? 6u : 5u;
+    }
+    else if(v >= 100)
+        return (v >= 1000) ? 4u : 3u;
+    else
+        return (v >= 10) ? 2u : 1u;
+}
+
+/** @} */
+
+
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE unsigned digits_hex(T v) noexcept
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    return v ? 1u + (msb((typename std::make_unsigned<T>::type)v) >> 2u) : 1u;
+}
+
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE unsigned digits_bin(T v) noexcept
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    return v ? 1u + msb((typename std::make_unsigned<T>::type)v) : 1u;
+}
+
+template<class T>
+C4_CONSTEXPR14 C4_ALWAYS_INLINE unsigned digits_oct(T v_) noexcept
+{
+    // TODO: is there a better way?
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v_ >= 0);
+    using U = typename
+        std::conditional<sizeof(T) <= sizeof(unsigned),
+                         unsigned,
+                         typename std::make_unsigned<T>::type>::type;
+    U v = (U) v_;  // safe because we require v_ >= 0
+    unsigned __n = 1;
+    const unsigned __b2 = 64u;
+    const unsigned __b3 = __b2 * 8u;
+    const unsigned long __b4 = __b3 * 8u;
+    while(true)
+	{
+        if(v < 8u)
+            return __n;
+        if(v < __b2)
+            return __n + 1;
+        if(v < __b3)
+            return __n + 2;
+        if(v < __b4)
+            return __n + 3;
+        v /= (U) __b4;
+        __n += 4;
+	}
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+namespace detail {
 C4_INLINE_CONSTEXPR const char hexchars[] = "0123456789abcdef";
+C4_INLINE_CONSTEXPR const char digits0099[] =
+    "0001020304050607080910111213141516171819"
+    "2021222324252627282930313233343536373839"
+    "4041424344454647484950515253545556575859"
+    "6061626364656667686970717273747576777879"
+    "8081828384858687888990919293949596979899";
+} // namespace detail
+
+
+template<class T>
+C4_HOT C4_ALWAYS_INLINE
+void write_dec_unchecked(substr buf, T v, unsigned digits_v) noexcept
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    C4_ASSERT(buf.len >= digits_v);
+    C4_XASSERT(digits_v == digits_dec(v));
+    // in bm_xtoa: checkoncelog_singlediv_write2
+    while(v >= T(100))
+    {
+        const T quo = v / T(100);
+        const auto num = (v - quo * T(100)) << 1u;
+        v = quo;
+        buf.str[--digits_v] = detail::digits0099[num + 1];
+        buf.str[--digits_v] = detail::digits0099[num];
+    }
+    if(v >= T(10))
+    {
+        C4_ASSERT(digits_v == 2);
+        const auto num = v << 1u;
+        buf.str[1] = detail::digits0099[num + 1];
+        buf.str[0] = detail::digits0099[num];
+    }
+    else
+    {
+        C4_ASSERT(digits_v == 1);
+        buf.str[0] = (char)('0' + v);
+    }
+}
+
+
+template<class T>
+C4_HOT C4_ALWAYS_INLINE
+void write_hex_unchecked(substr buf, T v, unsigned digits_v) noexcept
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    C4_ASSERT(buf.len >= digits_v);
+    C4_XASSERT(digits_v == digits_hex(v));
+    do {
+        buf.str[--digits_v] = detail::hexchars[v & T(15)];
+        v >>= 4;
+    } while(v);
+    C4_ASSERT(digits_v == 0);
+}
+
+
+template<class T>
+C4_HOT C4_ALWAYS_INLINE
+void write_oct_unchecked(substr buf, T v, unsigned digits_v) noexcept
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    C4_ASSERT(buf.len >= digits_v);
+    C4_XASSERT(digits_v == digits_oct(v));
+    do {
+        buf.str[--digits_v] = (char)('0' + (v & T(7)));
+        v >>= 3;
+    } while(v);
+    C4_ASSERT(digits_v == 0);
+}
+
+
+template<class T>
+C4_HOT C4_ALWAYS_INLINE
+void write_bin_unchecked(substr buf, T v, unsigned digits_v) noexcept
+{
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
+    C4_ASSERT(v >= 0);
+    C4_ASSERT(buf.len >= digits_v);
+    C4_XASSERT(digits_v == digits_bin(v));
+    do {
+        buf.str[--digits_v] = (char)('0' + (v & T(1)));
+        v >>= 1;
+    } while(v);
+    C4_ASSERT(digits_v == 0);
+}
 
 
 /** write an integer to a string in decimal format. This is the
@@ -396,18 +631,11 @@ C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_dec))
-        return detail::charconv_digits<T>::maxdigits_dec;
-    size_t pos = 0;
-    do {
-        buf.str[pos++] = (char)('0' + (v % T(10)));
-        v /= T(10);
-    } while(v);
-    C4_ASSERT(pos <= buf.len);
-    buf.reverse_range(0, pos);
-    return pos;
+    unsigned digits = digits_dec(v);
+    if(C4_LIKELY(buf.len >= digits)) // VS does not have likely, so put the happy branch first
+        write_dec_unchecked(buf, v, digits);
+    return digits;
 }
-
 
 /** write an integer to a string in hexadecimal format. This is the
  * lowest level (and the fastest) function to do this task.
@@ -422,18 +650,11 @@ C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_hex_nopfx))
-        return detail::charconv_digits<T>::maxdigits_hex_nopfx;
-    size_t pos = 0;
-    do {
-        buf.str[pos++] = hexchars[v & T(15)];
-        v >>= 4;
-    } while(v);
-    C4_ASSERT(pos <= buf.len);
-    buf.reverse_range(0, pos);
-    return pos;
+    unsigned digits = digits_hex(v);
+    if(C4_LIKELY(buf.len >= digits)) // VS does not have likely, so put the happy branch first
+        write_hex_unchecked(buf, v, digits);
+    return digits;
 }
-
 
 /** write an integer to a string in octal format. This is the
  * lowest level (and the fastest) function to do this task.
@@ -449,18 +670,11 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_oct_nopfx))
-        return detail::charconv_digits<T>::maxdigits_oct_nopfx;
-    size_t pos = 0;
-    do {
-        buf.str[pos++] = (char)('0' + (v & T(7)));
-        v >>= 3;
-    } while(v);
-    C4_ASSERT(pos <= buf.len);
-    buf.reverse_range(0, pos);
-    return pos;
+    unsigned digits = digits_oct(v);
+    if(C4_LIKELY(buf.len >= digits)) // VS does not have likely, so put the happy branch first
+        write_oct_unchecked(buf, v, digits);
+    return digits;
 }
-
 
 /** write an integer to a string in binary format. This is the
  * lowest level (and the fastest) function to do this task.
@@ -476,16 +690,11 @@ C4_ALWAYS_INLINE size_t write_bin(substr buf, T v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_bin_nopfx))
-        return detail::charconv_digits<T>::maxdigits_bin_nopfx;
-    size_t pos = 0;
-    do {
-        buf.str[pos++] = (char)('0' + (v & T(1)));
-        v >>= 1;
-    } while(v);
-    C4_ASSERT(pos <= buf.len);
-    buf.reverse_range(0, pos);
-    return pos;
+    unsigned digits = digits_bin(v);
+    C4_ASSERT(digits > 0);
+    if(C4_LIKELY(buf.len >= digits))
+        write_bin_unchecked(buf, v, digits);
+    return digits;
 }
 
 
@@ -756,26 +965,20 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v) noexcept
         // write_dec() checks the buffer size, so no need to check here
         return write_dec(buf, v);
     }
-    else
+    // when T is the min value (eg i8: -128), negating it
+    // will overflow, so treat the min as a special case
+    else if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
-        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_dec))
-            return detail::charconv_digits<T>::maxdigits_dec;
-        // when T is the min value (eg i8: -128), negating it
-        // will overflow, so treat the min as a special case
-        if(C4_LIKELY(v != std::numeric_limits<T>::min()))
+        v = -v;
+        unsigned digits = digits_dec(v);
+        if(C4_LIKELY(buf.len >= digits + 1u))
         {
             buf.str[0] = '-';
-            return size_t(1) + write_dec(buf.sub(1), -v);
+            write_dec_unchecked(buf.sub(1), v, digits);
         }
-        else
-        {
-            // when T is the min value (eg i8: -128), negating it
-            // will overflow. so we just use the explicit value
-            return detail::_itoadec2buf<T>(buf);
-        }
-        C4_UNREACHABLE();
+        return digits + 1u;
     }
-    C4_UNREACHABLE();
+    return detail::_itoadec2buf<T>(buf);
 }
 
 /** convert an integral signed integer to a string, using a specific
@@ -793,37 +996,64 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if (defined(__GNUC__) && (__GNUC__ >= 7))
+        C4_SUPPRESS_WARNING_GCC("-Wstringop-overflow")  // gcc has a false positive here
+    #endif
     // when T is the min value (eg i8: -128), negating it
     // will overflow, so treat the min as a special case
     if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
-        size_t pos = 0;
+        unsigned pos = 0;
         if(v < 0)
         {
             v = -v;
             if(C4_LIKELY(buf.len > 0))
-                buf.str[pos++] = '-';
+                buf.str[pos] = '-';
+            ++pos;
         }
+        unsigned digits = 0;
         switch(radix)
         {
         case T(10):
-            if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_dec))
-                return detail::charconv_digits<T>::maxdigits_dec;
-            /*........................................*/return pos + write_dec(buf.sub(pos), v);
+            digits = digits_dec(v);
+            if(C4_LIKELY(buf.len >= pos + digits))
+                write_dec_unchecked(buf.sub(pos), v, digits);
+            break;
         case T(16):
-            if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_hex))
-                return detail::charconv_digits<T>::maxdigits_hex;
-            buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v);
-        case T( 2):
-            if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_bin))
-                return detail::charconv_digits<T>::maxdigits_bin;
-            buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v);
-        case T( 8):
-            if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_oct))
-                return detail::charconv_digits<T>::maxdigits_oct;
-            buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v);
+            digits = digits_hex(v);
+            if(C4_LIKELY(buf.len >= pos + 2u + digits))
+            {
+                buf.str[pos + 0] = '0';
+                buf.str[pos + 1] = 'x';
+                write_hex_unchecked(buf.sub(pos + 2), v, digits);
+            }
+            digits += 2u;
+            break;
+        case T(2):
+            digits = digits_bin(v);
+            if(C4_LIKELY(buf.len >= pos + 2u + digits))
+            {
+                buf.str[pos + 0] = '0';
+                buf.str[pos + 1] = 'b';
+                write_bin_unchecked(buf.sub(pos + 2), v, digits);
+            }
+            digits += 2u;
+            break;
+        case T(8):
+            digits = digits_oct(v);
+            if(C4_LIKELY(buf.len >= pos + 2u + digits))
+            {
+                buf.str[pos + 0] = '0';
+                buf.str[pos + 1] = 'o';
+                write_oct_unchecked(buf.sub(pos + 2), v, digits);
+            }
+            digits += 2u;
+            break;
         }
+        return pos + digits;
     }
+    C4_SUPPRESS_WARNING_GCC_POP
     // when T is the min value (eg i8: -128), negating it
     // will overflow
     return detail::_itoa2buf<T>(buf, radix);
@@ -850,48 +1080,55 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
     // will overflow, so treat the min as a special case
     if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
-        size_t pos = 0;
+        unsigned pos = 0;
         if(v < 0)
         {
             v = -v;
             if(C4_LIKELY(buf.len > 0))
-                buf.str[pos++] = '-';
+                buf.str[pos] = '-';
+            ++pos;
         }
+        unsigned total_digits = 0;
         switch(radix)
         {
         case T(10):
-        {
-            // add 1 to account for -
-            size_t needed_digits = num_digits+1 > detail::charconv_digits<T>::maxdigits_dec ? num_digits+1 : detail::charconv_digits<T>::maxdigits_dec;
-            if(C4_UNLIKELY(buf.len < needed_digits))
-                return needed_digits;
-            /*.......................................*/ return pos + write_dec(buf.sub(pos), v, num_digits);
-        }
+            total_digits = digits_dec(v);
+            total_digits = pos + (unsigned)(num_digits > total_digits ? num_digits : total_digits);
+            if(C4_LIKELY(buf.len >= total_digits))
+                write_dec(buf.sub(pos), v, num_digits);
+            break;
         case T(16):
-        {
-            // add 3 to account for -0x
-            size_t needed_digits = num_digits+3 > detail::charconv_digits<T>::maxdigits_hex ? num_digits+3 : detail::charconv_digits<T>::maxdigits_hex;
-            if(C4_UNLIKELY(buf.len < needed_digits))
-                return needed_digits;
-            buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v, num_digits);
-        }
+            total_digits = digits_hex(v);
+            total_digits = pos + 2u + (unsigned)(num_digits > total_digits ? num_digits : total_digits);
+            if(C4_LIKELY(buf.len >= total_digits))
+            {
+                buf.str[pos + 0] = '0';
+                buf.str[pos + 1] = 'x';
+                write_hex(buf.sub(pos + 2), v, num_digits);
+            }
+            break;
         case T(2):
-        {
-            // add 3 to account for -0b
-            size_t needed_digits = num_digits+3 > detail::charconv_digits<T>::maxdigits_bin ? num_digits+3 : detail::charconv_digits<T>::maxdigits_bin;
-            if(C4_UNLIKELY(buf.len < needed_digits))
-                return needed_digits;
-            buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v, num_digits);
-        }
+            total_digits = digits_bin(v);
+            total_digits = pos + 2u + (unsigned)(num_digits > total_digits ? num_digits : total_digits);
+            if(C4_LIKELY(buf.len >= total_digits))
+            {
+                buf.str[pos + 0] = '0';
+                buf.str[pos + 1] = 'b';
+                write_bin(buf.sub(pos + 2), v, num_digits);
+            }
+            break;
         case T(8):
-        {
-            // add 3 to account for -0o
-            size_t needed_digits = num_digits+3 > detail::charconv_digits<T>::maxdigits_oct ? num_digits+3 : detail::charconv_digits<T>::maxdigits_oct;
-            if(C4_UNLIKELY(buf.len < needed_digits))
-                return needed_digits;
-            buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v, num_digits);
+            total_digits = digits_oct(v);
+            total_digits = pos + 2u + (unsigned)(num_digits > total_digits ? num_digits : total_digits);
+            if(C4_LIKELY(buf.len >= total_digits))
+            {
+                buf.str[pos + 0] = '0';
+                buf.str[pos + 1] = 'o';
+                write_oct(buf.sub(pos + 2), v, num_digits);
+            }
+            break;
         }
-        }
+        return total_digits;
     }
     // when T is the min value (eg i8: -128), negating it
     // will overflow
@@ -932,28 +1169,46 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
 {
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
     C4_ASSERT(radix == 10 || radix == 16 || radix == 2 || radix == 8);
-    size_t pos = 0;
+    unsigned digits = 0;
     switch(radix)
     {
     case T(10):
-        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_dec))
-            return detail::charconv_digits<T>::maxdigits_dec;
-        /*............................*/return pos + write_dec(buf, v);
+        digits = digits_dec(v);
+        if(C4_LIKELY(buf.len >= digits))
+            write_dec_unchecked(buf, v, digits);
+        break;
     case T(16):
-        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_hex))
-            return detail::charconv_digits<T>::maxdigits_hex;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v);
+        digits = digits_hex(v);
+        if(C4_LIKELY(buf.len >= digits+2u))
+        {
+            buf.str[0] = '0';
+            buf.str[1] = 'x';
+            write_hex_unchecked(buf.sub(2), v, digits);
+        }
+        digits += 2u;
+        break;
     case T(2):
-        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_bin))
-            return detail::charconv_digits<T>::maxdigits_bin;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v);
+        digits = digits_bin(v);
+        if(C4_LIKELY(buf.len >= digits+2u))
+        {
+            buf.str[0] = '0';
+            buf.str[1] = 'b';
+            write_bin_unchecked(buf.sub(2), v, digits);
+        }
+        digits += 2u;
+        break;
     case T(8):
-        if(C4_UNLIKELY(buf.len < detail::charconv_digits<T>::maxdigits_oct))
-            return detail::charconv_digits<T>::maxdigits_oct;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v);
+        digits = digits_oct(v);
+        if(C4_LIKELY(buf.len >= digits+2u))
+        {
+            buf.str[0] = '0';
+            buf.str[1] = 'o';
+            write_oct_unchecked(buf.sub(2), v, digits);
+        }
+        digits += 2u;
+        break;
     }
-    C4_UNREACHABLE();
-    return substr::npos;
+    return digits;
 }
 
 /** same as c4::utoa(), but pad with zeroes on the left such that the
@@ -962,46 +1217,53 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
  * occurs only if the buffer is large enough to contain the largest
  * value of the type or @p num_digits if it is larger.
  *
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ * @return the number of characters required for the string */
 template<class T>
 C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexcept
 {
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
     C4_ASSERT(radix == 10 || radix == 16 || radix == 2 || radix == 8);
-    size_t needed_digits;
-    size_t pos = 0;
+    unsigned total_digits = 0;
     switch(radix)
     {
     case T(10):
-        needed_digits = num_digits > detail::charconv_digits<T>::maxdigits_dec ? num_digits : detail::charconv_digits<T>::maxdigits_dec;
-        if(C4_UNLIKELY(buf.len < needed_digits))
-            return needed_digits;
-        /*........................................*/return write_dec(buf, v, num_digits);
+        total_digits = digits_dec(v);
+        total_digits = (unsigned)(num_digits > total_digits ? num_digits : total_digits);
+        if(C4_LIKELY(buf.len >= total_digits))
+            write_dec(buf, v, num_digits);
+        break;
     case T(16):
-        // add 2 to account for 0x
-        needed_digits = num_digits+2 > detail::charconv_digits<T>::maxdigits_hex ? num_digits+2 : detail::charconv_digits<T>::maxdigits_hex;
-        if(C4_UNLIKELY(buf.len < needed_digits))
-            return needed_digits;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return pos + write_hex(buf.sub(pos), v, num_digits);
+        total_digits = digits_hex(v);
+        total_digits = 2u + (unsigned)(num_digits > total_digits ? num_digits : total_digits);
+        if(C4_LIKELY(buf.len >= total_digits))
+        {
+            buf.str[0] = '0';
+            buf.str[1] = 'x';
+            write_hex(buf.sub(2), v, num_digits);
+        }
+        break;
     case T(2):
-        // add 2 to account for 0b
-        needed_digits = num_digits+2 > detail::charconv_digits<T>::maxdigits_bin ? num_digits+2 : detail::charconv_digits<T>::maxdigits_bin;
-        if(C4_UNLIKELY(buf.len < needed_digits))
-            return needed_digits;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return pos + write_bin(buf.sub(pos), v, num_digits);
+        total_digits = digits_bin(v);
+        total_digits = 2u + (unsigned)(num_digits > total_digits ? num_digits : total_digits);
+        if(C4_LIKELY(buf.len >= total_digits))
+        {
+            buf.str[0] = '0';
+            buf.str[1] = 'b';
+            write_bin(buf.sub(2), v, num_digits);
+        }
+        break;
     case T(8):
-        // add 2 to account for 0o
-        needed_digits = num_digits+2 > detail::charconv_digits<T>::maxdigits_oct ? num_digits+2 : detail::charconv_digits<T>::maxdigits_oct;
-        if(C4_UNLIKELY(buf.len < needed_digits))
-            return needed_digits;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return pos + write_oct(buf.sub(pos), v, num_digits);
+        total_digits = digits_oct(v);
+        total_digits = 2u + (unsigned)(num_digits > total_digits ? num_digits : total_digits);
+        if(C4_LIKELY(buf.len >= total_digits))
+        {
+            buf.str[0] = '0';
+            buf.str[1] = 'o';
+            write_oct(buf.sub(2), v, num_digits);
+        }
+        break;
     }
-    C4_UNREACHABLE();
-    return substr::npos;
+    return total_digits;
 }
 
 
@@ -1083,7 +1345,7 @@ C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v) noexcept
             else
             {
                 // we know the first character is 0
-                auto fno = str.first_not_of('0', start + 1);
+                size_t fno = str.first_not_of('0', start + 1);
                 if(fno == csubstr::npos)
                 {
                     *v = 0;

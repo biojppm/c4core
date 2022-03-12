@@ -300,7 +300,7 @@ TEST_CASE_TEMPLATE("cat_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_cat_dump(buf.first(1), b1, b2);
         CHECK_EQ(needed_size, 2);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(2), csubstr("2+")); // only the first character of b2 was written
+        CHECK_EQ(buf.first(2), csubstr("1+")); // only the first character of b2 was written
         CHECK_EQ(accum(), csubstr("1"));
         DumpChecker::s_reset();
         needed_size = T::call_cat_dump(buf, b1, b2);
@@ -330,19 +330,19 @@ TEST_CASE_TEMPLATE("cat_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_cat_dump(buf.first(1), b1, b2, b3, b4);
         CHECK_EQ(needed_size, 4);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("2+++"));
+        CHECK_EQ(buf.first(4), csubstr("1+++"));
         CHECK_EQ(accum(), csubstr("1"));
         DumpChecker::s_reset();
         needed_size = T::call_cat_dump(buf.first(2), b1, b2, b3, b4);
         CHECK_EQ(needed_size, 4);
         CHECK_EQ(DumpChecker::s_num_calls, 2);
-        CHECK_EQ(buf.first(4), csubstr("33++"));
+        CHECK_EQ(buf.first(4), csubstr("22++"));
         CHECK_EQ(accum(), csubstr("122"));
         DumpChecker::s_reset();
         needed_size = T::call_cat_dump(buf.first(3), b1, b2, b3, b4);
         CHECK_EQ(needed_size, 4);
         CHECK_EQ(DumpChecker::s_num_calls, 3);
-        CHECK_EQ(buf.first(4), csubstr("444+"));
+        CHECK_EQ(buf.first(4), csubstr("333+"));
         CHECK_EQ(accum(), csubstr("122333"));
         DumpChecker::s_reset();
         needed_size = T::call_cat_dump(buf, b1, b2, b3, b4);
@@ -363,19 +363,19 @@ TEST_CASE_TEMPLATE("cat_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_cat_dump(buf.first(1), b4, b3, b2, b1);
         CHECK_EQ(needed_size, 4);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(4), csubstr("4+++"));
+        CHECK_EQ(buf.first(4), csubstr("++++"));
         CHECK_EQ(accum(), csubstr(""));
         DumpChecker::s_reset();
         needed_size = T::call_cat_dump(buf.first(2), b4, b3, b2, b1);
         CHECK_EQ(needed_size, 4);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(4), csubstr("44++"));
+        CHECK_EQ(buf.first(4), csubstr("++++"));
         CHECK_EQ(accum(), csubstr(""));
         DumpChecker::s_reset();
         needed_size = T::call_cat_dump(buf.first(3), b4, b3, b2, b1);
         CHECK_EQ(needed_size, 4);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(4), csubstr("444+"));
+        CHECK_EQ(buf.first(4), csubstr("++++"));
         CHECK_EQ(accum(), csubstr(""));
         DumpChecker::s_reset();
         needed_size = T::call_cat_dump(buf, b4, b3, b2, b1);
@@ -616,7 +616,7 @@ TEST_CASE_TEMPLATE("catsep_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_catsep_dump(buf.first(1), sep, b1, b2);
         CHECK_EQ(needed_size, seplen);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(2), csubstr("9+"));
+        CHECK_EQ(buf.first(2), csubstr("1+"));
         CHECK_EQ(accum(), csubstr("1"));
         DumpChecker::s_reset();
         needed_size = T::call_catsep_dump(buf.first(seplen), sep, b1, b2);
@@ -643,7 +643,7 @@ TEST_CASE_TEMPLATE("catsep_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_catsep_dump(buf.first(1), sep, b2, b1);
         CHECK_EQ(needed_size, seplen);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(2), csubstr("2+"));
+        CHECK_EQ(buf.first(2), csubstr("++"));
         CHECK_EQ(accum(), csubstr(""));
         DumpChecker::s_reset();
         needed_size = T::call_catsep_dump(buf.first(seplen), sep, b2, b1);
@@ -670,19 +670,19 @@ TEST_CASE_TEMPLATE("catsep_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_catsep_dump(buf.first(1), sep, b1, b2, b3, b4);
         CHECK_EQ(needed_size, seplen);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("9+++"));
+        CHECK_EQ(buf.first(4), csubstr("1+++"));
         CHECK_EQ(accum(), csubstr("1"));
         DumpChecker::s_reset();
         needed_size = T::call_catsep_dump(buf.first(2), sep, b1, b2, b3, b4);
         CHECK_EQ(needed_size, seplen);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("09++"));
+        CHECK_EQ(buf.first(4), csubstr("1+++"));
         CHECK_EQ(accum(), csubstr("1"));
         DumpChecker::s_reset();
         needed_size = T::call_catsep_dump(buf.first(3), sep, b1, b2, b3, b4);
         CHECK_EQ(needed_size, seplen);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("009+"));
+        CHECK_EQ(buf.first(4), csubstr("1+++"));
         CHECK_EQ(accum(), csubstr("1"));
         DumpChecker::s_reset();
         needed_size = T::call_catsep_dump(buf, sep, b1, b2, b3, b4);
@@ -703,19 +703,19 @@ TEST_CASE_TEMPLATE("catsep_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_catsep_dump(buf.first(1), sep, b4, b3, b2, b1);
         CHECK_EQ(needed_size, seplen);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(4), csubstr("4+++"));
+        CHECK_EQ(buf.first(4), csubstr("++++"));
         CHECK_EQ(accum(), csubstr(""));
         DumpChecker::s_reset();
         needed_size = T::call_catsep_dump(buf.first(2), sep, b4, b3, b2, b1);
         CHECK_EQ(needed_size, seplen);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(4), csubstr("44++"));
+        CHECK_EQ(buf.first(4), csubstr("++++"));
         CHECK_EQ(accum(), csubstr(""));
         DumpChecker::s_reset();
         needed_size = T::call_catsep_dump(buf.first(3), sep, b4, b3, b2, b1);
         CHECK_EQ(needed_size, seplen);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(4), csubstr("444+"));
+        CHECK_EQ(buf.first(4), csubstr("++++"));
         CHECK_EQ(accum(), csubstr(""));
         DumpChecker::s_reset();
         needed_size = T::call_catsep_dump(buf, sep, b4, b3, b2, b1);
@@ -787,7 +787,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 0);
         CHECK_EQ(ret.argfail(), 1); // sep
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(2), csubstr("9+"));
+        CHECK_EQ(buf.first(2), csubstr("1+"));
         CHECK_EQ(accum(), csubstr("1"));
         ret = T::call_catsep_dump_resume(ret, buf.first(2), sep, b1, b2);
         CHECK_UNARY(ret.success_until(0));  // b1
@@ -797,7 +797,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 0);
         CHECK_EQ(ret.argfail(), 1); // sep
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(2), csubstr("09"));
+        CHECK_EQ(buf.first(2), csubstr("1+"));
         CHECK_EQ(accum(), csubstr("1"));
         ret = T::call_catsep_dump_resume(ret, buf.first(seplen), sep, b1, b2);
         CHECK_UNARY(ret.success_until(0));
@@ -828,7 +828,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 0);
         CHECK_EQ(ret.argfail(), 1);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("9+++")); // failed while writing sep
+        CHECK_EQ(buf.first(4), csubstr("1+++")); // failed while writing sep
         CHECK_EQ(accum(), csubstr("1"));
         ret = T::call_catsep_dump_resume(ret, buf.first(2), sep, b1, b2, b3, b4);
         CHECK_UNARY(ret.success_until(0));
@@ -837,7 +837,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 0);
         CHECK_EQ(ret.argfail(), 1);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("09++")); // failed while writing sep
+        CHECK_EQ(buf.first(4), csubstr("1+++")); // failed while writing sep
         CHECK_EQ(accum(), csubstr("1"));
         ret = T::call_catsep_dump_resume(ret, buf.first(3), sep, b1, b2, b3, b4);
         CHECK_UNARY(ret.success_until(0));
@@ -846,7 +846,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 0);
         CHECK_EQ(ret.argfail(), 1);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("009+"));
+        CHECK_EQ(buf.first(4), csubstr("1+++"));
         CHECK_EQ(accum(), csubstr("1"));
         ret = T::call_catsep_dump_resume(ret, buf.first(4), sep, b1, b2, b3, b4);
         CHECK_UNARY(ret.success_until(0));
@@ -855,7 +855,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 0);
         CHECK_EQ(ret.argfail(), 1);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("0009"));
+        CHECK_EQ(buf.first(4), csubstr("1+++"));
         CHECK_EQ(accum(), csubstr("1"));
         ret = T::call_catsep_dump_resume(ret, buf.first(seplen), sep, b1, b2, b3, b4);
         CHECK_UNARY(ret.success_until(0));
@@ -890,7 +890,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, DumpResults::noarg);
         CHECK_EQ(ret.argfail(), 0);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(4), csubstr("4+++"));
+        CHECK_EQ(buf.first(4), csubstr("++++"));
         CHECK_EQ(accum(), csubstr(""));
         ret = T::call_catsep_dump_resume(ret, buf.first(2), sep, b4, b3, b2, b1);
         CHECK_UNARY(!ret.success_until(0));
@@ -898,7 +898,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, DumpResults::noarg);
         CHECK_EQ(ret.argfail(), 0);
         CHECK_EQ(DumpChecker::s_num_calls, 0);
-        CHECK_EQ(buf.first(4), csubstr("44++"));
+        CHECK_EQ(buf.first(4), csubstr("++++"));
         CHECK_EQ(accum(), csubstr(""));
         ret = T::call_catsep_dump_resume(ret, buf.first(seplen), sep, b4, b3, b2, b1);
         CHECK_UNARY(ret.success_until(0));
@@ -935,7 +935,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 0);
         CHECK_EQ(ret.argfail(), 1);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("9+++")); // failed while writing sep
+        CHECK_EQ(buf.first(4), csubstr("1+++")); // failed while writing sep
         CHECK_EQ(accum(), csubstr("1"));
         ret = T::call_catsep_dump_resume(ret, buf.first(2), s, b1, b2, b3, b4);
         CHECK_UNARY(ret.success_until(0)); // b1
@@ -945,7 +945,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 0);
         CHECK_EQ(ret.argfail(), 1);
         CHECK_EQ(DumpChecker::s_num_calls, 1);
-        CHECK_EQ(buf.first(4), csubstr("99++")); // failed while writing sep
+        CHECK_EQ(buf.first(4), csubstr("1+++")); // failed while writing sep
         CHECK_EQ(accum(), csubstr("1"));
         ret = T::call_catsep_dump_resume(ret, buf.first(3), s, b1, b2, b3, b4);
         CHECK_UNARY(ret.success_until(0));
@@ -958,7 +958,7 @@ TEST_CASE_TEMPLATE("catsep_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 5);
         CHECK_EQ(ret.argfail(), 6);
         CHECK_EQ(DumpChecker::s_num_calls, 6);
-        CHECK_EQ(buf.first(4), csubstr("444+")); // failed while writing b4
+        CHECK_EQ(buf.first(4), csubstr("999+")); // failed while writing b4
         CHECK_EQ(accum(), csubstr("199922999333999"));
         ret = T::call_catsep_dump_resume(ret, buf.first(4), s, b1, b2, b3, b4);
         CHECK_UNARY(ret.success_until(0));
@@ -1060,7 +1060,7 @@ TEST_CASE_TEMPLATE("format_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_format_dump(buf.first(1), fmt, b1, b2);
         CHECK_EQ(needed_size, 2);
         CHECK_EQ(DumpChecker::s_num_calls, 3);
-        CHECK_EQ(buf.first(2), csubstr("2+"));
+        CHECK_EQ(buf.first(2), csubstr("1+"));
         CHECK_EQ(accum(), csubstr("012345678_1_34567_"));
         DumpChecker::s_reset();
         needed_size = T::call_format_dump(buf.first(2), fmt, b1, b2);
@@ -1089,13 +1089,13 @@ TEST_CASE_TEMPLATE("format_dump", T, CatDumpTplArg, CatDumpFnArg)
         needed_size = T::call_format_dump(buf.first(1), fmt, b1, b2, b3);
         CHECK_EQ(needed_size, 3);
         CHECK_EQ(DumpChecker::s_num_calls, 3);
-        CHECK_EQ(buf.first(2), csubstr("2+"));
+        CHECK_EQ(buf.first(2), csubstr("1+"));
         CHECK_EQ(accum(), csubstr("012345678_1_34567_"));
         DumpChecker::s_reset();
         needed_size = T::call_format_dump(buf.first(2), fmt, b1, b2, b3);
         CHECK_EQ(needed_size, 3);
         CHECK_EQ(DumpChecker::s_num_calls, 5);
-        CHECK_EQ(buf.first(2), csubstr("33"));
+        CHECK_EQ(buf.first(2), csubstr("22"));
         CHECK_EQ(accum(), csubstr("012345678_1_34567_22_aaa___"));
         DumpChecker::s_reset();
         needed_size = T::call_format_dump(buf.first(3), fmt, b1, b2, b3);
@@ -1170,7 +1170,7 @@ TEST_CASE_TEMPLATE("format_dump_resume", T, CatDumpTplArg, CatDumpFnArg)
         CHECK_EQ(ret.lastok, 2);
         CHECK_EQ(ret.argfail(), 3);
         CHECK_EQ(DumpChecker::s_num_calls, 3);
-        CHECK_EQ(buf.first(2), csubstr("2+"));
+        CHECK_EQ(buf.first(2), csubstr("1+"));
         CHECK_EQ(accum(), csubstr("aaa_then_1_then_bbb_then_"));
         ret = T::call_format_dump_resume(ret, buf.first(2), fmt, b1, b2);
         CHECK_UNARY(ret.success_until(0));

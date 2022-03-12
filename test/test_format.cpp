@@ -97,6 +97,7 @@ TEST_CASE_TEMPLATE("to_chars.fmt.zpad.hex", T, uint8_t, int8_t)
     char bufc[128];
     substr buf(bufc);
     using namespace fmt;
+    buf.fill('?');
     CHECK_EQ(to_chars_sub(buf, zpad(integral(T(0x7f), T(16)), 5u)), "0x0007f");
     CHECK_EQ(to_chars_sub(buf, zpad(integral((T*)0x7f, T(16)), 5u)), "0x0007f");
     CHECK_EQ(to_chars_sub(buf, zpad(integral((T const*)0x7f, T(16)), 5u)), "0x0007f");
@@ -934,45 +935,51 @@ template<class T>
 void test_hex(T in, csubstr expected)
 {
     INFO("expected=" << expected);
-
-    std::vector<char> buf;
-    char buf1[1] = {};
-    char buf2[2] = {};
-    char buf3[3] = {};
-
-    CHECK_EQ(cat({}, fmt::hex(in)), expected.len);
-
-    buf1[0] = '?';
-    CHECK_EQ(cat(buf1, fmt::hex(in)), expected.len);
-    CHECK_EQ(buf1[0], '?');
-
-    buf2[0] = '?';
-    buf2[1] = '?';
-    CHECK_EQ(cat(buf2, fmt::hex(in)), expected.len);
-    CHECK_EQ(buf2[0], '0');
-    CHECK_EQ(buf2[1], '?');
-
-    buf3[0] = '?';
-    buf3[1] = '?';
-    buf3[2] = '?';
-    CHECK_EQ(cat(buf3, fmt::hex(in)), expected.len);
-    CHECK_EQ(buf3[0], '0');
-    CHECK_EQ(buf3[1], 'x');
-    CHECK_EQ(buf3[2], '?');
-
-    buf.clear();
-    CHECK_EQ(cat(to_substr(buf), fmt::hex(in)), expected.len);
-    CHECK_EQ(buf.size(), 0);
-
-    catrs(&buf, fmt::hex(in));
-    CHECK_EQ(buf.size(), expected.len);
-    CHECK_EQ(to_csubstr(buf), expected);
+    SUBCASE("charbuf")
+    {
+        char buf_[128] = {};
+        substr buf = buf_;
+        buf.fill('?'); // this will be executed before each case
+        SUBCASE("sz=0")
+        {
+            CHECK_EQ(cat(buf.first(0), fmt::hex(in)), expected.len);
+            CHECK_EQ(buf[0], '?');
+            CHECK_EQ(buf.trimr('?'), "");
+        }
+        SUBCASE("sz=1")
+        {
+            CHECK_EQ(cat(buf.first(1), fmt::hex(in)), expected.len);
+            CHECK_EQ(buf[0], '?');
+            CHECK_EQ(buf.trimr('?'), "");
+        }
+        SUBCASE("sz=2")
+        {
+            CHECK_EQ(cat(buf.first(2), fmt::hex(in)), expected.len);
+            CHECK_EQ(buf[0], '?');
+            CHECK_EQ(buf.trimr('?'), "");
+        }
+        SUBCASE("full")
+        {
+            REQUIRE_EQ(cat(buf, fmt::hex(in)), expected.len);
+            CHECK_EQ(buf.first(expected.len), expected);
+            CHECK_EQ(buf.trimr('?'), expected);
+        }
+    }
+    SUBCASE("vector")
+    {
+        std::vector<char> buf;
+        catrs(&buf, fmt::hex(in));
+        CHECK_EQ(buf.size(), expected.len);
+        CHECK_EQ(to_csubstr(buf), expected);
+    }
 }
 
 TEST_CASE("fmt.hex")
 {
     test_hex(0, "0x0");
     test_hex(nullptr, "0x0");
+    test_hex(254, "0xfe");
+    test_hex(255, "0xff");
     test_hex(256, "0x100");
 }
 

@@ -10,6 +10,19 @@
 #endif
 #include <string.h>
 
+#if (defined(__GNUC__) && __GNUC_MAJOR >= 10) || defined(__has_builtin)
+#define _C4_USE_LSB_INTRINSIC(which) __has_builtin(which)
+#define _C4_USE_MSB_INTRINSIC(which) __has_builtin(which)
+#elif defined(C4_MSVC)
+#define _C4_USE_LSB_INTRINSIC(which) true
+#define _C4_USE_MSB_INTRINSIC(which) true
+#else
+// let's try our luck
+#define _C4_USE_LSB_INTRINSIC(which) true
+#define _C4_USE_MSB_INTRINSIC(which) true
+#endif
+
+
 /** @file memory_util.hpp Some memory utilities. */
 
 namespace c4 {
@@ -52,12 +65,6 @@ bool is_aligned(T *ptr, size_t alignment=alignof(T))
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // least significant bit
-
-#if defined(C4_MSVC)
-#define _C4_USE_LSB_INTRINSIC(which) true
-#else
-#define _C4_USE_LSB_INTRINSIC(which) __has_builtin(which)
-#endif
 
 /** @name msb Compute the least significant bit
  * @note the input value must be nonzero
@@ -193,8 +200,6 @@ auto lsb(I v) noexcept
     #endif
 }
 
-#undef _C4_USE_LSB_INTRINSIC
-
 /** @} */
 
 
@@ -230,11 +235,6 @@ struct lsb11
 //-----------------------------------------------------------------------------
 // most significant bit
 
-#if defined(C4_MSVC)
-#define _C4_USE_MSB_INTRINSIC(which) true
-#else
-#define _C4_USE_MSB_INTRINSIC(which) __has_builtin(which)
-#endif
 
 /** @name msb Compute the most significant bit
  * @note the input value must be nonzero
@@ -380,8 +380,6 @@ auto msb(I v) noexcept
     #endif
 }
 
-#undef _C4_USE_MSB_INTRINSIC
-
 /** @} */
 
 
@@ -411,6 +409,10 @@ struct msb11
     enum : unsigned { value = detail::_msb11<I, number, 0, (number==I(0))>::num };
 };
 
+
+
+#undef _C4_USE_LSB_INTRINSIC
+#undef _C4_USE_MSB_INTRINSIC
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

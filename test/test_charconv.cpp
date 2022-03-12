@@ -2,23 +2,382 @@
 #include "c4/std/std.hpp"
 #include "c4/charconv.hpp"
 #include "c4/format.hpp"
+#include "c4/type_name.hpp"
 #endif
 
 #include "c4/libtest/supprwarn_push.hpp"
 
-#ifdef __clang__
-#   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wfloat-equal"
-#elif defined(__GNUC__)
-#   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wuseless-cast"
-#   pragma GCC diagnostic ignored "-Wfloat-equal"
-#elif defined(_MSC_VER)
-#endif
+C4_SUPPRESS_WARNING_GCC_PUSH
+C4_SUPPRESS_WARNING_GCC("-Wfloat-equal")
+C4_SUPPRESS_WARNING_GCC("-Wuseless-cast")
+C4_SUPPRESS_WARNING_GCC("-Wno-noexcept-type")
+C4_SUPPRESS_WARNING_CLANG_PUSH
+C4_SUPPRESS_WARNING_CLANG("-Wfloat-equal")
 
 #include <c4/test.hpp>
 
 namespace c4 {
+
+TEST_CASE_TEMPLATE("digits_dec", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
+{
+    CHECK_EQ(digits_dec(T(0)), 1u);
+    CHECK_EQ(digits_dec(T(1)), 1u);
+    CHECK_EQ(digits_dec(T(2)), 1u);
+    CHECK_EQ(digits_dec(T(3)), 1u);
+    CHECK_EQ(digits_dec(T(4)), 1u);
+    CHECK_EQ(digits_dec(T(5)), 1u);
+    CHECK_EQ(digits_dec(T(6)), 1u);
+    CHECK_EQ(digits_dec(T(7)), 1u);
+    CHECK_EQ(digits_dec(T(8)), 1u);
+    CHECK_EQ(digits_dec(T(9)), 1u);
+    CHECK_EQ(digits_dec(T(10)), 2u);
+    CHECK_EQ(digits_dec(T(11)), 2u);
+    CHECK_EQ(digits_dec(T(12)), 2u);
+    CHECK_EQ(digits_dec(T(13)), 2u);
+    CHECK_EQ(digits_dec(T(14)), 2u);
+    CHECK_EQ(digits_dec(T(15)), 2u);
+    CHECK_EQ(digits_dec(T(16)), 2u);
+    CHECK_EQ(digits_dec(T(17)), 2u);
+    CHECK_EQ(digits_dec(T(18)), 2u);
+    CHECK_EQ(digits_dec(T(19)), 2u);
+    CHECK_EQ(digits_dec(T(20)), 2u);
+    CHECK_EQ(digits_dec(T(30)), 2u);
+    CHECK_EQ(digits_dec(T(40)), 2u);
+    CHECK_EQ(digits_dec(T(50)), 2u);
+    CHECK_EQ(digits_dec(T(60)), 2u);
+    CHECK_EQ(digits_dec(T(70)), 2u);
+    CHECK_EQ(digits_dec(T(80)), 2u);
+    CHECK_EQ(digits_dec(T(90)), 2u);
+    CHECK_EQ(digits_dec(T(99)), 2u);
+    CHECK_EQ(digits_dec(T(100)), 3u);
+    CHECK_EQ(digits_dec(T(101)), 3u);
+    if(sizeof(T) >= 2u)
+    {
+        CHECK_EQ(digits_dec(T(999)), 3u);
+        CHECK_EQ(digits_dec(T(1000)), 4u);
+        CHECK_EQ(digits_dec(T(1001)), 4u);
+        CHECK_EQ(digits_dec(T(9999)), 4u);
+        CHECK_EQ(digits_dec(T(10000)), 5u);
+        CHECK_EQ(digits_dec(T(10001)), 5u);
+    }
+    if(sizeof(T) >= 4u)
+    {
+        CHECK_EQ(digits_dec(T(99999)), 5u);
+        CHECK_EQ(digits_dec(T(100000)), 6u);
+        CHECK_EQ(digits_dec(T(100001)), 6u);
+        CHECK_EQ(digits_dec(T(999999)), 6u);
+        CHECK_EQ(digits_dec(T(1000000)), 7u);
+        CHECK_EQ(digits_dec(T(1000001)), 7u);
+        CHECK_EQ(digits_dec(T(9999999)), 7u);
+        CHECK_EQ(digits_dec(T(10000000)), 8u);
+        CHECK_EQ(digits_dec(T(10000001)), 8u);
+        CHECK_EQ(digits_dec(T(99999999)), 8u);
+        CHECK_EQ(digits_dec(T(100000000)), 9u);
+        CHECK_EQ(digits_dec(T(100000001)), 9u);
+        CHECK_EQ(digits_dec(T(999999999)), 9u);
+        CHECK_EQ(digits_dec(T(1000000000)), 10u);
+        CHECK_EQ(digits_dec(T(1000000001)), 10u);
+    }
+    if(sizeof(T) >= 8u)
+    {
+        CHECK_EQ(digits_dec(T(9999999999)), 10u);
+        CHECK_EQ(digits_dec(T(10000000000)), 11u);
+        CHECK_EQ(digits_dec(T(10000000001)), 11u);
+        CHECK_EQ(digits_dec(T(99999999999)), 11u);
+        CHECK_EQ(digits_dec(T(100000000000)), 12u);
+        CHECK_EQ(digits_dec(T(100000000001)), 12u);
+        CHECK_EQ(digits_dec(T(999999999999)), 12u);
+        CHECK_EQ(digits_dec(T(1000000000000)), 13u);
+        CHECK_EQ(digits_dec(T(1000000000001)), 13u);
+        CHECK_EQ(digits_dec(T(9999999999999)), 13u);
+        CHECK_EQ(digits_dec(T(10000000000000)), 14u);
+        CHECK_EQ(digits_dec(T(10000000000001)), 14u);
+        CHECK_EQ(digits_dec(T(99999999999999)), 14u);
+        CHECK_EQ(digits_dec(T(100000000000000)), 15u);
+        CHECK_EQ(digits_dec(T(100000000000001)), 15u);
+        CHECK_EQ(digits_dec(T(999999999999999)), 15u);
+        CHECK_EQ(digits_dec(T(1000000000000000)), 16u);
+        CHECK_EQ(digits_dec(T(1000000000000001)), 16u);
+        CHECK_EQ(digits_dec(T(9999999999999999)), 16u);
+        CHECK_EQ(digits_dec(T(10000000000000000)), 17u);
+        CHECK_EQ(digits_dec(T(10000000000000001)), 17u);
+        CHECK_EQ(digits_dec(T(99999999999999999)), 17u);
+        CHECK_EQ(digits_dec(T(100000000000000000)), 18u);
+        CHECK_EQ(digits_dec(T(100000000000000001)), 18u);
+        CHECK_EQ(digits_dec(T(999999999999999999)), 18u);
+    }
+}
+
+TEST_CASE_TEMPLATE("digits_bin", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
+{
+    CHECK_EQ(digits_bin(T(0x0)), csubstr("0b0").len - 2u);
+    CHECK_EQ(digits_bin(T(0x1)), csubstr("0b1").len - 2u);
+    CHECK_EQ(digits_bin(T(0x2)), csubstr("0b10").len - 2u);
+    CHECK_EQ(digits_bin(T(0x3)), csubstr("0b11").len - 2u);
+    CHECK_EQ(digits_bin(T(0x4)), csubstr("0b100").len - 2u);
+    CHECK_EQ(digits_bin(T(0x5)), csubstr("0b101").len - 2u);
+    CHECK_EQ(digits_bin(T(0x6)), csubstr("0b110").len - 2u);
+    CHECK_EQ(digits_bin(T(0x7)), csubstr("0b111").len - 2u);
+    CHECK_EQ(digits_bin(T(0x8)), csubstr("0b1000").len - 2u);
+    CHECK_EQ(digits_bin(T(0x9)), csubstr("0b1001").len - 2u);
+    CHECK_EQ(digits_bin(T(0xa)), csubstr("0b1010").len - 2u);
+    CHECK_EQ(digits_bin(T(0xb)), csubstr("0b1011").len - 2u);
+    CHECK_EQ(digits_bin(T(0xc)), csubstr("0b1100").len - 2u);
+    CHECK_EQ(digits_bin(T(0xd)), csubstr("0b1101").len - 2u);
+    CHECK_EQ(digits_bin(T(0xe)), csubstr("0b1110").len - 2u);
+    CHECK_EQ(digits_bin(T(0xf)), csubstr("0b1111").len - 2u);
+    CHECK_EQ(digits_bin(T(0x10)), csubstr("0b10000").len - 2u);
+    CHECK_EQ(digits_bin(T(0x11)), csubstr("0b10001").len - 2u);
+    CHECK_EQ(digits_bin(T(0x12)), csubstr("0b10010").len - 2u);
+    CHECK_EQ(digits_bin(T(0x13)), csubstr("0b10011").len - 2u);
+    CHECK_EQ(digits_bin(T(0x14)), csubstr("0b10100").len - 2u);
+    CHECK_EQ(digits_bin(T(0x15)), csubstr("0b10101").len - 2u);
+    CHECK_EQ(digits_bin(T(0x16)), csubstr("0b10110").len - 2u);
+    CHECK_EQ(digits_bin(T(0x17)), csubstr("0b10111").len - 2u);
+    CHECK_EQ(digits_bin(T(0x18)), csubstr("0b11000").len - 2u);
+    CHECK_EQ(digits_bin(T(0x19)), csubstr("0b11001").len - 2u);
+    CHECK_EQ(digits_bin(T(0x1a)), csubstr("0b11010").len - 2u);
+    CHECK_EQ(digits_bin(T(0x1b)), csubstr("0b11011").len - 2u);
+    CHECK_EQ(digits_bin(T(0x1c)), csubstr("0b11100").len - 2u);
+    CHECK_EQ(digits_bin(T(0x1d)), csubstr("0b11101").len - 2u);
+    CHECK_EQ(digits_bin(T(0x1e)), csubstr("0b11110").len - 2u);
+    CHECK_EQ(digits_bin(T(0x1f)), csubstr("0b11111").len - 2u);
+    CHECK_EQ(digits_bin(T(0x7e)), csubstr("0b1111110").len - 2u);
+    CHECK_EQ(digits_bin(T(0x7f)), csubstr("0b1111111").len - 2u);
+    if(std::is_unsigned<T>::value)
+    {
+        //CHECK_EQ(digits_bin<T>(0xfe), 2u);
+        //CHECK_EQ(digits_bin<T>(0xff), 2u);
+    }
+    if(sizeof(T) >= 2u)
+    {
+        //CHECK_EQ(digits_bin<T>(0x100), 3u);
+        //CHECK_EQ(digits_bin<T>(0x101), 3u);
+        //CHECK_EQ(digits_bin<T>(0xfff), 3u);
+        //CHECK_EQ(digits_bin<T>(0x1000), 4u);
+        //CHECK_EQ(digits_bin<T>(0x1001), 4u);
+    }
+    if(sizeof(T) >= 4u)
+    {
+        //CHECK_EQ(digits_bin<T>(0xffff), 4u);
+        //CHECK_EQ(digits_bin<T>(0x10000), 5u);
+        //CHECK_EQ(digits_bin<T>(0x10001), 5u);
+        //CHECK_EQ(digits_bin<T>(0xfffff), 5u);
+        //CHECK_EQ(digits_bin<T>(0x100000), 6u);
+        //CHECK_EQ(digits_bin<T>(0x100001), 6u);
+        //CHECK_EQ(digits_bin<T>(0xffffff), 6u);
+        //CHECK_EQ(digits_bin<T>(0x1000000), 7u);
+        //CHECK_EQ(digits_bin<T>(0x1000001), 7u);
+    }
+    if(sizeof(T) >= 8u)
+    {
+        //CHECK_EQ(digits_bin<T>(0xfffffff), 7u);
+        //CHECK_EQ(digits_bin<T>(0x10000000), 8u);
+        //CHECK_EQ(digits_bin<T>(0x10000001), 8u);
+        //CHECK_EQ(digits_bin<T>(0xfffffffe), 8u);
+        //CHECK_EQ(digits_bin<T>(0xffffffff), 8u);
+        //CHECK_EQ(digits_bin<T>(0x100000000), 9u);
+        //CHECK_EQ(digits_bin<T>(0x100000001), 9u);
+        //CHECK_EQ(digits_bin<T>(0xffffffffe), 9u);
+        //CHECK_EQ(digits_bin<T>(0xfffffffff), 9u);
+        //CHECK_EQ(digits_bin<T>(0x1000000000), 10u);
+        //CHECK_EQ(digits_bin<T>(0x1000000001), 10u);
+        //CHECK_EQ(digits_bin<T>(0xfffffffffe), 10u);
+        //CHECK_EQ(digits_bin<T>(0xffffffffff), 10u);
+        //CHECK_EQ(digits_bin<T>(0x10000000000), 11u);
+        //CHECK_EQ(digits_bin<T>(0x10000000001), 11u);
+        //CHECK_EQ(digits_bin<T>(0xffffffffffe), 11u);
+        //CHECK_EQ(digits_bin<T>(0xfffffffffff), 11u);
+        //CHECK_EQ(digits_bin<T>(0x100000000000), 12u);
+        //CHECK_EQ(digits_bin<T>(0x100000000001), 12u);
+        //CHECK_EQ(digits_bin<T>(0xfffffffffffe), 12u);
+        //CHECK_EQ(digits_bin<T>(0xffffffffffff), 12u);
+        //CHECK_EQ(digits_bin<T>(0x1000000000000), 13u);
+        //CHECK_EQ(digits_bin<T>(0x1000000000001), 13u);
+        //CHECK_EQ(digits_bin<T>(0xffffffffffffe), 13u);
+        //CHECK_EQ(digits_bin<T>(0xfffffffffffff), 13u);
+        //CHECK_EQ(digits_bin<T>(0x10000000000000), 14u);
+        //CHECK_EQ(digits_bin<T>(0x10000000000001), 14u);
+        //CHECK_EQ(digits_bin<T>(0xfffffffffffffe), 14u);
+        //CHECK_EQ(digits_bin<T>(0xffffffffffffff), 14u);
+        //CHECK_EQ(digits_bin<T>(0x100000000000000), 15u);
+        //CHECK_EQ(digits_bin<T>(0x100000000000001), 15u);
+    }
+}
+
+TEST_CASE_TEMPLATE("digits_hex", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
+{
+    CHECK_EQ(digits_hex(T(0x0)), 1u);
+    CHECK_EQ(digits_hex(T(0x1)), 1u);
+    CHECK_EQ(digits_hex(T(0x2)), 1u);
+    CHECK_EQ(digits_hex(T(0x3)), 1u);
+    CHECK_EQ(digits_hex(T(0x4)), 1u);
+    CHECK_EQ(digits_hex(T(0x5)), 1u);
+    CHECK_EQ(digits_hex(T(0x6)), 1u);
+    CHECK_EQ(digits_hex(T(0x7)), 1u);
+    CHECK_EQ(digits_hex(T(0x8)), 1u);
+    CHECK_EQ(digits_hex(T(0x9)), 1u);
+    CHECK_EQ(digits_hex(T(0xa)), 1u);
+    CHECK_EQ(digits_hex(T(0xb)), 1u);
+    CHECK_EQ(digits_hex(T(0xc)), 1u);
+    CHECK_EQ(digits_hex(T(0xd)), 1u);
+    CHECK_EQ(digits_hex(T(0xe)), 1u);
+    CHECK_EQ(digits_hex(T(0xf)), 1u);
+    CHECK_EQ(digits_hex(T(0x10)), 2u);
+    CHECK_EQ(digits_hex(T(0x11)), 2u);
+    CHECK_EQ(digits_hex(T(0x12)), 2u);
+    CHECK_EQ(digits_hex(T(0x13)), 2u);
+    CHECK_EQ(digits_hex(T(0x14)), 2u);
+    CHECK_EQ(digits_hex(T(0x15)), 2u);
+    CHECK_EQ(digits_hex(T(0x16)), 2u);
+    CHECK_EQ(digits_hex(T(0x18)), 2u);
+    CHECK_EQ(digits_hex(T(0x19)), 2u);
+    CHECK_EQ(digits_hex(T(0x1a)), 2u);
+    CHECK_EQ(digits_hex(T(0x1b)), 2u);
+    CHECK_EQ(digits_hex(T(0x1c)), 2u);
+    CHECK_EQ(digits_hex(T(0x1d)), 2u);
+    CHECK_EQ(digits_hex(T(0x1e)), 2u);
+    CHECK_EQ(digits_hex(T(0x1f)), 2u);
+    CHECK_EQ(digits_hex(T(0x7e)), 2u);
+    CHECK_EQ(digits_hex(T(0x7f)), 2u);
+    if(std::is_unsigned<T>::value)
+    {
+        CHECK_EQ(digits_hex(T(0xfe)), 2u);
+        CHECK_EQ(digits_hex(T(0xff)), 2u);
+    }
+    if(sizeof(T) >= 2u)
+    {
+        CHECK_EQ(digits_hex(T(0x100)), 3u);
+        CHECK_EQ(digits_hex(T(0x101)), 3u);
+        CHECK_EQ(digits_hex(T(0xfff)), 3u);
+        CHECK_EQ(digits_hex(T(0x1000)), 4u);
+        CHECK_EQ(digits_hex(T(0x1001)), 4u);
+    }
+    if(sizeof(T) >= 4u)
+    {
+        CHECK_EQ(digits_hex(T(0xffff)), 4u);
+        CHECK_EQ(digits_hex(T(0x10000)), 5u);
+        CHECK_EQ(digits_hex(T(0x10001)), 5u);
+        CHECK_EQ(digits_hex(T(0xfffff)), 5u);
+        CHECK_EQ(digits_hex(T(0x100000)), 6u);
+        CHECK_EQ(digits_hex(T(0x100001)), 6u);
+        CHECK_EQ(digits_hex(T(0xffffff)), 6u);
+        CHECK_EQ(digits_hex(T(0x1000000)), 7u);
+        CHECK_EQ(digits_hex(T(0x1000001)), 7u);
+    }
+    if(sizeof(T) >= 8u)
+    {
+        CHECK_EQ(digits_hex(T(0xfffffff)), 7u);
+        CHECK_EQ(digits_hex(T(0x10000000)), 8u);
+        CHECK_EQ(digits_hex(T(0x10000001)), 8u);
+        CHECK_EQ(digits_hex(T(0xfffffffe)), 8u);
+        CHECK_EQ(digits_hex(T(0xffffffff)), 8u);
+        CHECK_EQ(digits_hex(T(0x100000000)), 9u);
+        CHECK_EQ(digits_hex(T(0x100000001)), 9u);
+        CHECK_EQ(digits_hex(T(0xffffffffe)), 9u);
+        CHECK_EQ(digits_hex(T(0xfffffffff)), 9u);
+        CHECK_EQ(digits_hex(T(0x1000000000)), 10u);
+        CHECK_EQ(digits_hex(T(0x1000000001)), 10u);
+        CHECK_EQ(digits_hex(T(0xfffffffffe)), 10u);
+        CHECK_EQ(digits_hex(T(0xffffffffff)), 10u);
+        CHECK_EQ(digits_hex(T(0x10000000000)), 11u);
+        CHECK_EQ(digits_hex(T(0x10000000001)), 11u);
+        CHECK_EQ(digits_hex(T(0xffffffffffe)), 11u);
+        CHECK_EQ(digits_hex(T(0xfffffffffff)), 11u);
+        CHECK_EQ(digits_hex(T(0x100000000000)), 12u);
+        CHECK_EQ(digits_hex(T(0x100000000001)), 12u);
+        CHECK_EQ(digits_hex(T(0xfffffffffffe)), 12u);
+        CHECK_EQ(digits_hex(T(0xffffffffffff)), 12u);
+        CHECK_EQ(digits_hex(T(0x1000000000000)), 13u);
+        CHECK_EQ(digits_hex(T(0x1000000000001)), 13u);
+        CHECK_EQ(digits_hex(T(0xffffffffffffe)), 13u);
+        CHECK_EQ(digits_hex(T(0xfffffffffffff)), 13u);
+        CHECK_EQ(digits_hex(T(0x10000000000000)), 14u);
+        CHECK_EQ(digits_hex(T(0x10000000000001)), 14u);
+        CHECK_EQ(digits_hex(T(0xfffffffffffffe)), 14u);
+        CHECK_EQ(digits_hex(T(0xffffffffffffff)), 14u);
+        CHECK_EQ(digits_hex(T(0x100000000000000)), 15u);
+        CHECK_EQ(digits_hex(T(0x100000000000001)), 15u);
+    }
+}
+
+
+template<class T>
+void test_atou_digits(csubstr num, T val)
+{
+    if(val == 0)
+    {
+        CHECK_EQ(digits_bin(val), 1u);
+        CHECK_EQ(digits_hex(val), 1u);
+        CHECK_EQ(digits_oct(val), 1u);
+        CHECK_EQ(digits_dec(val), 1u);
+        return;
+    }
+    if(num.begins_with("0b") || num.begins_with("0B"))
+    {
+        num = num.sub(2);
+        size_t fnz = num.first_not_of('0');
+        REQUIRE_NE(fnz, csubstr::npos);
+        num = num.sub(fnz);
+        CHECK_EQ(digits_bin(val), num.len);
+    }
+    else if(num.begins_with("0x") || num.begins_with("0X"))
+    {
+        num = num.sub(2);
+        size_t fnz = num.first_not_of('0');
+        REQUIRE_NE(fnz, csubstr::npos);
+        num = num.sub(fnz);
+        CHECK_EQ(digits_hex(val), num.len);
+    }
+    else if(num.begins_with("0o") || num.begins_with("0O"))
+    {
+        num = num.sub(2);
+        size_t fnz = num.first_not_of('0');
+        REQUIRE_NE(fnz, csubstr::npos);
+        num = num.sub(fnz);
+        CHECK_EQ(digits_oct(val), num.len);
+    }
+    else
+    {
+        INFO("num=" << num);
+        size_t fnz = num.first_not_of('0');
+        REQUIRE_NE(fnz, csubstr::npos);
+        num = num.sub(fnz);
+        CHECK_EQ(digits_dec(val), num.len);
+    }
+}
+
+template<class T>
+void test_atoi_digits(csubstr num, T val)
+{
+    if(val < 0)
+    {
+        val *= T(-1);
+        REQUIRE_GT(num.len, 1u);
+        CHECK_EQ(num[0], '-');
+        num = num.sub(1);
+    }
+    test_atou_digits(num, val);
+}
+
+template<class T>
+auto test_atox_digits(csubstr num, T val)
+    -> typename std::enable_if<std::is_unsigned<T>::value, void>::type
+{
+    test_atou_digits(num, val);
+}
+
+template<class T>
+auto test_atox_digits(csubstr num, T val)
+    -> typename std::enable_if<std::is_signed<T>::value, void>::type
+{
+    test_atoi_digits(num, val);
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 template<class T> using xtoafunc = size_t (*)(substr buf, T val, T radix);
 
@@ -35,7 +394,7 @@ void test_shortbuf_hex_n(T in, csubstr expected, const char *file, int line)
     buf.fill('?');
     REQUIRE_EQ(buf.first_not_of('?'), csubstr::npos);
     size_t ret = fn(buf, in, radix);
-    CHECK_GE(ret, expected.len);
+    CHECK_EQ(ret, expected.len);
     if(ret <= buf.len && buf.len >= expected.len)
     {
         CHECK_EQ(buf.first(ret), expected);
@@ -66,9 +425,9 @@ void test_shortbuf_hex(T in, csubstr expected, const char *file, int line)
 }
 
 
+#define _chktoa(ty, fn, in, expected_) test_shortbuf_hex<ty, &fn<ty>>(in, expected_, __FILE__, __LINE__)
 TEST_CASE("itoa.shortbuf")
 {
-    #define _chktoa(ty, fn, in, expected_) test_shortbuf_hex<ty, &fn<ty>>(in, expected_, __FILE__, __LINE__)
 
     _chktoa(int     , itoa,  0 ,  "0x0");
     _chktoa(unsigned, utoa,  0u,  "0x0");
@@ -94,22 +453,23 @@ TEST_CASE("itoa.shortbuf")
     _chktoa(unsigned, utoa,  4096u,  "0x1000");
     _chktoa(int     , itoa, -4096 , "-0x1000");
 
-    #undef _chktoa
 }
+#undef _chktoa
 
 
 template<class I>
-void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), I num, const char *r2, const char *r8, const char *r10, const char *r16)
+void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), I num,
+                                          const char *r2, const char *r8, const char *r10, const char *r16)
 {
     char bufc[64];
     size_t ret;
     substr emp; // empty
     substr buf = bufc;
 
-    auto ss2  = to_csubstr(r2);
-    auto ss8  = to_csubstr(r8);
-    auto ss10 = to_csubstr(r10);
-    auto ss16 = to_csubstr(r16);
+    csubstr ss2  = to_csubstr(r2);
+    csubstr ss8  = to_csubstr(r8);
+    csubstr ss10 = to_csubstr(r10);
+    csubstr ss16 = to_csubstr(r16);
 
 #define _c4clbuf() \
     memset(buf.str, 0, buf.len);\
@@ -117,47 +477,63 @@ void test_prefixed_number_on_empty_buffer(size_t (*fn)(substr, I), size_t (*rfn)
     buf[1] = 'a';\
     buf[2] = '\0';
 
-    INFO("num=" << num);
-    _c4clbuf();
-    ret = rfn(emp, num, 2);
-    CHECK_GE(ret, ss2.len);
-    CHECK_EQ(buf.first(2), "aa");
-    _c4clbuf();
-    ret = rfn(buf, num, 2);
-    CHECK_EQ(buf.first(ret), ss2);
+    auto tn = c4::type_name<I>();
+    INFO("type=" << csubstr(tn.data(), tn.size())  << "  num=" << num << " r2=" << r2 << " r8=" << r8 << " r10=" << r10 << " r16=" << r16);
 
-    _c4clbuf();
-    ret = rfn(emp, num, 8);
-    CHECK_GE(ret, ss8.len);
-    CHECK_EQ(buf.first(2), "aa");
-    _c4clbuf();
-    ret = rfn(buf, num, 8);
-    CHECK_EQ(buf.first(ret), ss8);
+    {
+        _c4clbuf();
+        ret = rfn(emp, num, 2);
+        CHECK_EQ(ret, ss2.len);
+        CHECK_EQ(buf.first(2), "aa");
+        _c4clbuf();
+        ret = rfn(buf, num, 2);
+        CHECK_EQ(buf.first(ret), ss2);
+        test_atox_digits(ss2, num);
+    }
 
-    _c4clbuf();
-    ret = rfn(emp, num, 10);
-    CHECK_GE(ret, ss10.len);
-    CHECK_EQ(buf.first(2), "aa");
-    _c4clbuf();
-    ret = rfn(buf, num, 10);
-    CHECK_EQ(buf.first(ret), ss10);
+    {
+        _c4clbuf();
+        ret = rfn(emp, num, 8);
+        CHECK_EQ(ret, ss8.len);
+        CHECK_EQ(buf.first(2), "aa");
+        _c4clbuf();
+        ret = rfn(buf, num, 8);
+        CHECK_EQ(buf.first(ret), ss8);
+        test_atox_digits(ss8, num);
+    }
 
-    _c4clbuf();
-    ret = fn(emp, num);
-    CHECK_GE(ret, ss10.len);
-    CHECK_EQ(buf.first(2), "aa");
-    _c4clbuf();
-    ret = fn(buf, num);
-    CHECK_EQ(buf.first(ret), ss10);
+    {
+        _c4clbuf();
+        ret = rfn(emp, num, 10);
+        CHECK_EQ(ret, ss10.len);
+        CHECK_EQ(buf.first(2), "aa");
+        _c4clbuf();
+        ret = rfn(buf, num, 10);
+        CHECK_EQ(buf.first(ret), ss10);
+        test_atox_digits(ss10, num);
+    }
 
-    _c4clbuf();
-    ret = rfn(emp, num, 16);
-    CHECK_GE(ret, ss16.len);
-    CHECK_EQ(buf.first(2), "aa");
-    _c4clbuf();
-    ret = rfn(buf, num, 16);
-    CHECK_EQ(buf.first(ret), ss16);
+    {
+        _c4clbuf();
+        ret = fn(emp, num);
+        CHECK_EQ(ret, ss10.len);
+        CHECK_EQ(buf.first(2), "aa");
+        _c4clbuf();
+        ret = fn(buf, num);
+        CHECK_EQ(buf.first(ret), ss10);
+        test_atox_digits(ss10, num);
+    }
 
+    {
+        _c4clbuf();
+        ret = rfn(emp, num, 16);
+        CHECK_EQ(ret, ss16.len);
+        CHECK_EQ(buf.first(2), "aa");
+        _c4clbuf();
+        ret = rfn(buf, num, 16);
+        CHECK_EQ(buf.first(ret), ss16);
+        test_atox_digits(ss16, num);
+    }
 #undef _c4clbuf
 }
 
@@ -192,13 +568,14 @@ void test_itoa_num_digits(substr buf, T val, T radix, size_t digits, csubstr exp
         buf.fill('?');
         ret = xtoa_fn(buf.first(i), val, radix, digits);
         CHECK_EQ(buf.sub(i).first_not_of('?'), (size_t)substr::npos);
-        CHECK_GE(ret, expected.len);
+        CHECK_EQ(ret, expected.len);
     }
 
     buf.fill('?');
     ret = xtoa_fn(buf, val, radix, digits);
     CHECK_EQ(ret, expected.len);
     CHECK_EQ(buf.first(ret), expected);
+    test_atox_digits(buf.first(ret), val);
 }
 
 TEST_CASE("itoa.num_digits")
@@ -417,7 +794,8 @@ TEST_CASE("read_bin.fail")
 }
 
 template<class I>
-void test_toa_radix(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), bool (*aifn)(csubstr, I*), substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
+void test_toa_radix(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), bool (*aifn)(csubstr, I*),
+                    substr buf, I num, const char *r2, const char *r8, const char *r10, const char *r16)
 {
     size_t ret;
     bool ok;
@@ -432,6 +810,7 @@ void test_toa_radix(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), bool (
     ok = aifn(buf.first(ret), &result);
     CHECK_UNARY(ok);
     CHECK_EQ(result, num);
+    test_atox_digits(buf.first(ret), num);
 
     // octal
     memset(buf.str, 0, ret);
@@ -440,6 +819,7 @@ void test_toa_radix(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), bool (
     ok = aifn(buf.first(ret), &result);
     CHECK_UNARY(ok);
     CHECK_EQ(result, num);
+    test_atox_digits(buf.first(ret), num);
 
     // decimal, explicit
     memset(buf.str, 0, ret);
@@ -448,6 +828,7 @@ void test_toa_radix(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), bool (
     ok = aifn(buf.first(ret), &result);
     CHECK_UNARY(ok);
     CHECK_EQ(result, num);
+    test_atox_digits(buf.first(ret), num);
 
     // decimal, implicit
     memset(buf.str, 0, ret);
@@ -456,6 +837,7 @@ void test_toa_radix(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), bool (
     ok = aifn(buf.first(ret), &result);
     CHECK_UNARY(ok);
     CHECK_EQ(result, num);
+    test_atox_digits(buf.first(ret), num);
 
     // hexadecimal
     memset(buf.str, 0, ret);
@@ -464,6 +846,7 @@ void test_toa_radix(size_t (*fn)(substr, I), size_t (*rfn)(substr, I, I), bool (
     ok = aifn(buf.first(ret), &result);
     CHECK_UNARY(ok);
     CHECK_EQ(result, num);
+    test_atox_digits(buf.first(ret), num);
 }
 
 void test_utoa_radix(substr buf, unsigned num, const char *r2, const char *r8, const char *r10, const char *r16)
@@ -500,6 +883,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     ok = atoi(buf.first(ret), &result);
     CHECK_MESSAGE(ok, "num=" << num);
     CHECK_MESSAGE(result == num, "num=" << num);
+    test_atox_digits(buf.first(ret), num);
 
     memset(buf.str, 0, ret);
     _c4getn(r8);
@@ -508,6 +892,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     ok = atoi(buf.first(ret), &result);
     CHECK_MESSAGE(ok, "num=" << num);
     CHECK_MESSAGE(result == num, "num=" << num);
+    test_atox_digits(buf.first(ret), num);
 
     memset(buf.str, 0, ret);
     _c4getn(r10);
@@ -516,6 +901,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     ok = atoi(buf.first(ret), &result);
     CHECK_MESSAGE(ok, "num=" << num);
     CHECK_MESSAGE(result == num, "num=" << num);
+    test_atox_digits(buf.first(ret), num);
 
     memset(buf.str, 0, ret);
     _c4getn(r10);
@@ -524,6 +910,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     ok = atoi(buf.first(ret), &result);
     CHECK_MESSAGE(ok, "num=" << num);
     CHECK_MESSAGE(result == num, "num=" << num);
+    test_atox_digits(buf.first(ret), num);
 
     memset(buf.str, 0, ret);
     _c4getn(r16);
@@ -532,6 +919,7 @@ void test_itoa_radix(substr buf, int num, const char *r2, const char *r8, const 
     ok = atoi(buf.first(ret), &result);
     CHECK_MESSAGE(ok, "num=" << num);
     CHECK_MESSAGE(result == num, "num=" << num);
+    test_atox_digits(buf.first(ret), num);
 #undef _c4getn
 }
 
@@ -661,8 +1049,9 @@ void test_atoi(csubstr num, T expected)
     INFO("num=" << num);
     T val;
     bool ok = atoi(num, &val);
-    CHECK_UNARY(ok);
+    REQUIRE_UNARY(ok);
     CHECK_EQ(val, expected);
+    test_atoi_digits(num, val);
 }
 
 template<class T>
@@ -671,8 +1060,9 @@ void test_atou(csubstr num, T expected)
     INFO("num=" << num);
     T val;
     bool ok = atou(num, &val);
-    CHECK_UNARY(ok);
+    REQUIRE_UNARY(ok);
     CHECK_EQ(val, expected);
+    test_atou_digits(num, val);
 }
 
 TEST_CASE("atoi.bin")
@@ -881,7 +1271,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("vanilla itoa");
         ret = itoa(substr{}, val);
-        CHECK_GE(ret, dec.len);
+        CHECK_EQ(ret, dec.len);
         ret = itoa(buf, val);
         CHECK_EQ(ret, dec.len);
         CHECK_EQ(buf.first(ret), dec);
@@ -889,7 +1279,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("radix itoa, 10");
         ret = itoa(substr{}, val, T(10));
-        CHECK_GE(ret, dec.len);
+        CHECK_EQ(ret, dec.len);
         ret = itoa(buf, val, T(10));
         CHECK_EQ(ret, dec.len);
         CHECK_EQ(buf.first(ret), dec);
@@ -903,7 +1293,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("radix itoa, 16");
         ret = itoa({}, val, T(16));
-        CHECK_GE(ret, hex.len);
+        CHECK_EQ(ret, hex.len);
         ret = itoa(buf, val, T(16));
         CHECK_EQ(ret, hex.len);
         CHECK_EQ(buf.first(ret), hex);
@@ -917,7 +1307,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("radix itoa, 8");
         ret = itoa({}, val, T(8));
-        CHECK_GE(ret, oct.len);
+        CHECK_EQ(ret, oct.len);
         ret = itoa(buf, val, T(8));
         CHECK_EQ(ret, oct.len);
         CHECK_EQ(buf.first(ret), oct);
@@ -931,7 +1321,7 @@ void test_itoa_range_min(T val, csubstr dec, csubstr hex, csubstr oct, csubstr b
     {
         INFO("radix itoa, 2");
         ret = itoa({}, val, T(2));
-        CHECK_GE(ret, bin.len);
+        CHECK_EQ(ret, bin.len);
         ret = itoa(buf, val, T(2));
         CHECK_EQ(ret, bin.len);
         CHECK_EQ(buf.first(ret), bin);
@@ -1573,8 +1963,8 @@ TEST_CASE_TEMPLATE("to_chars.empty_buffer", T, uint8_t, int8_t, uint16_t, int16_
 {
     char buf_[100];
     substr buf = buf_;
-    CHECK_GE(to_chars({}, T(101)), to_chars(buf_, T(101)));
-    CHECK_GE(to_chars({}, T(101)), to_chars(buf , T(101)));
+    CHECK_EQ(to_chars({}, T(101)), to_chars(buf_, T(101)));
+    CHECK_EQ(to_chars({}, T(101)), to_chars(buf , T(101)));
 }
 // due to an implementation quirk with sprintf, for floats the empty is GE
 TEST_CASE_TEMPLATE("to_chars.empty_buffer", T, float, double)
@@ -1989,10 +2379,8 @@ TEST_CASE("from_chars_first.ptr")
 
 } // namespace c4
 
-#ifdef __clang__
-#   pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#   pragma GCC diagnostic pop
-#endif
+
+C4_SUPPRESS_WARNING_GCC_POP
+C4_SUPPRESS_WARNING_CLANG_POP
 
 #include "c4/libtest/supprwarn_pop.hpp"

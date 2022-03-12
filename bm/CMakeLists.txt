@@ -19,6 +19,29 @@ c4_add_target_benchmark(c4core-bm-format formatfile FILTER "^formatfile_.*")
 
 #----------------------------------------------
 
+# R&D for xtoa
+option(C4CORE_BM_XTOA_RND "whether to enable R&D benchmark for xtoa" OFF)
+
+if(C4CORE_BM_XTOA_RND)
+    c4_add_executable(c4core-bm-xtoa
+        SOURCES bm_xtoa.cpp
+        LIBS c4core benchmark
+        FOLDER bm)
+
+    function(c4core_xtoa_benchmark pfx)
+        foreach(case ${ARGN})
+            c4_add_target_benchmark(c4core-bm-xtoa ${pfx}-${case} FILTER "^${pfx}.*<${case}.*")
+        endforeach()
+    endfunction()
+
+    c4core_xtoa_benchmark(msb uint8 int8 uint16 int16 uint32 int32 uint64 int64)
+    c4core_xtoa_benchmark(digits_dec uint8 int8 uint16 int16 uint32 int32 uint64 int64)
+    c4core_xtoa_benchmark(write_dec uint8 int8 uint16 int16 uint32 int32 uint64 int64)
+endif()
+
+
+#----------------------------------------------
+
 # libraries to compare
 
 c4_require_subproject(fp
