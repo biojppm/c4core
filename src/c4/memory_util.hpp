@@ -53,38 +53,163 @@ bool is_aligned(T *ptr, size_t alignment=alignof(T))
 //-----------------------------------------------------------------------------
 // least significant bit
 
-/** least significant bit; this function is constexpr-14 because of the local
- * variable */
+#if defined(C4_MSVC)
+#define _C4_USE_LSB_INTRINSIC(which) true
+#else
+#define _C4_USE_LSB_INTRINSIC(which) __has_builtin(which)
+#endif
+
+/** @name msb Compute the least significant bit
+ * @note the input value must be nonzero
+ * @note the input type must be unsigned
+ */
+/** @{ */
+
+// u8
 template<class I>
-C4_CONSTEXPR14 I lsb(I v)
+C4_CONSTEXPR14
+auto lsb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 1u, unsigned>::type
 {
-    if(!v) return 0;
-    I b = 0;
-    while((v & I(1)) == I(0))
-    {
-        v >>= 1;
-        ++b;
-    }
-    return b;
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_LSB_INTRINSIC(__builtin_ctz)
+        // upcast to use the intrinsic, it's cheaper.
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanForward(&bit, (unsigned long)v);
+            return bit;
+        #else
+            return (unsigned)__builtin_ctz((unsigned)v);
+        #endif
+    #else
+        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
+        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
+        for (int c = 0; v; ++c)
+            v >>= 1;
+        return v;
+    #endif
 }
 
-namespace detail {
-
-template<class I, I val, I num_bits, bool finished>
-struct _lsb11;
-
-template<class I, I val, I num_bits>
-struct _lsb11< I, val, num_bits, false>
+// u16
+template<class I>
+C4_CONSTEXPR14
+auto lsb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 2u, unsigned>::type
 {
-    enum : I { num = _lsb11<I, (val>>1), num_bits+I(1), (((val>>1)&I(1))!=I(0))>::num };
-};
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_LSB_INTRINSIC(__builtin_ctz)
+        // upcast to use the intrinsic, it's cheaper.
+        // Then remember that the upcast makes it to 31bits
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanForward(&bit, (unsigned long)v);
+            return bit;
+        #else
+            return (unsigned)__builtin_ctz((unsigned)v);
+        #endif
+    #else
+        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
+        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
+        for (int c = 0; v; ++c)
+            v >>= 1;
+        return v;
+    #endif
+}
 
-template<class I, I val, I num_bits>
+// u32
+template<class I>
+C4_CONSTEXPR14
+auto lsb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 4u, unsigned>::type
+{
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_LSB_INTRINSIC(__builtin_ctz)
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanForward(&bit, v);
+            return bit;
+        #else
+            return (unsigned)__builtin_ctz((unsigned)v);
+        #endif
+    #else
+        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
+        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
+        for (int c = 0; v; ++c)
+            v >>= 1;
+        return v;
+    #endif
+}
+
+// u64 in 64bits
+template<class I>
+C4_CONSTEXPR14
+auto lsb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 8u && sizeof(unsigned long) == 8u, unsigned>::type
+{
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_LSB_INTRINSIC(__builtin_ctzl)
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanForward64(&bit, v);
+            return bit;
+        #else
+            return (unsigned)__builtin_ctzl((unsigned long)v);
+        #endif
+    #else
+        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
+        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
+        for (int c = 0; v; ++c)
+            v >>= 1;
+        return v;
+    #endif
+}
+
+// u64 in 32bits
+template<class I>
+C4_CONSTEXPR14
+auto lsb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 8u && sizeof(unsigned long long) == 8u && sizeof(unsigned long) != sizeof(unsigned long long), unsigned>::type
+{
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_LSB_INTRINSIC(__builtin_ctzll)
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanForward64(&bit, v);
+            return bit;
+        #else
+            return (unsigned)__builtin_ctzll((unsigned long long)v);
+        #endif
+    #else
+        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
+        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
+        for (int c = 0; v; ++c)
+            v >>= 1;
+        return v;
+    #endif
+}
+
+#undef _C4_USE_LSB_INTRINSIC
+
+/** @} */
+
+
+namespace detail {
+template<class I, I val, unsigned num_bits, bool finished> struct _lsb11;
+template<class I, I val, unsigned num_bits>
+struct _lsb11<I, val, num_bits, false>
+{
+    enum : unsigned { num = _lsb11<I, (val>>1), num_bits+I(1), (((val>>1)&I(1))!=I(0))>::num };
+};
+template<class I, I val, unsigned num_bits>
 struct _lsb11<I, val, num_bits, true>
 {
-    enum : I { num = num_bits };
+    enum : unsigned { num = num_bits };
 };
-
 } // namespace detail
 
 
@@ -96,7 +221,7 @@ template<class I, I number>
 struct lsb11
 {
     static_assert(number != 0, "lsb: number must be nonzero");
-    enum : I { value = detail::_lsb11<I, number, 0, ((number&I(1))!=I(0))>::num};
+    enum : unsigned { value = detail::_lsb11<I, number, 0, ((number&I(1))!=I(0))>::num};
 };
 
 
@@ -111,14 +236,17 @@ struct lsb11
 #define _C4_USE_MSB_INTRINSIC(which) __has_builtin(which)
 #endif
 
-/** most significant bit
+/** @name msb Compute the most significant bit
  * @note the input value must be nonzero
  * @note the input type must be unsigned
  */
+/** @{ */
+
+// u8
 template<class I>
 C4_CONSTEXPR14
 auto msb(I v) noexcept
-    -> typename std::enable_if<sizeof(I) == 1u, unsigned>::type  // u8
+    -> typename std::enable_if<sizeof(I) == 1u, unsigned>::type
 {
     C4_STATIC_ASSERT(std::is_unsigned<I>::value);
     C4_ASSERT(v != 0);
@@ -140,10 +268,12 @@ auto msb(I v) noexcept
         return n;
     #endif
 }
+
+// u16
 template<class I>
 C4_CONSTEXPR14
 auto msb(I v) noexcept
-    -> typename std::enable_if<sizeof(I) == 2u, unsigned>::type  // u16
+    -> typename std::enable_if<sizeof(I) == 2u, unsigned>::type
 {
     C4_STATIC_ASSERT(std::is_unsigned<I>::value);
     C4_ASSERT(v != 0);
@@ -166,10 +296,12 @@ auto msb(I v) noexcept
         return n;
     #endif
 }
+
+// u32
 template<class I>
 C4_CONSTEXPR14
 auto msb(I v) noexcept
-    -> typename std::enable_if<sizeof(I) == 4u, unsigned>::type  // u32
+    -> typename std::enable_if<sizeof(I) == 4u, unsigned>::type
 {
     C4_STATIC_ASSERT(std::is_unsigned<I>::value);
     C4_ASSERT(v != 0);
@@ -191,6 +323,8 @@ auto msb(I v) noexcept
         return n;
     #endif
 }
+
+// u64 in 64bits
 template<class I>
 C4_CONSTEXPR14
 auto msb(I v) noexcept
@@ -217,6 +351,8 @@ auto msb(I v) noexcept
         return n;
     #endif
 }
+
+// u64 in 32bits
 template<class I>
 C4_CONSTEXPR14
 auto msb(I v) noexcept
@@ -243,6 +379,10 @@ auto msb(I v) noexcept
         return n;
     #endif
 }
+
+#undef _C4_USE_MSB_INTRINSIC
+
+/** @} */
 
 
 namespace detail {
@@ -282,10 +422,9 @@ template<class I>
 C4_CONSTEXPR14 I contiguous_mask(I first_bit, I last_bit)
 {
     I r = 0;
-    constexpr const I o = 1;
     for(I i = first_bit; i < last_bit; ++i)
     {
-        r |= (o << i);
+        r |= (I(1) << i);
     }
     return r;
 }
