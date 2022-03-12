@@ -2,7 +2,12 @@
 #define _C4_MEMORY_UTIL_HPP_
 
 #include "c4/config.hpp"
-
+#include "c4/error.hpp"
+#include "c4/compiler.hpp"
+#include "c4/cpu.hpp"
+#ifdef C4_MSVC
+#include <intrin.h>
+#endif
 #include <string.h>
 
 /** @file memory_util.hpp Some memory utilities. */
@@ -100,51 +105,159 @@ struct lsb11
 //-----------------------------------------------------------------------------
 // most significant bit
 
-/** most significant bit; this function is constexpr-14 because of the local
- * variable
- * @todo implement faster version
- * @see https://stackoverflow.com/questions/2589096/find-most-significant-bit-left-most-that-is-set-in-a-bit-array
+#if defined(C4_MSVC)
+#define _C4_USE_MSB_INTRINSIC(which) true
+#else
+#define _C4_USE_MSB_INTRINSIC(which) __has_builtin(which)
+#endif
+
+/** most significant bit
+ * @note the input value must be nonzero
+ * @note the input type must be unsigned
  */
 template<class I>
-C4_CONSTEXPR14 I msb(I v)
+C4_CONSTEXPR14
+auto msb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 1u, unsigned>::type  // u8
 {
-    // TODO:
-    //
-    //int n;
-    //if(input_num & uint64_t(0xffffffff00000000)) input_num >>= 32, n |= 32;
-    //if(input_num & uint64_t(        0xffff0000)) input_num >>= 16, n |= 16;
-    //if(input_num & uint64_t(            0xff00)) input_num >>=  8, n |=  8;
-    //if(input_num & uint64_t(              0xf0)) input_num >>=  4, n |=  4;
-    //if(input_num & uint64_t(               0xc)) input_num >>=  2, n |=  2;
-    //if(input_num & uint64_t(               0x2)) input_num >>=  1, n |=  1;
-    if(!v) return static_cast<I>(-1);
-    I b = 0;
-    while(v != 0)
-    {
-        v >>= 1;
-        ++b;
-    }
-    return b-1;
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_MSB_INTRINSIC(__builtin_clz)
+        // upcast to use the intrinsic, it's cheaper.
+        // Then remember that the upcast makes it to 31bits
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanReverse(&bit, (unsigned long)v);
+            return 31u - bit;
+        #else
+            return 31u - (unsigned)__builtin_clz((unsigned)v);
+        #endif
+    #else
+        unsigned n = 0;
+        if(v & I(0xf0)) v >>= 4, n |= I(4);
+        if(v & I(0x0c)) v >>= 2, n |= I(2);
+        if(v & I(0x02)) v >>= 1, n |= I(1);
+        return n;
+    #endif
+}
+template<class I>
+C4_CONSTEXPR14
+auto msb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 2u, unsigned>::type  // u16
+{
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_MSB_INTRINSIC(__builtin_clz)
+        // upcast to use the intrinsic, it's cheaper.
+        // Then remember that the upcast makes it to 31bits
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanReverse(&bit, (unsigned long)v);
+            return 31u - bit;
+        #else
+            return 31u - (unsigned)__builtin_clz((unsigned)v);
+        #endif
+    #else
+        unsigned n = 0;
+        if(v & I(0xff00)) v >>= 8, n |= I(8);
+        if(v & I(0x00f0)) v >>= 4, n |= I(4);
+        if(v & I(0x000c)) v >>= 2, n |= I(2);
+        if(v & I(0x0002)) v >>= 1, n |= I(1);
+        return n;
+    #endif
+}
+template<class I>
+C4_CONSTEXPR14
+auto msb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 4u, unsigned>::type  // u32
+{
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_MSB_INTRINSIC(__builtin_clz)
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanReverse(&bit, v);
+            return 31u - bit;
+        #else
+            return 31u - (unsigned)__builtin_clz((unsigned)v);
+        #endif
+    #else
+        unsigned n = 0;
+        if(v & I(0xffff0000)) v >>= 16, n |= 16;
+        if(v & I(0x0000ff00)) v >>= 8, n |= 8;
+        if(v & I(0x000000f0)) v >>= 4, n |= 4;
+        if(v & I(0x0000000c)) v >>= 2, n |= 2;
+        if(v & I(0x00000002)) v >>= 1, n |= 1;
+        return n;
+    #endif
+}
+template<class I>
+C4_CONSTEXPR14
+auto msb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 8u && sizeof(unsigned long) == 8u, unsigned>::type
+{
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_MSB_INTRINSIC(__builtin_clzl)
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanReverse64(&bit, v);
+            return 63u - bit;
+        #else
+            return 63u - (unsigned)__builtin_clzl((unsigned long)v);
+        #endif
+    #else
+        unsigned n = 0;
+        if(v & I(0xffffffff00000000)) v >>= 32, n |= I(32);
+        if(v & I(0x00000000ffff0000)) v >>= 16, n |= I(16);
+        if(v & I(0x000000000000ff00)) v >>= 8, n |= I(8);
+        if(v & I(0x00000000000000f0)) v >>= 4, n |= I(4);
+        if(v & I(0x000000000000000c)) v >>= 2, n |= I(2);
+        if(v & I(0x0000000000000002)) v >>= 1, n |= I(1);
+        return n;
+    #endif
+}
+template<class I>
+C4_CONSTEXPR14
+auto msb(I v) noexcept
+    -> typename std::enable_if<sizeof(I) == 8u && sizeof(unsigned long long) == 8u && sizeof(unsigned long) != sizeof(unsigned long long), unsigned>::type
+{
+    C4_STATIC_ASSERT(std::is_unsigned<I>::value);
+    C4_ASSERT(v != 0);
+    #if _C4_USE_MSB_INTRINSIC(__builtin_clzll)
+        #ifdef C4_MSVC
+            unsigned long bit;
+            _BitScanReverse64(&bit, v);
+            return 63u - bit;
+        #else
+            return 63u - (unsigned)__builtin_clzll((unsigned long long)v);
+        #endif
+    #else
+        unsigned n = 0;
+        if(v & I(0xffffffff00000000)) v >>= 32, n |= I(32);
+        if(v & I(0x00000000ffff0000)) v >>= 16, n |= I(16);
+        if(v & I(0x000000000000ff00)) v >>= 8, n |= I(8);
+        if(v & I(0x00000000000000f0)) v >>= 4, n |= I(4);
+        if(v & I(0x000000000000000c)) v >>= 2, n |= I(2);
+        if(v & I(0x0000000000000002)) v >>= 1, n |= I(1);
+        return n;
+    #endif
 }
 
+
 namespace detail {
-
-template<class I, I val, I num_bits, bool finished>
-struct _msb11;
-
+template<class I, I val, I num_bits, bool finished> struct _msb11;
 template<class I, I val, I num_bits>
 struct _msb11< I, val, num_bits, false>
 {
-    enum : I { num = _msb11<I, (val>>1), num_bits+I(1), ((val>>1)==I(0))>::num };
+    enum : unsigned { num = _msb11<I, (val>>1), num_bits+I(1), ((val>>1)==I(0))>::num };
 };
-
 template<class I, I val, I num_bits>
 struct _msb11<I, val, num_bits, true>
 {
     static_assert(val == 0, "bad implementation");
-    enum : I { num = num_bits-1 };
+    enum : unsigned { num = (unsigned)(num_bits-1) };
 };
-
 } // namespace detail
 
 
@@ -155,7 +268,7 @@ struct _msb11<I, val, num_bits, true>
 template<class I, I number>
 struct msb11
 {
-    enum : I { value = detail::_msb11<I, number, 0, (number==I(0))>::num };
+    enum : unsigned { value = detail::_msb11<I, number, 0, (number==I(0))>::num };
 };
 
 
