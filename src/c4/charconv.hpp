@@ -1306,60 +1306,38 @@ C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v) noexcept
         sign = -1;
     }
 
-    if(str.str[start] != '0')
+    bool parsed_ok = true;
+    if(str.str[start] != '0') // this should be the common case, so put it first
     {
-        if(C4_UNLIKELY( ! read_dec(str.sub(start), v)))
-            return false;
+        parsed_ok = read_dec(str.sub(start), v);
     }
     else
     {
-        if(str.len == start+1)
+        // starts with 0: is it 0x, 0o, 0b?
+        if(str.len > start + 1)
         {
-            *v = 0; // because the first character is 0
-            return true;
+            const char pfx = str.str[start + 1];
+            if(pfx == 'x' || pfx == 'X')
+                parsed_ok = str.len > start + 2 && read_hex(str.sub(start + 2), v);
+            else if(pfx == 'b' || pfx == 'B')
+                parsed_ok = str.len > start + 2 && read_bin(str.sub(start + 2), v);
+            else if(pfx == 'o' || pfx == 'O')
+                parsed_ok = str.len > start + 2 && read_oct(str.sub(start + 2), v);
+            else
+                parsed_ok = read_dec(str.sub(start + 1), v);
+        }
+        else if(str.len == start + 1)
+        {
+            parsed_ok = read_dec(str.sub(start + 1), v);
         }
         else
         {
-            char pfx = str.str[start+1];
-            if(pfx == 'x' || pfx == 'X') // hexadecimal
-            {
-                if(C4_UNLIKELY(str.len <= start + 2))
-                    return false;
-                if(C4_UNLIKELY( ! read_hex(str.sub(start + 2), v)))
-                    return false;
-            }
-            else if(pfx == 'b' || pfx == 'B') // binary
-            {
-                if(C4_UNLIKELY(str.len <= start + 2))
-                    return false;
-                if(C4_UNLIKELY( ! read_bin(str.sub(start + 2), v)))
-                    return false;
-            }
-            else if(pfx == 'o' || pfx == 'O') // octal
-            {
-                if(C4_UNLIKELY(str.len <= start + 2))
-                    return false;
-                if(C4_UNLIKELY( ! read_oct(str.sub(start + 2), v)))
-                    return false;
-            }
-            else
-            {
-                // we know the first character is 0
-                size_t fno = str.first_not_of('0', start + 1);
-                if(fno == csubstr::npos)
-                {
-                    *v = 0;
-                    return true;
-                }
-                if(C4_UNLIKELY( ! read_dec(str.sub(fno), v)))
-                {
-                    return false;
-                }
-            }
+            *v = 0; // because the first character is 0
         }
     }
-    *v *= sign;
-    return true;
+    if(C4_LIKELY(parsed_ok))
+        *v *= sign;
+    return parsed_ok;
 }
 
 
@@ -1406,53 +1384,31 @@ bool atou(csubstr str, T * C4_RESTRICT v) noexcept
     if(C4_UNLIKELY(str.len == 0 || str.front() == '-'))
         return false;
 
+    bool parsed_ok = true;
     if(str.str[0] != '0')
     {
-        if(C4_UNLIKELY( ! read_dec(str, v)))
-            return false;
+        parsed_ok = read_dec(str, v);
     }
     else
     {
-        if(str.len == 1)
+        if(str.len > 1)
         {
-            *v = 0; // we know the first character is 0
-            return true;
+            const char pfx = str.str[1];
+            if(pfx == 'x' || pfx == 'X')
+                parsed_ok = str.len > 2 && read_hex(str.sub(2), v);
+            else if(pfx == 'b' || pfx == 'B')
+                parsed_ok = str.len > 2 && read_bin(str.sub(2), v);
+            else if(pfx == 'o' || pfx == 'O')
+                parsed_ok = str.len > 2 && read_oct(str.sub(2), v);
+            else
+                parsed_ok = read_dec(str, v);
         }
         else
         {
-            char pfx = str.str[1];
-            if(pfx == 'x' || pfx == 'X') // hexadecimal
-            {
-                if(C4_UNLIKELY(str.len <= 2))
-                    return false;
-                return read_hex(str.sub(2), v);
-            }
-            else if(pfx == 'b' || pfx == 'B') // binary
-            {
-                if(C4_UNLIKELY(str.len <= 2))
-                    return false;
-                return read_bin(str.sub(2), v);
-            }
-            else if(pfx == 'o' || pfx == 'O') // octal
-            {
-                if(C4_UNLIKELY(str.len <= 2))
-                    return false;
-                return read_oct(str.sub(2), v);
-            }
-            else
-            {
-                // we know the first character is 0
-                auto fno = str.first_not_of('0');
-                if(fno == csubstr::npos)
-                {
-                    *v = 0;
-                    return true;
-                }
-                return read_dec(str.sub(fno), v);
-            }
+            *v = 0; // we know the first character is 0
         }
     }
-    return true;
+    return parsed_ok;
 }
 
 
