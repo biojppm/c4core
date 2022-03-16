@@ -233,8 +233,8 @@ function c4_cfg_test()
         # the coverage repo tokens can be set in the travis environment:
         # export CODECOV_TOKEN=.......
         # export COVERALLS_REPO_TOKEN=.......
-        _addprojflags COVERAGE_CODECOV=ON COVERAGE_CODECOV_SILENT=ON
-        _addprojflags COVERAGE_COVERALLS=ON COVERAGE_COVERALLS_SILENT=ON
+        _addprojflags COVERAGE_CODECOV=ON COVERAGE_CODECOV_SILENT=OFF
+        _addprojflags COVERAGE_COVERALLS=OFF COVERAGE_COVERALLS_SILENT=ON
     fi
     if [ ! -z "$VERBOSE_MAKEFILES" ] ; then
         _addcmkflags -DCMAKE_VERBOSE_MAKEFILES=$VERBOSE_MAKEFILES
