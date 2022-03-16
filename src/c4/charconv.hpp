@@ -896,22 +896,31 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix) noexcept
     case I(10):
         if(C4_UNLIKELY(buf.len < digits_type::maxdigits_dec))
             return digits_type::maxdigits_dec;
-        /*.......................................*/ return _itoa2buf(buf, pos, digits_type::min_value_dec());
+        pos =_itoa2buf(buf, pos, digits_type::min_value_dec());
+        break;
     case I(16):
         if(C4_UNLIKELY(buf.len < digits_type::maxdigits_hex))
             return digits_type::maxdigits_hex;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return _itoa2buf(buf, pos, digits_type::min_value_hex());
+        buf.str[pos++] = '0';
+        buf.str[pos++] = 'x';
+        pos = _itoa2buf(buf, pos, digits_type::min_value_hex());
+        break;
     case I( 2):
         if(C4_UNLIKELY(buf.len < digits_type::maxdigits_bin))
             return digits_type::maxdigits_bin;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return _itoa2buf(buf, pos, digits_type::min_value_bin());
+        buf.str[pos++] = '0';
+        buf.str[pos++] = 'b';
+        pos = _itoa2buf(buf, pos, digits_type::min_value_bin());
+        break;
     case I( 8):
         if(C4_UNLIKELY(buf.len < digits_type::maxdigits_oct))
             return digits_type::maxdigits_oct;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return _itoa2buf(buf, pos, digits_type::min_value_oct());
+        buf.str[pos++] = '0';
+        buf.str[pos++] = 'o';
+        pos = _itoa2buf(buf, pos, digits_type::min_value_oct());
+        break;
     }
-    C4_UNREACHABLE();
-    return 0;
+    return pos;
 }
 template<class I>
 C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
@@ -928,30 +937,39 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
         needed_digits = num_digits+1 > digits_type::maxdigits_dec ? num_digits+1 : digits_type::maxdigits_dec;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
-        /*.......................................*/ return _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_dec());
+        pos = _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_dec());
+        break;
     case I(16):
         // add 3 to account for -0x
         needed_digits = num_digits+3 > digits_type::maxdigits_hex ? num_digits+3 : digits_type::maxdigits_hex;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
-        buf.str[pos++] = '0'; buf.str[pos++] = 'x'; return _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_hex());
+        buf.str[pos++] = '0';
+        buf.str[pos++] = 'x';
+        pos = _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_hex());
+        break;
     case I( 2):
         // add 3 to account for -0b
         needed_digits = num_digits+3 > digits_type::maxdigits_bin ? num_digits+3 : digits_type::maxdigits_bin;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         C4_ASSERT(buf.len >= digits_type::maxdigits_bin);
-        buf.str[pos++] = '0'; buf.str[pos++] = 'b'; return _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_bin());
+        buf.str[pos++] = '0';
+        buf.str[pos++] = 'b';
+        pos = _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_bin());
+        break;
     case I( 8):
         // add 3 to account for -0o
         needed_digits = num_digits+3 > digits_type::maxdigits_oct ? num_digits+3 : digits_type::maxdigits_oct;
         if(C4_UNLIKELY(buf.len < needed_digits))
             return needed_digits;
         C4_ASSERT(buf.len >= digits_type::maxdigits_oct);
-        buf.str[pos++] = '0'; buf.str[pos++] = 'o'; return _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_oct());
+        buf.str[pos++] = '0';
+        buf.str[pos++] = 'o';
+        pos = _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_oct());
+        break;
     }
-    C4_UNREACHABLE();
-    return 0;
+    return pos;
 }
 } // namespace detail
 
@@ -1084,6 +1102,10 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
 {
     C4_STATIC_ASSERT(std::is_signed<T>::value);
     C4_ASSERT(radix == 2 || radix == 8 || radix == 10 || radix == 16);
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if (defined(__GNUC__) && (__GNUC__ >= 7))
+        C4_SUPPRESS_WARNING_GCC("-Wstringop-overflow")  // gcc has a false positive here
+    #endif
     // when T is the min value (eg i8: -128), negating it
     // will overflow, so treat the min as a special case
     if(C4_LIKELY(v != std::numeric_limits<T>::min()))
@@ -1138,6 +1160,7 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
         }
         return total_digits;
     }
+    C4_SUPPRESS_WARNING_GCC_POP
     // when T is the min value (eg i8: -128), negating it
     // will overflow
     return detail::_itoa2buf<T>(buf, radix, num_digits);
@@ -1319,29 +1342,22 @@ C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v) noexcept
     {
         parsed_ok = read_dec(str.sub(start), v);
     }
-    else
+    else if(str.len > start + 1)
     {
         // starts with 0: is it 0x, 0o, 0b?
-        if(str.len > start + 1)
-        {
-            const char pfx = str.str[start + 1];
-            if(pfx == 'x' || pfx == 'X')
-                parsed_ok = str.len > start + 2 && read_hex(str.sub(start + 2), v);
-            else if(pfx == 'b' || pfx == 'B')
-                parsed_ok = str.len > start + 2 && read_bin(str.sub(start + 2), v);
-            else if(pfx == 'o' || pfx == 'O')
-                parsed_ok = str.len > start + 2 && read_oct(str.sub(start + 2), v);
-            else
-                parsed_ok = read_dec(str.sub(start + 1), v);
-        }
-        else if(str.len == start + 1)
-        {
-            parsed_ok = read_dec(str.sub(start + 1), v);
-        }
+        const char pfx = str.str[start + 1];
+        if(pfx == 'x' || pfx == 'X')
+            parsed_ok = str.len > start + 2 && read_hex(str.sub(start + 2), v);
+        else if(pfx == 'b' || pfx == 'B')
+            parsed_ok = str.len > start + 2 && read_bin(str.sub(start + 2), v);
+        else if(pfx == 'o' || pfx == 'O')
+            parsed_ok = str.len > start + 2 && read_oct(str.sub(start + 2), v);
         else
-        {
-            *v = 0; // because the first character is 0
-        }
+            parsed_ok = read_dec(str.sub(start + 1), v);
+    }
+    else
+    {
+        parsed_ok = read_dec(str.sub(start), v);
     }
     if(C4_LIKELY(parsed_ok))
         *v *= sign;
@@ -1475,7 +1491,8 @@ inline bool check_overflow(csubstr str, csubstr limit) noexcept
  * @return true if number will overflow, false if it fits (or doesn't parse)
  */
 template<class T>
-typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubstr str) noexcept
+auto overflows(csubstr str) noexcept
+    -> typename std::enable_if<std::is_unsigned<T>::value, bool>::type 
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
 
@@ -1522,6 +1539,10 @@ typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubst
             }
         }
     }
+    else if(C4_UNLIKELY(str[0] == '-'))
+    {
+        return true;
+    }
     else
     {
         return detail::check_overflow(str, detail::charconv_digits<T>::max_value_dec());
@@ -1534,7 +1555,8 @@ typename std::enable_if<std::is_unsigned<T>::value, bool>::type overflows(csubst
  * @return true if number will overflow, false if it fits (or doesn't parse)
  */
 template<class T>
-typename std::enable_if<std::is_signed<T>::value, bool>::type overflows(csubstr str)
+auto overflows(csubstr str)
+    -> typename std::enable_if<std::is_signed<T>::value, bool>::type 
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     if(C4_UNLIKELY(str.len == 0))
@@ -1904,6 +1926,24 @@ C4_ALWAYS_INLINE size_t xtoa(substr s,  int32_t v) noexcept { return itoa(s, v);
 C4_ALWAYS_INLINE size_t xtoa(substr s,  int64_t v) noexcept { return itoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s,    float v) noexcept { return ftoa(s, v); }
 C4_ALWAYS_INLINE size_t xtoa(substr s,   double v) noexcept { return dtoa(s, v); }
+
+C4_ALWAYS_INLINE size_t xtoa(substr s,  uint8_t v,  uint8_t radix) noexcept { return utoa(s, v, radix); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint16_t v, uint16_t radix) noexcept { return utoa(s, v, radix); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint32_t v, uint32_t radix) noexcept { return utoa(s, v, radix); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint64_t v, uint64_t radix) noexcept { return utoa(s, v, radix); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,   int8_t v,   int8_t radix) noexcept { return itoa(s, v, radix); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int16_t v,  int16_t radix) noexcept { return itoa(s, v, radix); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int32_t v,  int32_t radix) noexcept { return itoa(s, v, radix); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int64_t v,  int64_t radix) noexcept { return itoa(s, v, radix); }
+
+C4_ALWAYS_INLINE size_t xtoa(substr s,  uint8_t v,  uint8_t radix, size_t num_digits) noexcept { return utoa(s, v, radix, num_digits); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint16_t v, uint16_t radix, size_t num_digits) noexcept { return utoa(s, v, radix, num_digits); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint32_t v, uint32_t radix, size_t num_digits) noexcept { return utoa(s, v, radix, num_digits); }
+C4_ALWAYS_INLINE size_t xtoa(substr s, uint64_t v, uint64_t radix, size_t num_digits) noexcept { return utoa(s, v, radix, num_digits); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,   int8_t v,   int8_t radix, size_t num_digits) noexcept { return itoa(s, v, radix, num_digits); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int16_t v,  int16_t radix, size_t num_digits) noexcept { return itoa(s, v, radix, num_digits); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int32_t v,  int32_t radix, size_t num_digits) noexcept { return itoa(s, v, radix, num_digits); }
+C4_ALWAYS_INLINE size_t xtoa(substr s,  int64_t v,  int64_t radix, size_t num_digits) noexcept { return itoa(s, v, radix, num_digits); }
 
 C4_ALWAYS_INLINE bool atox(csubstr s,  uint8_t *C4_RESTRICT v) noexcept { return atou(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s, uint16_t *C4_RESTRICT v) noexcept { return atou(s, v); }
