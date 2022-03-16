@@ -57,6 +57,7 @@ C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wdouble-promotion")
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wdeprecated")
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wsign-conversion")
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wconversion")
 
 #include <benchmark/benchmark.h>
 
@@ -213,11 +214,14 @@ random_values_cref<T> mkvals_positive()
 /** a ring buffer with input strings for atox benchmarks */
 struct random_strings
 {
-    std::vector<std::string> v;
+    std::vector<std::string> v_s;
+    std::vector<c4::csubstr> v;
+    std::vector<char> arena;
     mutable size_t curr;
     size_t szm1;
-    c4::csubstr next() const { c4::csubstr f = c4::to_csubstr(v[curr]); curr = (curr + 1) & szm1; return f; }
-    std::string const& next_s() const { std::string const& f = v[curr]; curr = (curr + 1) & szm1; return f; }
+
+    C4_HOT C4_ALWAYS_INLINE c4::csubstr next() const noexcept { c4::csubstr f = v[curr]; curr = (curr + 1) & szm1; return f; }
+    C4_HOT C4_ALWAYS_INLINE std::string const& next_s() const noexcept { std::string const& f = v_s[curr]; curr = (curr + 1) & szm1; return f; }
 
     random_strings() = default;
 
@@ -226,8 +230,27 @@ struct random_strings
     {
         C4_CHECK(is_pot(tmp.v.size()));
         v.resize(tmp.v.size());
+        v_s.resize(tmp.v.size());
         curr = 0;
         szm1 = tmp.v.size() - 1;
+    }
+    void _build_arena()
+    {
+        size_t sum = 0;
+        for(std::string const& s : v_s)
+            sum += s.size();
+        sum += v_s.size();
+        v.resize(v_s.size());
+        arena.resize(sum);
+        size_t pos = 0;
+        size_t i = 0;
+        for(std::string const& s : v_s)
+        {
+            memcpy(&arena[pos], s.data(), s.size());
+            v[i++] = c4::csubstr(&arena[pos], s.size());
+            pos += s.size();
+            arena[pos++] = '\0';
+        }
     }
 
     template<class T>
@@ -235,30 +258,51 @@ struct random_strings
     {
         _init(tmp);
         for(size_t i = 0; i < v.size(); ++i)
-            c4::catrs(&v[i], tmp.v[i]);
+            c4::catrs(&v_s[i], tmp.v[i]);
+        _build_arena();
     }
     template<class T>
-    void init_as_hex(random_values<T> const& tmp)
+    void init_as_hex(random_values<T> const& tmp, bool with_prefix)
     {
         _init(tmp);
         for(size_t i = 0; i < v.size(); ++i)
-            c4::catrs(&v[i], c4::fmt::hex(tmp.v[i]));
+        {
+            c4::catrs(&v_s[i], c4::fmt::hex(tmp.v[i]));
+            if(!with_prefix)
+                _erase_radix_prefix(&v_s[i]);
+        }
+        _build_arena();
     }
     template<class T>
-    void init_as_oct(random_values<T> const& tmp)
+    void init_as_oct(random_values<T> const& tmp, bool with_prefix)
     {
         _init(tmp);
         for(size_t i = 0; i < v.size(); ++i)
-            c4::catrs(&v[i], c4::fmt::oct(tmp.v[i]));
+        {
+            c4::catrs(&v_s[i], c4::fmt::oct(tmp.v[i]));
+            if(!with_prefix)
+                _erase_radix_prefix(&v_s[i]);
+        }
+        _build_arena();
     }
     template<class T>
-    void init_as_bin(random_values<T> const& tmp)
+    void init_as_bin(random_values<T> const& tmp, bool with_prefix)
     {
         _init(tmp);
         for(size_t i = 0; i < v.size(); ++i)
-            c4::catrs(&v[i], c4::fmt::bin(tmp.v[i]));
+        {
+            c4::catrs(&v_s[i], c4::fmt::bin(tmp.v[i]));
+            if(!with_prefix)
+                _erase_radix_prefix(&v_s[i]);
+        }
+        _build_arena();
     }
 
+    static void _erase_radix_prefix(std::string *s)
+    {
+        C4_ASSERT(s->front() != '-');
+        s->erase(0, 2);
+    }
 };
 using random_strings_cref = random_strings const&;
 
@@ -279,52 +323,112 @@ random_strings_cref mkstrings_positive()
     return rs;
 }
 template<class T>
-random_strings_cref mkstrings_hex()
+random_strings_cref mkstrings_hex(bool with_prefix=true)
 {
     static random_strings rs;
-    if(rs.v.empty())
-        rs.init_as_hex<T>(mkvals<T>());
-    return rs;
+    static random_strings rs_wo_prefix;
+    if(with_prefix)
+    {
+        if(rs.v.empty())
+            rs.init_as_hex<T>(mkvals<T>());
+        return rs;
+    }
+    else
+    {
+        if(rs_wo_prefix.v.empty())
+            rs_wo_prefix.init_as_hex<T>(mkvals<T>(), false);
+        return rs_wo_prefix;
+    }
 }
 template<class T>
-random_strings_cref mkstrings_hex_positive()
+random_strings_cref mkstrings_hex_positive(bool with_prefix=true)
 {
     static random_strings rs;
-    if(rs.v.empty())
-        rs.init_as_hex<T>(mkvals_positive<T>());
-    return rs;
+    static random_strings rs_wo_prefix;
+    if(with_prefix)
+    {
+        if(rs.v.empty())
+            rs.init_as_hex<T>(mkvals_positive<T>(), true);
+        return rs;
+    }
+    else
+    {
+        if(rs_wo_prefix.v.empty())
+            rs_wo_prefix.init_as_hex<T>(mkvals_positive<T>(), false);
+        return rs_wo_prefix;
+    }
 }
 template<class T>
-random_strings_cref mkstrings_oct()
+random_strings_cref mkstrings_oct(bool with_prefix=true)
 {
     static random_strings rs;
-    if(rs.v.empty())
-        rs.init_as_oct<T>(mkvals<T>());
-    return rs;
+    static random_strings rs_wo_prefix;
+    if(with_prefix)
+    {
+        if(rs.v.empty())
+            rs.init_as_oct<T>(mkvals<T>(), true);
+        return rs;
+    }
+    else
+    {
+        if(rs_wo_prefix.v.empty())
+            rs_wo_prefix.init_as_oct<T>(mkvals<T>(), false);
+        return rs_wo_prefix;
+    }
 }
 template<class T>
-random_strings_cref mkstrings_oct_positive()
+random_strings_cref mkstrings_oct_positive(bool with_prefix=true)
 {
     static random_strings rs;
-    if(rs.v.empty())
-        rs.init_as_oct<T>(mkvals_positive<T>());
-    return rs;
+    static random_strings rs_wo_prefix;
+    if(with_prefix)
+    {
+        if(rs.v.empty())
+            rs.init_as_oct<T>(mkvals_positive<T>(), true);
+        return rs;
+    }
+    else
+    {
+        if(rs_wo_prefix.v.empty())
+            rs_wo_prefix.init_as_oct<T>(mkvals_positive<T>(), false);
+        return rs_wo_prefix;
+    }
 }
 template<class T>
-random_strings_cref mkstrings_bin()
+random_strings_cref mkstrings_bin(bool with_prefix=true)
 {
     static random_strings rs;
-    if(rs.v.empty())
-        rs.init_as_bin<T>(mkvals<T>());
-    return rs;
+    static random_strings rs_wo_prefix;
+    if(with_prefix)
+    {
+        if(rs.v.empty())
+            rs.init_as_bin<T>(mkvals<T>(), true);
+        return rs;
+    }
+    else
+    {
+        if(rs_wo_prefix.v.empty())
+            rs_wo_prefix.init_as_bin<T>(mkvals<T>(), false);
+        return rs_wo_prefix;
+    }
 }
 template<class T>
-random_strings_cref mkstrings_bin_positive()
+random_strings_cref mkstrings_bin_positive(bool with_prefix=true)
 {
     static random_strings rs;
-    if(rs.v.empty())
-        rs.init_as_bin<T>(mkvals_positive<T>());
-    return rs;
+    static random_strings rs_wo_prefix;
+    if(with_prefix)
+    {
+        if(rs.v.empty())
+            rs.init_as_bin<T>(mkvals_positive<T>(), true);
+        return rs;
+    }
+    else
+    {
+        if(rs_wo_prefix.v.empty())
+            rs_wo_prefix.init_as_bin<T>(mkvals_positive<T>(), false);
+        return rs_wo_prefix;
+    }
 }
 
 
@@ -335,18 +439,11 @@ struct sbuf
     char buf_[Dim];
     c4::substr buf;
     sbuf() : buf_(), buf(buf_) {}
-    inline operator c4::substr& () { return buf; }
+    C4_HOT C4_ALWAYS_INLINE operator c4::substr& () { return buf; }
     char* begin() { return buf.begin(); }
     char* end() { return buf.end(); }
 };
 
 using string_buffer = sbuf<>;
-
-
-// some of the benchmarks do not need to be templates,
-// but it helps in the naming scheme.
-
-// xtoa means <X> to string
-// atox means string to <X>
 
 #define C4DOALL(n) for(size_t elm = 0; elm < n; ++elm)

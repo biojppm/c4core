@@ -92,6 +92,154 @@ are transitively used.
 All of the utilities in this library are under the namespace `c4`; any
 exposed macros use the prefix `C4_`: eg `C4_ASSERT()`.
 
+
+### Writeable string views: c4::substr and c4::csubstr
+
+Here: [`#include <c4/substr.hpp>`](src/c4/substr.hpp)
+
+
+### Value <-> character interoperation
+
+Here: [`#include <c4/charconv.hpp>`](src/c4/charconv.hpp)
+
+```c++
+// TODO: elaborate on the topics:
+
+c4::read_dec(), c4::write_dec()
+c4::read_hex(), c4::write_hex()
+c4::read_oct(), c4::write_oct()
+c4::read_bin(), c4::write_bin()
+
+c4::utoa(), c4::atou()
+c4::itoa(), c4::atoi()
+c4::ftoa(), c4::atof()
+c4::dtoa(), c4::atod()
+c4::xtoa(), c4::atox()
+
+c4::to_chars(), c4::from_chars()
+c4::to_chars_sub()
+c4::to_chars_first()
+```
+
+The charconv funcions above are very fast; even faster than C++'s fastest facility `std::from_chars()`, `std::to_chars()`. For continuous benchmark results, browse through c4core's [github CI benchmark runs](https://github.com/biojppm/c4core/actions/workflows/benchmarks.yml). For example, a benchmark run on Linux/g++11.2 shows that:
+- `c4::to_chars()` can be expected to be roughly...
+  - ~40% to 2x faster than `std::to_chars()`
+  - ~10x-30x faster than `sprintf()`
+  - ~50x-100x faster than a naive `stringstream::operator<<()` followed by `stringstream::str()`
+- `c4::from_chars()` can be expected to be roughly...
+  - ~10%-30% faster than `std::from_chars()`
+  - ~10x faster than `scanf()`
+  - ~30x-50x faster than a naive `stringstream::str()` followed by `stringstream::operator>>()`
+
+Here are the results:
+
+| Write throughput         |         | Read throughput          |          |
+|:-------------------------|--------:|:-------------------------|---------:|
+|  **write `uint8_t`**     | **MB/s**| **read `uint8_t`**       |  **MB/s**|
+| `c4::to_chars<u8>`       |  526.86 |  `c4::from_chars<u8>`    |   163.06 |
+| `std::to_chars<u8>`      |  379.03 |  `std::from_chars<u8>`   |   154.85 |
+| `std::sprintf<u8>`       |   20.49 |  `std::scanf<u8>`        |    15.75 |
+| `std::stringstream<u8>`  |    3.82 |  `std::stringstream<u8>` |     3.83 |
+|  **write `int8_t`**      | **MB/s**| **read `int8_t`**        |  **MB/s**|
+| `c4::to_chars<i8>`       |  599.98 |  `c4::from_chars<i8>`    |   184.20 |
+| `std::to_chars<i8>`      |  246.32 |  `std::from_chars<i8>`   |   156.40 |
+| `std::sprintf<i8>`       |   19.15 |  `std::scanf<i8>`        |    16.44 |
+| `std::stringstream<i8>`  |    3.83 |  `std::stringstream<i8>` |     3.89 |
+|  **write `uint16_t`**    | **MB/s**| **read `uint16_t`**      |  **MB/s**|
+| `c4::to_chars<u16>`      |  486.40 |  `c4::from_chars<u16>`   |   349.48 |
+| `std::to_chars<u16>`     |  454.24 |  `std::from_chars<u16>`  |   319.13 |
+| `std::sprintf<u16>`      |   38.74 |  `std::scanf<u16>`       |    28.12 |
+| `std::stringstream<u16>` |    7.08 |  `std::stringstream<u16>`|     6.73 |
+|  **write `int16_t`**     | **MB/s**| **read `int16_t`**       |  **MB/s**|
+| `c4::to_chars<i16>`      |  507.44 |  `c4::from_chars<i16>`   |   282.95 |
+| `std::to_chars<i16>`     |  297.49 |  `std::from_chars<i16>`  |   186.18 |
+| `std::sprintf<i16>`      |   39.03 |  `std::scanf<i16>`       |    28.45 |
+| `std::stringstream<i16>` |    6.98 |  `std::stringstream<i16>`|     6.49 |
+|  **write `uint32_t`**    | **MB/s**| **read `uint32_t`**      |  **MB/s**|
+| `c4::to_chars<u32>`      |  730.12 |  `c4::from_chars<u32>`   |   463.95 |
+| `std::to_chars<u32>`     |  514.76 |  `std::from_chars<u32>`  |   329.42 |
+| `std::sprintf<u32>`      |   71.19 |  `std::scanf<u32>`       |    44.97 |
+| `std::stringstream<u32>` |   14.05 |  `std::stringstream<u32>`|    12.57 |
+|  **write `int32_t`**     | **MB/s**| **read `int32_t`**       |  **MB/s**|
+| `c4::to_chars<i32>`      |  618.76 |  `c4::from_chars<i32>`   |   345.53 |
+| `std::to_chars<i32>`     |  394.72 |  `std::from_chars<i32>`  |   224.46 |
+| `std::sprintf<i32>`      |   71.14 |  `std::scanf<i32>`       |    43.49 |
+| `std::stringstream<i32>` |   13.91 |  `std::stringstream<i32>`|    12.03 |
+|  **write `uint64_t`**    | **MB/s**| **read `uint64_t`**      |  **MB/s**|
+| `c4::to_chars<u64>`      | 1118.87 |  `c4::from_chars<u64>`   |   928.49 |
+| `std::to_chars<u64>`     |  886.58 |  `std::from_chars<u64>`  |   759.03 |
+| `std::sprintf<u64>`      |  140.96 |  `std::scanf<u64>`       |    91.60 |
+| `std::stringstream<u64>` |   28.01 |  `std::stringstream<u64>`|    25.00 |
+|  **write `int64_t`**     | **MB/s**| **read `int64_t`**       |  **MB/s**|
+| `c4::to_chars<i64>`      | 1198.78 |  `c4::from_chars<i64>`   |   713.76 |
+| `std::to_chars<i64>`     |  882.17 |  `std::from_chars<i64>`  |   646.18 |
+| `std::sprintf<i64>`      |  138.79 |  `std::scanf<i64>`       |    90.07 |
+| `std::stringstream<i64>` |   27.62 |  `std::stringstream<i64>`|    25.12 |
+
+
+### String formatting and parsing
+
+* [`#include <c4/format.hpp>`](src/c4/format.hpp)
+
+```c++
+// TODO: elaborate on the topics:
+
+c4::cat(), c4::uncat()
+c4::catsep(), c4::uncatsep()
+c4::format(), c4::unformat()
+
+c4::catrs()
+c4::catseprs()
+c4::formatrs()
+
+// formatting:
+c4::fmt::overflow_checked
+c4::fmt::real
+c4::fmt::boolalpha
+c4::fmt::dec
+c4::fmt::hex
+c4::fmt::oct
+c4::fmt::bin
+c4::fmt::zpad
+c4::fmt::right
+c4::fmt::left
+c4::fmt::raw, c4::fmt::craw
+c4::fmt::base64, c4::fmt::cbase64
+```
+
+### `c4::span` and `c4::blob`
+
+* [`#include <c4/span.hpp>`](src/c4/span.hpp)
+* [`#include <c4/blob.hpp>`](src/c4/blob.hpp)
+
+
+### Enums and enum symbols
+
+[`#include <c4/enum.hpp>`](src/c4/enum.hpp)
+
+```c++
+// TODO: elaborate on the topics:
+
+c4::e2str(), c4::str2e()
+```
+
+### Bitmasks and bitmask symbols
+
+[`#include <c4/bitmask.hpp>`](src/c4/bitmask.hpp)
+
+```c++
+// TODO: elaborate on the topics:
+
+c4::bm2str(), c4::str2bm()
+```
+
+### Base64 encoding / decoding
+
+[`#include <c4/base64.hpp>`](src/c4/base64.hpp)
+
+### Fuzzy float comparison
+
+
 ### Multi-platform / multi-compiler utilities
 
 ```c++
@@ -158,75 +306,3 @@ c4::move_assign()/c4::move_assign_n()
 
 c4::make_room()/c4::destroy_room()
 ```
-
-
-### Writeable string views: c4::substr and c4::csubstr
-
-Here: [`#include <c4/substr.hpp>`](src/c4/substr.hpp)
-
-
-### Value <-> character interoperation
-
-Here: [`#include <c4/charconv.hpp>`](src/c4/charconv.hpp)
-
-```c++
-// TODO: elaborate on the topics:
-
-c4::utoa(), c4::atou()
-c4::itoa(), c4::atoi()
-c4::ftoa(), c4::atof()
-c4::dtoa(), c4::atod()
-
-c4::to_chars(), c4::from_chars()
-c4::to_chars_sub()
-c4::to_chars_first()
-```
-
-### String formatting and parsing
-
-* [`#include <c4/format.hpp>`](src/c4/format.hpp)
-
-```c++
-// TODO: elaborate on the topics:
-
-c4::cat(), c4::uncat()
-
-c4::catsep(), c4::uncatsep()
-
-c4::format(), c4::unformat()
-
-// formatting:
-c4::raw, c4::craw
-```
-
-### `c4::span` and `c4::blob`
-
-* [`#include <c4/span.hpp>`](src/c4/span.hpp)
-* [`#include <c4/blob.hpp>`](src/c4/blob.hpp)
-
-
-### Enums and enum symbols
-
-[`#include <c4/enum.hpp>`](src/c4/enum.hpp)
-
-```c++
-// TODO: elaborate on the topics:
-
-c4::e2str(), c4::str2e()
-```
-
-### Bitmasks and bitmask symbols
-
-[`#include <c4/bitmask.hpp>`](src/c4/bitmask.hpp)
-
-```c++
-// TODO: elaborate on the topics:
-
-c4::bm2str(), c4::str2bm()
-```
-
-### Base64 encoding / decoding
-
-[`#include <c4/base64.hpp>`](src/c4/base64.hpp)
-
-### Fuzzy float comparison

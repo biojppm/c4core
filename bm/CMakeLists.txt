@@ -70,14 +70,15 @@ if(cxx_std_17 IN_LIST known_features)
 endif()
 
 
-function(c4core_charconv_benchmark pfx)
-    foreach(case ${ARGN})
-        c4_add_target_benchmark(c4core-bm-charconv ${pfx}-${case} FILTER "^${pfx}.*<${case}.*")
+function(c4core_charconv_benchmark name rx)
+    foreach(datatype ${ARGN})
+        c4_add_target_benchmark(c4core-bm-charconv ${name}-${datatype} FILTER "${rx}<${datatype}.*")
     endforeach()
 endfunction()
 
-c4core_charconv_benchmark(xtoa uint8 int8 uint16 int16 uint32 int32 uint64 int64 float double)
-c4core_charconv_benchmark(atox uint8 int8 uint16 int16 uint32 int32 uint64 int64 float double)
+c4core_charconv_benchmark(digits "^c4_digits.*" uint8 int8 uint16 int16 uint32 int32 uint64 int64)
+c4core_charconv_benchmark(xtoa   "^xtoa.*"      uint8 int8 uint16 int16 uint32 int32 uint64 int64 float double)
+c4core_charconv_benchmark(atox   "^atox.*"      uint8 int8 uint16 int16 uint32 int32 uint64 int64 float double)
 
 
 #----------------------------------------------

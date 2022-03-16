@@ -11,6 +11,79 @@
 #endif
 
 
+// some of the benchmarks do not need to be templates,
+// but it helps in the naming scheme.
+
+// xtoa means <X> to string
+// atox means string to <X>
+
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+C4FOR(T, isint)
+c4_digits_dec(bm::State &st)
+{
+    random_values_cref<T> values = mkvals_positive<T>();
+    unsigned sum = {};
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            sum += c4::digits_dec(values.next());
+    }
+    bm::DoNotOptimize(sum);
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isint)
+c4_digits_hex(bm::State &st)
+{
+    random_values_cref<T> values = mkvals_positive<T>();
+    unsigned sum = {};
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            sum += c4::digits_hex(values.next());
+    }
+    bm::DoNotOptimize(sum);
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isint)
+c4_digits_oct(bm::State &st)
+{
+    random_values_cref<T> values = mkvals_positive<T>();
+    unsigned sum = {};
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            sum += c4::digits_oct(values.next());
+    }
+    bm::DoNotOptimize(sum);
+    report<T>(st, kNumValues);
+}
+
+C4FOR(T, isint)
+c4_digits_bin(bm::State &st)
+{
+    random_values_cref<T> values = mkvals_positive<T>();
+    unsigned sum = {};
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+            sum += c4::digits_bin(values.next());
+    }
+    bm::DoNotOptimize(sum);
+    report<T>(st, kNumValues);
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 C4FOR(T, isint)
 atox_c4_read_dec(bm::State& st)
 {
@@ -31,7 +104,7 @@ atox_c4_read_dec(bm::State& st)
 C4FOR(T, isint)
 atox_c4_read_hex(bm::State& st)
 {
-    random_strings_cref strings = mkstrings_hex_positive<T>();
+    random_strings_cref strings = mkstrings_hex_positive<T>(/*with_prefix*/false);
     T val = {}, sum = {};
     for(auto _ : st)
     {
@@ -48,7 +121,7 @@ atox_c4_read_hex(bm::State& st)
 C4FOR(T, isint)
 atox_c4_read_oct(bm::State& st)
 {
-    random_strings_cref strings = mkstrings_oct_positive<T>();
+    random_strings_cref strings = mkstrings_oct_positive<T>(/*with_prefix*/false);
     T val = {}, sum = {};
     for(auto _ : st)
     {
@@ -65,7 +138,7 @@ atox_c4_read_oct(bm::State& st)
 C4FOR(T, isint)
 atox_c4_read_bin(bm::State& st)
 {
-    random_strings_cref strings = mkstrings_bin_positive<T>();
+    random_strings_cref strings = mkstrings_bin_positive<T>(/*with_prefix*/false);
     T val = {}, sum = {};
     for(auto _ : st)
     {
@@ -74,53 +147,6 @@ atox_c4_read_bin(bm::State& st)
             c4::read_bin(strings.next(), &val);
             sum += val;
         }
-    }
-    bm::DoNotOptimize(sum);
-    report<T>(st, kNumValues);
-}
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-C4FOR(T, isint)
-xtoa_c4_digits_dec(bm::State &st)
-{
-    random_values_cref<T> values = mkvals_positive<T>();
-    unsigned sum = {};
-    for(auto _ : st)
-    {
-        C4DOALL(kNumValues)
-            sum += c4::digits_dec(values.next());
-    }
-    bm::DoNotOptimize(sum);
-    report<T>(st, kNumValues);
-}
-
-C4FOR(T, isint)
-xtoa_c4_digits_hex(bm::State &st)
-{
-    random_values_cref<T> values = mkvals_positive<T>();
-    unsigned sum = {};
-    for(auto _ : st)
-    {
-        C4DOALL(kNumValues)
-            sum += c4::digits_hex(values.next());
-    }
-    bm::DoNotOptimize(sum);
-    report<T>(st, kNumValues);
-}
-
-C4FOR(T, isint)
-xtoa_c4_digits_bin(bm::State &st)
-{
-    random_values_cref<T> values = mkvals_positive<T>();
-    unsigned sum = {};
-    for(auto _ : st)
-    {
-        C4DOALL(kNumValues)
-            sum += c4::digits_bin(values.next());
     }
     bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
@@ -395,7 +421,7 @@ atox_std_atoi(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            val = (T) std::atoi(strings.next().data());
+            val = (T) std::atoi(strings.next_s().c_str());
             sum += val;
         }
     }
@@ -412,7 +438,7 @@ atox_std_atol(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            val = (T) std::atol(strings.next().data());
+            val = (T) std::atol(strings.next_s().c_str());
             sum += val;
         }
     }
@@ -429,7 +455,7 @@ atox_std_atof(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            val = (T) std::atof(strings.next().data());
+            val = (T) std::atof(strings.next_s().c_str());
             sum += val;
         }
     }
@@ -449,8 +475,8 @@ atox_std_strtol(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            c4::csubstr s = strings.next();
-            val = (T) std::strtol(s.begin(), nullptr, 10);
+            std::string const& s = strings.next_s();
+            val = (T) std::strtol(s.data(), nullptr, 10);
             sum += val;
         }
     }
@@ -467,8 +493,8 @@ atox_std_strtoll(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            c4::csubstr s = strings.next();
-            val = (T) std::strtoll(s.begin(), nullptr, 10);
+            std::string const& s = strings.next_s();
+            val = (T) std::strtoll(s.data(), nullptr, 10);
             sum += val;
         }
     }
@@ -485,8 +511,8 @@ atox_std_strtoul(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            c4::csubstr s = strings.next();
-            val = (T) std::strtoul(s.begin(), nullptr, 10);
+            std::string const& s = strings.next_s();
+            val = (T) std::strtoul(s.data(), nullptr, 10);
             sum += val;
         }
     }
@@ -503,8 +529,8 @@ atox_std_strtoull(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            c4::csubstr s = strings.next();
-            val = (T) std::strtoull(s.begin(), nullptr, 10);
+            std::string const& s = strings.next_s();
+            val = (T) std::strtoull(s.data(), nullptr, 10);
             sum += val;
         }
     }
@@ -521,8 +547,8 @@ atox_std_strtof(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            c4::csubstr s = strings.next();
-            val = (T) std::strtof(s.begin(), nullptr);
+            std::string const& s = strings.next_s();
+            val = (T) std::strtof(s.data(), nullptr);
             sum += val;
         }
     }
@@ -539,8 +565,8 @@ atox_std_strtod(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            c4::csubstr s = strings.next();
-            val = (T) std::strtod(s.begin(), nullptr);
+            std::string const& s = strings.next_s();
+            val = (T) std::strtod(s.data(), nullptr);
             sum += val;
         }
     }
@@ -796,7 +822,7 @@ atox_scanf(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            ::sscanf(strings.next().str, fmtspec<T>::r, &val);
+            ::sscanf(strings.next_s().c_str(), fmtspec<T>::r, &val);
             sum += val;
         }
     }
@@ -813,7 +839,7 @@ atox_scanf(bm::State& st)
     {
         C4DOALL(kNumValues)
         {
-            ::sscanf(strings.next().str, fmtspec<T>::r, &val);
+            ::sscanf(strings.next_s().c_str(), fmtspec<T>::r, &val);
             sum += val;
         }
     }
@@ -1168,9 +1194,48 @@ atox_std_from_chars(bm::State& st)
 
 //-----------------------------------------------------------------------------
 
-C4BM_TEMPLATE(xtoa_c4_digits_dec,  uint8_t);
-C4BM_TEMPLATE(xtoa_c4_digits_hex,  uint8_t);
-C4BM_TEMPLATE(xtoa_c4_digits_bin,  uint8_t);
+C4BM_TEMPLATE(c4_digits_dec,  uint8_t);
+C4BM_TEMPLATE(c4_digits_hex,  uint8_t);
+C4BM_TEMPLATE(c4_digits_oct,  uint8_t);
+C4BM_TEMPLATE(c4_digits_bin,  uint8_t);
+
+C4BM_TEMPLATE(c4_digits_dec,  int8_t);
+C4BM_TEMPLATE(c4_digits_hex,  int8_t);
+C4BM_TEMPLATE(c4_digits_oct,  int8_t);
+C4BM_TEMPLATE(c4_digits_bin,  int8_t);
+
+C4BM_TEMPLATE(c4_digits_dec,  uint16_t);
+C4BM_TEMPLATE(c4_digits_hex,  uint16_t);
+C4BM_TEMPLATE(c4_digits_oct,  uint16_t);
+C4BM_TEMPLATE(c4_digits_bin,  uint16_t);
+
+C4BM_TEMPLATE(c4_digits_dec,  int16_t);
+C4BM_TEMPLATE(c4_digits_hex,  int16_t);
+C4BM_TEMPLATE(c4_digits_oct,  int16_t);
+C4BM_TEMPLATE(c4_digits_bin,  int16_t);
+
+C4BM_TEMPLATE(c4_digits_dec,  uint32_t);
+C4BM_TEMPLATE(c4_digits_hex,  uint32_t);
+C4BM_TEMPLATE(c4_digits_oct,  uint32_t);
+C4BM_TEMPLATE(c4_digits_bin,  uint32_t);
+
+C4BM_TEMPLATE(c4_digits_dec,  int32_t);
+C4BM_TEMPLATE(c4_digits_hex,  int32_t);
+C4BM_TEMPLATE(c4_digits_oct,  int32_t);
+C4BM_TEMPLATE(c4_digits_bin,  int32_t);
+
+C4BM_TEMPLATE(c4_digits_dec,  uint64_t);
+C4BM_TEMPLATE(c4_digits_hex,  uint64_t);
+C4BM_TEMPLATE(c4_digits_oct,  uint64_t);
+C4BM_TEMPLATE(c4_digits_bin,  uint64_t);
+
+C4BM_TEMPLATE(c4_digits_dec,  int64_t);
+C4BM_TEMPLATE(c4_digits_hex,  int64_t);
+C4BM_TEMPLATE(c4_digits_oct,  int64_t);
+C4BM_TEMPLATE(c4_digits_bin,  int64_t);
+
+
+//-----------------------------------------------------------------------------
 C4BM_TEMPLATE(xtoa_c4_write_dec,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_write_hex,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_write_oct,  uint8_t);
@@ -1184,9 +1249,6 @@ C4BM_TEMPLATE(xtoa_sprintf,  uint8_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t);
 C4BM_TEMPLATE(xtoa_sstream,  uint8_t);
 
-C4BM_TEMPLATE(xtoa_c4_digits_dec,  int8_t);
-C4BM_TEMPLATE(xtoa_c4_digits_hex,  int8_t);
-C4BM_TEMPLATE(xtoa_c4_digits_bin,  int8_t);
 C4BM_TEMPLATE(xtoa_c4_write_dec,  int8_t);
 C4BM_TEMPLATE(xtoa_c4_write_hex,  int8_t);
 C4BM_TEMPLATE(xtoa_c4_write_oct,  int8_t);
@@ -1200,9 +1262,6 @@ C4BM_TEMPLATE(xtoa_sprintf,  int8_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t);
 C4BM_TEMPLATE(xtoa_sstream,   int8_t);
 
-C4BM_TEMPLATE(xtoa_c4_digits_dec,  uint16_t);
-C4BM_TEMPLATE(xtoa_c4_digits_hex,  uint16_t);
-C4BM_TEMPLATE(xtoa_c4_digits_bin,  uint16_t);
 C4BM_TEMPLATE(xtoa_c4_write_dec,  uint16_t);
 C4BM_TEMPLATE(xtoa_c4_write_hex,  uint16_t);
 C4BM_TEMPLATE(xtoa_c4_write_oct,  uint16_t);
@@ -1216,9 +1275,6 @@ C4BM_TEMPLATE(xtoa_sprintf,  uint16_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t);
 C4BM_TEMPLATE(xtoa_sstream, uint16_t);
 
-C4BM_TEMPLATE(xtoa_c4_digits_dec,  int16_t);
-C4BM_TEMPLATE(xtoa_c4_digits_hex,  int16_t);
-C4BM_TEMPLATE(xtoa_c4_digits_bin,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_write_dec,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_write_hex,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_write_oct,  int16_t);
@@ -1232,9 +1288,6 @@ C4BM_TEMPLATE(xtoa_sprintf,  int16_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t);
 C4BM_TEMPLATE(xtoa_sstream,  int16_t);
 
-C4BM_TEMPLATE(xtoa_c4_digits_dec,  uint32_t);
-C4BM_TEMPLATE(xtoa_c4_digits_hex,  uint32_t);
-C4BM_TEMPLATE(xtoa_c4_digits_bin,  uint32_t);
 C4BM_TEMPLATE(xtoa_c4_write_dec,  uint32_t);
 C4BM_TEMPLATE(xtoa_c4_write_hex,  uint32_t);
 C4BM_TEMPLATE(xtoa_c4_write_oct,  uint32_t);
@@ -1248,9 +1301,6 @@ C4BM_TEMPLATE(xtoa_sprintf,  uint32_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t);
 C4BM_TEMPLATE(xtoa_sstream, uint32_t);
 
-C4BM_TEMPLATE(xtoa_c4_digits_dec,  int32_t);
-C4BM_TEMPLATE(xtoa_c4_digits_hex,  int32_t);
-C4BM_TEMPLATE(xtoa_c4_digits_bin,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_write_dec,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_write_hex,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_write_oct,  int32_t);
@@ -1264,9 +1314,6 @@ C4BM_TEMPLATE(xtoa_sprintf,  int32_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t);
 C4BM_TEMPLATE(xtoa_sstream,  int32_t);
 
-C4BM_TEMPLATE(xtoa_c4_digits_dec,  uint64_t);
-C4BM_TEMPLATE(xtoa_c4_digits_hex,  uint64_t);
-C4BM_TEMPLATE(xtoa_c4_digits_bin,  uint64_t);
 C4BM_TEMPLATE(xtoa_c4_write_dec,  uint64_t);
 C4BM_TEMPLATE(xtoa_c4_write_hex,  uint64_t);
 C4BM_TEMPLATE(xtoa_c4_write_oct,  uint64_t);
@@ -1280,9 +1327,6 @@ C4BM_TEMPLATE(xtoa_sprintf,  uint64_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t);
 C4BM_TEMPLATE(xtoa_sstream, uint64_t);
 
-C4BM_TEMPLATE(xtoa_c4_digits_dec,  int64_t);
-C4BM_TEMPLATE(xtoa_c4_digits_hex,  int64_t);
-C4BM_TEMPLATE(xtoa_c4_digits_bin,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_write_dec,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_write_hex,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_write_oct,  int64_t);
