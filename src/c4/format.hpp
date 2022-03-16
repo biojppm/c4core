@@ -203,12 +203,13 @@ inline integral_<intptr_t> bin(std::nullptr_t)
     return integral_<intptr_t>(intptr_t(0), intptr_t(2));
 }
 /** format the integral_ argument as a binary 0-1 value
- * @see c4::raw() if you want to use a binary memcpy instead of 0-1 formatting */
+ * @see c4::raw() if you want to use a raw memcpy-based binary dump instead of 0-1 formatting */
 template<class T>
 inline integral_<T> bin(T v)
 {
     return integral_<T>(v, T(2));
 }
+
 
 template<class T>
 struct overflow_checked_
@@ -217,7 +218,6 @@ struct overflow_checked_
     C4_ALWAYS_INLINE overflow_checked_(T &val_) : val(&val_) {}
     T *val;
 };
-
 template<class T>
 C4_ALWAYS_INLINE overflow_checked_<T> overflow_checked(T &val)
 {
@@ -263,10 +263,11 @@ to_chars(substr buf, fmt::integral_padded_<T> fmt)
 template<class T>
 C4_ALWAYS_INLINE bool from_chars(csubstr s, fmt::overflow_checked_<T> wrapper)
 {
-    if(overflows<T>(s))
-        return false;
-    return atox(s, wrapper.val);
+    if(C4_LIKELY(!overflows<T>(s)))
+        return atox(s, wrapper.val);
+    return false;
 }
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

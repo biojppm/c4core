@@ -24,11 +24,13 @@ public:
     friend bool operator!=(splitmix const &, splitmix const &);
 
     splitmix() : m_seed(1) {}
+    explicit splitmix(uint64_t s) : m_seed(s) {}
     explicit splitmix(std::random_device &rd)
     {
         seed(rd);
     }
 
+    void seed(uint64_t s) { m_seed = s; }
     void seed(std::random_device &rd)
     {
         m_seed = uint64_t(rd()) << 31 | uint64_t(rd());
@@ -81,6 +83,7 @@ public:
         seed(rd);
     }
 
+    void seed(uint64_t s) { m_seed = s; }
     void seed(std::random_device &rd)
     {
         m_seed = uint64_t(rd()) << 31 | uint64_t(rd());
@@ -132,11 +135,13 @@ public:
         : m_state(0x853c49e6748fea9bULL)
         , m_inc(0xda3e39cb94b95bdbULL)
     {}
+    explicit pcg(uint64_t s) { m_state = s; m_inc = m_state << 1; }
     explicit pcg(std::random_device &rd)
     {
         seed(rd);
     }
 
+    void seed(uint64_t s) { m_state = s; }
     void seed(std::random_device &rd)
     {
         uint64_t s0 = uint64_t(rd()) << 31 | uint64_t(rd());

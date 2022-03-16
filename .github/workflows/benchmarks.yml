@@ -24,8 +24,8 @@ env:
 
 
 jobs:
-  benchmarks:
-    name: bm/c++${{matrix.std}}/${{matrix.cxx}}/${{matrix.bt}}
+  bm_x86_64:
+    name: bm/x86_64/c++${{matrix.std}}/${{matrix.cxx}}/${{matrix.bt}}
     if: |
       (!contains(github.event.head_commit.message, 'skip all')) ||
       (!contains(github.event.head_commit.message, 'skip benchmarks')) ||
@@ -36,18 +36,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-10, bt: Debug  , os: ubuntu-18.04, bitlinks: static64 static32}
           - {std: 11, cxx: g++-10, bt: Release, os: ubuntu-18.04, bitlinks: static64 static32}
-          - {std: 17, cxx: g++-10, bt: Debug  , os: ubuntu-18.04, bitlinks: static64 static32}
           - {std: 17, cxx: g++-10, bt: Release, os: ubuntu-18.04, bitlinks: static64 static32}
-          - {std: 20, cxx: g++-10, bt: Debug  , os: ubuntu-18.04, bitlinks: static64 static32}
           - {std: 20, cxx: g++-10, bt: Release, os: ubuntu-18.04, bitlinks: static64 static32}
-          - {std: 11, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: static64 static32}
+          #
           - {std: 11, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: static64 static32}
-          - {std: 17, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: static64 static32}
           - {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: static64 static32}
-          - {std: 20, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: static64 static32}
           - {std: 20, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: static64 static32}
+          #
+          - {std: 11, cxx: xcode, xcver: 13, bt: Release, os: macos-11, bitlinks: static64}
+          - {std: 17, cxx: xcode, xcver: 13, bt: Release, os: macos-11, bitlinks: static64}
     env: {BM: ON, STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       # use fetch-depth to ensure all tags are fetched
@@ -75,7 +73,7 @@ jobs:
           set -x
           desc=$(git describe || git rev-parse --short HEAD)
           for bl in ${{matrix.bitlinks}} ; do
-            dst=$(echo benchmark_results/$desc/${{matrix.cxx}}-${{matrix.bt}}-c++${{matrix.std}}-$bl | sed 's:++-:xx:g' | sed 's:+:x:g')
+            dst=$(echo benchmark_results/$desc/x86_64/${{matrix.cxx}}-${{matrix.bt}}-c++${{matrix.std}}-$bl | sed 's:++-:xx:g' | sed 's:+:x:g')
             mkdir -p $dst
             find build -name bm-results
             mv -vf build/$bl/bm/bm-results/* $dst/.
@@ -85,3 +83,92 @@ jobs:
         with:
           name: benchmark_results
           path: benchmark_results/
+
+  #--------------------------------------------------------------------------------------------------
+  bm_rarearch:
+    name: bm/${{matrix.arch}}/c++${{matrix.std}}/${{matrix.bt}}
+    if: |
+      (!contains(github.event.head_commit.message, 'skip all')) ||
+      (!contains(github.event.head_commit.message, 'skip benchmarks')) ||
+      contains(github.event.head_commit.message, 'only benchmarks')
+    continue-on-error: true
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {std: 11, bt: Release, arch: aarch64, distro: ubuntu20.04}
+          - {std: 17, bt: Release, arch: aarch64, distro: ubuntu20.04}
+          #
+          - {std: 11, bt: Release, arch: ppc64le, distro: ubuntu20.04}
+          - {std: 17, bt: Release, arch: ppc64le, distro: ubuntu20.04}
+          #
+          # the github runners are failing for the following:
+          #- {std: 11, bt: Release, arch: s390x  , distro: ubuntu20.04}
+          #- {std: 17, bt: Release, arch: s390x  , distro: ubuntu20.04}
+          ##
+          #- {std: 11, bt: Release, arch: armv6  , distro: ubuntu18.04}
+          #- {std: 17, bt: Release, arch: armv6  , distro: ubuntu18.04}
+          ##
+          #- {std: 11, bt: Release, arch: armv7  , distro: ubuntu18.04}
+          #- {std: 17, bt: Release, arch: armv7  , distro: ubuntu18.04}
+    steps:
+      - {name: checkout, uses: actions/checkout@v2, with: {submodules: recursive}}
+      - name: test
+        uses: uraimo/run-on-arch-action@v2.0.5
+        with:
+          arch: ${{matrix.arch}}
+          distro: ${{matrix.distro}}
+          install: |
+            set -x
+            apt-get update -y
+            apt-get install -y \
+              git \
+              build-essential
+            # arm platforms need an up-to-date cmake:
+            # https://gitlab.kitware.com/cmake/cmake/-/issues/20568
+            if [ "${{matrix.arch}}" == "armv6" ] || [ "${{matrix.arch}}" == "armv7" ] ; then
+              apt-get install -y \
+                gpg \
+                wget \
+                apt-transport-https
+              wget --no-check-certificate -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+              echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
+              apt-get update -y
+              rm /usr/share/keyrings/kitware-archive-keyring.gpg
+              apt-get install kitware-archive-keyring
+              apt-get update -y
+            fi
+            apt-get install -y cmake cmake-data
+            cmake --version
+          run: |
+            set -x
+            uname -a
+            pwd
+            ls -lFhp .
+            #
+            bdir=build_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}
+            idir=install_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}
+            mkdir -p $bdir
+            #
+            cmake -S . -B $bdir \
+              -DCMAKE_INSTALL_PREFIX=$idir \
+              -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
+              -DC4_CXX_STANDARD=${{matrix.std}} \
+              -DCXX_STANDARD=${{matrix.std}} \
+              -DC4CORE_DEV=ON \
+              -DC4CORE_BUILD_TESTS=OFF \
+              -DC4CORE_BUILD_BENCHMARKS=ON \
+              -DC4CORE_SANITIZE=OFF \
+              -DC4CORE_LINT=OFF \
+              -DC4CORE_VALGRIND=OFF
+            #
+            cmake --build $bdir -j --target c4core-bm-build
+            #
+            cmake --build $bdir -j 1 --target c4core-bm-run
+            #
+            desc=$(git describe || git rev-parse --short HEAD)
+            dst=$(echo benchmark_results/$desc/${{matrix.arch}}/${{matrix.bt}}-c++${{matrix.std}} | sed 's:++-:xx:g' | sed 's:+:x:g')
+            mkdir -p $dst
+            find $bdir -name bm-results
+            mv -vf $bdir/bm/bm-results/* $dst/.

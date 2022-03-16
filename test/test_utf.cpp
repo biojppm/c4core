@@ -34,6 +34,8 @@ TEST_CASE("utf.decode_code_point")
              "val=", uc.character_val_hex, '(', uc.character_val, ')');
         i++;
         csubstr cpstr = uc.code_point.sub(2).triml('0');
+        if(cpstr.empty())
+            continue;
         csubstr decoded = decode_code_point(decoded_buf, cpstr);
         CHECK_UNARY(uc.code_point.begins_with("U+"));
         if(uc.character.empty())
