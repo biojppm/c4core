@@ -45,6 +45,7 @@ substr decode_code_point(substr out, csubstr code_point)
     C4_ASSERT(!code_point.begins_with("\\U"));
     C4_ASSERT(!code_point.begins_with('0'));
     C4_ASSERT(code_point.len <= 8);
+    C4_ASSERT(code_point.len > 0);
     uint32_t code_point_val;
     C4_CHECK(read_hex(code_point, &code_point_val));
     size_t ret = decode_code_point((uint8_t*)out.str, out.len, code_point_val);

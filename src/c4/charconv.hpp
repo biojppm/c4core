@@ -763,11 +763,13 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits) noexcept
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note The string must be trimmed. Whitespace is not accepted.
+ * @note the string must not be empty
  * @return true if the conversion was successful */
 template<class I>
 C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
+    C4_ASSERT(!s.empty());
     *v = 0;
     for(char c : s)
     {
@@ -782,12 +784,14 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v) noexcept
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note does not accept leading 0x or 0X
+ * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
  * @return true if the conversion was successful */
 template<class I>
 C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
+    C4_ASSERT(!s.empty());
     *v = 0;
     for(char c : s)
     {
@@ -809,12 +813,14 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v) noexcept
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note does not accept leading 0b or 0B
+ * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
  * @return true if the conversion was successful */
 template<class I>
 C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
+    C4_ASSERT(!s.empty());
     *v = 0;
     for(char c : s)
     {
@@ -831,12 +837,14 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v) noexcept
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note does not accept leading 0o or 0O
+ * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
  * @return true if the conversion was successful */
 template<class I>
 C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
+    C4_ASSERT(!s.empty());
     *v = 0;
     for(char c : s)
     {
