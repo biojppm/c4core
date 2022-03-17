@@ -72,6 +72,14 @@ bool is_aligned(T *ptr, size_t alignment=alignof(T))
  */
 /** @{ */
 
+// https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
+#define _c4_lsb_fallback                                                \
+    unsigned c = 0;                                                     \
+    v = (v ^ (v - 1)) >> 1; /* Set v's trailing 0s to 1s and zero rest */ \
+    for(; v; ++c)                                                       \
+        v >>= 1;                                                        \
+    return (unsigned) c
+
 // u8
 template<class I>
 C4_CONSTEXPR14
@@ -83,18 +91,18 @@ auto lsb(I v) noexcept
     #if _C4_USE_LSB_INTRINSIC(__builtin_ctz)
         // upcast to use the intrinsic, it's cheaper.
         #ifdef C4_MSVC
-            unsigned long bit;
-            _BitScanForward(&bit, (unsigned long)v);
-            return bit;
+            #if !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
+                unsigned long bit;
+                _BitScanForward(&bit, (unsigned long)v);
+                return bit;
+            #else
+                _c4_lsb_fallback;
+            #endif
         #else
             return (unsigned)__builtin_ctz((unsigned)v);
         #endif
     #else
-        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
-        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
-        for (int c = 0; v; ++c)
-            v >>= 1;
-        return v;
+        _c4_lsb_fallback;
     #endif
 }
 
@@ -110,18 +118,18 @@ auto lsb(I v) noexcept
         // upcast to use the intrinsic, it's cheaper.
         // Then remember that the upcast makes it to 31bits
         #ifdef C4_MSVC
-            unsigned long bit;
-            _BitScanForward(&bit, (unsigned long)v);
-            return bit;
+            #if !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
+                unsigned long bit;
+                _BitScanForward(&bit, (unsigned long)v);
+                return bit;
+            #else
+                _c4_lsb_fallback;
+            #endif
         #else
             return (unsigned)__builtin_ctz((unsigned)v);
         #endif
     #else
-        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
-        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
-        for (int c = 0; v; ++c)
-            v >>= 1;
-        return v;
+        _c4_lsb_fallback;
     #endif
 }
 
@@ -135,18 +143,18 @@ auto lsb(I v) noexcept
     C4_ASSERT(v != 0);
     #if _C4_USE_LSB_INTRINSIC(__builtin_ctz)
         #ifdef C4_MSVC
-            unsigned long bit;
-            _BitScanForward(&bit, v);
-            return bit;
+            #if !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
+                unsigned long bit;
+                _BitScanForward(&bit, v);
+                return bit;
+            #else
+                _c4_lsb_fallback;
+            #endif
         #else
             return (unsigned)__builtin_ctz((unsigned)v);
         #endif
     #else
-        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
-        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
-        for (int c = 0; v; ++c)
-            v >>= 1;
-        return v;
+        _c4_lsb_fallback;
     #endif
 }
 
@@ -160,19 +168,18 @@ auto lsb(I v) noexcept
     C4_ASSERT(v != 0);
     #if _C4_USE_LSB_INTRINSIC(__builtin_ctzl)
         #if defined(C4_MSVC)
-            unsigned long bit;
-            _BitScanForward64(&bit, v);
-            return bit;
+            #if !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
+                unsigned long bit;
+                _BitScanForward64(&bit, v);
+                return bit;
+            #else
+                _c4_lsb_fallback;
+            #endif
         #else
             return (unsigned)__builtin_ctzl((unsigned long)v);
         #endif
     #else
-        // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
-        unsigned c = 0;
-        v = (v ^ (v - 1)) >> 1;  // Set v's trailing 0s to 1s and zero rest
-        for(; v; ++c)
-            v >>= 1;
-        return c;
+        _c4_lsb_fallback;
     #endif
 }
 
@@ -182,31 +189,26 @@ C4_CONSTEXPR14
 auto lsb(I v) noexcept
     -> typename std::enable_if<sizeof(I) == 8u && sizeof(unsigned long long) == 8u && sizeof(unsigned long) != sizeof(unsigned long long), unsigned>::type
 {
-    // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightLinear
-#define _c4_lsb64_fallback                                              \
-    unsigned c = 0;                                                          \
-    v = (v ^ (v - 1)) >> 1; /* Set v's trailing 0s to 1s and zero rest */ \
-    for(; v; ++c)                                                       \
-        v >>= 1;                                                        \
-    return (unsigned) c
     C4_STATIC_ASSERT(std::is_unsigned<I>::value);
     C4_ASSERT(v != 0);
     #if _C4_USE_LSB_INTRINSIC(__builtin_ctzll)
-        #ifdef C4_MSVC
-            #if !defined(C4_CPU_X86)
+        #if defined(C4_MSVC)
+            #if !defined(C4_CPU_X86) && !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
                 unsigned long bit;
                 _BitScanForward64(&bit, v);
                 return bit;
             #else
-                _c4_lsb64_fallback;
+                _c4_lsb_fallback;
             #endif
         #else
             return (unsigned)__builtin_ctzll((unsigned long long)v);
         #endif
     #else
-        _c4_lsb64_fallback;
+        _c4_lsb_fallback;
     #endif
 }
+
+#undef _c4_lsb_fallback
 
 /** @} */
 
@@ -250,6 +252,42 @@ struct lsb11
  */
 /** @{ */
 
+
+#define _c4_msb8_fallback                       \
+    unsigned n = 0;                             \
+    if(v & I(0xf0)) v >>= 4, n |= I(4);         \
+    if(v & I(0x0c)) v >>= 2, n |= I(2);         \
+    if(v & I(0x02)) v >>= 1, n |= I(1);         \
+    return n
+
+#define _c4_msb16_fallback                      \
+    unsigned n = 0;                             \
+    if(v & I(0xff00)) v >>= 8, n |= I(8);       \
+    if(v & I(0x00f0)) v >>= 4, n |= I(4);       \
+    if(v & I(0x000c)) v >>= 2, n |= I(2);       \
+    if(v & I(0x0002)) v >>= 1, n |= I(1);       \
+    return n
+
+#define _c4_msb32_fallback                      \
+    unsigned n = 0;                             \
+    if(v & I(0xffff0000)) v >>= 16, n |= 16;    \
+    if(v & I(0x0000ff00)) v >>= 8, n |= 8;      \
+    if(v & I(0x000000f0)) v >>= 4, n |= 4;      \
+    if(v & I(0x0000000c)) v >>= 2, n |= 2;      \
+    if(v & I(0x00000002)) v >>= 1, n |= 1;      \
+    return n
+
+#define _c4_msb64_fallback                              \
+    unsigned n = 0;                                     \
+    if(v & I(0xffffffff00000000)) v >>= 32, n |= I(32); \
+    if(v & I(0x00000000ffff0000)) v >>= 16, n |= I(16); \
+    if(v & I(0x000000000000ff00)) v >>= 8, n |= I(8);   \
+    if(v & I(0x00000000000000f0)) v >>= 4, n |= I(4);   \
+    if(v & I(0x000000000000000c)) v >>= 2, n |= I(2);   \
+    if(v & I(0x0000000000000002)) v >>= 1, n |= I(1);   \
+    return n
+
+
 // u8
 template<class I>
 C4_CONSTEXPR14
@@ -262,18 +300,18 @@ auto msb(I v) noexcept
         // upcast to use the intrinsic, it's cheaper.
         // Then remember that the upcast makes it to 31bits
         #ifdef C4_MSVC
-            unsigned long bit;
-            _BitScanReverse(&bit, (unsigned long)v);
-            return bit;
+            #if !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
+                unsigned long bit;
+                _BitScanReverse(&bit, (unsigned long)v);
+                return bit;
+            #else
+                _c4_msb8_fallback;
+            #endif
         #else
             return 31u - (unsigned)__builtin_clz((unsigned)v);
         #endif
     #else
-        unsigned n = 0;
-        if(v & I(0xf0)) v >>= 4, n |= I(4);
-        if(v & I(0x0c)) v >>= 2, n |= I(2);
-        if(v & I(0x02)) v >>= 1, n |= I(1);
-        return n;
+        _c4_msb8_fallback;
     #endif
 }
 
@@ -289,19 +327,18 @@ auto msb(I v) noexcept
         // upcast to use the intrinsic, it's cheaper.
         // Then remember that the upcast makes it to 31bits
         #ifdef C4_MSVC
-            unsigned long bit;
-            _BitScanReverse(&bit, (unsigned long)v);
-            return bit;
+            #if !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
+                unsigned long bit;
+                _BitScanReverse(&bit, (unsigned long)v);
+                return bit;
+            #else
+                _c4_msb16_fallback;
+            #endif
         #else
             return 31u - (unsigned)__builtin_clz((unsigned)v);
         #endif
     #else
-        unsigned n = 0;
-        if(v & I(0xff00)) v >>= 8, n |= I(8);
-        if(v & I(0x00f0)) v >>= 4, n |= I(4);
-        if(v & I(0x000c)) v >>= 2, n |= I(2);
-        if(v & I(0x0002)) v >>= 1, n |= I(1);
-        return n;
+        _c4_msb16_fallback;
     #endif
 }
 
@@ -315,20 +352,18 @@ auto msb(I v) noexcept
     C4_ASSERT(v != 0);
     #if _C4_USE_MSB_INTRINSIC(__builtin_clz)
         #ifdef C4_MSVC
-            unsigned long bit;
-            _BitScanReverse(&bit, v);
-            return bit;
+            #if !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
+                unsigned long bit;
+                _BitScanReverse(&bit, v);
+                return bit;
+            #else
+                _c4_msb32_fallback;
+            #endif
         #else
             return 31u - (unsigned)__builtin_clz((unsigned)v);
         #endif
     #else
-        unsigned n = 0;
-        if(v & I(0xffff0000)) v >>= 16, n |= 16;
-        if(v & I(0x0000ff00)) v >>= 8, n |= 8;
-        if(v & I(0x000000f0)) v >>= 4, n |= 4;
-        if(v & I(0x0000000c)) v >>= 2, n |= 2;
-        if(v & I(0x00000002)) v >>= 1, n |= 1;
-        return n;
+        _c4_msb32_fallback;
     #endif
 }
 
@@ -342,21 +377,18 @@ auto msb(I v) noexcept
     C4_ASSERT(v != 0);
     #if _C4_USE_MSB_INTRINSIC(__builtin_clzl)
         #ifdef C4_MSVC
-            unsigned long bit;
-            _BitScanReverse64(&bit, v);
-            return bit;
+            #if !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
+                unsigned long bit;
+                _BitScanReverse64(&bit, v);
+                return bit;
+            #else
+                _c4_msb64_fallback;
+            #endif
         #else
             return 63u - (unsigned)__builtin_clzl((unsigned long)v);
         #endif
     #else
-        unsigned n = 0;
-        if(v & I(0xffffffff00000000)) v >>= 32, n |= I(32);
-        if(v & I(0x00000000ffff0000)) v >>= 16, n |= I(16);
-        if(v & I(0x000000000000ff00)) v >>= 8, n |= I(8);
-        if(v & I(0x00000000000000f0)) v >>= 4, n |= I(4);
-        if(v & I(0x000000000000000c)) v >>= 2, n |= I(2);
-        if(v & I(0x0000000000000002)) v >>= 1, n |= I(1);
-        return n;
+        _c4_msb64_fallback;
     #endif
 }
 
@@ -366,20 +398,11 @@ C4_CONSTEXPR14
 auto msb(I v) noexcept
     -> typename std::enable_if<sizeof(I) == 8u && sizeof(unsigned long long) == 8u && sizeof(unsigned long) != sizeof(unsigned long long), unsigned>::type
 {
-#define _c4_msb64_fallback                              \
-    unsigned n = 0;                                     \
-    if(v & I(0xffffffff00000000)) v >>= 32, n |= I(32); \
-    if(v & I(0x00000000ffff0000)) v >>= 16, n |= I(16); \
-    if(v & I(0x000000000000ff00)) v >>= 8, n |= I(8);   \
-    if(v & I(0x00000000000000f0)) v >>= 4, n |= I(4);   \
-    if(v & I(0x000000000000000c)) v >>= 2, n |= I(2);   \
-    if(v & I(0x0000000000000002)) v >>= 1, n |= I(1);   \
-    return n
     C4_STATIC_ASSERT(std::is_unsigned<I>::value);
     C4_ASSERT(v != 0);
     #if _C4_USE_MSB_INTRINSIC(__builtin_clzll)
         #ifdef C4_MSVC
-            #if !defined(C4_CPU_X86)
+            #if !defined(C4_CPU_X86) && !defined(C4_CPU_ARM64) && !defined(C4_CPU_ARM)
                 unsigned long bit;
                 _BitScanReverse64(&bit, v);
                 return bit;
@@ -393,6 +416,11 @@ auto msb(I v) noexcept
         _c4_msb64_fallback;
     #endif
 }
+
+#undef _c4_msb8_fallback
+#undef _c4_msb16_fallback
+#undef _c4_msb32_fallback
+#undef _c4_msb64_fallback
 
 /** @} */
 
