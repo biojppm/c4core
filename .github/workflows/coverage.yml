@@ -65,7 +65,7 @@ jobs:
           - {std: 11, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
           - {std: 14, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
           - {std: 17, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
-          - {std: 20, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-20.04}
+          #- {std: 20, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-20.04}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}", CODECOV_TOKEN: "${{secrets.CODECOV_TOKEN}}", COVERALLS_REPO_TOKEN: "${{secrets.COVERALLS_REPO_TOKEN}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v2, with: {submodules: recursive}}

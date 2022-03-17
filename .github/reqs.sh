@@ -66,6 +66,8 @@ function c4_install_test_requirements_macos()
 
 function c4_install_test_requirements_ubuntu()
 {
+    UBUNTU_RELEASE=$(lsb_release -rs)
+    UBUNTU_RELEASE_NAME=$(lsb_release -cs)
     APT_PKG=""  # all
     PIP_PKG=""
     c4_gather_test_requirements_ubuntu
@@ -147,7 +149,7 @@ function c4_install_test_requirements_ubuntu_impl()
 {
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
-    sudo -E apt-add-repository --yes 'deb https://apt.kitware.com/ubuntu/ bionic main'
+    sudo -E apt-add-repository --yes "deb https://apt.kitware.com/ubuntu/ $UBUNTU_RELEASE_NAME main"
     sudo -E add-apt-repository --yes ppa:ubuntu-toolchain-r/test
 
     if [ "$APT_PKG" != "" ] ; then
@@ -190,6 +192,7 @@ function _c4_gather_compilers()
         g++-5      ) _c4_addgcc 5  ;;
         #g++-4.9    ) _c4_addgcc 4.9 ;;  # https://askubuntu.com/questions/1036108/install-gcc-4-9-at-ubuntu-18-04
         g++-4.8    ) _c4_addgcc 4.8 ;;
+        clang++-13 ) _c4_addclang 13  ;;
         clang++-12 ) _c4_addclang 12  ;;
         clang++-11 ) _c4_addclang 11  ;;
         clang++-10 ) _c4_addclang 10  ;;
@@ -243,8 +246,8 @@ function _c4_addclang()
     clversion=$1
     case $clversion in
         # in 18.04, clang9 and later require PPAs
-        9 | 10 | 11 | 12 )
-            _add_apt clang-$clversion "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-$clversion main"
+        9 | 10 | 11 | 12 | 13)
+            _add_apt clang-$clversion "deb http://apt.llvm.org/$UBUNTU_RELEASE_NAME/ llvm-toolchain-$UBUNTU_RELEASE_NAME-$clversion main"
             # libstdc++ is required
             _c4_addgcc 11
             _c4_addgcc 10

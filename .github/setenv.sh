@@ -272,11 +272,13 @@ function c4_cfg_test()
         vs2022)
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -G 'Visual Studio 17 2022' -A $(_c4vsarchtype $id) \
+                  $(_c4_add_ehsc_to_vs_arm32 $id) \
                   -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
             ;;
         vs2019)
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -G 'Visual Studio 16 2019' -A $(_c4vsarchtype $id) \
+                  $(_c4_add_ehsc_to_vs_arm32 $id) \
                   -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
             ;;
         vs2017)
@@ -286,6 +288,7 @@ function c4_cfg_test()
                 *) exit 1 ;;
             esac
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
+                  $(_c4_add_ehsc_to_vs_arm32 $id) \
                   -DCMAKE_BUILD_TYPE=$BT -G "$g" $CMFLAGS
             ;;
         xcode)
@@ -293,6 +296,7 @@ function c4_cfg_test()
             case "$bits" in
                 64) a="x86_64" ;;
                 32) a="i386"
+                    echo "xcode does not support i386"
                     exit 1 # i386 is deprecated in xcode
                     ;;
             esac
@@ -362,6 +366,21 @@ function _addprojflags()
     for f in $* ; do
         CMFLAGS="$CMFLAGS -D${PROJ_PFX_CMAKE}${f}"
     done
+}
+
+function _c4_add_ehsc_to_vs_arm32()
+{
+    id=$1
+    case "$CXX_" in
+        vs*)
+            case "$id" in
+                arm32|arm32shared|arm32static|shared32arm|static32arm|arm)
+                    echo '-DCMAKE_CXX_FLAGS="/EHsc"'
+                    ;;
+                *)
+            esac
+            ;;
+    esac
 }
 
 function _c4_parallel_build_flags()
