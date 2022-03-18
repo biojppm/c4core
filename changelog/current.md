@@ -90,6 +90,11 @@ If you feel suspicious about these bold claims, you can browse through [c4core's
   }
   ```
 
+### Fixes
+
+- Fix missing endianess macro on windows arm/arm64 compilations [PR #76](https://github.com/biojppm/c4core/pull/76)
+
+
 ### Thanks
 
 - @fargies
