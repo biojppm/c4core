@@ -25,7 +25,6 @@ env:
   PROJ_PFX_CMAKE: C4CORE_
   CMAKE_FLAGS:
   NUM_JOBS_BUILD: # 4
-  EMSCRIPTEN_CACHE_FOLDER: 'emsdk-cache'
 
 
 # ubuntu-20.04:
@@ -82,15 +81,17 @@ jobs:
       SAN: "${{matrix.san}}"
       LINT: "${{matrix.lint}}"
       OS: "${{matrix.os}}"
+      EM_VERSION: "${{matrix.emver}}"
+      EM_CACHE_FOLDER: 'emsdk-cache'
     steps:
       - {name: checkout, uses: actions/checkout@v2, with: {submodules: recursive}}
       - name: setup emscripten cache
         id: cache-system-libraries
         uses: actions/cache@v2
-        with: {path: "${{env.EMSCRIPTEN_CACHE_FOLDER}}", key: "${{matrix.emver}}-${{runner.os}}"}
+        with: {path: "${{env.EM_CACHE_FOLDER}}", key: "${{env.EM_VERSION}}-${{runner.os}}"}
       - name: setup emscripten
         uses: mymindstorm/setup-emsdk@v11
-        with: {version: "${{matrix.emver}}", actions-cache-folder: "${{env.EMSCRIPTEN_CACHE_FOLDER}}"}
+        with: {version: "${{matrix.emver}}", actions-cache-folder: "${{env.EM_CACHE_FOLDER}}"}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: static32-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test static32

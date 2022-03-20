@@ -6,13 +6,22 @@
 #include <string.h>
 #include <thread>
 #include <vector>
-#include <charconv>
 #include <sstream>
+#if defined(__cpp_lib_to_chars) || (C4_CPP >= 17)
+#define C4_HAS_STDTOCHARS 1
+#else
+#define C4_HAS_STDTOCHARS 0
+#endif
+#if C4_HAS_STDTOCHARS
+#include <charconv>
+#endif
 
+C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wcast-align")
+C4_SUPPRESS_WARNING_GCC("-Wuseless-cast")
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
-C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wuseless-cast")
 #define STB_SPRINTF_IMPLEMENTATION
 #include <stb_sprintf.h>
 C4_SUPPRESS_WARNING_GCC_POP
@@ -70,7 +79,7 @@ void snprintf_l(bm::State &st)
             #if defined(_MSC_VER)
             int ret = _snprintf_l(buf, 100, "%i", NULL, i++);
             #else
-            int ret = snprintf_l(buf, 100, NULL, "%i", i + g_Global);
+            int ret = snprintf_l(buf, 100, NULL, "%i", i++);
             #endif
             sum += (size_t)ret + buf[0];
         }
@@ -80,6 +89,26 @@ void snprintf_l(bm::State &st)
 }
 BMTHREADS(snprintf_l);
 #endif
+
+
+void stb_snprintf(bm::State &st)
+{
+    size_t sum = {};
+    char buf[100];
+    int i = 0;
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+        {
+            stbsp_snprintf(buf, 100, "%i", i++);
+            sum += strlen(buf) + buf[0];
+        }
+    }
+    bm::DoNotOptimize(sum);
+    report_threadavg<int>(st, kNumValues);
+}
+BMTHREADS(stb_snprintf);
+
 
 
 void sstream(bm::State &st)
@@ -189,6 +218,27 @@ BMTHREADS(std_format_to);
 #endif
 
 
+void fmtlib_format_to(bm::State &st)
+{
+    size_t sum = {};
+	fmt::memory_buffer buf;
+    int i = 0;
+    for(auto _ : st)
+    {
+        C4DOALL(kNumValues)
+        {
+            buf.clear();
+            fmt::format_to(fmt::appender(buf), "{}", i++);
+            sum += buf.size() + buf[0];
+        }
+    }
+    bm::DoNotOptimize(sum);
+    report_threadavg<int>(st, kNumValues);
+}
+BMTHREADS(fmtlib_format_to);
+
+
+#if C4_HAS_STDTOCHARS
 void std_to_chars(bm::State &st)
 {
     size_t sum = {};
@@ -206,6 +256,7 @@ void std_to_chars(bm::State &st)
     report_threadavg<int>(st, kNumValues);
 }
 BMTHREADS(std_to_chars);
+#endif
 
 
 void c4_write_dec(bm::State &st)
