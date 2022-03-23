@@ -40,6 +40,22 @@ if(C4CORE_BM_XTOA_RND)
 endif()
 
 
+# R&D for atox
+option(C4CORE_BM_ATOX_RND "whether to enable R&D benchmark for xtoa" OFF)
+if(C4CORE_BM_ATOX_RND)
+    c4_add_executable(c4core-bm-atox
+        SOURCES bm_atox.cpp
+        LIBS c4core benchmark
+        FOLDER bm)
+    function(c4core_atox_benchmark)
+        foreach(case ${ARGN})
+            c4_add_target_benchmark(c4core-bm-atox ${case} FILTER "^.*<${case}.*")
+        endforeach()
+    endfunction()
+    c4core_atox_benchmark(uint8 int8 uint16 int16 uint32 int32 uint64 int64)
+endif()
+
+
 #----------------------------------------------
 
 # libraries to compare
@@ -125,8 +141,8 @@ c4core_charconv_threads_benchmark(c4_to_chars "^c4_to_chars/.*")
 if(WIN32)
 c4core_charconv_threads_benchmark(snprintf_l "^snprintf_l/.*")
 c4core_charconv_threads_benchmark(itoa "^itoa/.*")
-endif()
-get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)
-if(cxx_std_20 IN_LIST known_features)
-    c4core_charconv_threads_benchmark(std_format_to "^std_format_to/.*")
+#get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)
+#if(cxx_std_20 IN_LIST known_features)
+#c4core_charconv_threads_benchmark(std_format_to "^std_format_to/.*")
+#endif()
 endif()
