@@ -24,6 +24,10 @@
  * // Read a value from the string, which must be
  * // trimmed to the value (ie, no leading/trailing whitespace).
  * // return true if the conversion succeeded.
+ * // There is no check for overflow; the value wraps around in a way similar
+ * // to the standard C/C++ overflow behavior. For example,
+ * // from_chars<int8_t>("128", &val) returns true and val will be
+ * // set tot 0.
  * template<class T> bool c4::from_chars(csubstr buf, T * C4_RESTRICT val);
  *
  *
@@ -620,12 +624,10 @@ void write_bin_unchecked(substr buf, T v, unsigned digits_v) noexcept
 /** write an integer to a string in decimal format. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
- *
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
 {
@@ -640,11 +642,11 @@ C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
 /** write an integer to a string in hexadecimal format. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ * @note does not prefix with 0x
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
 {
@@ -660,11 +662,10 @@ C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note does not prefix with 0o
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
 {
@@ -680,11 +681,10 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
  * @note does not prefix with 0b
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_bin(substr buf, T v) noexcept
 {
@@ -720,7 +720,7 @@ size_t write_num_digits(substr buf, T v, size_t num_digits) noexcept
 
 /** same as c4::write_dec(), but pad with zeroes on the left
  * such that the resulting string is @p num_digits wide.
- * If the given number is wider than num_digits, then the number prevails. */
+ * If the given number is requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_dec(substr buf, T val, size_t num_digits) noexcept
 {
@@ -729,7 +729,7 @@ C4_ALWAYS_INLINE size_t write_dec(substr buf, T val, size_t num_digits) noexcept
 
 /** same as c4::write_hex(), but pad with zeroes on the left
  * such that the resulting string is @p num_digits wide.
- * If the given number is wider than num_digits, then the number prevails. */
+ * If the given number is requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_hex(substr buf, T val, size_t num_digits) noexcept
 {
@@ -738,7 +738,7 @@ C4_ALWAYS_INLINE size_t write_hex(substr buf, T val, size_t num_digits) noexcept
 
 /** same as c4::write_bin(), but pad with zeroes on the left
  * such that the resulting string is @p num_digits wide.
- * If the given number is wider than num_digits, then the number prevails. */
+ * If the given number is requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_bin(substr buf, T val, size_t num_digits) noexcept
 {
@@ -747,7 +747,7 @@ C4_ALWAYS_INLINE size_t write_bin(substr buf, T val, size_t num_digits) noexcept
 
 /** same as c4::write_oct(), but pad with zeroes on the left
  * such that the resulting string is @p num_digits wide.
- * If the given number is wider than num_digits, then the number prevails. */
+ * If the given number is requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits) noexcept
 {
@@ -764,7 +764,12 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits) noexcept
  * @note does not accept negative numbers
  * @note The string must be trimmed. Whitespace is not accepted.
  * @note the string must not be empty
- * @return true if the conversion was successful */
+ * @note there is no check for overflow; the value wraps around
+ * in a way similar to the standard C/C++ overflow behavior.
+ * For example, `read_dec<int8_t>("128", &val)` returns true
+ * and val will be set to 0 because 127 is the max i8 value.
+ * @see overflows<T>() to find out if a number string overflows a type range
+ * @return true if the conversion was successful (no overflow check) */
 template<class I>
 C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v) noexcept
 {
@@ -786,7 +791,12 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v) noexcept
  * @note does not accept leading 0x or 0X
  * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
- * @return true if the conversion was successful */
+ * @note there is no check for overflow; the value wraps around
+ * in a way similar to the standard C/C++ overflow behavior.
+ * For example, `read_hex<int8_t>("80", &val)` returns true
+ * and val will be set to 0 because 7f is the max i8 value.
+ * @see overflows<T>() to find out if a number string overflows a type range
+ * @return true if the conversion was successful (no overflow check) */
 template<class I>
 C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v) noexcept
 {
@@ -815,7 +825,12 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v) noexcept
  * @note does not accept leading 0b or 0B
  * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
- * @return true if the conversion was successful */
+ * @note there is no check for overflow; the value wraps around
+ * in a way similar to the standard C/C++ overflow behavior.
+ * For example, `read_bin<int8_t>("10000000", &val)` returns true
+ * and val will be set to 0 because 1111111 is the max i8 value.
+ * @see overflows<T>() to find out if a number string overflows a type range
+ * @return true if the conversion was successful (no overflow check) */
 template<class I>
 C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v) noexcept
 {
@@ -839,7 +854,12 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v) noexcept
  * @note does not accept leading 0o or 0O
  * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
- * @return true if the conversion was successful */
+ * @note there is no check for overflow; the value wraps around
+ * in a way similar to the standard C/C++ overflow behavior.
+ * For example, `read_oct<int8_t>("200", &val)` returns true
+ * and val will be set to 0 because 177 is the max i8 value.
+ * @see overflows<T>() to find out if a number string overflows a type range
+ * @return true if the conversion was successful (no overflow check) */
 template<class I>
 C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v) noexcept
 {
@@ -975,13 +995,10 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
 
 
 /** convert an integral signed decimal to a string.
- * The resulting string is NOT zero-terminated.
- * Writing stops at the buffer's end.
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t itoa(substr buf, T v) noexcept
 {
@@ -1010,13 +1027,10 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v) noexcept
 /** convert an integral signed integer to a string, using a specific
  * radix. The radix must be 2, 8, 10 or 16.
  *
- * The resulting string is NOT zero-terminated.
- * Writing stops at the buffer's end.
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
 {
@@ -1088,15 +1102,12 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
 
 /** same as c4::itoa(), but pad with zeroes on the left such that the
  * resulting string is @p num_digits wide, not account for radix
- * prefix (0x,0o,0b). The @p radix must be 2, 8, 10 or 16.  The
- * resulting string is NOT zero-terminated.  Writing stops at the
- * buffer's end.
+ * prefix (0x,0o,0b). The @p radix must be 2, 8, 10 or 16.
  *
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexcept
 {
@@ -1172,13 +1183,11 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
 //-----------------------------------------------------------------------------
 
 /** convert an integral unsigned decimal to a string.
- * The resulting string is NOT zero-terminated.
- * Writing stops at the buffer's end.
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+ *
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t utoa(substr buf, T v) noexcept
 {
@@ -1187,14 +1196,13 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v) noexcept
     return write_dec(buf, v);
 }
 
-/** convert an integral unsigned integer to a string, using a specific radix. The radix must be 2, 8, 10 or 16.
- * The resulting string is NOT zero-terminated.
- * Writing stops at the buffer's end.
- * @return the number of characters required for the string, if the
- * buffer is large enough to accomodate the largest number of this
- * type. Otherwise it returns the latter. This allows reporting the
- * size of a successful write, or the size needed for any number of
- * this type. */
+/** convert an integral unsigned integer to a string, using a specific
+ * radix. The radix must be 2, 8, 10 or 16.
+ *
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
 {
@@ -1244,11 +1252,12 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
 
 /** same as c4::utoa(), but pad with zeroes on the left such that the
  * resulting string is @p num_digits wide. The @p radix must be 2,
- * 8, 10 or 16.  The resulting string is NOT zero-terminated. Writing
- * occurs only if the buffer is large enough to contain the largest
- * value of the type or @p num_digits if it is larger.
+ * 8, 10 or 16.
  *
- * @return the number of characters required for the string */
+ * @note the resulting string is NOT zero-terminated.
+ * @note it is ok to call this with an empty or too-small buffer;
+ * no writes will occur, and the needed size will be returned
+ * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexcept
 {
