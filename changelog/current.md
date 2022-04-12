@@ -93,6 +93,7 @@ If you feel suspicious about these bold claims, you can browse through [c4core's
 ### Fixes
 
 - Fix missing endianess macro on windows arm/arm64 compilations [PR #76](https://github.com/biojppm/c4core/pull/76)
+- Add missing `#define` for the include guard of the amalgamated header (see [rapidyaml#246](https://github.com/biojppm/rapidyaml/issues/246)).
 
 
 ### Thanks
