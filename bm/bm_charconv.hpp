@@ -96,6 +96,14 @@ void report(bm::State &st, size_t numvals=1)
     st.SetBytesProcessed(bytes);
     st.SetItemsProcessed(iters);
 }
+template<class T>
+void report_threadavg(bm::State &st, size_t numvals=1)
+{
+    int64_t iters = (int64_t)(st.iterations() * numvals);
+    int64_t bytes = (int64_t)(st.iterations() * numvals * sizeof(T));
+    st.SetBytesProcessed(bytes / (int64_t)st.threads);
+    st.SetItemsProcessed(iters / (int64_t)st.threads);
+}
 
 template<class T>
 constexpr bool is_pot(T val)
@@ -129,7 +137,7 @@ generate_n(T *begin, T *end)
 {
     // do not use T in the distribution:
     //  N4659 29.6.1.1 [rand.req.genl]/1e requires one of short, int, long, long long, unsigned short, unsigned int, unsigned long, or unsigned long long
-    std::uniform_int_distribution<uint64_t> idist;
+    std::uniform_int_distribution<int64_t> idist;
     c4::rng::pcg rng(kSeed);
     for(; begin != end; ++begin)
         *begin = gen<T>(idist, rng);
@@ -168,7 +176,7 @@ generate_n_positive(T *begin, T *end)
     c4::rng::pcg rng(kSeed);
     // make sure we also have some integral numbers in the real sequence
     T *rstart = begin + (std::distance(begin, end) / 20); // 5% integral numbers
-    std::uniform_int_distribution<uint32_t> idist;
+    std::uniform_int_distribution<int32_t> idist;
     std::uniform_real_distribution<T> rdist;
     for(; begin != rstart; ++begin)
         *begin = gen_pos<T>(idist, rng);
@@ -446,4 +454,4 @@ struct sbuf
 
 using string_buffer = sbuf<>;
 
-#define C4DOALL(n) for(size_t elm = 0; elm < n; ++elm)
+#define C4DOALL(n) for(size_t elm##__LINE__ = 0; elm##__LINE__ < n; ++elm##__LINE__)

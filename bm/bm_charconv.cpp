@@ -102,7 +102,7 @@ atox_c4_read_dec(bm::State& st)
 }
 
 C4FOR(T, isint)
-atox_c4_read_hex(bm::State& st)
+atoxhex_c4_read_hex(bm::State& st)
 {
     random_strings_cref strings = mkstrings_hex_positive<T>(/*with_prefix*/false);
     T val = {}, sum = {};
@@ -119,7 +119,7 @@ atox_c4_read_hex(bm::State& st)
 }
 
 C4FOR(T, isint)
-atox_c4_read_oct(bm::State& st)
+atoxoct_c4_read_oct(bm::State& st)
 {
     random_strings_cref strings = mkstrings_oct_positive<T>(/*with_prefix*/false);
     T val = {}, sum = {};
@@ -136,7 +136,7 @@ atox_c4_read_oct(bm::State& st)
 }
 
 C4FOR(T, isint)
-atox_c4_read_bin(bm::State& st)
+atoxbin_c4_read_bin(bm::State& st)
 {
     random_strings_cref strings = mkstrings_bin_positive<T>(/*with_prefix*/false);
     T val = {}, sum = {};
@@ -174,7 +174,7 @@ xtoa_c4_write_dec(bm::State& st)
 }
 
 C4FOR(T, isint)
-xtoa_c4_write_hex(bm::State& st)
+xtoahex_c4_write_hex(bm::State& st)
 {
     string_buffer buf;
     random_values_cref<T> values = mkvals_positive<T>();
@@ -188,7 +188,7 @@ xtoa_c4_write_hex(bm::State& st)
 }
 
 C4FOR(T, isint)
-xtoa_c4_write_oct(bm::State& st)
+xtoaoct_c4_write_oct(bm::State& st)
 {
     string_buffer buf;
     random_values_cref<T> values = mkvals_positive<T>();
@@ -202,7 +202,7 @@ xtoa_c4_write_oct(bm::State& st)
 }
 
 C4FOR(T, isint)
-xtoa_c4_write_bin(bm::State& st)
+xtoabin_c4_write_bin(bm::State& st)
 {
     string_buffer buf;
     random_values_cref<T> values = mkvals_positive<T>();
@@ -1064,10 +1064,7 @@ xtoa_c4_to_chars(bm::State& st)
     report<T>(st, kNumValues);
 }
 
-struct with_overflow_checked {};
-#include <iostream>
-template<class T, class opt = void>
-typename std::enable_if<isint(T) && std::is_same<opt, void>::value>::type
+C4FOR(T, isint)
 atox_c4_from_chars(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
@@ -1084,9 +1081,8 @@ atox_c4_from_chars(bm::State& st)
     report<T>(st, kNumValues);
 }
 
-template<class T, class opt = void>
-typename std::enable_if<isint(T) && std::is_same<opt, with_overflow_checked>::value>::type
-atox_c4_from_chars(bm::State& st)
+C4FOR(T, isint)
+atox_c4_from_chars_checked(bm::State& st)
 {
     random_strings_cref strings = mkstrings_positive<T>();
     T val = {}, sum = {};
@@ -1236,10 +1232,46 @@ C4BM_TEMPLATE(c4_digits_bin,  int64_t);
 
 
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+C4BM_TEMPLATE(xtoahex_c4_write_hex,  uint8_t);
+C4BM_TEMPLATE(xtoaoct_c4_write_oct,  uint8_t);
+C4BM_TEMPLATE(xtoabin_c4_write_bin,  uint8_t);
+
+C4BM_TEMPLATE(xtoahex_c4_write_hex,  int8_t);
+C4BM_TEMPLATE(xtoaoct_c4_write_oct,  int8_t);
+C4BM_TEMPLATE(xtoabin_c4_write_bin,  int8_t);
+
+C4BM_TEMPLATE(xtoahex_c4_write_hex,  uint16_t);
+C4BM_TEMPLATE(xtoaoct_c4_write_oct,  uint16_t);
+C4BM_TEMPLATE(xtoabin_c4_write_bin,  uint16_t);
+
+C4BM_TEMPLATE(xtoahex_c4_write_hex,  int16_t);
+C4BM_TEMPLATE(xtoaoct_c4_write_oct,  int16_t);
+C4BM_TEMPLATE(xtoabin_c4_write_bin,  int16_t);
+
+C4BM_TEMPLATE(xtoahex_c4_write_hex,  uint32_t);
+C4BM_TEMPLATE(xtoaoct_c4_write_oct,  uint32_t);
+C4BM_TEMPLATE(xtoabin_c4_write_bin,  uint32_t);
+
+C4BM_TEMPLATE(xtoahex_c4_write_hex,  int32_t);
+C4BM_TEMPLATE(xtoaoct_c4_write_oct,  int32_t);
+C4BM_TEMPLATE(xtoabin_c4_write_bin,  int32_t);
+
+C4BM_TEMPLATE(xtoahex_c4_write_hex,  uint64_t);
+C4BM_TEMPLATE(xtoaoct_c4_write_oct,  uint64_t);
+C4BM_TEMPLATE(xtoabin_c4_write_bin,  uint64_t);
+
+C4BM_TEMPLATE(xtoahex_c4_write_hex,  int64_t);
+C4BM_TEMPLATE(xtoaoct_c4_write_oct,  int64_t);
+C4BM_TEMPLATE(xtoabin_c4_write_bin,  int64_t);
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 C4BM_TEMPLATE(xtoa_c4_write_dec,  uint8_t);
-C4BM_TEMPLATE(xtoa_c4_write_hex,  uint8_t);
-C4BM_TEMPLATE(xtoa_c4_write_oct,  uint8_t);
-C4BM_TEMPLATE(xtoa_c4_write_bin,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_utoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint8_t);
@@ -1250,9 +1282,6 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t);
 C4BM_TEMPLATE(xtoa_sstream,  uint8_t);
 
 C4BM_TEMPLATE(xtoa_c4_write_dec,  int8_t);
-C4BM_TEMPLATE(xtoa_c4_write_hex,  int8_t);
-C4BM_TEMPLATE(xtoa_c4_write_oct,  int8_t);
-C4BM_TEMPLATE(xtoa_c4_write_bin,  int8_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int8_t);
@@ -1263,9 +1292,6 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t);
 C4BM_TEMPLATE(xtoa_sstream,   int8_t);
 
 C4BM_TEMPLATE(xtoa_c4_write_dec,  uint16_t);
-C4BM_TEMPLATE(xtoa_c4_write_hex,  uint16_t);
-C4BM_TEMPLATE(xtoa_c4_write_oct,  uint16_t);
-C4BM_TEMPLATE(xtoa_c4_write_bin,  uint16_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint16_t);
@@ -1276,9 +1302,6 @@ C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t);
 C4BM_TEMPLATE(xtoa_sstream, uint16_t);
 
 C4BM_TEMPLATE(xtoa_c4_write_dec,  int16_t);
-C4BM_TEMPLATE(xtoa_c4_write_hex,  int16_t);
-C4BM_TEMPLATE(xtoa_c4_write_oct,  int16_t);
-C4BM_TEMPLATE(xtoa_c4_write_bin,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int16_t);
@@ -1289,9 +1312,6 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t);
 C4BM_TEMPLATE(xtoa_sstream,  int16_t);
 
 C4BM_TEMPLATE(xtoa_c4_write_dec,  uint32_t);
-C4BM_TEMPLATE(xtoa_c4_write_hex,  uint32_t);
-C4BM_TEMPLATE(xtoa_c4_write_oct,  uint32_t);
-C4BM_TEMPLATE(xtoa_c4_write_bin,  uint32_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint32_t);
@@ -1302,9 +1322,6 @@ C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t);
 C4BM_TEMPLATE(xtoa_sstream, uint32_t);
 
 C4BM_TEMPLATE(xtoa_c4_write_dec,  int32_t);
-C4BM_TEMPLATE(xtoa_c4_write_hex,  int32_t);
-C4BM_TEMPLATE(xtoa_c4_write_oct,  int32_t);
-C4BM_TEMPLATE(xtoa_c4_write_bin,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int32_t);
@@ -1315,9 +1332,6 @@ C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t);
 C4BM_TEMPLATE(xtoa_sstream,  int32_t);
 
 C4BM_TEMPLATE(xtoa_c4_write_dec,  uint64_t);
-C4BM_TEMPLATE(xtoa_c4_write_hex,  uint64_t);
-C4BM_TEMPLATE(xtoa_c4_write_oct,  uint64_t);
-C4BM_TEMPLATE(xtoa_c4_write_bin,  uint64_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint64_t);
@@ -1328,9 +1342,6 @@ C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t);
 C4BM_TEMPLATE(xtoa_sstream, uint64_t);
 
 C4BM_TEMPLATE(xtoa_c4_write_dec,  int64_t);
-C4BM_TEMPLATE(xtoa_c4_write_hex,  int64_t);
-C4BM_TEMPLATE(xtoa_c4_write_oct,  int64_t);
-C4BM_TEMPLATE(xtoa_c4_write_bin,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int64_t);
@@ -1369,14 +1380,49 @@ C4BM_TEMPLATE(xtoa_sstream,  double);
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+C4BM_TEMPLATE(atoxhex_c4_read_hex, uint8_t);
+C4BM_TEMPLATE(atoxoct_c4_read_oct, uint8_t);
+C4BM_TEMPLATE(atoxbin_c4_read_bin, uint8_t);
+
+C4BM_TEMPLATE(atoxhex_c4_read_hex, int8_t);
+C4BM_TEMPLATE(atoxoct_c4_read_oct, int8_t);
+C4BM_TEMPLATE(atoxbin_c4_read_bin, int8_t);
+
+C4BM_TEMPLATE(atoxhex_c4_read_hex, uint16_t);
+C4BM_TEMPLATE(atoxoct_c4_read_oct, uint16_t);
+C4BM_TEMPLATE(atoxbin_c4_read_bin, uint16_t);
+
+C4BM_TEMPLATE(atoxhex_c4_read_hex, int16_t);
+C4BM_TEMPLATE(atoxoct_c4_read_oct, int16_t);
+C4BM_TEMPLATE(atoxbin_c4_read_bin, int16_t);
+
+C4BM_TEMPLATE(atoxhex_c4_read_hex, uint32_t);
+C4BM_TEMPLATE(atoxoct_c4_read_oct, uint32_t);
+C4BM_TEMPLATE(atoxbin_c4_read_bin, uint32_t);
+
+C4BM_TEMPLATE(atoxhex_c4_read_hex, int32_t);
+C4BM_TEMPLATE(atoxoct_c4_read_oct, int32_t);
+C4BM_TEMPLATE(atoxbin_c4_read_bin, int32_t);
+
+C4BM_TEMPLATE(atoxhex_c4_read_hex, uint64_t);
+C4BM_TEMPLATE(atoxoct_c4_read_oct, uint64_t);
+C4BM_TEMPLATE(atoxbin_c4_read_bin, uint64_t);
+
+C4BM_TEMPLATE(atoxhex_c4_read_hex, int64_t);
+C4BM_TEMPLATE(atoxoct_c4_read_oct, int64_t);
+C4BM_TEMPLATE(atoxbin_c4_read_bin, int64_t);
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+
 C4BM_TEMPLATE(atox_c4_read_dec, uint8_t);
-C4BM_TEMPLATE(atox_c4_read_hex, uint8_t);
-C4BM_TEMPLATE(atox_c4_read_oct, uint8_t);
-C4BM_TEMPLATE(atox_c4_read_bin, uint8_t);
 C4BM_TEMPLATE(atox_c4_atou,  uint8_t);
 C4BM_TEMPLATE(atox_c4_atox,  uint8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint8_t);
-C4BM_TEMPLATE(atox_c4_from_chars, uint8_t, with_overflow_checked);
+C4BM_TEMPLATE(atox_c4_from_chars_checked, uint8_t);
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint8_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint8_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint8_t);
@@ -1385,13 +1431,10 @@ C4BM_TEMPLATE(atox_sstream_reuse,   uint8_t);
 C4BM_TEMPLATE(atox_sstream,   uint8_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, int8_t);
-C4BM_TEMPLATE(atox_c4_read_hex, int8_t);
-C4BM_TEMPLATE(atox_c4_read_oct, int8_t);
-C4BM_TEMPLATE(atox_c4_read_bin, int8_t);
 C4BM_TEMPLATE(atox_c4_atoi,   int8_t);
 C4BM_TEMPLATE(atox_c4_atox,   int8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int8_t);
-C4BM_TEMPLATE(atox_c4_from_chars, int8_t, with_overflow_checked);
+C4BM_TEMPLATE(atox_c4_from_chars_checked, int8_t);
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int8_t);
 C4BM_TEMPLATE(atox_std_atoi,   int8_t);
 C4BM_TEMPLATE(atox_std_strtol,   int8_t);
@@ -1400,13 +1443,10 @@ C4BM_TEMPLATE(atox_sstream_reuse,   int8_t);
 C4BM_TEMPLATE(atox_sstream,   int8_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, uint16_t);
-C4BM_TEMPLATE(atox_c4_read_hex, uint16_t);
-C4BM_TEMPLATE(atox_c4_read_oct, uint16_t);
-C4BM_TEMPLATE(atox_c4_read_bin, uint16_t);
 C4BM_TEMPLATE(atox_c4_atou, uint16_t);
 C4BM_TEMPLATE(atox_c4_atox, uint16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint16_t);
-C4BM_TEMPLATE(atox_c4_from_chars, uint16_t, with_overflow_checked);
+C4BM_TEMPLATE(atox_c4_from_chars_checked, uint16_t);
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint16_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint16_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint16_t);
@@ -1415,13 +1455,10 @@ C4BM_TEMPLATE(atox_sstream_reuse,   uint16_t);
 C4BM_TEMPLATE(atox_sstream,   uint16_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, int16_t);
-C4BM_TEMPLATE(atox_c4_read_hex, int16_t);
-C4BM_TEMPLATE(atox_c4_read_oct, int16_t);
-C4BM_TEMPLATE(atox_c4_read_bin, int16_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int16_t);
 C4BM_TEMPLATE(atox_c4_atox,  int16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int16_t);
-C4BM_TEMPLATE(atox_c4_from_chars, int16_t, with_overflow_checked);
+C4BM_TEMPLATE(atox_c4_from_chars_checked, int16_t);
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int16_t);
 C4BM_TEMPLATE(atox_std_atoi,   int16_t);
 C4BM_TEMPLATE(atox_std_strtol,   int16_t);
@@ -1430,13 +1467,10 @@ C4BM_TEMPLATE(atox_sstream_reuse,   int16_t);
 C4BM_TEMPLATE(atox_sstream,   int16_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, uint32_t);
-C4BM_TEMPLATE(atox_c4_read_hex, uint32_t);
-C4BM_TEMPLATE(atox_c4_read_oct, uint32_t);
-C4BM_TEMPLATE(atox_c4_read_bin, uint32_t);
 C4BM_TEMPLATE(atox_c4_atou, uint32_t);
 C4BM_TEMPLATE(atox_c4_atox, uint32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint32_t);
-C4BM_TEMPLATE(atox_c4_from_chars, uint32_t, with_overflow_checked);
+C4BM_TEMPLATE(atox_c4_from_chars_checked, uint32_t);
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint32_t);
 C4BM_TEMPLATE(atox_std_atoi,   uint32_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint32_t);
@@ -1445,13 +1479,10 @@ C4BM_TEMPLATE(atox_sstream_reuse,   uint32_t);
 C4BM_TEMPLATE(atox_sstream,   uint32_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, int32_t);
-C4BM_TEMPLATE(atox_c4_read_hex, int32_t);
-C4BM_TEMPLATE(atox_c4_read_oct, int32_t);
-C4BM_TEMPLATE(atox_c4_read_bin, int32_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int32_t);
 C4BM_TEMPLATE(atox_c4_atox,  int32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int32_t);
-C4BM_TEMPLATE(atox_c4_from_chars, int32_t, with_overflow_checked);
+C4BM_TEMPLATE(atox_c4_from_chars_checked, int32_t);
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int32_t);
 C4BM_TEMPLATE(atox_std_atoi,   int32_t);
 C4BM_TEMPLATE(atox_std_strtol,   int32_t);
@@ -1460,13 +1491,10 @@ C4BM_TEMPLATE(atox_sstream_reuse,   int32_t);
 C4BM_TEMPLATE(atox_sstream,   int32_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, uint64_t);
-C4BM_TEMPLATE(atox_c4_read_hex, uint64_t);
-C4BM_TEMPLATE(atox_c4_read_oct, uint64_t);
-C4BM_TEMPLATE(atox_c4_read_bin, uint64_t);
 C4BM_TEMPLATE(atox_c4_atou, uint64_t);
 C4BM_TEMPLATE(atox_c4_atox, uint64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint64_t);
-C4BM_TEMPLATE(atox_c4_from_chars, uint64_t, with_overflow_checked);
+C4BM_TEMPLATE(atox_c4_from_chars_checked, uint64_t);
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_std_atol,   uint64_t);
 C4BM_TEMPLATE(atox_std_strtoull,   uint64_t);
@@ -1475,13 +1503,10 @@ C4BM_TEMPLATE(atox_sstream_reuse,   uint64_t);
 C4BM_TEMPLATE(atox_sstream,   uint64_t);
 
 C4BM_TEMPLATE(atox_c4_read_dec, int64_t);
-C4BM_TEMPLATE(atox_c4_read_hex, int64_t);
-C4BM_TEMPLATE(atox_c4_read_oct, int64_t);
-C4BM_TEMPLATE(atox_c4_read_bin, int64_t);
 C4BM_TEMPLATE(atox_c4_atoi,  int64_t);
 C4BM_TEMPLATE(atox_c4_atox,  int64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int64_t);
-C4BM_TEMPLATE(atox_c4_from_chars, int64_t, with_overflow_checked);
+C4BM_TEMPLATE(atox_c4_from_chars_checked, int64_t);
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int64_t);
 C4BM_TEMPLATE(atox_std_atol,   int64_t);
 C4BM_TEMPLATE(atox_std_strtoll,   int64_t);
