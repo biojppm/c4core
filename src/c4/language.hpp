@@ -189,6 +189,8 @@
 #   define C4_RESTRICT_FN __attribute__((restrict))
 #   define C4_NO_INLINE __attribute__((noinline))
 #   define C4_ALWAYS_INLINE inline __attribute__((always_inline))
+#   define C4_CONST __attribute__((const))
+#   define C4_PURE __attribute__((pure))
 /** force inlining of every callee function */
 #   define C4_FLATTEN __atribute__((flatten))
 /** mark a function as hot, ie as having a visible impact in CPU time
@@ -210,6 +212,8 @@
 #   define C4_NO_INLINE __declspec(noinline)
 #   define C4_ALWAYS_INLINE inline __forceinline
 /** these are not available in VS AFAIK */
+#   define C4_CONST
+#   define C4_PURE
 #   define C4_FLATTEN
 #   define C4_HOT         /** @todo */
 #   define C4_COLD        /** @todo */
