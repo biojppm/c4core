@@ -1,0 +1,54 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+_tests = {
+    "allocator": [],
+    "base64": [],
+    "bitmask": [],
+    "blob": [],
+    "char_traits": [],
+    "charconv": ["test_numbers.hpp"],
+    "ctor_dtor": [],
+    "dump": [],
+    "enum": [],
+    "error_exception": [],
+    "error": [],
+    "format": [],
+    "memory_util": [],
+    "preprocessor": [],
+    "span": [],
+    "std_string": [],
+    "std_vector": [],
+    "substr": [],
+    "type_name": [],
+    "types": [],
+    "utf": [],
+    "memory_resource": [],
+    "szconv": [],
+}
+
+cc_library(
+    name = "lib",
+    includes = ["."],
+    hdrs = [
+        "c4/test.hpp",
+        "c4/libtest/archetypes.hpp",
+        "c4/libtest/supprwarn_pop.hpp",
+        "c4/libtest/supprwarn_push.hpp",
+    ],
+    srcs = [
+        "c4/main.cpp",
+        "c4/libtest/test.cpp",
+        "c4/libtest/archetypes.cpp",
+    ],
+    deps = [
+        "//:c4core",
+        "@doctest//doctest:custom_main",
+    ],
+)
+
+[cc_test(
+    name = test,
+    includes = ["."],
+    srcs = ["test_%s.cpp" % test] + _tests[test],
+    deps = [":lib", "//:c4core"],
+) for test in _tests]

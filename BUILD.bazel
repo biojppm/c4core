@@ -1,0 +1,79 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+constraint_setting(name = "fastfloat", default_constraint_value = ":without_fastfloat")
+constraint_value(name = "with_fastfloat", constraint_setting = ":fastfloat")
+constraint_value(name = "without_fastfloat", constraint_setting = ":fastfloat")
+
+cc_library(
+    name = "c4core",
+    defines = select({
+        ":without_fastfloat": ["C4CORE_NO_FAST_FLOAT"],
+        ":with_fastfloat": [],
+    }),
+    includes = ["src"],
+    srcs = [
+        "src/c4/allocator.hpp",
+        "src/c4/base64.hpp",
+        "src/c4/base64.cpp",
+        "src/c4/blob.hpp",
+        "src/c4/bitmask.hpp",
+        "src/c4/charconv.hpp",
+        "src/c4/c4_pop.hpp",
+        "src/c4/c4_push.hpp",
+        "src/c4/char_traits.cpp",
+        "src/c4/char_traits.hpp",
+        "src/c4/common.hpp",
+        "src/c4/compiler.hpp",
+        "src/c4/config.hpp",
+        "src/c4/cpu.hpp",
+        "src/c4/ctor_dtor.hpp",
+        "src/c4/dump.hpp",
+        "src/c4/enum.hpp",
+        "src/c4/error.cpp",
+        "src/c4/error.hpp",
+        "src/c4/export.hpp",
+        "src/c4/format.hpp",
+        "src/c4/format.cpp",
+        "src/c4/hash.hpp",
+        "src/c4/language.hpp",
+        "src/c4/language.cpp",
+        "src/c4/memory_resource.cpp",
+        "src/c4/memory_resource.hpp",
+        "src/c4/memory_util.cpp",
+        "src/c4/memory_util.hpp",
+        "src/c4/platform.hpp",
+        "src/c4/preprocessor.hpp",
+        "src/c4/restrict.hpp",
+        "src/c4/span.hpp",
+        "src/c4/std/std.hpp",
+        "src/c4/std/std_fwd.hpp",
+        "src/c4/std/string.hpp",
+        "src/c4/std/string_fwd.hpp",
+        "src/c4/std/tuple.hpp",
+        "src/c4/std/vector.hpp",
+        "src/c4/std/vector_fwd.hpp",
+        "src/c4/substr.hpp",
+        "src/c4/substr_fwd.hpp",
+        "src/c4/szconv.hpp",
+        "src/c4/type_name.hpp",
+        "src/c4/types.hpp",
+        "src/c4/unrestrict.hpp",
+        "src/c4/utf.hpp",
+        "src/c4/utf.cpp",
+        "src/c4/windows.hpp",
+        "src/c4/windows_pop.hpp",
+        "src/c4/windows_push.hpp",
+        #
+        "src/c4/ext/debugbreak/debugbreak.h",
+        "src/c4/ext/rng/rng.hpp",
+        "src/c4/ext/sg14/inplace_function.h",
+    ] + select({
+        ":without_fastfloat": [],
+        ":with_fastfloat": [
+            "src/c4/ext/fast_float.hpp",
+            "src/c4/ext/fast_float_all.h",
+        ],
+    }),
+)
