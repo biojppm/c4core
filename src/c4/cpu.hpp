@@ -58,6 +58,7 @@
         || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 6)
            #define C4_CPU_ARMV6
        #elif defined(__ARM_ARCH_5TEJ__) \
+        || defined(__ARM_ARCH_5TE__) \
         || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 5)
            #define C4_CPU_ARMV5
        #elif defined(__ARM_ARCH_4T__) \
