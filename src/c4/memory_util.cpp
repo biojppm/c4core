@@ -3,27 +3,6 @@
 
 namespace c4 {
 
-/** returns true if the memory overlaps */
-bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb)
-{
-    if(a < b)
-    {
-        if(size_t(a) + sza > size_t(b))
-            return true;
-    }
-    else if(a > b)
-    {
-        if(size_t(b) + szb > size_t(a))
-            return true;
-    }
-    else if(a == b)
-    {
-        if(sza != 0 && szb != 0)
-            return true;
-    }
-    return false;
-}
-
 /** Fills 'dest' with the first 'pattern_size' bytes at 'pattern', 'num_times'. */
 void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times)
 {

@@ -45,7 +45,11 @@ C4_ALWAYS_INLINE void mem_zero(T* mem)
     memset(mem, 0, sizeof(T));
 }
 
-bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb);
+C4_ALWAYS_INLINE C4_CONST bool mem_overlaps(void const* a, void const* b, size_t sza, size_t szb)
+{
+    // thanks @timwynants
+    return (((const char*)b + szb) > a && b < ((const char*)a+sza));
+}
 
 void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times);
 
@@ -55,9 +59,9 @@ void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num
 //-----------------------------------------------------------------------------
 
 template<class T>
-bool is_aligned(T *ptr, size_t alignment=alignof(T))
+C4_ALWAYS_INLINE C4_CONST bool is_aligned(T *ptr, uintptr_t alignment=alignof(T))
 {
-    return (uintptr_t(ptr) & (alignment - 1)) == 0u;
+    return (uintptr_t(ptr) & (alignment - uintptr_t(1))) == uintptr_t(0);
 }
 
 

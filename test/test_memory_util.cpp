@@ -9,6 +9,30 @@
 
 namespace c4 {
 
+TEST_CASE("mem_overlaps")
+{
+    csubstr buf = "0123456789012345678901234567890123456789";
+    CHECK_EQ(buf.len, 40);
+    auto overlaps = [](csubstr lhs, csubstr rhs){
+        bool res =  mem_overlaps(lhs.str, rhs.str, lhs.len, rhs.len);
+        CHECK(res == lhs.overlaps(rhs));
+        return res;
+    };
+    CHECK(!overlaps(buf.first(0), buf.last(0)));
+    CHECK(!overlaps(buf.first(5), buf.last(5)));
+    CHECK(!overlaps(buf.first(10), buf.last(10)));
+    CHECK(!overlaps(buf.first(20), buf.last(20)));
+    CHECK(overlaps(buf.first(21), buf.last(20)));
+    CHECK(overlaps(buf.first(20), buf.last(21)));
+    CHECK(!overlaps(buf.first(0), buf));
+    CHECK(overlaps(buf.first(1), buf));
+    CHECK(!overlaps(buf, buf.last(0)));
+    CHECK(overlaps(buf, buf.last(1)));
+    CHECK(!overlaps(buf.first(20), buf.last(20)));
+    CHECK(overlaps(buf.first(21), buf.last(20)));
+    CHECK(overlaps(buf.first(20), buf.first(21)));
+}
+
 TEST_CASE("mem_repeatT.one_repetition")
 {
     char buf[120] = {0};
