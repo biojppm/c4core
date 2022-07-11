@@ -7,10 +7,17 @@
 
 // forward declarations for std::vector
 #if defined(__GLIBCXX__) || defined(__GLIBCPP__) || defined(_MSC_VER)
+#if defined(_MSC_VER)
+__pragma(warning(push))
+__pragma(warning(disable : 4643))
+#endif
 namespace std {
 template<typename> class allocator;
 template<typename T, typename Alloc> class vector;
 } // namespace std
+#if defined(_MSC_VER)
+__pragma(warning(pop))
+#endif
 #elif defined(_LIBCPP_ABI_NAMESPACE)
 namespace std {
 inline namespace _LIBCPP_ABI_NAMESPACE {
