@@ -1012,12 +1012,18 @@ TEST_CASE("substr.compare_different_length")
     CHECK_GT(c2, c1);
     CHECK_GT(c2, s1);
     CHECK_GT(s2, c1);
-    CHECK_UNARY((c1 > c2) != (c1 < c2));
-    CHECK_UNARY((c1 > s2) != (c1 < s2));
-    CHECK_UNARY((s1 > c2) != (s1 < c2));
-    CHECK_UNARY((c2 > c1) != (c2 < c1));
-    CHECK_UNARY((c2 > s1) != (c2 < s1));
-    CHECK_UNARY((s2 > c1) != (s2 < c1));
+    CHECK_NE((c1 > c2), (c1 < c2));
+    CHECK_NE((c1 > s2), (c1 < s2));
+    CHECK_NE((s1 > c2), (s1 < c2));
+    CHECK_NE((c2 > c1), (c2 < c1));
+    CHECK_NE((c2 > s1), (c2 < s1));
+    CHECK_NE((s2 > c1), (s2 < c1));
+    CHECK_NE((c1 == c2), (c1 != c2));
+    CHECK_NE((c1 == s2), (c1 != s2));
+    CHECK_NE((s1 == c2), (s1 != c2));
+    CHECK_NE((c2 == c1), (c2 != c1));
+    CHECK_NE((c2 == s1), (c2 != s1));
+    CHECK_NE((s2 == c1), (s2 != c1));
 }
 
 TEST_CASE("substr.compare_null")

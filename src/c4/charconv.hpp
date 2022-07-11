@@ -540,6 +540,11 @@ C4_INLINE_CONSTEXPR const char digits0099[] =
     "8081828384858687888990919293949596979899";
 } // namespace detail
 
+C4_SUPPRESS_WARNING_GCC_PUSH
+C4_SUPPRESS_WARNING_GCC("-Warray-bounds")  // gcc has false positives here
+#if (defined(__GNUC__) && (__GNUC__ >= 7))
+C4_SUPPRESS_WARNING_GCC("-Wstringop-overflow")  // gcc has false positives here
+#endif
 
 template<class T>
 C4_HOT C4_ALWAYS_INLINE
@@ -626,7 +631,7 @@ void write_bin_unchecked(substr buf, T v, unsigned digits_v) noexcept
  * @note does not accept negative numbers
  * @note the resulting string is NOT zero-terminated.
  * @note it is ok to call this with an empty or too-small buffer;
- * no writes will occur, and the needed size will be returned
+ * no writes will occur, and the required size will be returned
  * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
@@ -634,7 +639,7 @@ C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
     unsigned digits = digits_dec(v);
-    if(C4_LIKELY(buf.len >= digits)) // VS does not have likely, so put the happy branch first
+    if(C4_LIKELY(buf.len >= digits))
         write_dec_unchecked(buf, v, digits);
     return digits;
 }
@@ -645,7 +650,7 @@ C4_ALWAYS_INLINE size_t write_dec(substr buf, T v) noexcept
  * @note does not prefix with 0x
  * @note the resulting string is NOT zero-terminated.
  * @note it is ok to call this with an empty or too-small buffer;
- * no writes will occur, and the needed size will be returned
+ * no writes will occur, and the required size will be returned
  * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
@@ -653,7 +658,7 @@ C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
     unsigned digits = digits_hex(v);
-    if(C4_LIKELY(buf.len >= digits)) // VS does not have likely, so put the happy branch first
+    if(C4_LIKELY(buf.len >= digits))
         write_hex_unchecked(buf, v, digits);
     return digits;
 }
@@ -664,7 +669,7 @@ C4_ALWAYS_INLINE size_t write_hex(substr buf, T v) noexcept
  * @note does not prefix with 0o
  * @note the resulting string is NOT zero-terminated.
  * @note it is ok to call this with an empty or too-small buffer;
- * no writes will occur, and the needed size will be returned
+ * no writes will occur, and the required size will be returned
  * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
@@ -672,7 +677,7 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
     unsigned digits = digits_oct(v);
-    if(C4_LIKELY(buf.len >= digits)) // VS does not have likely, so put the happy branch first
+    if(C4_LIKELY(buf.len >= digits))
         write_oct_unchecked(buf, v, digits);
     return digits;
 }
@@ -683,7 +688,7 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T v) noexcept
  * @note does not prefix with 0b
  * @note the resulting string is NOT zero-terminated.
  * @note it is ok to call this with an empty or too-small buffer;
- * no writes will occur, and the needed size will be returned
+ * no writes will occur, and the required size will be returned
  * @return the number of characters required for the buffer. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_bin(substr buf, T v) noexcept
@@ -753,6 +758,8 @@ C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_oct<T>>(buf, val, num_digits);
 }
+
+C4_SUPPRESS_WARNING_GCC_POP
 
 
 //-----------------------------------------------------------------------------
