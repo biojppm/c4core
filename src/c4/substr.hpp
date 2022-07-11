@@ -295,14 +295,14 @@ public:
         {
             return that.len == 0 && that.str == str && str != nullptr;
         }
-        return that.begin() >= begin() && that.end() <= end();
+        return that.str >= str && that.str+that.len <= str+len;
     }
 
     /** true if there is overlap of at least one element between that and *this */
     inline bool overlaps(ro_substr const that) const
     {
         // thanks @timwynants
-        return (that.end() > begin() && that.begin() < end());
+        return that.str+that.len > str && that.str < str+len;
     }
 
 public:
