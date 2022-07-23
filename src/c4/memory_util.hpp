@@ -10,7 +10,7 @@
 #endif
 #include <string.h>
 
-#if (defined(__GNUC__) && __GNUC_MAJOR >= 10) || defined(__has_builtin)
+#if (defined(__GNUC__) && __GNUC__ >= 10) || defined(__has_builtin)
 #define _C4_USE_LSB_INTRINSIC(which) __has_builtin(which)
 #define _C4_USE_MSB_INTRINSIC(which) __has_builtin(which)
 #elif defined(C4_MSVC)
