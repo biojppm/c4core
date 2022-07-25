@@ -94,8 +94,11 @@ If you feel suspicious about these bold claims, you can browse through [c4core's
 
 - Fix missing endianess macro on windows arm/arm64 compilations [PR #76](https://github.com/biojppm/c4core/pull/76)
 - Add missing `#define` for the include guard of the amalgamated header (see [rapidyaml#246](https://github.com/biojppm/rapidyaml/issues/246)).
-
+- Fix CPU detection with ARMEL [PR #86](https://github.com/biojppm/c4core/pull/86).
+- Fix GCC version detection [PR #87](https://github.com/biojppm/c4core/pull/87).
 
 ### Thanks
 
 - @fargies
+- @daichifukui
+- @janisozaur
