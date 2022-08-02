@@ -96,6 +96,7 @@ If you feel suspicious about these bold claims, you can browse through [c4core's
 - Add missing `#define` for the include guard of the amalgamated header (see [rapidyaml#246](https://github.com/biojppm/rapidyaml/issues/246)).
 - Fix CPU detection with ARMEL [PR #86](https://github.com/biojppm/c4core/pull/86).
 - Fix GCC version detection [PR #87](https://github.com/biojppm/c4core/pull/87).
+- Fix [cmake#8](https://github.com/biojppm/cmake/issues/8): `SOVERSION` missing from shared libraries.
 
 ### Thanks
 
