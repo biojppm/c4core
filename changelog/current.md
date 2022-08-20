@@ -16,8 +16,8 @@ Improved the performance of `c4/charconv.hpp` functions ([PR#77](https://github.
   - Refactored the charconv tests to improve consistency and thoroughness.
   - Improved the charconv benchmarks to ensure full consistency across benchmarks.
   - Special thanks and kudos to @fargies for being attentive and pinpointing several issues throughout the PR!
-  - Finding the best approach involved [writing a R&D benchmark for the several algorithm components](https://github.com/biojppm/c4core/tree/master/bm_xtoa.cpp). This benchmark is disabled by default, and can be enabled with the flag `C4CORE_BM_XTOA_RND`.
-  - With the changes from this PR, the [charconv benchmark](https://github.com/biojppm/c4core/tree/master/bm_charconv.cpp) results show that on Linux/g++11.2:
+  - Finding the best approach involved [writing a R&D benchmark for the several algorithm components](https://github.com/biojppm/c4core/tree/master/bm/bm_xtoa.cpp). This benchmark is disabled by default, and can be enabled with the flag `C4CORE_BM_XTOA_RND`.
+  - With the changes from this PR, the [charconv benchmark](https://github.com/biojppm/c4core/tree/master/bm_charconv.cpp) results show that on Linux/g++11.2, with integral types:
     - `c4::to_chars()` can be expected to be roughly...
       - ~40% to 2x faster than `std::to_chars()`
       - ~10x-30x faster than `sprintf()`
@@ -97,6 +97,7 @@ If you feel suspicious about these bold claims, you can browse through [c4core's
 - Fix CPU detection with ARMEL [PR #86](https://github.com/biojppm/c4core/pull/86).
 - Fix GCC version detection [PR #87](https://github.com/biojppm/c4core/pull/87).
 - Fix [cmake#8](https://github.com/biojppm/cmake/issues/8): `SOVERSION` missing from shared libraries.
+- Update fastfloat to 3.5.1.
 
 ### Thanks
 
