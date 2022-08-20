@@ -4,7 +4,7 @@ project(c4core
     HOMEPAGE_URL "https://github.com/biojppm/c4core"
     LANGUAGES CXX)
 include(../../cmake/c4Project.cmake)
-c4_project(VERSION 0.1.9
+c4_project(VERSION 0.1.10
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
 # amalgamate c4core to get the single header

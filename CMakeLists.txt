@@ -6,7 +6,7 @@ project(c4core
     LANGUAGES CXX)
 include(./compat.cmake)
 
-c4_project(VERSION 0.1.9
+c4_project(VERSION 0.1.10
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
 option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
