@@ -110,6 +110,31 @@ Note above that the call to `target_link_libraries()` is using PUBLIC
 linking. This is required to make sure the include directories from `c4core`
 are transitively used by clients of `foo`.
 
+### Bazel
+
+Add c4core to your `WORKSPACE.bazel`:
+
+```python
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "c4core",
+    init_submodules = True,
+    tag = "v0.1.10",
+)
+```
+
+Use in your `BUILD.bazel` files by adding to your `deps`:
+
+```python
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    # ...
+    deps = ["@c4core"],
+)
+```
+
 
 ### Header-only
 
