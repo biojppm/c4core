@@ -84,14 +84,14 @@ init` followed by `git submodule update`.
 
 ## Using c4core in your project
 
-c4core can be built with [cmake](#cmake), or can be used header only. It can also be obtained through some package managers.
+c4core can be built with [cmake](#cmake) or [bazel](#bazel), or be used header only with the [amalgamation tool](pull/tools/amalgamate.py).
 
 ### CMake
 
 The recommended way to use c4core is by making it part of your project
 by using `add_subdirectory(${path_to_c4core_root})` in your
 CMakeLists.txt. Doing this is not intrusive to your cmake project
-because c4core is fast to build, also prefixes every cmake
+because c4core is fast to build, and it also prefixes every cmake
 variable with `C4CORE_`. But more importantly, this will enable you to
 compile c4core with the exact same compile settings used by your
 project.
