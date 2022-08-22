@@ -1,6 +1,7 @@
 c4_setup_benchmarking()
 
 add_custom_target(c4core-bm-plot)
+c4_set_folder_remote_project_targets(bm/plot c4core-bm-plot)
 find_package(Python REQUIRED COMPONENTS Interpreter)
 
 #----------------------------------------------
@@ -100,6 +101,7 @@ function(c4core_charconv_benchmark name rx)
         COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/bm_plot_c4core.py ${name} ${result_files}
         )
     add_dependencies(c4core-bm-plot c4core-bm-charconv-${name}-plot)
+    c4_set_folder_remote_project_targets(bm/plot c4core-bm-charconv-${name}-plot)
 endfunction()
 
 c4core_charconv_benchmark(digits "^c4_digits.*"  uint8 int8 uint16 int16 uint32 int32 uint64 int64)
@@ -126,6 +128,7 @@ c4_download_remote_proj(stb stbdir REMOTE
 c4_require_subproject(fmtlib REMOTE
     GIT_REPOSITORY https://github.com/fmtlib/fmt
     GIT_TAG 8.1.1)
+c4_set_folder_remote_project_targets(ext fmt)
 
 c4_add_executable(c4core-bm-itoa_threads
     SOURCES bm_itoa_threads.cpp bm_charconv.hpp
@@ -140,6 +143,7 @@ function(c4core_itoa_threads_benchmark name rx)
     c4_add_target_benchmark(c4core-bm-itoa_threads ${name} FILTER "${rx}"
         RESULTS_FILE results_file)
     add_dependencies(c4core-bm-itoa_threads-all c4core-bm-itoa_threads-${name})
+    c4_set_folder_remote_project_targets(bm/plot c4core-bm-itoa_threads-all)
     list(APPEND li ${results_file})
     set(_c4core_itoa_thread_result_files ${li} PARENT_SCOPE)
 endfunction()
@@ -169,4 +173,5 @@ add_custom_target(c4core-bm-itoa_threads-plot
     COMMAND ${Python_EXECUTABLE} --version
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/bm_plot_c4core.py itoa_threads ${_c4core_itoa_thread_result_files}
     )
+c4_set_folder_remote_project_targets(bm/plot c4core-bm-itoa_threads-plot)
 add_dependencies(c4core-bm-plot c4core-bm-itoa_threads-plot)
