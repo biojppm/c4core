@@ -26,7 +26,12 @@ C4_SUPPRESS_WARNING_GCC("-Wuseless-cast")
 #include <stb_sprintf.h>
 C4_SUPPRESS_WARNING_GCC_POP
 
+#if C4_CXX >= 20
+#include <version>
 #define C4_HAS_STD_FORMAT (__has_cpp_attribute(__cpp_lib_format))
+#else
+#define C4_HAS_STD_FORMAT (0)
+#endif
 #if C4_HAS_STD_FORMAT
 #include <format>
 #endif
