@@ -122,56 +122,59 @@ endif()
 #----------------------------------------------
 
 
-c4_download_remote_proj(stb stbdir REMOTE
-    GIT_REPOSITORY https://github.com/nothings/stb)
+option(C4CORE_BM_ITOA_THREADS "compare itoa thread degradation across alternative implementations" OFF)
+if(C4CORE_BM_ITOA_THREADS)
+    c4_download_remote_proj(stb stbdir REMOTE
+        GIT_REPOSITORY https://github.com/nothings/stb)
 
-c4_require_subproject(fmtlib REMOTE
-    GIT_REPOSITORY https://github.com/fmtlib/fmt
-    GIT_TAG 8.1.1)
-c4_set_folder_remote_project_targets(ext fmt)
+    c4_require_subproject(fmtlib REMOTE
+        GIT_REPOSITORY https://github.com/fmtlib/fmt
+        GIT_TAG 8.1.1)
+    c4_set_folder_remote_project_targets(ext fmt)
 
-c4_add_executable(c4core-bm-itoa_threads
-    SOURCES bm_itoa_threads.cpp bm_charconv.hpp
-    LIBS fmt c4core benchmark
-    INC_DIRS ${stbdir}
-    FOLDER bm)
+    c4_add_executable(c4core-bm-itoa_threads
+        SOURCES bm_itoa_threads.cpp bm_charconv.hpp
+        LIBS fmt c4core benchmark
+        INC_DIRS ${stbdir}
+        FOLDER bm)
 
-unset(_c4core_itoa_thread_result_files)
-add_custom_target(c4core-bm-itoa_threads-all)
-function(c4core_itoa_threads_benchmark name rx)
-    set(li ${_c4core_itoa_thread_result_files})
-    c4_add_target_benchmark(c4core-bm-itoa_threads ${name} FILTER "${rx}"
-        RESULTS_FILE results_file)
-    add_dependencies(c4core-bm-itoa_threads-all c4core-bm-itoa_threads-${name})
-    c4_set_folder_remote_project_targets(bm/plot c4core-bm-itoa_threads-all)
-    list(APPEND li ${results_file})
-    set(_c4core_itoa_thread_result_files ${li} PARENT_SCOPE)
-endfunction()
+    unset(_c4core_itoa_thread_result_files)
+    add_custom_target(c4core-bm-itoa_threads-all)
+    function(c4core_itoa_threads_benchmark name rx)
+        set(li ${_c4core_itoa_thread_result_files})
+        c4_add_target_benchmark(c4core-bm-itoa_threads ${name} FILTER "${rx}"
+            RESULTS_FILE results_file)
+        add_dependencies(c4core-bm-itoa_threads-all c4core-bm-itoa_threads-${name})
+        c4_set_folder_remote_project_targets(bm/run c4core-bm-itoa_threads-all)
+        list(APPEND li ${results_file})
+        set(_c4core_itoa_thread_result_files ${li} PARENT_SCOPE)
+    endfunction()
 
-c4core_itoa_threads_benchmark(c4_write_dec "^c4_write_dec/.*")
-c4core_itoa_threads_benchmark(c4_itoa "^c4_itoa/.*")
-c4core_itoa_threads_benchmark(c4_xtoa "^c4_xtoa/.*")
-c4core_itoa_threads_benchmark(c4_to_chars "^c4_to_chars/.*")
-c4core_itoa_threads_benchmark(std_to_chars "^std_to_chars/.*")
-c4core_itoa_threads_benchmark(fmtlib_format_to "^fmtlib_format_to/.*")
-c4core_itoa_threads_benchmark(snprintf "^snprintf/.*")
-c4core_itoa_threads_benchmark(stb_snprintf "^stb_snprintf/.*")
-if(WIN32)
-c4core_itoa_threads_benchmark(snprintf_l "^snprintf_l/.*")
-c4core_itoa_threads_benchmark(itoa "^itoa/.*")
-#get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)
-#if(cxx_std_20 IN_LIST known_features)
-#c4core_itoa_threads_benchmark(std_format_to "^std_format_to/.*")
-#endif()
+    c4core_itoa_threads_benchmark(c4_write_dec "^c4_write_dec/.*")
+    c4core_itoa_threads_benchmark(c4_itoa "^c4_itoa/.*")
+    c4core_itoa_threads_benchmark(c4_xtoa "^c4_xtoa/.*")
+    c4core_itoa_threads_benchmark(c4_to_chars "^c4_to_chars/.*")
+    c4core_itoa_threads_benchmark(std_to_chars "^std_to_chars/.*")
+    c4core_itoa_threads_benchmark(fmtlib_format_to "^fmtlib_format_to/.*")
+    c4core_itoa_threads_benchmark(snprintf "^snprintf/.*")
+    c4core_itoa_threads_benchmark(stb_snprintf "^stb_snprintf/.*")
+    if(WIN32)
+    c4core_itoa_threads_benchmark(snprintf_l "^snprintf_l/.*")
+    c4core_itoa_threads_benchmark(itoa "^itoa/.*")
+    #get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)
+    #if(cxx_std_20 IN_LIST known_features)
+    #c4core_itoa_threads_benchmark(std_format_to "^std_format_to/.*")
+    #endif()
+    endif()
+    c4core_itoa_threads_benchmark(sstream "^sstream/.*")
+    c4core_itoa_threads_benchmark(sstream_naive_reuse "^sstream_naive_reuse/.*")
+    c4core_itoa_threads_benchmark(sstream_naive "^sstream_naive/.*")
+    add_custom_target(c4core-bm-itoa_threads-plot
+        #DEPENDS ${_c4core_itoa_thread_result_files}
+        COMMAND cmake -E echo "${Python_EXECUTABLE}"
+        COMMAND ${Python_EXECUTABLE} --version
+        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/bm_plot_c4core.py itoa_threads ${_c4core_itoa_thread_result_files}
+        )
+    c4_set_folder_remote_project_targets(bm/plot c4core-bm-itoa_threads-plot)
+    add_dependencies(c4core-bm-plot c4core-bm-itoa_threads-plot)
 endif()
-c4core_itoa_threads_benchmark(sstream "^sstream/.*")
-c4core_itoa_threads_benchmark(sstream_naive_reuse "^sstream_naive_reuse/.*")
-c4core_itoa_threads_benchmark(sstream_naive "^sstream_naive/.*")
-add_custom_target(c4core-bm-itoa_threads-plot
-    #DEPENDS ${_c4core_itoa_thread_result_files}
-    COMMAND cmake -E echo "${Python_EXECUTABLE}"
-    COMMAND ${Python_EXECUTABLE} --version
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/bm_plot_c4core.py itoa_threads ${_c4core_itoa_thread_result_files}
-    )
-c4_set_folder_remote_project_targets(bm/plot c4core-bm-itoa_threads-plot)
-add_dependencies(c4core-bm-plot c4core-bm-itoa_threads-plot)
