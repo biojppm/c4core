@@ -18,7 +18,7 @@
 #define C4_LOGP(msg, ...) printf(msg)
 
 #define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
-#include <doctest/doctest.h>
+#include "doctest/doctest.h"
 
 #define CHECK_STREQ(lhs, rhs) CHECK_EQ(c4::to_csubstr(lhs), c4::to_csubstr(rhs))
 #define CHECK_FLOAT_EQ(lhs, rhs) CHECK((double)(lhs) == doctest::Approx((double)(rhs)))

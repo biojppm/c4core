@@ -4,3 +4,5 @@ build --incompatible_strict_action_env
 
 common:ci --announce_rc
 common:ci --disk_cache=~/.cache/bazel-disk-cache
+
+try-import %workspace%/user.bazelrc
