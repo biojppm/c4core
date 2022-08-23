@@ -1,11 +1,5 @@
 # ryu does not have a cmakelists
 
-set(C4CORE_BM_USE_RYU ON)
-
-if(MSVC AND (CMAKE_SIZEOF_VOID_P EQUAL 4))
-    set(C4CORE_BM_USE_RYU OFF)
-endif()
-
 if(C4CORE_BM_USE_RYU)
     enable_language(C)
 

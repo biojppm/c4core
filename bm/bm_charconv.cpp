@@ -1,12 +1,17 @@
 #include "./bm_charconv.hpp"
 
 #include <c4/ext/fast_float.hpp>
+#if C4_CPP >= 17
+#include <charconv>
+#include <utility>
+#endif
+
 #ifdef C4CORE_BM_USE_RYU
 #include <ryu/ryu.h>
 #include <ryu/ryu_parse.h>
 #endif
-#if C4_CPP >= 17
-#include <charconv>
+
+#ifdef C4CORE_BM_USE_FP
 #include <jkj/fp/from_chars/from_chars.h>
 #endif
 
@@ -683,11 +688,11 @@ xtoa_ryu_d2s(bm::State &st)
 // fp is still experimental and undocumented;
 // some assertions are firing in debug builds
 // so we make these benchmarks available only with NDEBUG
-#if !defined(NDEBUG) || (C4_CPP < 17)
-#define C4BM_FP_BENCHMARK(name, ...) void shutup_extra_semicolon()
-#else
-#define C4BM_FP_BENCHMARK(name, ...) C4BM_TEMPLATE(name, __VA_ARGS__)
+#if (defined(C4CORE_BM_USE_FP)) && (!defined(NDEBUG))
+#undef C4CORE_BM_USE_FP
+#endif
 
+#ifdef C4CORE_BM_USE_FP
 C4FOR(T, isreal)
 atox_fp_from_chars_limited(bm::State &st)
 {
@@ -705,7 +710,9 @@ atox_fp_from_chars_limited(bm::State &st)
     bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
+#endif // C4CORE_BM_USE_FP
 
+#ifdef C4CORE_BM_USE_FP
 C4FOR(T, isreal)
 atox_fp_from_chars_unlimited(bm::State &st)
 {
@@ -723,7 +730,7 @@ atox_fp_from_chars_unlimited(bm::State &st)
     bm::DoNotOptimize(sum);
     report<T>(st, kNumValues);
 }
-#endif
+#endif // C4CORE_BM_USE_FP
 
 
 //-----------------------------------------------------------------------------
@@ -1517,13 +1524,15 @@ C4BM_TEMPLATE(atox_sstream,   int64_t);
 C4BM_TEMPLATE(atox_c4_atof,  float);
 C4BM_TEMPLATE(atox_c4_atox,  float);
 C4BM_TEMPLATE(atox_c4_from_chars, float);
+C4BM_TEMPLATE(atox_fast_float,  float);
+C4BM_TEMPLATE_TO_CHARS_FLOAT(atox_std_from_chars, float);
 #ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(atox_ryu_s2f,  float);
 #endif
-C4BM_TEMPLATE(atox_fast_float,  float);
-C4BM_TEMPLATE_TO_CHARS_FLOAT(atox_std_from_chars, float);
+#ifdef C4CORE_BM_USE_FP
 C4BM_FP_BENCHMARK(atox_fp_from_chars_limited,  float);
 C4BM_FP_BENCHMARK(atox_fp_from_chars_unlimited,  float);
+#endif
 C4BM_TEMPLATE(atox_std_atof,   float);
 C4BM_TEMPLATE(atox_std_strtof,   float);
 C4BM_TEMPLATE(atox_std_stof,   float);
@@ -1534,13 +1543,15 @@ C4BM_TEMPLATE(atox_sstream,   float);
 C4BM_TEMPLATE(atox_c4_atod,  double);
 C4BM_TEMPLATE(atox_c4_atox,  double);
 C4BM_TEMPLATE(atox_c4_from_chars, double);
+C4BM_TEMPLATE(atox_fast_float,  double);
+C4BM_TEMPLATE_TO_CHARS_FLOAT(atox_std_from_chars, double);
 #ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(atox_ryu_s2d,  double);
 #endif
-C4BM_TEMPLATE(atox_fast_float,  double);
-C4BM_TEMPLATE_TO_CHARS_FLOAT(atox_std_from_chars, double);
+#ifdef C4CORE_BM_USE_FP
 C4BM_FP_BENCHMARK(atox_fp_from_chars_limited,  double);
 C4BM_FP_BENCHMARK(atox_fp_from_chars_unlimited,  double);
+#endif
 C4BM_TEMPLATE(atox_std_atof,   double);
 C4BM_TEMPLATE(atox_std_strtod,   double);
 C4BM_TEMPLATE(atox_std_stod,   double);
