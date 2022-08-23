@@ -1729,7 +1729,7 @@ size_t print_one(substr str, const char* full_fmt, T v)
 #endif
 }
 
-#if !C4CORE_HAVE_STD_FROMCHARS && !defined(C4CORE_HAVE_FAST_FLOAT)
+#if !C4CORE_HAVE_STD_FROMCHARS
 /** scans a string using the given type format, while at the same time
  * allowing non-null-terminated strings AND guaranteeing that the given
  * string length is strictly respected, so that no buffer overflows
@@ -1859,9 +1859,17 @@ inline bool atof(csubstr str, float * C4_RESTRICT v) noexcept
 {
     C4_ASSERT(str.triml(" \r\t\n").len == str.len);
 #if C4CORE_HAVE_FAST_FLOAT
-    fast_float::from_chars_result result;
-    result = fast_float::from_chars(str.str, str.str + str.len, *v);
-    return result.ec == std::errc();
+    if(!str.begins_with("0x"))
+    {
+        fast_float::from_chars_result result;
+        result = fast_float::from_chars(str.str, str.str + str.len, *v);
+        return result.ec == std::errc();
+    }
+    else
+    {
+        size_t ret = detail::scan_one(str, "f", v);
+        return ret != csubstr::npos;
+    }
 #elif C4CORE_HAVE_STD_FROMCHARS
     std::from_chars_result result;
     result = std::from_chars(str.str, str.str + str.len, *v);
@@ -1883,9 +1891,17 @@ inline bool atod(csubstr str, double * C4_RESTRICT v) noexcept
 {
     C4_ASSERT(str.triml(" \r\t\n").len == str.len);
 #if C4CORE_HAVE_FAST_FLOAT
-    fast_float::from_chars_result result;
-    result = fast_float::from_chars(str.str, str.str + str.len, *v);
-    return result.ec == std::errc();
+    if(!str.begins_with("0x"))
+    {
+        fast_float::from_chars_result result;
+        result = fast_float::from_chars(str.str, str.str + str.len, *v);
+        return result.ec == std::errc();
+    }
+    else
+    {
+        size_t ret = detail::scan_one(str, "lf", v);
+        return ret != csubstr::npos;
+    }
 #elif C4CORE_HAVE_STD_FROMCHARS
     std::from_chars_result result;
     result = std::from_chars(str.str, str.str + str.len, *v);
