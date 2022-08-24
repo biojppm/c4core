@@ -2068,7 +2068,6 @@ template<class Real>
 void test_rtoa(substr buf, Real f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
 {
     size_t ret;
-    Real cmp;
     Real pf = remprec10(f, precision);
 
     {
@@ -2238,6 +2237,29 @@ TEST_CASE_TEMPLATE("atof.integral", T, float, double)
     t_(s.first(1), 1);
 }
 
+TEST_CASE_TEMPLATE("atof.hexa", T, float, double)
+{
+    auto t_ = [](csubstr str, bool isok){
+        T rval = {};
+        INFO("str=" << str);
+        CHECK_EQ(atox(str, &rval), isok);
+    };
+    t_("0x1.p+0", true);
+    t_("0x1.p", false);
+    t_("0x1.p+", false);
+    t_("0x12p+0", true);
+    t_("0x12p", false);
+    t_("0xabcdef.abcdefp+0", true);
+    t_("0xABCDEF.ABCDEFp+0", true);
+    t_("0x1g", false);
+    t_("0x1.2", true);
+    t_("0x1.", true);
+    t_("0x1.0329p+0", true);
+    t_("0x1.0329P+0", true);
+    t_("0x1.aAaAaAp+0", true);
+    t_("0x1.agA+0", false);
+}
+
 TEST_CASE_TEMPLATE("atof.infnan", T, float, double)
 {
     T pinf = std::numeric_limits<T>::infinity();
@@ -2254,8 +2276,8 @@ TEST_CASE_TEMPLATE("atof.infnan", T, float, double)
 TEST_CASE_TEMPLATE("atof.fail_parse", T, float, double)
 {
     auto t_ = [](csubstr str){
-        INFO("str=" << str);
         T rval;
+        INFO("str=" << str << "  rval=" << rval);
         CHECK_EQ(atox(str, &rval), false);
     };
     t_(".inf");
@@ -2263,6 +2285,7 @@ TEST_CASE_TEMPLATE("atof.fail_parse", T, float, double)
     t_(".nan");
     t_("-.nan");
     t_("not a float!");
+    t_("0xfonix!");
     //t_("123.45not a float!");
 }
 

@@ -47,7 +47,7 @@ inline double getrange(std::vector<double> const& v)
 #define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
 #elif C4_CPP >= 17
 #define C4BM_TEMPLATE_TO_CHARS_INT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
-#define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) void shutup_extra_semicolon()
+#define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
 #else
 #define C4BM_TEMPLATE_TO_CHARS_INT(fn, ...) void shutup_extra_semicolon()
 #define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) void shutup_extra_semicolon()

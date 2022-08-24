@@ -3,6 +3,9 @@
 #include <c4/ext/fast_float.hpp>
 #if C4_CPP >= 17
 #include <charconv>
+#if defined(__cpp_lib_to_chars)
+#define C4CORE_BM_HAVE_TOCHARS 1
+#endif
 #include <utility>
 #endif
 
@@ -1122,7 +1125,7 @@ atox_c4_from_chars(bm::State& st)
     report<T>(st, kNumValues);
 }
 
-#if defined(__cpp_lib_to_chars) || (C4_CPP >= 17)
+#if (C4CPP >= 17)
 C4FOR(T, isint)
 xtoa_std_to_chars(bm::State& st)
 {
@@ -1138,7 +1141,7 @@ xtoa_std_to_chars(bm::State& st)
 }
 #endif
 
-#if defined(__cpp_lib_to_chars)
+#if C4CORE_BM_HAVE_TOCHARS
 C4FOR(T, isreal)
 xtoa_std_to_chars(bm::State& st)
 {
@@ -1154,7 +1157,7 @@ xtoa_std_to_chars(bm::State& st)
 }
 #endif
 
-#if defined(__cpp_lib_to_chars) || (C4_CPP >= 17)
+#if (C4_CPP >= 17)
 C4FOR(T, isint)
 atox_std_from_chars(bm::State& st)
 {
@@ -1174,7 +1177,7 @@ atox_std_from_chars(bm::State& st)
 }
 #endif
 
-#if defined(__cpp_lib_to_chars)
+#if C4CORE_BM_HAVE_TOCHARS
 C4FOR(T, isreal)
 atox_std_from_chars(bm::State& st)
 {
@@ -1282,7 +1285,9 @@ C4BM_TEMPLATE(xtoa_c4_write_dec,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_utoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  uint8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint8_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  uint8_t);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  uint8_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint8_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  uint8_t);
@@ -1292,7 +1297,9 @@ C4BM_TEMPLATE(xtoa_c4_write_dec,  int8_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,   int8_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int8_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  int8_t);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  int8_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int8_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,   int8_t);
@@ -1302,7 +1309,9 @@ C4BM_TEMPLATE(xtoa_c4_write_dec,  uint16_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint16_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  uint16_t);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  uint16_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint16_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint16_t);
@@ -1312,7 +1321,9 @@ C4BM_TEMPLATE(xtoa_c4_write_dec,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int16_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int16_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  int16_t);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  int16_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int16_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int16_t);
@@ -1322,7 +1333,9 @@ C4BM_TEMPLATE(xtoa_c4_write_dec,  uint32_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint32_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  uint32_t);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  uint32_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint32_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint32_t);
@@ -1332,7 +1345,9 @@ C4BM_TEMPLATE(xtoa_c4_write_dec,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int32_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int32_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  int32_t);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  int32_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int32_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int32_t);
@@ -1342,7 +1357,9 @@ C4BM_TEMPLATE(xtoa_c4_write_dec,  uint64_t);
 C4BM_TEMPLATE(xtoa_c4_utoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa, uint64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  uint64_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  uint64_t);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  uint64_t);
 C4BM_TEMPLATE(xtoa_sprintf,  uint64_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse, uint64_t);
@@ -1352,7 +1369,9 @@ C4BM_TEMPLATE(xtoa_c4_write_dec,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_itoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_xtoa,  int64_t);
 C4BM_TEMPLATE(xtoa_c4_to_chars,  int64_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(xtoa_std_to_chars,  int64_t);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  int64_t);
 C4BM_TEMPLATE(xtoa_sprintf,  int64_t);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  int64_t);
@@ -1364,7 +1383,9 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  float);
 #ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(xtoa_ryu_f2s,  float);
 #endif
+#ifdef C4CORE_BM_HAVE_TOCHARS
 C4BM_TEMPLATE_TO_CHARS_FLOAT(xtoa_std_to_chars,  float);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  float);
 C4BM_TEMPLATE(xtoa_sprintf,  float);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  float);
@@ -1376,7 +1397,9 @@ C4BM_TEMPLATE(xtoa_c4_to_chars,  double);
 #ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(xtoa_ryu_d2s,  double);
 #endif
+#ifdef C4CORE_BM_HAVE_TOCHARS
 C4BM_TEMPLATE_TO_CHARS_FLOAT(xtoa_std_to_chars,  double);
+#endif
 C4BM_TEMPLATE(xtoa_std_to_string,  double);
 C4BM_TEMPLATE(xtoa_sprintf,  double);
 C4BM_TEMPLATE(xtoa_sstream_reuse,  double);
@@ -1430,7 +1453,9 @@ C4BM_TEMPLATE(atox_c4_atou,  uint8_t);
 C4BM_TEMPLATE(atox_c4_atox,  uint8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint8_t);
 C4BM_TEMPLATE(atox_c4_from_chars_checked, uint8_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint8_t);
+#endif
 C4BM_TEMPLATE(atox_std_atoi,   uint8_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint8_t);
 C4BM_TEMPLATE(atox_scanf,   uint8_t);
@@ -1442,7 +1467,9 @@ C4BM_TEMPLATE(atox_c4_atoi,   int8_t);
 C4BM_TEMPLATE(atox_c4_atox,   int8_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int8_t);
 C4BM_TEMPLATE(atox_c4_from_chars_checked, int8_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int8_t);
+#endif
 C4BM_TEMPLATE(atox_std_atoi,   int8_t);
 C4BM_TEMPLATE(atox_std_strtol,   int8_t);
 C4BM_TEMPLATE(atox_scanf,   int8_t);
@@ -1454,7 +1481,9 @@ C4BM_TEMPLATE(atox_c4_atou, uint16_t);
 C4BM_TEMPLATE(atox_c4_atox, uint16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint16_t);
 C4BM_TEMPLATE(atox_c4_from_chars_checked, uint16_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint16_t);
+#endif
 C4BM_TEMPLATE(atox_std_atoi,   uint16_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint16_t);
 C4BM_TEMPLATE(atox_scanf,   uint16_t);
@@ -1466,7 +1495,9 @@ C4BM_TEMPLATE(atox_c4_atoi,  int16_t);
 C4BM_TEMPLATE(atox_c4_atox,  int16_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int16_t);
 C4BM_TEMPLATE(atox_c4_from_chars_checked, int16_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int16_t);
+#endif
 C4BM_TEMPLATE(atox_std_atoi,   int16_t);
 C4BM_TEMPLATE(atox_std_strtol,   int16_t);
 C4BM_TEMPLATE(atox_scanf,   int16_t);
@@ -1478,7 +1509,9 @@ C4BM_TEMPLATE(atox_c4_atou, uint32_t);
 C4BM_TEMPLATE(atox_c4_atox, uint32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint32_t);
 C4BM_TEMPLATE(atox_c4_from_chars_checked, uint32_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint32_t);
+#endif
 C4BM_TEMPLATE(atox_std_atoi,   uint32_t);
 C4BM_TEMPLATE(atox_std_strtoul,   uint32_t);
 C4BM_TEMPLATE(atox_scanf,   uint32_t);
@@ -1490,7 +1523,9 @@ C4BM_TEMPLATE(atox_c4_atoi,  int32_t);
 C4BM_TEMPLATE(atox_c4_atox,  int32_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int32_t);
 C4BM_TEMPLATE(atox_c4_from_chars_checked, int32_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int32_t);
+#endif
 C4BM_TEMPLATE(atox_std_atoi,   int32_t);
 C4BM_TEMPLATE(atox_std_strtol,   int32_t);
 C4BM_TEMPLATE(atox_scanf,   int32_t);
@@ -1502,7 +1537,9 @@ C4BM_TEMPLATE(atox_c4_atou, uint64_t);
 C4BM_TEMPLATE(atox_c4_atox, uint64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, uint64_t);
 C4BM_TEMPLATE(atox_c4_from_chars_checked, uint64_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, uint64_t);
+#endif
 C4BM_TEMPLATE(atox_std_atol,   uint64_t);
 C4BM_TEMPLATE(atox_std_strtoull,   uint64_t);
 C4BM_TEMPLATE(atox_scanf,   uint64_t);
@@ -1514,7 +1551,9 @@ C4BM_TEMPLATE(atox_c4_atoi,  int64_t);
 C4BM_TEMPLATE(atox_c4_atox,  int64_t);
 C4BM_TEMPLATE(atox_c4_from_chars, int64_t);
 C4BM_TEMPLATE(atox_c4_from_chars_checked, int64_t);
+#if (C4CPP >= 17)
 C4BM_TEMPLATE_TO_CHARS_INT(atox_std_from_chars, int64_t);
+#endif
 C4BM_TEMPLATE(atox_std_atol,   int64_t);
 C4BM_TEMPLATE(atox_std_strtoll,   int64_t);
 C4BM_TEMPLATE(atox_scanf,   int64_t);
@@ -1525,7 +1564,9 @@ C4BM_TEMPLATE(atox_c4_atof,  float);
 C4BM_TEMPLATE(atox_c4_atox,  float);
 C4BM_TEMPLATE(atox_c4_from_chars, float);
 C4BM_TEMPLATE(atox_fast_float,  float);
+#ifdef C4CORE_BM_HAVE_TOCHARS
 C4BM_TEMPLATE_TO_CHARS_FLOAT(atox_std_from_chars, float);
+#endif
 #ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(atox_ryu_s2f,  float);
 #endif
@@ -1544,7 +1585,9 @@ C4BM_TEMPLATE(atox_c4_atod,  double);
 C4BM_TEMPLATE(atox_c4_atox,  double);
 C4BM_TEMPLATE(atox_c4_from_chars, double);
 C4BM_TEMPLATE(atox_fast_float,  double);
+#ifdef C4CORE_BM_HAVE_TOCHARS
 C4BM_TEMPLATE_TO_CHARS_FLOAT(atox_std_from_chars, double);
+#endif
 #ifdef C4CORE_BM_USE_RYU
 C4BM_TEMPLATE(atox_ryu_s2d,  double);
 #endif
