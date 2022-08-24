@@ -59,31 +59,40 @@ endif()
 
 #----------------------------------------------
 
-# libraries to compare
-
-c4_require_subproject(fp
-  REMOTE
-    GIT_REPOSITORY https://github.com/jk-jeon/fp
-    GIT_TAG master
-  EXCLUDE_FROM_ALL)
-
-# ryu requires too much code; use an include for clarity
-include(./ryu.cmake)
-
 c4_add_executable(c4core-bm-charconv
     SOURCES bm_charconv.cpp bm_charconv.hpp
     LIBS c4core benchmark
     INC_DIRS ${C4CORE_SRC_DIR}/c4/ext/fast_float/include
     FOLDER bm)
 
-if(C4CORE_BM_USE_RYU)
-    target_link_libraries(c4core-bm-charconv PUBLIC ryu_c4)
-    target_compile_definitions(c4core-bm-charconv PUBLIC -DC4CORE_BM_USE_RYU)
-endif()
+# libraries to compare. defaults to off.
+option(C4CORE_BM_USE_RYU "enable comparison with ryu library" OFF)
+option(C4CORE_BM_USE_FP "enable comparison with fp library" OFF)
 
+# fp requires c++17 or later
 get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)
 if(cxx_std_17 IN_LIST known_features)
+    set(C4CORE_BM_USE_FP OFF CACHE BOOL "" FORCE)
+endif()
+if(C4CORE_BM_USE_FP)
+    c4_require_subproject(fp
+        REMOTE
+            GIT_REPOSITORY https://github.com/jk-jeon/fp
+            GIT_TAG master
+        EXCLUDE_FROM_ALL)
     target_link_libraries(c4core-bm-charconv PRIVATE jkj_fp)
+    target_compile_definitions(c4core-bm-charconv PUBLIC -DC4CORE_BM_USE_FP)
+endif()
+
+# ryu not supported in windows with 32bit
+if(MSVC AND (CMAKE_SIZEOF_VOID_P EQUAL 4))
+    set(C4CORE_BM_USE_RYU OFF CACHE BOOL "" FORCE)
+endif()
+if(C4CORE_BM_USE_RYU)
+    # ryu requires too much code; use an include for clarity
+    include(./ryu.cmake)
+    target_link_libraries(c4core-bm-charconv PRIVATE ryu_c4)
+    target_compile_definitions(c4core-bm-charconv PUBLIC -DC4CORE_BM_USE_RYU)
 endif()
 
 

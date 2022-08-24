@@ -2042,40 +2042,80 @@ TEST_CASE("overflows.i64")
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** remove trailing digits after precision */
 template<class T>
-using rtoa_fn_t = size_t (*)(substr, T, int, RealFormat_e);
+T remprec10(T val, int precision)
+{
+    T fprec = T(1);
+    for(int i = 0; i < precision; ++i)
+        fprec *= T(10);
+    T rval = val * fprec;
+    return ((T)((int64_t)rval)) / fprec;
+}
+
+template<class T>
+T test_ator(csubstr s, T ref)
+{
+    INFO("str=" << s << "  ref=" << ref);
+    T rval;
+    CHECK(atox(s, &rval));
+    INFO("rval=" << rval);
+    CHECK_EQ(memcmp(&rval, &ref, sizeof(T)), 0);
+    return rval;
+}
 
 template<class Real>
-void test_rtoa(substr buf, Real f, rtoa_fn_t<Real> rtoa_fn, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
+void test_rtoa(substr buf, Real f, int precision, const char *scient, const char *flt, const char* flex, const char *hexa, const char *hexa_alternative=nullptr)
 {
     size_t ret;
+    Real pf = remprec10(f, precision);
 
-    INFO("num=" << f << " precision=" << precision
-         << "  hexa='" << hexa << "'  hexa_alternative='" << hexa_alternative << "'");
+    {
+        INFO("num=" << f << " precision=" << precision << "  scient=" << scient);
+        memset(buf.str, 0, buf.len);
+        ret = xtoa(buf, f, precision, FTOA_SCIENT);
+        REQUIRE_LE(ret, buf.len);
+        CHECK_EQ(buf.first(ret), to_csubstr(scient));
+        test_ator(buf.first(ret), pf);
+    }
 
-    memset(buf.str, 0, buf.len);
-    ret = rtoa_fn(buf, f, precision, FTOA_SCIENT);
-    REQUIRE_LE(ret, buf.len);
-    CHECK_EQ(buf.left_of(ret), to_csubstr(scient));
+    {
+        INFO("num=" << f << " precision=" << precision << "  flt=" << flt);
+        memset(buf.str, 0, ret);
+        ret = xtoa(buf, f, precision, FTOA_FLOAT);
+        REQUIRE_LE(ret, buf.len);
+        CHECK_EQ(buf.first(ret), to_csubstr(flt));
+        test_ator(buf.first(ret), pf);
+    }
 
-    memset(buf.str, 0, ret);
-    ret = rtoa_fn(buf, f, precision, FTOA_FLOAT);
-    REQUIRE_LE(ret, buf.len);
-    CHECK_EQ(buf.left_of(ret), to_csubstr(flt));
+    {
+        INFO("num=" << f << " precision=" << precision << "  flex=" << flex);
+        memset(buf.str, 0, ret);
+        ret = xtoa(buf, f, precision+1, FTOA_FLEX);
+        REQUIRE_LE(ret, buf.len);
+        CHECK_EQ(buf.first(ret), to_csubstr(flex));
+        test_ator(buf.first(ret), pf);
+    }
 
-    memset(buf.str, 0, ret);
-    ret = rtoa_fn(buf, f, precision+1, FTOA_FLEX);
-    REQUIRE_LE(ret, buf.len);
-    CHECK_EQ(buf.left_of(ret), to_csubstr(flex));
+    {
+        if(!hexa_alternative)
+            hexa_alternative = hexa;
+        INFO("num=" << f << " precision=" << precision << "  hexa=" << hexa << "  hexa_alternative=" << hexa_alternative);
+        memset(buf.str, 0, ret);
+        ret = xtoa(buf, f, precision, FTOA_HEXA);
+        REQUIRE_LE(ret, buf.len);
+        INFO("buf='" << buf.first(ret) << "'");
 
-    memset(buf.str, 0, ret);
-    ret = rtoa_fn(buf, f, precision, FTOA_HEXA);
-    REQUIRE_LE(ret, buf.len);
-    if(!hexa_alternative) hexa_alternative = hexa;
-    std::string report;
-    from_chars(buf.left_of(ret), &report);
-    bool ok = buf.left_of(ret) == to_csubstr(hexa) || buf.left_of(ret) == to_csubstr(hexa_alternative);
-    CHECK_MESSAGE(ok, "ret='" << report << "'");
+        CHECK((buf.first(ret) == to_csubstr(hexa) || buf.first(ret) == to_csubstr(hexa_alternative)));
+        Real readback = {};
+        CHECK(atox(buf.first(ret), &readback));
+        INFO("readback=" << readback);
+        REQUIRE_EQ(xtoa(buf, readback, precision, FTOA_HEXA), ret);
+        Real readback2 = {};
+        CHECK(atox(buf.first(ret), &readback2));
+        INFO("readback2=" << readback2);
+        CHECK_EQ(memcmp(&readback2, &readback, sizeof(Real)), 0);
+    }
 }
 
 
@@ -2100,45 +2140,81 @@ TEST_CASE("ftoa.basic")
     float f = 1.1234123f;
     double d = 1.1234123;
 
-    test_rtoa(buf, f, &ftoa, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
-    test_rtoa(buf, d, &dtoa, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    test_rtoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    test_rtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
 
-    test_rtoa(buf, f, &ftoa, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
-    test_rtoa(buf, d, &dtoa, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
+    test_rtoa(buf, f, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
+    test_rtoa(buf, d, 1, /*scient*/"1.1e+00", /*flt*/"1.1", /*flex*/"1.1", /*hexa*/"0x1.2p+0");
 
-    test_rtoa(buf, f, &ftoa, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0" _c4emscripten_alt("0x1.1f8p+0"));
-    test_rtoa(buf, d, &dtoa, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0" _c4emscripten_alt("0x1.1f8p+0"));
+    test_rtoa(buf, f, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0" _c4emscripten_alt("0x1.1f8p+0"));
+    test_rtoa(buf, d, 2, /*scient*/"1.12e+00", /*flt*/"1.12", /*flex*/"1.12", /*hexa*/"0x1.20p+0" _c4emscripten_alt("0x1.1f8p+0"));
 
-    test_rtoa(buf, f, &ftoa, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0" _c4emscripten_alt("0x1.1f98p+0"));
-    test_rtoa(buf, d, &dtoa, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0" _c4emscripten_alt("0x1.1f98p+0"));
+    test_rtoa(buf, f, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0" _c4emscripten_alt("0x1.1f98p+0"));
+    test_rtoa(buf, d, 3, /*scient*/"1.123e+00", /*flt*/"1.123", /*flex*/"1.123", /*hexa*/"0x1.1f9p+0" _c4emscripten_alt("0x1.1f98p+0"));
 
-    test_rtoa(buf, f, &ftoa, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
-    test_rtoa(buf, d, &dtoa, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
+    test_rtoa(buf, f, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
+    test_rtoa(buf, d, 4, /*scient*/"1.1234e+00", /*flt*/"1.1234", /*flex*/"1.1234", /*hexa*/"0x1.1f98p+0");
 
     f = 1.01234123f;
     d = 1.01234123;
 
-    test_rtoa(buf, f, &ftoa, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
-    test_rtoa(buf, d, &dtoa, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    test_rtoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    test_rtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
 
-    test_rtoa(buf, f, &ftoa, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
-    test_rtoa(buf, d, &dtoa, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
+    test_rtoa(buf, f, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
+    test_rtoa(buf, d, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
 
-    test_rtoa(buf, f, &ftoa, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
-    test_rtoa(buf, d, &dtoa, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
+    test_rtoa(buf, f, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
+    test_rtoa(buf, d, 2, /*scient*/"1.01e+00", /*flt*/"1.01", /*flex*/"1.01", /*hexa*/"0x1.03p+0");
 
-    test_rtoa(buf, f, &ftoa, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0" _c4emscripten_alt2("0x1.032p+0", "0x1.0328p+0"));
-    test_rtoa(buf, d, &dtoa, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0" _c4emscripten_alt2("0x1.032p+0", "0x1.0328p+0"));
+    test_rtoa(buf, f, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0" _c4emscripten_alt2("0x1.032p+0", "0x1.0328p+0"));
+    test_rtoa(buf, d, 3, /*scient*/"1.012e+00", /*flt*/"1.012", /*flex*/"1.012", /*hexa*/"0x1.033p+0" _c4emscripten_alt2("0x1.032p+0", "0x1.0328p+0"));
 
-    test_rtoa(buf, f, &ftoa, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
-    test_rtoa(buf, d, &dtoa, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
+    test_rtoa(buf, f, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
+    test_rtoa(buf, d, 4, /*scient*/"1.0123e+00", /*flt*/"1.0123", /*flex*/"1.0123", /*hexa*/"0x1.0329p+0");
+
+    f = 0.f;
+    d = 0.;
+
+    test_rtoa(buf, f, 0, /*scient*/"0e+00", /*flt*/"0", /*flex*/"0", /*hexa*/"0x0p+0");
+    test_rtoa(buf, d, 0, /*scient*/"0e+00", /*flt*/"0", /*flex*/"0", /*hexa*/"0x0p+0");
+
+    test_rtoa(buf, f, 1, /*scient*/"0.0e+00", /*flt*/"0.0", /*flex*/"0", /*hexa*/"0x0.0p+0");
+    test_rtoa(buf, d, 1, /*scient*/"0.0e+00", /*flt*/"0.0", /*flex*/"0", /*hexa*/"0x0.0p+0");
+
+    test_rtoa(buf, f, 2, /*scient*/"0.00e+00", /*flt*/"0.00", /*flex*/"0", /*hexa*/"0x0.00p+0");
+    test_rtoa(buf, d, 2, /*scient*/"0.00e+00", /*flt*/"0.00", /*flex*/"0", /*hexa*/"0x0.00p+0");
+
+    test_rtoa(buf, f, 3, /*scient*/"0.000e+00", /*flt*/"0.000", /*flex*/"0", /*hexa*/"0x0.000p+0" _c4emscripten_alt2("0x0.000p+0", "0x0.000p+0"));
+    test_rtoa(buf, d, 3, /*scient*/"0.000e+00", /*flt*/"0.000", /*flex*/"0", /*hexa*/"0x0.000p+0" _c4emscripten_alt2("0x0.000p+0", "0x0.000p+0"));
+
+    test_rtoa(buf, f, 4, /*scient*/"0.0000e+00", /*flt*/"0.0000", /*flex*/"0", /*hexa*/"0x0.0000p+0");
+    test_rtoa(buf, d, 4, /*scient*/"0.0000e+00", /*flt*/"0.0000", /*flex*/"0", /*hexa*/"0x0.0000p+0");
+
+    f = 1.f;
+    d = 1.;
+
+    test_rtoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+    test_rtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
+
+    test_rtoa(buf, f, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
+    test_rtoa(buf, d, 1, /*scient*/"1.0e+00", /*flt*/"1.0", /*flex*/"1", /*hexa*/"0x1.0p+0");
+
+    test_rtoa(buf, f, 2, /*scient*/"1.00e+00", /*flt*/"1.00", /*flex*/"1", /*hexa*/"0x1.00p+0");
+    test_rtoa(buf, d, 2, /*scient*/"1.00e+00", /*flt*/"1.00", /*flex*/"1", /*hexa*/"0x1.00p+0");
+
+    test_rtoa(buf, f, 3, /*scient*/"1.000e+00", /*flt*/"1.000", /*flex*/"1", /*hexa*/"0x1.000p+0" _c4emscripten_alt2("0x1.000p+0", "0x1.000p+0"));
+    test_rtoa(buf, d, 3, /*scient*/"1.000e+00", /*flt*/"1.000", /*flex*/"1", /*hexa*/"0x1.000p+0" _c4emscripten_alt2("0x1.000p+0", "0x1.000p+0"));
+
+    test_rtoa(buf, f, 4, /*scient*/"1.0000e+00", /*flt*/"1.0000", /*flex*/"1", /*hexa*/"0x1.0000p+0");
+    test_rtoa(buf, d, 4, /*scient*/"1.0000e+00", /*flt*/"1.0000", /*flex*/"1", /*hexa*/"0x1.0000p+0");
 }
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-TEST_CASE_TEMPLATE("atof.basic", T, float, double)
+TEST_CASE_TEMPLATE("atof.integral", T, float, double)
 {
     auto t_ = [](csubstr str, int val){
         T rval = (T)10 * (T)val;
@@ -2159,28 +2235,49 @@ TEST_CASE_TEMPLATE("atof.basic", T, float, double)
     t_(s.first(3), 123);
     t_(s.first(2), 12);
     t_(s.first(1), 1);
+}
 
+TEST_CASE_TEMPLATE("atof.hexa", T, float, double)
+{
+    auto t_ = [](csubstr str, bool isok){
+        T rval = {};
+        INFO("str=" << str);
+        CHECK_EQ(atox(str, &rval), isok);
+    };
+    t_("0x1.p+0", true);
+    t_("0x1.p", false);
+    t_("0x1.p+", false);
+    t_("0x12p+0", true);
+    t_("0x12p", false);
+    t_("0xabcdef.abcdefp+0", true);
+    t_("0xABCDEF.ABCDEFp+0", true);
+    t_("0x1g", false);
+    t_("0x1.2", true);
+    t_("0x1.", true);
+    t_("0x1.0329p+0", true);
+    t_("0x1.0329P+0", true);
+    t_("0x1.aAaAaAp+0", true);
+    t_("0x1.agA+0", false);
+}
+
+TEST_CASE_TEMPLATE("atof.infnan", T, float, double)
+{
     T pinf = std::numeric_limits<T>::infinity();
     T ninf = -std::numeric_limits<T>::infinity();
     T nan = std::numeric_limits<T>::quiet_NaN();
     T rval = {};
-    CHECK(atox("infinity", &rval));
-    CHECK_EQ(memcmp(&rval, &pinf, sizeof(T)), 0);
-    CHECK(atox("-infinity", &rval));
-    CHECK_EQ(memcmp(&rval, &ninf, sizeof(T)), 0);
-    CHECK(atox("inf", &rval));
-    CHECK_EQ(memcmp(&rval, &pinf, sizeof(T)), 0);
-    CHECK(atox("-inf", &rval));
-    CHECK_EQ(memcmp(&rval, &ninf, sizeof(T)), 0);
-    CHECK(atox("nan", &rval));
-    CHECK_EQ(memcmp(&rval, &nan, sizeof(T)), 0);
+    test_ator("infinity", pinf);
+    test_ator("inf", pinf);
+    test_ator("-infinity", ninf);
+    test_ator("-inf", ninf);
+    test_ator("nan", nan);
 }
 
 TEST_CASE_TEMPLATE("atof.fail_parse", T, float, double)
 {
     auto t_ = [](csubstr str){
-        INFO("str=" << str);
         T rval;
+        INFO("str=" << str << "  rval=" << rval);
         CHECK_EQ(atox(str, &rval), false);
     };
     t_(".inf");
@@ -2188,6 +2285,7 @@ TEST_CASE_TEMPLATE("atof.fail_parse", T, float, double)
     t_(".nan");
     t_("-.nan");
     t_("not a float!");
+    t_("0xfonix!");
     //t_("123.45not a float!");
 }
 

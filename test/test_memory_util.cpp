@@ -170,6 +170,119 @@ TEST_CASE_TEMPLATE("lsb11.basic", T, uint8_t, uint16_t, uint32_t, uint64_t)
 
 //-----------------------------------------------------------------------------
 
+TEST_CASE_TEMPLATE("ipow.float", T, float, double)
+{
+    SUBCASE("base 1, signed exponent")
+    {
+        CHECK_FLOAT_EQ(ipow(T(1), int(0)), T(1));
+        CHECK_FLOAT_EQ(ipow(T(1), int(1)), T(1));
+        CHECK_FLOAT_EQ(ipow(T(1), int(2)), T(1));
+        CHECK_FLOAT_EQ(ipow(T(1), -int(1)), T(1));
+        CHECK_FLOAT_EQ(ipow(T(1), -int(2)), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 1>(int(0))), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 1>(int(1))), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 1>(int(2))), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 1>(-int(1))), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 1>(-int(2))), T(1));
+    }
+    SUBCASE("base 1, unsigned exponent")
+    {
+        CHECK_FLOAT_EQ(ipow(T(1), unsigned(0)), T(1));
+        CHECK_FLOAT_EQ(ipow(T(1), unsigned(1)), T(1));
+        CHECK_FLOAT_EQ(ipow(T(1), unsigned(2)), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 1>(unsigned(0))), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 1>(unsigned(1))), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 1>(unsigned(2))), T(1));
+    }
+    SUBCASE("base 2, signed exponent")
+    {
+        CHECK_FLOAT_EQ(ipow(T(2), int(0)), T(1));
+        CHECK_FLOAT_EQ(ipow(T(2), int(1)), T(2));
+        CHECK_FLOAT_EQ(ipow(T(2), int(2)), T(4));
+        CHECK_FLOAT_EQ(ipow(T(2), int(7)), T(128));
+        CHECK_FLOAT_EQ(ipow(T(2), -int(1)), T(0.5));
+        CHECK_FLOAT_EQ(ipow(T(2), -int(2)), T(0.25));
+        CHECK_FLOAT_EQ(ipow(T(2), -int(3)), T(0.125));
+        CHECK_FLOAT_EQ(ipow(T(2), -int(4)), T(0.0625));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(int(0))), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(int(1))), T(2));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(int(2))), T(4));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(int(7))), T(128));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(-int(1))), T(0.5));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(-int(2))), T(0.25));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(-int(3))), T(0.125));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(-int(4))), T(0.0625));
+    }
+    SUBCASE("base 2, unsigned exponent")
+    {
+        CHECK_FLOAT_EQ(ipow(T(2), unsigned(0)), T(1));
+        CHECK_FLOAT_EQ(ipow(T(2), unsigned(1)), T(2));
+        CHECK_FLOAT_EQ(ipow(T(2), unsigned(2)), T(4));
+        CHECK_FLOAT_EQ(ipow(T(2), unsigned(6)), T(64));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(unsigned(0))), T(1));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(unsigned(1))), T(2));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(unsigned(2))), T(4));
+        CHECK_FLOAT_EQ((ipow<T, int, 2>(unsigned(6))), T(64));
+    }
+}
+
+TEST_CASE_TEMPLATE("ipow", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
+{
+    SUBCASE("base 1, signed exponent")
+    {
+        CHECK_EQ(ipow(T(1), int(0)), T(1));
+        CHECK_EQ(ipow(T(1), int(1)), T(1));
+        CHECK_EQ(ipow(T(1), int(2)), T(1));
+        CHECK_EQ(ipow(T(1), -int(1)), T(1));
+        CHECK_EQ(ipow(T(1), -int(2)), T(1));
+        CHECK_EQ(ipow<T, T(1)>(int(0)), T(1));
+        CHECK_EQ(ipow<T, T(1)>(int(1)), T(1));
+        CHECK_EQ(ipow<T, T(1)>(int(2)), T(1));
+        CHECK_EQ(ipow<T, T(1)>(-int(1)), T(1));
+        CHECK_EQ(ipow<T, T(1)>(-int(2)), T(1));
+    }
+    SUBCASE("base 1, unsigned exponent")
+    {
+        CHECK_EQ(ipow(T(1), unsigned(0)), T(1));
+        CHECK_EQ(ipow(T(1), unsigned(1)), T(1));
+        CHECK_EQ(ipow(T(1), unsigned(2)), T(1));
+        CHECK_EQ(ipow<T, T(1)>(unsigned(0)), T(1));
+        CHECK_EQ(ipow<T, T(1)>(unsigned(1)), T(1));
+        CHECK_EQ(ipow<T, T(1)>(unsigned(2)), T(1));
+    }
+    SUBCASE("base 2, signed exponent")
+    {
+        CHECK_EQ(ipow(T(2), int(0)), T(1));
+        CHECK_EQ(ipow(T(2), int(1)), T(2));
+        CHECK_EQ(ipow(T(2), int(2)), T(4));
+        CHECK_EQ(ipow(T(2), int(6)), T(64));
+        CHECK_EQ(ipow(T(2), -int(1)), T(0));
+        CHECK_EQ(ipow(T(2), -int(2)), T(0));
+        CHECK_EQ(ipow(T(2), -int(6)), T(0));
+        CHECK_EQ(ipow<T, T(2)>(int(0)), T(1));
+        CHECK_EQ(ipow<T, T(2)>(int(1)), T(2));
+        CHECK_EQ(ipow<T, T(2)>(int(2)), T(4));
+        CHECK_EQ(ipow<T, T(2)>(int(6)), T(64));
+        CHECK_EQ(ipow<T, T(2)>(-int(1)), T(0));
+        CHECK_EQ(ipow<T, T(2)>(-int(2)), T(0));
+        CHECK_EQ(ipow<T, T(2)>(-int(7)), T(0));
+    }
+    SUBCASE("base 2, unsigned exponent")
+    {
+        CHECK_EQ(ipow(T(2), unsigned(0)), T(1));
+        CHECK_EQ(ipow(T(2), unsigned(1)), T(2));
+        CHECK_EQ(ipow(T(2), unsigned(2)), T(4));
+        CHECK_EQ(ipow(T(2), unsigned(6)), T(64));
+        CHECK_EQ(ipow<T, T(2)>(unsigned(0)), T(1));
+        CHECK_EQ(ipow<T, T(2)>(unsigned(1)), T(2));
+        CHECK_EQ(ipow<T, T(2)>(unsigned(2)), T(4));
+        CHECK_EQ(ipow<T, T(2)>(unsigned(6)), T(64));
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+
 TEST_CASE_TEMPLATE("msb.basic", T, uint8_t, uint16_t, uint32_t, uint64_t)
 {
     CHECK_EQ(msb(T( 1)), 0u);
