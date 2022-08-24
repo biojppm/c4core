@@ -1991,8 +1991,11 @@ inline bool atof(csubstr str, float * C4_RESTRICT v) noexcept
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
 #else
-    size_t ret = detail::scan_one(str, "f", v);
-    return ret != csubstr::npos;
+    csubstr rem = str.sub(str.str[0] == '-' || str.str[0] == '+');
+    if(!(rem.begins_with("0x") || rem.begins_with("0X")))
+        return detail::scan_one(str, "f", v) != csubstr::npos;
+    else
+        return detail::scan_one(str, "a", v) != csubstr::npos;
 #endif
 }
 
@@ -2027,8 +2030,11 @@ inline bool atod(csubstr str, double * C4_RESTRICT v) noexcept
     result = std::from_chars(str.str, str.str + str.len, *v);
     return result.ec == std::errc();
 #else
-    size_t ret = detail::scan_one(str, "lf", v);
-    return ret != csubstr::npos;
+    csubstr rem = str.sub(str.str[0] == '-' || str.str[0] == '+');
+    if(!(rem.begins_with("0x") || rem.begins_with("0X")))
+        return detail::scan_one(str, "lf", v) != csubstr::npos;
+    else
+        return detail::scan_one(str, "la", v) != csubstr::npos;
 #endif
 }
 
