@@ -464,6 +464,118 @@ struct msb11
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+// there is an implicit conversion below; it happens when E or B are
+// narrower than int, and thus any operation will upcast the result to
+// int, and then downcast to assign
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wconversion")
+
+/** integer power; this function is constexpr-14 because of the local
+ * variables */
+template<class B, class E>
+C4_CONSTEXPR14 C4_CONST auto ipow(B base, E exponent) noexcept -> typename std::enable_if<std::is_signed<E>::value, B>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<E>::value);
+    B r = B(1);
+    if(exponent >= 0)
+    {
+        for(E e = 0; e < exponent; ++e)
+            r *= base;
+    }
+    else
+    {
+        exponent *= E(-1);
+        for(E e = 0; e < exponent; ++e)
+            r /= base;
+    }
+    return r;
+}
+
+/** integer power; this function is constexpr-14 because of the local
+ * variables */
+template<class B, B base, class E>
+C4_CONSTEXPR14 C4_CONST auto ipow(E exponent) noexcept -> typename std::enable_if<std::is_signed<E>::value, B>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<E>::value);
+    B r = B(1);
+    if(exponent >= 0)
+    {
+        for(E e = 0; e < exponent; ++e)
+            r *= base;
+    }
+    else
+    {
+        exponent *= E(-1);
+        for(E e = 0; e < exponent; ++e)
+            r /= base;
+    }
+    return r;
+}
+
+/** integer power; this function is constexpr-14 because of the local
+ * variables */
+template<class B, class Base, Base base, class E>
+C4_CONSTEXPR14 C4_CONST auto ipow(E exponent) noexcept -> typename std::enable_if<std::is_signed<E>::value, B>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<E>::value);
+    B r = B(1);
+    B bbase = B(base);
+    if(exponent >= 0)
+    {
+        for(E e = 0; e < exponent; ++e)
+            r *= bbase;
+    }
+    else
+    {
+        exponent *= E(-1);
+        for(E e = 0; e < exponent; ++e)
+            r /= bbase;
+    }
+    return r;
+}
+
+/** integer power; this function is constexpr-14 because of the local
+ * variables */
+template<class B, class E>
+C4_CONSTEXPR14 C4_CONST auto ipow(B base, E exponent) noexcept -> typename std::enable_if<!std::is_signed<E>::value, B>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<E>::value);
+    B r = B(1);
+    for(E e = 0; e < exponent; ++e)
+        r *= base;
+    return r;
+}
+
+/** integer power; this function is constexpr-14 because of the local
+ * variables */
+template<class B, B base, class E>
+C4_CONSTEXPR14 C4_CONST auto ipow(E exponent) noexcept -> typename std::enable_if<!std::is_signed<E>::value, B>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<E>::value);
+    B r = B(1);
+    for(E e = 0; e < exponent; ++e)
+        r *= base;
+    return r;
+}
+/** integer power; this function is constexpr-14 because of the local
+ * variables */
+template<class B, class Base, Base base, class E>
+C4_CONSTEXPR14 C4_CONST auto ipow(E exponent) noexcept -> typename std::enable_if<!std::is_signed<E>::value, B>::type
+{
+    C4_STATIC_ASSERT(std::is_integral<E>::value);
+    B r = B(1);
+    B bbase = B(base);
+    for(E e = 0; e < exponent; ++e)
+        r *= bbase;
+    return r;
+}
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 /** return a mask with all bits set [first_bit,last_bit[; this function
  * is constexpr-14 because of the local variables */
 template<class I>
