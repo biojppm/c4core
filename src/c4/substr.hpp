@@ -223,11 +223,10 @@ public:
     int compare(C const c) const
     {
         C4_XASSERT((str != nullptr) || len == 0);
-        if( ! len)
+        if(C4_LIKELY(str != nullptr && len > 0))
+            return (*str != c) ? *str - c : (static_cast<int>(len) - 1);
+        else
             return -1;
-        if(*str == c)
-            return static_cast<int>(len - 1);
-        return *str - c;
     }
 
     int compare(const char *that, size_t sz) const
@@ -241,7 +240,7 @@ public:
                 ret = len < sz ? -1 : 1;
             return ret;
         }
-        if((!str && !that) || (len == sz))
+        else if((!str && !that) || (len == sz))
         {
             C4_XASSERT(len == 0 && sz == 0);
             return 0;

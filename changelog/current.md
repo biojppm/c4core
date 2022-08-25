@@ -14,3 +14,4 @@
   - Always use the fastest implementation available: `std::from_chars()` if available (C++17 or higher standard, with later compilers), `fast_float::from_chars()` otherwise. On Visual Studio, `fast_float::from_chars()` is preferred over `std::from_chars()`.
   - If `std::from_chars()` is not available and `C4CORE_NO_FAST_FLOAT` is defined, then the fallback is based on `sscanf()`.
   - Ensure hexadecimal floats are accepted. The current fast_float implementation does not accept hexadecimal floats, so an hexfloat scanner was added.
+- Fix [#84](https://github.com/biojppm/c4core/issues/84): `csubstr::compare(char)`: refactor to avoid false-positive warning from VS2022.

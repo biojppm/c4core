@@ -1048,6 +1048,10 @@ TEST_CASE("substr.compare_null")
 
 TEST_CASE("substr.compare_vs_char")
 {
+    CHECK_EQ(csubstr().compare('1'), -1); // str==null, len==0
+    CHECK_EQ(csubstr("0123").first(0).compare('1'), -1); // str!=null, len==0
+    CHECK_EQ(csubstr("0123").first(1).compare('1'), -1);
+
     CHECK_EQ(csubstr("-"), '-');
     CHECK_NE(csubstr("+"), '-');
 
