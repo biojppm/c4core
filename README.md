@@ -42,6 +42,30 @@ bare-metal](https://github.com/biojppm/c4core/issues/63) as well as
 moment it's not easy to add automated tests to the CI, so for now
 these are not in the list of official architectures.
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+- [c4core - C++ core utilities](#c4core---c-core-utilities)
+    - [Obtaining c4core](#obtaining-c4core)
+    - [Using c4core in your project](#using-c4core-in-your-project)
+        - [CMake](#cmake)
+        - [Bazel](#bazel)
+        - [Header-only](#header-only)
+        - [Package managers](#package-managers)
+    - [Quick tour](#quick-tour)
+        - [Writeable string views: c4::substr and c4::csubstr](#writeable-string-views-c4substr-and-c4csubstr)
+        - [Value <-> character interoperation](#value---character-interoperation)
+        - [String formatting and parsing](#string-formatting-and-parsing)
+        - [`c4::span` and `c4::blob`](#c4span-and-c4blob)
+        - [Enums and enum symbols](#enums-and-enum-symbols)
+        - [Bitmasks and bitmask symbols](#bitmasks-and-bitmask-symbols)
+        - [Base64 encoding / decoding](#base64-encoding--decoding)
+        - [Fuzzy float comparison](#fuzzy-float-comparison)
+        - [Multi-platform / multi-compiler utilities](#multi-platform--multi-compiler-utilities)
+        - [Runtime assertions and error handling](#runtime-assertions-and-error-handling)
+        - [Memory allocation](#memory-allocation)
+        - [Mass initialization/construction/destruction](#mass-initializationconstructiondestruction)
+
+<!-- markdown-toc end -->
+
 
 ## Obtaining c4core
 
@@ -60,19 +84,20 @@ init` followed by `git submodule update`.
 
 ## Using c4core in your project
 
-c4core is built with cmake, and assumes you also use cmake. Although c4core
-is NOT header-only, and currently has no install target, you can very easily
-use c4core in your project by using
-`add_subdirectory(${path_to_c4core_root})` in your CMakeLists.txt; this will
-add c4core as a subproject of your project. Doing this is not intrusive to
-your cmake project because c4core is fast to build (typically under 10s), and
-it also prefixes every cmake variable with `C4CORE_`. But more importantly
-this will enable you to compile c4core with the exact same compile settings
-used by your project.
+c4core can be built with [cmake](#cmake), or can be used header only. It can also be obtained through some package managers.
+
+### CMake
+
+The recommended way to use c4core is by making it part of your project
+by using `add_subdirectory(${path_to_c4core_root})` in your
+CMakeLists.txt. Doing this is not intrusive to your cmake project
+because c4core is fast to build, also prefixes every cmake
+variable with `C4CORE_`. But more importantly, this will enable you to
+compile c4core with the exact same compile settings used by your
+project.
 
 Here's a very quick complete example of setting up your project to use
-c4core:
-
+c4core as a cmake subproject:
 ```cmake
 project(foo)
 
@@ -81,11 +106,41 @@ add_subdirectory(c4core)
 add_library(foo foo.cpp)
 target_link_libraries(foo PUBLIC c4core) # that's it!
 ```
-
 Note above that the call to `target_link_libraries()` is using PUBLIC
 linking. This is required to make sure the include directories from `c4core`
-are transitively used.
+are transitively used by clients of `foo`.
 
+
+### Header-only
+
+If you prefer to pick a single header to get you quickly going, [there is an amalgamation tool](tools/amalgamate.py) which generates this header:
+```console
+[user@host c4core]$ python tools/amalgamate.py -h
+usage: amalgamate.py [-h] [--fastfloat | --no-fastfloat] [--stl | --no-stl] [output]
+
+positional arguments:
+  output          output file. defaults to stdout
+
+options:
+  -h, --help      show this help message and exit
+  --fastfloat     enable fastfloat library. this is the default.
+  --no-fastfloat  enable fastfloat library. the default is --fastfloat.
+  --stl           enable stl interop. this is the default.
+  --no-stl        enable stl interop. the default is --stl.
+```
+
+
+### Package managers
+
+c4core is available through the following package managers:
+
+  * [vcpkg](https://vcpkg.io/en/packages.html): `vcpkg install c4core`
+  * Arch Linux/Manjaro:
+    * [rapidyaml](https://aur.archlinux.org/packages/rapidyaml/)
+
+
+
+<!----------------------------------------------------->
 
 ## Quick tour
 
@@ -105,10 +160,10 @@ Here: [`#include <c4/charconv.hpp>`](src/c4/charconv.hpp)
 ```c++
 // TODO: elaborate on the topics:
 
-c4::read_dec(), c4::write_dec()
-c4::read_hex(), c4::write_hex()
-c4::read_oct(), c4::write_oct()
-c4::read_bin(), c4::write_bin()
+c4::digits_dec(), c4::read_dec(), c4::write_dec()
+c4::digits_hex(), c4::read_hex(), c4::write_hex()
+c4::digits_oct(), c4::read_oct(), c4::write_oct()
+c4::digits_bin(), c4::read_bin(), c4::write_bin()
 
 c4::utoa(), c4::atou()
 c4::itoa(), c4::atoi()
@@ -246,8 +301,6 @@ c4::bm2str(), c4::str2bm()
 // TODO: elaborate on the topics:
 #include <c4/error.hpp>
 
-C4_LIKELY()/C4_UNLIKELY()
-
 C4_RESTRICT, $, c$, $$, c$$
 #include <c4/restrict.hpp>
 #include <c4/unrestrict.hpp>
@@ -258,6 +311,14 @@ C4_RESTRICT, $, c$, $$, c$$
 C4_UNREACHABLE()
 
 c4::type_name()
+
+// portable attributes
+C4_LIKELY()/C4_UNLIKELY()
+C4_ALWAYS_INLINE
+C4_CONST
+C4_PURE
+C4_HOT
+C4_COLD
 ```
 
 ### Runtime assertions and error handling
@@ -292,17 +353,11 @@ c4::Allocator
 ```c++
 // TODO: elaborate on the topics:
 
-c4::construct()/c4::construct_n()
-
-c4::destroy()/c4::destroy_n()
-
-c4::copy_construct()/c4::copy_construct_n()
-
-c4::copy_assign()/c4::copy_assign_n()
-
-c4::move_construct()/c4::move_construct_n()
-
-c4::move_assign()/c4::move_assign_n()
-
 c4::make_room()/c4::destroy_room()
+c4::construct()/c4::construct_n()
+c4::destroy()/c4::destroy_n()
+c4::copy_construct()/c4::copy_construct_n()
+c4::copy_assign()/c4::copy_assign_n()
+c4::move_construct()/c4::move_construct_n()
+c4::move_assign()/c4::move_assign_n()
 ```
