@@ -84,7 +84,7 @@ init` followed by `git submodule update`.
 
 ## Using c4core in your project
 
-c4core can be built with [cmake](#cmake) or [bazel](#bazel), or be used header only with the [amalgamation tool](pull/tools/amalgamate.py).
+c4core can be built with [cmake](#cmake) or [bazel](#bazel), or can be used [header only](#header-only). It can also be obtained through some [package managers](#package-managers).
 
 ### CMake
 
@@ -135,6 +135,36 @@ cc_binary(
 )
 ```
 
+### Header-only
+
+If you prefer to pick a single header to get you quickly going, [there is an amalgamation tool](tools/amalgamate.py) which generates this header:
+```console
+[user@host c4core]$ python tools/amalgamate.py -h
+usage: amalgamate.py [-h] [--fastfloat | --no-fastfloat] [--stl | --no-stl] [output]
+
+positional arguments:
+  output          output file. defaults to stdout
+
+options:
+  -h, --help      show this help message and exit
+  --fastfloat     enable fastfloat library. this is the default.
+  --no-fastfloat  enable fastfloat library. the default is --fastfloat.
+  --stl           enable stl interop. this is the default.
+  --no-stl        enable stl interop. the default is --stl.
+```
+
+
+### Package managers
+
+c4core is available through the following package managers:
+
+  * [vcpkg](https://vcpkg.io/en/packages.html): `vcpkg install c4core`
+  * Arch Linux/Manjaro:
+    * [rapidyaml](https://aur.archlinux.org/packages/rapidyaml/)
+
+
+
+<!----------------------------------------------------->
 
 ### Header-only
 
