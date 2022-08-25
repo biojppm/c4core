@@ -2267,9 +2267,10 @@ TEST_CASE_TEMPLATE("atof.hexa", T, float, double)
 
 TEST_CASE_TEMPLATE("atof.infnan", T, float, double)
 {
+    static_assert(std::numeric_limits<T>::has_quiet_NaN, "quiet indeed");
+    T nan = std::numeric_limits<T>::quiet_NaN();
     T pinf = std::numeric_limits<T>::infinity();
     T ninf = -std::numeric_limits<T>::infinity();
-    T nan = std::numeric_limits<T>::quiet_NaN();
     T rval = {};
     test_ator("infinity", pinf);
     test_ator("inf", pinf);
