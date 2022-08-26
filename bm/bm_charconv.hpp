@@ -42,10 +42,7 @@ inline double getrange(std::vector<double> const& v)
 // makes the program return a nonzero exit code when it finishes. So
 // we must resort to the preprocessor to conditionally disable these
 // benchmarks
-#if defined(__cpp_lib_to_chars)
-#define C4BM_TEMPLATE_TO_CHARS_INT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
-#define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
-#elif C4_CPP >= 17
+#if defined(__cpp_lib_to_chars) || (C4_CPP >= 17)
 #define C4BM_TEMPLATE_TO_CHARS_INT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
 #define C4BM_TEMPLATE_TO_CHARS_FLOAT(fn, ...) BENCHMARK_TEMPLATE(fn, __VA_ARGS__) _c4bm_stats
 #else
@@ -112,7 +109,7 @@ constexpr bool is_pot(T val)
 }
 
 constexpr const uint64_t kSeed = 37;
-constexpr const size_t kNumValues = 1u<<21; // 2.1M
+constexpr const size_t kNumValues = 1u<<20; // 2.1M
 C4_STATIC_ASSERT(is_pot(kNumValues));
 
 
