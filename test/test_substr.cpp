@@ -1432,10 +1432,30 @@ TEST_CASE("substr.first_real_span")
     CHECK_EQ(csubstr("0b01]asdasd").first_real_span(), "0b01");
     CHECK_EQ(csubstr("0b01)asdasd").first_real_span(), "0b01");
     CHECK_EQ(csubstr("0b01gasdasd").first_real_span(), "");
+    CHECK_EQ(csubstr("0b1.01 asdasd").first_real_span(), "0b1.01");
+    CHECK_EQ(csubstr("0b1.01\rasdasd").first_real_span(), "0b1.01");
+    CHECK_EQ(csubstr("0b1.01\tasdasd").first_real_span(), "0b1.01");
+    CHECK_EQ(csubstr("0b1.01\nasdasd").first_real_span(), "0b1.01");
+    CHECK_EQ(csubstr("0b1.01]asdasd").first_real_span(), "0b1.01");
+    CHECK_EQ(csubstr("0b1.01)asdasd").first_real_span(), "0b1.01");
+    CHECK_EQ(csubstr("0b1.01gasdasd").first_real_span(), "");
+    CHECK_EQ(csubstr("0b1.02 asdasd").first_real_span(), "");
+    CHECK_EQ(csubstr("0b1.02\rasdasd").first_real_span(), "");
+    CHECK_EQ(csubstr("0b1.02\tasdasd").first_real_span(), "");
+    CHECK_EQ(csubstr("0b1.02\nasdasd").first_real_span(), "");
+    CHECK_EQ(csubstr("0b1.02]asdasd").first_real_span(), "");
+    CHECK_EQ(csubstr("0b1.02)asdasd").first_real_span(), "");
+    CHECK_EQ(csubstr("0b1.02gasdasd").first_real_span(), "");
     CHECK_EQ(csubstr("+").first_real_span(), "");
     CHECK_EQ(csubstr("-").first_real_span(), "");
+    CHECK_EQ(csubstr("+0x").first_real_span(), "");
+    CHECK_EQ(csubstr("-0x").first_real_span(), "");
+    CHECK_EQ(csubstr("+0b").first_real_span(), "");
+    CHECK_EQ(csubstr("-0b").first_real_span(), "");
+    CHECK_EQ(csubstr("+0o").first_real_span(), "");
+    CHECK_EQ(csubstr("-0o").first_real_span(), "");
     CHECK_EQ(csubstr("-1.234 asdkjh").first_real_span(), "-1.234");
-    CHECK_EQ(csubstr("-1.234e5 asdkjh").first_real_span(), "-1.234e5");
+//    CHECK_EQ(csubstr("-1.234e5 asdkjh").first_real_span(), "-1.234e5");
     CHECK_EQ(csubstr("-1.234e+5 asdkjh").first_real_span(), "-1.234e+5");
     CHECK_EQ(csubstr("-1.234e-5 asdkjh").first_real_span(), "-1.234e-5");
     CHECK_EQ(csubstr("0x1.e8480p+19 asdkjh").first_real_span(), "0x1.e8480p+19");
@@ -2108,10 +2128,13 @@ struct number
     {
         if(ref.empty())
             ref = num;
+        INFO("num=" << num);
+        INFO("ref=" << ref);
         switch(cls)
         {
         case kIsUint:
         {
+            INFO("uint");
             CHECK_EQ(num.first_uint_span(), ref);
             CHECK_EQ(num.first_int_span(), ref);
             CHECK_EQ(num.first_real_span(), ref);
@@ -2122,6 +2145,7 @@ struct number
         }
         case kIsInt:
         {
+            INFO("int");
             CHECK_EQ(num.first_uint_span(), "");
             CHECK_EQ(num.first_int_span(), ref);
             CHECK_EQ(num.first_real_span(), ref);
@@ -2132,6 +2156,7 @@ struct number
         }
         case kIsReal:
         {
+            INFO("real");
             CHECK_EQ(num.first_uint_span(), "");
             CHECK_EQ(num.first_int_span(), "");
             CHECK_EQ(num.first_real_span(), ref);
@@ -2142,6 +2167,7 @@ struct number
         }
         case kIsNone:
         {
+            INFO("none");
             CHECK_EQ(num.first_uint_span(), "");
             CHECK_EQ(num.first_int_span(), "");
             CHECK_EQ(num.first_real_span(), "");
@@ -2161,9 +2187,112 @@ struct number
 
 const number numbers[] = {
     {"", kIsNone},
-    //{".", kIsNone},
+    {"0x", kIsNone},
+    {"0b", kIsNone},
+    {"0o", kIsNone},
+    {".", kIsNone},
+    {"0x.", kIsNone},
+    {"0b.", kIsNone},
+    {"0o.", kIsNone},
+    {"-", kIsNone},
+    {"0x-", kIsNone},
+    {"0b-", kIsNone},
+    {"0o-", kIsNone},
+    {"+", kIsNone},
+    {"0x+", kIsNone},
+    {"0b+", kIsNone},
+    {"0o+", kIsNone},
+    {".e", kIsNone},
+    {".e+", kIsNone},
+    {".e-", kIsNone},
+    {"0x.p", kIsNone},
+    {"0x.p+", kIsNone},
+    {"0x.p-", kIsNone},
+    {"0b.p", kIsNone},
+    {"0b.p+", kIsNone},
+    {"0b.p-", kIsNone},
+    {"0o.p", kIsNone},
+    {"0o.p+", kIsNone},
+    {"0o.p-", kIsNone},
+    {"0x.p+", kIsNone},
+    {"0x0.p+", kIsNone},
+    {"0x.0p+", kIsNone},
+    {"0x.p+0", kIsNone},
+    {"0x.p+00", kIsNone},
+    {"0x0.0p+", kIsNone},
+    {"0x.0p+0", kIsReal},
+    {"0x0.p+0", kIsReal},
+    {"0x0.0p+0", kIsReal},
+    {"0x0.0p+00", kIsReal},
+    {"0x00.00p+00", kIsReal},
+    {"0x0p0.00p+00", kIsNone},
+    {"0x00.0p0p+00", kIsNone},
+    {"0x00.00p+0p0", kIsNone},
+    {"0x00.00p+00p", kIsNone},
+    {"0b.p+", kIsNone},
+    {"0b0.p+", kIsNone},
+    {"0b.0p+", kIsNone},
+    {"0b.p+0", kIsNone},
+    {"0b.p+00", kIsNone},
+    {"0b0.0p+", kIsNone},
+    {"0b.0p+0", kIsReal},
+    {"0b0.p+0", kIsReal},
+    {"0b0.0p+0", kIsReal},
+    {"0b0.0p+00", kIsReal},
+    {"0b00.00p+00", kIsReal},
+    {"0b0p0.00p+00", kIsNone},
+    {"0b00.0p0p+00", kIsNone},
+    {"0b00.00p+0p0", kIsNone},
+    {"0b00.00p+00p", kIsNone},
+    {"0o.p+", kIsNone},
+    {"0o0.p+", kIsNone},
+    {"0o.0p+", kIsNone},
+    {"0o.p+0", kIsNone},
+    {"0o.p+00", kIsNone},
+    {"0o0.0p+", kIsNone},
+    {"0o.0p+0", kIsReal},
+    {"0o0.p+0", kIsReal},
+    {"0o0.0p+0", kIsReal},
+    {"0o0.0p+00", kIsReal},
+    {"0o00.00p+00", kIsReal},
+    {"0o0p0.00p+00", kIsNone},
+    {"0o00.0p0p+00", kIsNone},
+    {"0o00.00p+0p0", kIsNone},
+    {"0o00.00p+00p", kIsNone},
+    {".e+", kIsNone},
+    {"0.e+", kIsNone},
+    {".0e+", kIsNone},
+    {".e+0", kIsNone},
+    {".e+00", kIsNone},
+    {"0.0e+", kIsNone},
+    {".0e+0", kIsReal},
+    {"0.e+0", kIsReal},
+    {"0.0e+0", kIsReal},
+    {"0.0e+00", kIsReal},
+    {"00.00e+00", kIsReal},
+    {"0e0.00e+00", kIsNone},
+    {"00.0e0e+00", kIsNone},
+    {"00.00e+0e0", kIsNone},
+    {"00.00e+00e", kIsNone},
+    {"0x1234.", kIsReal},
+    {"+0x1234.", kIsReal},
+    {"-0x1234.", kIsReal},
+    {"0x.1234", kIsReal},
+    {"0x0.1.2.3", kIsNone},
+    {"0o0.1.2.3", kIsNone},
+    {"0b0.1.0.1", kIsNone},
     {"a", kIsNone},
     {"b", kIsNone},
+    {"?", kIsNone},
+    {"0.0.1", kIsNone},
+    {"0.0.9", kIsNone},
+    {"0.0.10", kIsNone},
+    {"0.1.0", kIsNone},
+    {"0.9.0", kIsNone},
+    {"0.10.0", kIsNone},
+    {"1.0.0", kIsNone},
+    {"9.0.0", kIsNone},
+    {"10.0.0", kIsNone},
     {".0", kIsReal},
     {"0.", kIsReal},
     {"0.0", kIsReal},
@@ -2173,92 +2302,55 @@ const number numbers[] = {
     {"1234.0", kIsReal},
     {"+1234.0", kIsReal},
     {"-1234.0", kIsReal},
-    {"1", kIsUint},
-    {"+1", kIsUint},
-    {"-1", kIsInt},
-    {"1.", kIsReal},
-    {"+1.", kIsReal},
-    {"-1.", kIsReal},
+    {"0000", kIsUint},
+    {"0123", kIsUint},
     {"0", kIsUint},
-    {"+0", kIsUint},
-    {"-0", kIsInt},
+    {"1", kIsUint},
     {"1.", kIsReal},
-    {"+1.", kIsReal},
-    {"-1.", kIsReal},
     {".1", kIsReal},
-    {"+.1", kIsReal},
-    {"-.1", kIsReal},
     {"0x1234", kIsUint},
     {"+0x1234", kIsUint},
     {"-0x1234", kIsInt},
     {"0b01", kIsUint},
-    {"+0b01", kIsUint},
-    {"-0b01", kIsInt},
-    {"1e1", kIsReal},
     {"1e+1", kIsReal},
     {"1e-1", kIsReal},
-    {"1.e1", kIsReal},
     {"1.e-1", kIsReal},
     {"1.e+1", kIsReal},
-    {"1.0e1", kIsReal},
     {"1.0e-1", kIsReal},
     {"1.0e+1", kIsReal},
-    {"+1e1", kIsReal},
-    {"+1e+1", kIsReal},
-    {"+1e-1", kIsReal},
-    {"+1.e1", kIsReal},
-    {"+1.e-1", kIsReal},
-    {"+1.e+1", kIsReal},
-    {"+1.0e1", kIsReal},
-    {"+1.0e-1", kIsReal},
-    {"+1.0e+1", kIsReal},
-    {"-1e1", kIsReal},
-    {"-1e+1", kIsReal},
-    {"-1e-1", kIsReal},
-    {"-1.e1", kIsReal},
-    {"-1.e-1", kIsReal},
-    {"-1.e+1", kIsReal},
-    {"-1.0e1", kIsReal},
-    {"-1.0e-1", kIsReal},
-    {"-1.0e+1", kIsReal},
-    {"1e123", kIsReal},
     {"1e+123", kIsReal},
     {"1e-123", kIsReal},
-    {"1.e123", kIsReal},
     {"1.e-123", kIsReal},
     {"1.e+123", kIsReal},
     {"1.0e123", kIsReal},
     {"1.0e-123", kIsReal},
     {"1.0e+123", kIsReal},
-    {"+1e123", kIsReal},
-    {"+1e+123", kIsReal},
-    {"+1e-123", kIsReal},
-    {"+1.e123", kIsReal},
-    {"+1.e-123", kIsReal},
-    {"+1.e+123", kIsReal},
-    {"+1.0e123", kIsReal},
-    {"+1.0e-123", kIsReal},
-    {"+1.0e+123", kIsReal},
-    {"-1e123", kIsReal},
-    {"-1e+123", kIsReal},
-    {"-1e-123", kIsReal},
-    {"-1.e123", kIsReal},
-    {"-1.e-123", kIsReal},
-    {"-1.e+123", kIsReal},
-    {"-1.0e123", kIsReal},
-    {"-1.0e-123", kIsReal},
-    {"-1.0e+123", kIsReal},
     {"infinity", kIsReal},
-    {"-infinity", kIsReal},
-    {"+infinity", kIsReal},
     {"inf", kIsReal},
-    {"-inf", kIsReal},
-    {"+inf", kIsReal},
     {"nan", kIsReal},
 };
 
 TEST_CASE("substr.is_number")
 {
+    SUBCASE("basic.hex")
+    {
+        CHECK_EQ(csubstr("0x.0p+0").first_real_span(), csubstr("0x.0p+0"));
+        CHECK_EQ(csubstr("0x)sdkjhsdfkju").first_int_span(), csubstr{});
+        CHECK_EQ(csubstr("0x)sdkjhsdfkju").first_uint_span(), csubstr{});
+        CHECK_EQ(csubstr("0x)sdkjhsdfkju").first_real_span(), csubstr{});
+        CHECK_EQ(csubstr("0x0)sdkjhsdfkju").first_int_span(), csubstr("0x0"));
+        CHECK_EQ(csubstr("0x0)sdkjhsdfkju").first_uint_span(), csubstr("0x0"));
+        CHECK_EQ(csubstr("0x0)sdkjhsdfkju").first_real_span(), csubstr("0x0"));
+    }
+    SUBCASE("basic.dec")
+    {
+        CHECK_EQ(csubstr("+infinity").first_real_span(), csubstr("+infinity"));
+        CHECK_EQ(csubstr("-infinity").first_real_span(), csubstr("-infinity"));
+        CHECK_EQ(csubstr("+inf").first_real_span(), csubstr("+inf"));
+        CHECK_EQ(csubstr("-inf").first_real_span(), csubstr("-inf"));
+        CHECK_EQ(csubstr("0.e+0").first_real_span(), csubstr("0.e+0"));
+        CHECK_EQ(csubstr("0.e-0").first_real_span(), csubstr("0.e-0"));
+    }
     SUBCASE("plain")
     {
         for(number n : numbers)
@@ -2267,12 +2359,144 @@ TEST_CASE("substr.is_number")
         }
     }
     char buf[128];
+    SUBCASE("leading+")
+    {
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            substr withplus = cat_sub(buf, '+', n.num);
+            NumberClass cls = n.cls;
+            if(withplus.begins_with("+-") || withplus.begins_with("++"))
+                cls = kIsNone;
+            number cp(withplus, cls);
+            cp.test();
+        }
+    }
+    SUBCASE("leading-")
+    {
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            substr withminus = cat_sub(buf, '-', n.num);
+            NumberClass cls = n.cls;
+            if(cls == kIsUint)
+                cls = kIsInt;
+            if(withminus.begins_with("--") || withminus.begins_with("-+"))
+                cls = kIsNone;
+            number cp(withminus, cls);
+            cp.test();
+        }
+    }
+    SUBCASE("capital_e")
+    {
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            substr replaced = cat_sub(buf, n.num);
+            replaced.replace('e', 'E');
+            number cp(replaced, n.cls);
+            cp.test();
+        }
+    }
+    SUBCASE("capital_p")
+    {
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            substr replaced = cat_sub(buf, n.num);
+            replaced.replace('p', 'P');
+            number cp(replaced, n.cls);
+            cp.test();
+        }
+    }
+    SUBCASE("capital_0x")
+    {
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            substr replaced = cat_sub(buf, n.num);
+            replaced.replace('x', 'X');
+            number cp(replaced, n.cls);
+            cp.test();
+        }
+    }
+    SUBCASE("capital_0b")
+    {
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            substr replaced = cat_sub(buf, n.num);
+            replaced.replace('b', 'B');
+            number cp(replaced, n.cls);
+            cp.test();
+        }
+    }
+    SUBCASE("capital_0o")
+    {
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            substr replaced = cat_sub(buf, n.num);
+            replaced.replace('o', 'O');
+            number cp(replaced, n.cls);
+            cp.test();
+        }
+    }
+    SUBCASE("numbers before")
+    {
+        char numbuf_[16] = {};
+        substr numbuf = numbuf_;
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            for(char c : {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'})
+            {
+                numbuf.fill(c);
+                substr result = cat_sub(buf, numbuf, n.num);
+                number cp(result.sub(numbuf.len), n.cls);
+                cp.test();
+            }
+        }
+    }
+    SUBCASE("numbers after")
+    {
+        char numbuf_[16] = {};
+        substr numbuf = numbuf_;
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            for(char c : {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'})
+            {
+                numbuf.fill(c);
+                substr result = cat_sub(buf, n.num, numbuf);
+                number cp(result.first(n.num.len), n.cls);
+                cp.test();
+            }
+        }
+    }
+    SUBCASE("delimiter after")
+    {
+        for(number n : numbers)
+        {
+            INFO("orig=" << n.num);
+            for(char c : {' ', '\n', ']', ')', '}', ',', ';', '\r', '\t','\0'})
+            {
+                INFO("delimiter='" << c << "'");
+                substr result = cat_sub(buf, n.num, c);
+                number cp(result, n.cls);
+                cp.test(n.num);
+            }
+        }
+    }
     csubstr garbage = "sdkjhsdfkju";
     SUBCASE("prepend")
     {
         // adding anything before the number will make it not be a number
         for(number n : numbers)
         {
+            if(n.num.empty())
+                continue;
+            INFO("orig=" << n.num);
             for(int i = 0; i < 127; ++i)
             {
                 char c = (char)i;
@@ -2287,6 +2511,7 @@ TEST_CASE("substr.is_number")
         // adding after may or may not make it a number
         for(number const& n : numbers)
         {
+            INFO("orig=" << n.num);
             for(int i = 0; i < 127; ++i)
             {
                 number cp = n;
