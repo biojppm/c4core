@@ -190,28 +190,28 @@ public:
     /** @name Standard accessor methods */
     /** @{ */
 
-    bool   has_str()   const { return ! empty() && str[0] != C(0); }
-    bool   empty()     const { return (len == 0 || str == nullptr); }
-    bool   not_empty() const { return (len != 0 && str != nullptr); }
-    size_t size()      const { return len; }
+    C4_ALWAYS_INLINE C4_PURE bool   has_str()   const noexcept { return ! empty() && str[0] != C(0); }
+    C4_ALWAYS_INLINE C4_PURE bool   empty()     const noexcept { return (len == 0 || str == nullptr); }
+    C4_ALWAYS_INLINE C4_PURE bool   not_empty() const noexcept { return (len != 0 && str != nullptr); }
+    C4_ALWAYS_INLINE C4_PURE size_t size()      const noexcept { return len; }
 
-    iterator begin() { return str; }
-    iterator end  () { return str + len; }
+    C4_ALWAYS_INLINE C4_PURE iterator begin() noexcept { return str; }
+    C4_ALWAYS_INLINE C4_PURE iterator end  () noexcept { return str + len; }
 
-    const_iterator begin() const { return str; }
-    const_iterator end  () const { return str + len; }
+    C4_ALWAYS_INLINE C4_PURE const_iterator begin() const noexcept { return str; }
+    C4_ALWAYS_INLINE C4_PURE const_iterator end  () const noexcept { return str + len; }
 
-    C      * data()       { return str; }
-    C const* data() const { return str; }
+    C4_ALWAYS_INLINE C4_PURE C      * data()       noexcept { return str; }
+    C4_ALWAYS_INLINE C4_PURE C const* data() const noexcept { return str; }
 
-    inline C      & operator[] (size_t i)       { C4_ASSERT(i >= 0 && i < len); return str[i]; }
-    inline C const& operator[] (size_t i) const { C4_ASSERT(i >= 0 && i < len); return str[i]; }
+    C4_ALWAYS_INLINE C4_PURE C      & operator[] (size_t i)       noexcept { C4_ASSERT(i >= 0 && i < len); return str[i]; }
+    C4_ALWAYS_INLINE C4_PURE C const& operator[] (size_t i) const noexcept { C4_ASSERT(i >= 0 && i < len); return str[i]; }
 
-    inline C      & front()       { C4_ASSERT(len > 0 && str != nullptr); return *str; }
-    inline C const& front() const { C4_ASSERT(len > 0 && str != nullptr); return *str; }
+    C4_ALWAYS_INLINE C4_PURE C      & front()       noexcept { C4_ASSERT(len > 0 && str != nullptr); return *str; }
+    C4_ALWAYS_INLINE C4_PURE C const& front() const noexcept { C4_ASSERT(len > 0 && str != nullptr); return *str; }
 
-    inline C      & back()       { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
-    inline C const& back() const { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
+    C4_ALWAYS_INLINE C4_PURE C      & back()       noexcept { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
+    C4_ALWAYS_INLINE C4_PURE C const& back() const noexcept { C4_ASSERT(len > 0 && str != nullptr); return *(str + len - 1); }
 
     /** @} */
 
@@ -290,23 +290,22 @@ public:
     /** @{ */
 
     /** true if *this is a substring of that (ie, from the same buffer) */
-    inline bool is_sub(ro_substr const that) const
+    C4_ALWAYS_INLINE C4_PURE bool is_sub(ro_substr const that) const noexcept
     {
         return that.is_super(*this);
     }
 
     /** true if that is a substring of *this (ie, from the same buffer) */
-    inline bool is_super(ro_substr const that) const
+    C4_ALWAYS_INLINE C4_PURE bool is_super(ro_substr const that) const noexcept
     {
-        if(C4_UNLIKELY(len == 0))
-        {
+        if(C4_LIKELY(len > 0))
+            return that.str >= str && that.str+that.len <= str+len;
+        else
             return that.len == 0 && that.str == str && str != nullptr;
-        }
-        return that.str >= str && that.str+that.len <= str+len;
     }
 
     /** true if there is overlap of at least one element between that and *this */
-    inline bool overlaps(ro_substr const that) const
+    C4_ALWAYS_INLINE C4_PURE bool overlaps(ro_substr const that) const noexcept
     {
         // thanks @timwynants
         return that.str+that.len > str && that.str < str+len;
@@ -315,14 +314,14 @@ public:
 public:
 
     /** return [first,len[ */
-    basic_substring sub(size_t first) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring sub(size_t first) const noexcept
     {
         C4_ASSERT(first >= 0 && first <= len);
         return basic_substring(str + first, len - first);
     }
 
     /** return [first,first+num[. If num==npos, return [first,len[ */
-    basic_substring sub(size_t first, size_t num) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring sub(size_t first, size_t num) const noexcept
     {
         C4_ASSERT(first >= 0 && first <= len);
         C4_ASSERT((num >= 0 && num <= len) || (num == npos));
@@ -332,7 +331,7 @@ public:
     }
 
     /** return [first,last[. If last==npos, return [first,len[ */
-    basic_substring range(size_t first, size_t last=npos) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring range(size_t first, size_t last=npos) const noexcept
     {
         C4_ASSERT(first >= 0 && first <= len);
         last = last != npos ? last : len;
@@ -342,23 +341,23 @@ public:
     }
 
     /** return [0,num[*/
-    basic_substring first(size_t num) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring first(size_t num) const noexcept
     {
-        return sub(0, num);
+        C4_ASSERT(num <= len || num == npos);
+        return basic_substring(str, num != npos ? num : len);
     }
 
     /** return [len-num,len[*/
-    basic_substring last(size_t num) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring last(size_t num) const noexcept
     {
-        if(num == npos)
-            return *this;
-        return sub(len - num);
+        C4_ASSERT(num <= len || num == npos);
+        return num != npos ? basic_substring(str + len - num, num) : *this;
     }
 
     /** offset from the ends: return [left,len-right[ ; ie, trim a
         number of characters from the left and right. This is
         equivalent to python's negative list indices. */
-    basic_substring offs(size_t left, size_t right) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring offs(size_t left, size_t right) const noexcept
     {
         C4_ASSERT(left  >= 0 && left  <= len);
         C4_ASSERT(right >= 0 && right <= len);
@@ -366,16 +365,32 @@ public:
         return basic_substring(str + left, len - right - left);
     }
 
+    /** return [0, pos[ */
+    C4_ALWAYS_INLINE C4_PURE basic_substring left_of(size_t pos) const noexcept
+    {
+        if(pos == npos)
+            return *this;
+        return first(pos);
+    }
+
     /** return [0, pos+include_pos[ */
-    basic_substring left_of(size_t pos, bool include_pos=false) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring left_of(size_t pos, bool include_pos) const noexcept
     {
         if(pos == npos)
             return *this;
         return first(pos + include_pos);
     }
 
+    /** return [pos+1, len[ */
+    C4_ALWAYS_INLINE C4_PURE basic_substring right_of(size_t pos) const noexcept
+    {
+        if(pos == npos)
+            return sub(len, 0);
+        return sub(pos);
+    }
+
     /** return [pos+!include_pos, len[ */
-    basic_substring right_of(size_t pos, bool include_pos=false) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring right_of(size_t pos, bool include_pos) const noexcept
     {
         if(pos == npos)
             return sub(len, 0);
@@ -386,7 +401,7 @@ public:
 
     /** given @p subs a substring of the current string, get the
      * portion of the current string to the left of it */
-    basic_substring left_of(ro_substr const subs) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring left_of(ro_substr const subs) const noexcept
     {
         C4_ASSERT(is_super(subs) || subs.empty());
         auto ssb = subs.begin();
@@ -400,7 +415,7 @@ public:
 
     /** given @p subs a substring of the current string, get the
      * portion of the current string to the right of it */
-    basic_substring right_of(ro_substr const subs) const
+    C4_ALWAYS_INLINE C4_PURE basic_substring right_of(ro_substr const subs) const noexcept
     {
         C4_ASSERT(is_super(subs) || subs.empty());
         auto sse = subs.end();
