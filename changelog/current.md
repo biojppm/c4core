@@ -15,3 +15,6 @@
   - If `std::from_chars()` is not available and `C4CORE_NO_FAST_FLOAT` is defined, then the fallback is based on `sscanf()`.
   - Ensure hexadecimal floats are accepted. The current fast_float implementation does not accept hexadecimal floats, so an hexfloat scanner was added.
 - Fix [#84](https://github.com/biojppm/c4core/issues/84): `csubstr::compare(char)`: refactor to avoid false-positive warning from VS2022.
+- `csubstr::compare()` and comparison operators:
+  - add `C4_RESTRICT` to incoming string.
+  - add annotations `C4_CONST` and `C4_ALWAYS_INLINE`

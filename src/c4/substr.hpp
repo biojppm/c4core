@@ -220,7 +220,7 @@ public:
     /** @name Comparison methods */
     /** @{ */
 
-    int compare(C const c) const
+    C4_PURE int compare(C const c) const noexcept
     {
         C4_XASSERT((str != nullptr) || len == 0);
         if(C4_LIKELY(str != nullptr && len > 0))
@@ -229,18 +229,26 @@ public:
             return -1;
     }
 
-    int compare(const char *that, size_t sz) const
+    C4_PURE int compare(const char *C4_RESTRICT that, size_t sz) const noexcept
     {
         C4_XASSERT(that || sz  == 0);
         C4_XASSERT(str  || len == 0);
         if(C4_LIKELY(str && that))
         {
-            int ret = strncmp(str, that, len < sz ? len : sz);
-            if(ret == 0 && len != sz)
-                ret = len < sz ? -1 : 1;
-            return ret;
+            {
+                size_t min = len < sz ? len : sz;
+                for(size_t i = 0; i < min; ++i)
+                    if(str[i] != that[i])
+                        return str[i] < that[i] ? -1 : 1;
+            }
+            if(len < sz)
+                return -1;
+            else if(len == sz)
+                return 0;
+            else
+                return 1;
         }
-        else if((!str && !that) || (len == sz))
+        else if(len == sz)
         {
             C4_XASSERT(len == 0 && sz == 0);
             return 0;
@@ -248,31 +256,31 @@ public:
         return len < sz ? -1 : 1;
     }
 
-    C4_ALWAYS_INLINE int compare(ro_substr const that) const { return this->compare(that.str, that.len); }
+    C4_ALWAYS_INLINE C4_PURE int compare(ro_substr const that) const noexcept { return this->compare(that.str, that.len); }
 
-    C4_ALWAYS_INLINE bool operator== (std::nullptr_t) const { return str == nullptr || len == 0; }
-    C4_ALWAYS_INLINE bool operator!= (std::nullptr_t) const { return str != nullptr || len == 0; }
+    C4_ALWAYS_INLINE C4_PURE bool operator== (std::nullptr_t) const noexcept { return str == nullptr || len == 0; }
+    C4_ALWAYS_INLINE C4_PURE bool operator!= (std::nullptr_t) const noexcept { return str != nullptr || len == 0; }
 
-    C4_ALWAYS_INLINE bool operator== (C const c) const { return this->compare(c) == 0; }
-    C4_ALWAYS_INLINE bool operator!= (C const c) const { return this->compare(c) != 0; }
-    C4_ALWAYS_INLINE bool operator<  (C const c) const { return this->compare(c) <  0; }
-    C4_ALWAYS_INLINE bool operator>  (C const c) const { return this->compare(c) >  0; }
-    C4_ALWAYS_INLINE bool operator<= (C const c) const { return this->compare(c) <= 0; }
-    C4_ALWAYS_INLINE bool operator>= (C const c) const { return this->compare(c) >= 0; }
+    C4_ALWAYS_INLINE C4_PURE bool operator== (C const c) const noexcept { return this->compare(c) == 0; }
+    C4_ALWAYS_INLINE C4_PURE bool operator!= (C const c) const noexcept { return this->compare(c) != 0; }
+    C4_ALWAYS_INLINE C4_PURE bool operator<  (C const c) const noexcept { return this->compare(c) <  0; }
+    C4_ALWAYS_INLINE C4_PURE bool operator>  (C const c) const noexcept { return this->compare(c) >  0; }
+    C4_ALWAYS_INLINE C4_PURE bool operator<= (C const c) const noexcept { return this->compare(c) <= 0; }
+    C4_ALWAYS_INLINE C4_PURE bool operator>= (C const c) const noexcept { return this->compare(c) >= 0; }
 
-    template<class U> C4_ALWAYS_INLINE bool operator== (basic_substring<U> const that) const { return this->compare(that) == 0; }
-    template<class U> C4_ALWAYS_INLINE bool operator!= (basic_substring<U> const that) const { return this->compare(that) != 0; }
-    template<class U> C4_ALWAYS_INLINE bool operator<  (basic_substring<U> const that) const { return this->compare(that) <  0; }
-    template<class U> C4_ALWAYS_INLINE bool operator>  (basic_substring<U> const that) const { return this->compare(that) >  0; }
-    template<class U> C4_ALWAYS_INLINE bool operator<= (basic_substring<U> const that) const { return this->compare(that) <= 0; }
-    template<class U> C4_ALWAYS_INLINE bool operator>= (basic_substring<U> const that) const { return this->compare(that) >= 0; }
+    template<class U> C4_ALWAYS_INLINE C4_PURE bool operator== (basic_substring<U> const that) const noexcept { return this->compare(that) == 0; }
+    template<class U> C4_ALWAYS_INLINE C4_PURE bool operator!= (basic_substring<U> const that) const noexcept { return this->compare(that) != 0; }
+    template<class U> C4_ALWAYS_INLINE C4_PURE bool operator<  (basic_substring<U> const that) const noexcept { return this->compare(that) <  0; }
+    template<class U> C4_ALWAYS_INLINE C4_PURE bool operator>  (basic_substring<U> const that) const noexcept { return this->compare(that) >  0; }
+    template<class U> C4_ALWAYS_INLINE C4_PURE bool operator<= (basic_substring<U> const that) const noexcept { return this->compare(that) <= 0; }
+    template<class U> C4_ALWAYS_INLINE C4_PURE bool operator>= (basic_substring<U> const that) const noexcept { return this->compare(that) >= 0; }
 
-    template<size_t N> C4_ALWAYS_INLINE bool operator== (const char (&that)[N]) const { return this->compare(that, N-1) == 0; }
-    template<size_t N> C4_ALWAYS_INLINE bool operator!= (const char (&that)[N]) const { return this->compare(that, N-1) != 0; }
-    template<size_t N> C4_ALWAYS_INLINE bool operator<  (const char (&that)[N]) const { return this->compare(that, N-1) <  0; }
-    template<size_t N> C4_ALWAYS_INLINE bool operator>  (const char (&that)[N]) const { return this->compare(that, N-1) >  0; }
-    template<size_t N> C4_ALWAYS_INLINE bool operator<= (const char (&that)[N]) const { return this->compare(that, N-1) <= 0; }
-    template<size_t N> C4_ALWAYS_INLINE bool operator>= (const char (&that)[N]) const { return this->compare(that, N-1) >= 0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator== (const char (&that)[N]) const noexcept { return this->compare(that, N-1) == 0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator!= (const char (&that)[N]) const noexcept { return this->compare(that, N-1) != 0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator<  (const char (&that)[N]) const noexcept { return this->compare(that, N-1) <  0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator>  (const char (&that)[N]) const noexcept { return this->compare(that, N-1) >  0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator<= (const char (&that)[N]) const noexcept { return this->compare(that, N-1) <= 0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator>= (const char (&that)[N]) const noexcept { return this->compare(that, N-1) >= 0; }
 
     /** @} */
 
