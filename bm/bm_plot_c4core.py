@@ -228,7 +228,7 @@ def plot_charconv_xtoa(dir_: str, json_files, is_ftoa: bool):
     panel = bm.BenchmarkPanel(json_files, CharconvMeta)
     ref = lambda bmrun: get_function_benchmark("sprintf", run=bmrun)
     plot_charconv_bars(panel, ref,
-                       f"xtoa benchmark: convert 2M numbers to strings",
+                       f"xtoa benchmark: convert 1M numbers to strings",
                        f"{dir_}/c4core-bm-charconv-{fcase}")
 
 
@@ -237,7 +237,7 @@ def plot_charconv_atox(dir_: str, json_files, is_atof: bool):
     panel = bm.BenchmarkPanel(json_files, CharconvMeta)
     ref = lambda bmrun: get_function_benchmark("scanf", run=bmrun)
     plot_charconv_bars(panel, ref,
-                       f"atox benchmark: convert 2M strings to numbers",
+                       f"atox benchmark: convert 1M strings to numbers",
                        f"{dir_}/c4core-bm-charconv-{fcase}")
 
 

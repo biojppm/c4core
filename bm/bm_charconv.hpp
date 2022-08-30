@@ -109,7 +109,7 @@ constexpr bool is_pot(T val)
 }
 
 constexpr const uint64_t kSeed = 37;
-constexpr const size_t kNumValues = 1u<<20; // 2.1M
+constexpr const size_t kNumValues = 1u<<20; // 1.049M
 C4_STATIC_ASSERT(is_pot(kNumValues));
 
 
