@@ -351,7 +351,9 @@ public:
     C4_ALWAYS_INLINE C4_PURE basic_substring last(size_t num) const noexcept
     {
         C4_ASSERT(num <= len || num == npos);
-        return num != npos ? basic_substring(str + len - num, num) : *this;
+        return num != npos ?
+            basic_substring(str + len - num, num) :
+            *this;
     }
 
     /** offset from the ends: return [left,len-right[ ; ie, trim a
@@ -365,32 +367,40 @@ public:
         return basic_substring(str + left, len - right - left);
     }
 
-    /** return [0, pos[ */
+    /** return [0, pos[ . Same as .first(pos), but provided for compatibility with .right_of() */
     C4_ALWAYS_INLINE C4_PURE basic_substring left_of(size_t pos) const noexcept
     {
-        return (pos != npos) ? basic_substring(str, pos) : *this;
+        C4_ASSERT(pos <= len || pos == npos);
+        return (pos != npos) ?
+            basic_substring(str, pos) :
+            *this;
     }
 
-    /** return [0, pos+include_pos[ */
+    /** return [0, pos+include_pos[ . Same as .first(pos+1), but provided for compatibility with .right_of() */
     C4_ALWAYS_INLINE C4_PURE basic_substring left_of(size_t pos, bool include_pos) const noexcept
     {
-        return (pos != npos) ? basic_substring(str, pos+include_pos) : *this;
+        C4_ASSERT(pos <= len || pos == npos);
+        return (pos != npos) ?
+            basic_substring(str, pos+include_pos) :
+            *this;
     }
 
     /** return [pos+1, len[ */
     C4_ALWAYS_INLINE C4_PURE basic_substring right_of(size_t pos) const noexcept
     {
-        if(pos == npos)
-            return sub(len, 0);
-        return sub(pos);
+        C4_ASSERT(pos <= len || pos == npos);
+        return (pos != npos) ?
+            basic_substring(str + (pos + 1), len - (pos + 1)) :
+            basic_substring(str + len, size_t(0));
     }
 
     /** return [pos+!include_pos, len[ */
     C4_ALWAYS_INLINE C4_PURE basic_substring right_of(size_t pos, bool include_pos) const noexcept
     {
-        if(pos == npos)
-            return sub(len, 0);
-        return sub(pos + !include_pos);
+        C4_ASSERT(pos <= len || pos == npos);
+        return (pos != npos) ?
+            basic_substring(str + (pos + !include_pos), len - (pos + !include_pos)) :
+            basic_substring(str + len, size_t(0));
     }
 
 public:

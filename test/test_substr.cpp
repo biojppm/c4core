@@ -878,9 +878,18 @@ TEST_CASE("substr.left_of")
 {
     csubstr s = "012345";
 
+    CHECK_EQ(s.left_of(csubstr::npos), s);
     CHECK_EQ(s.left_of(csubstr::npos, /*include_pos*/false), s);
     CHECK_EQ(s.left_of(csubstr::npos, /*include_pos*/true), s);
 
+
+    CHECK_EQ(s.left_of(0), "");
+    CHECK_EQ(s.left_of(1), "0");
+    CHECK_EQ(s.left_of(2), "01");
+    CHECK_EQ(s.left_of(3), "012");
+    CHECK_EQ(s.left_of(4), "0123");
+    CHECK_EQ(s.left_of(5), "01234");
+    CHECK_EQ(s.left_of(6), "012345");
 
     CHECK_EQ(s.left_of(0, /*include_pos*/false), "");
     CHECK_EQ(s.left_of(1, /*include_pos*/false), "0");
@@ -937,9 +946,19 @@ TEST_CASE("substr.right_of")
 {
     csubstr s = "012345";
 
+    CHECK_EQ(s.right_of(csubstr::npos), "");
+    CHECK_EQ(s.right_of(csubstr::npos), "");
+
     CHECK_EQ(s.right_of(csubstr::npos, /*include_pos*/false), "");
     CHECK_EQ(s.right_of(csubstr::npos, /*include_pos*/true), "");
 
+
+    CHECK_EQ(s.right_of(0), "12345");
+    CHECK_EQ(s.right_of(1), "2345");
+    CHECK_EQ(s.right_of(2), "345");
+    CHECK_EQ(s.right_of(3), "45");
+    CHECK_EQ(s.right_of(4), "5");
+    CHECK_EQ(s.right_of(5), "");
 
     CHECK_EQ(s.right_of(0, /*include_pos*/false), "12345");
     CHECK_EQ(s.right_of(1, /*include_pos*/false), "2345");
@@ -947,6 +966,13 @@ TEST_CASE("substr.right_of")
     CHECK_EQ(s.right_of(3, /*include_pos*/false), "45");
     CHECK_EQ(s.right_of(4, /*include_pos*/false), "5");
     CHECK_EQ(s.right_of(5, /*include_pos*/false), "");
+
+    CHECK_UNARY(s.is_super(s.right_of(0)));
+    CHECK_UNARY(s.is_super(s.right_of(1)));
+    CHECK_UNARY(s.is_super(s.right_of(2)));
+    CHECK_UNARY(s.is_super(s.right_of(3)));
+    CHECK_UNARY(s.is_super(s.right_of(4)));
+    CHECK_UNARY(s.is_super(s.right_of(5)));
 
     CHECK_UNARY(s.is_super(s.right_of(0, /*include_pos*/false)));
     CHECK_UNARY(s.is_super(s.right_of(1, /*include_pos*/false)));
