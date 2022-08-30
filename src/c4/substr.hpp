@@ -2011,7 +2011,7 @@ power_part_dec:
     for( ; pos < len; ++pos)
     {
         const char c = str[pos];
-        if(c == '0' || c == '1')
+        if(c >= '0' && c <= '9')
             powchars = true;
         else if(powchars && _is_delim_char(c))
             return first(pos);
@@ -2102,7 +2102,7 @@ power_part_dec:
     for( ; pos < len; ++pos)
     {
         const char c = str[pos];
-        if(c >= '0' && c <= '7')
+        if(c >= '0' && c <= '9')
             powchars = true;
         else if(powchars && _is_delim_char(c))
             return first(pos);
