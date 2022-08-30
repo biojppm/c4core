@@ -1162,13 +1162,16 @@ public:
             // if it does not have leading 0, it must be decimal, or it is not a real
             if(ne.str[skip_start] != '0')
             {
-                if(ne.str[skip_start] == 'i') // is it infinity?
+                if(ne.str[skip_start] == 'i') // is it infinity or inf?
                 {
-                    return ne._first_real_span_inf(skip_start);
+                    basic_substring word = ne._word_follows(skip_start + 1, "nfinity");
+                    if(word.len)
+                        return word;
+                    return ne._word_follows(skip_start + 1, "nf");
                 }
                 else if(ne.str[skip_start] == 'n') // is it nan?
                 {
-                    return ne._first_real_span_nan(skip_start);
+                    return ne._word_follows(skip_start + 1, "an");
                 }
                 else // must be a decimal, or it is not a real
                 {
@@ -1197,13 +1200,6 @@ public:
         return ne._first_real_span_dec(skip_start);
     }
 
-    C4_NO_INLINE basic_substring _first_real_span_dec(size_t pos) const noexcept;
-    C4_NO_INLINE basic_substring _first_real_span_hex(size_t pos) const noexcept;
-    C4_NO_INLINE basic_substring _first_real_span_bin(size_t pos) const noexcept;
-    C4_NO_INLINE basic_substring _first_real_span_oct(size_t pos) const noexcept;
-    C4_NO_INLINE basic_substring _first_real_span_inf(size_t pos) const noexcept;
-    C4_NO_INLINE basic_substring _first_real_span_nan(size_t pos) const noexcept;
-
     /** true if the character is a delimiter character *at the end* */
     static constexpr C4_ALWAYS_INLINE C4_CONST bool _is_delim_char(char c) noexcept
     {
@@ -1218,10 +1214,373 @@ public:
         return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
-    /** true if the character is in [0-9a-fA-F] */
-    static constexpr C4_ALWAYS_INLINE C4_CONST bool _is_oct_char(char c) noexcept
+    C4_NO_INLINE C4_PURE basic_substring _word_follows(size_t pos, csubstr word) const noexcept
     {
-        return (c >= '0' && c <= '7');
+        size_t posend = pos + word.len;
+        if(len >= posend && sub(pos, word.len) == word)
+            if(len == posend || _is_delim_char(str[posend]))
+                return first(posend);
+        return first(0);
+    }
+
+    // this function is declared inside the class to avoid a VS error with __declspec(dllimport)
+    C4_NO_INLINE C4_PURE basic_substring _first_real_span_dec(size_t pos) const noexcept
+    {
+        bool intchars = false;
+        bool fracchars = false;
+        bool powchars;
+        // integral part
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c >= '0' && c <= '9')
+            {
+                intchars = true;
+            }
+            else if(c == '.')
+            {
+                ++pos;
+                goto fractional_part_dec;
+            }
+            else if(c == 'e' || c == 'E')
+            {
+                ++pos;
+                goto power_part_dec;
+            }
+            else if(_is_delim_char(c))
+            {
+                return intchars ? first(pos) : first(0);
+            }
+            else
+            {
+                return first(0);
+            }
+        }
+        // no . or p were found; this is either an integral number
+        // or not a number at all
+        return intchars ?
+            *this :
+            first(0);
+    fractional_part_dec:
+        C4_ASSERT(pos > 0);
+        C4_ASSERT(str[pos - 1] == '.');
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c >= '0' && c <= '9')
+            {
+                fracchars = true;
+            }
+            else if(c == 'e' || c == 'E')
+            {
+                ++pos;
+                goto power_part_dec;
+            }
+            else if(_is_delim_char(c))
+            {
+                return intchars || fracchars ? first(pos) : first(0);
+            }
+            else
+            {
+                return first(0);
+            }
+        }
+        return intchars || fracchars ?
+            *this :
+            first(0);
+    power_part_dec:
+        C4_ASSERT(pos > 0);
+        C4_ASSERT(str[pos - 1] == 'e' || str[pos - 1] == 'E');
+        // either a + or a - is expected here, followed by more chars.
+        // also, using (pos+1) in this check will cause an early
+        // return when no more chars follow the sign.
+        if(len <= (pos+1) || ((!intchars) && (!fracchars)))
+            return first(0);
+        ++pos; // this was the sign.
+        // ... so the (pos+1) ensures that we enter the loop and
+        // hence that there exist chars in the power part
+        powchars = false;
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c >= '0' && c <= '9')
+                powchars = true;
+            else if(powchars && _is_delim_char(c))
+                return first(pos);
+            else
+                return first(0);
+        }
+        return *this;
+    }
+
+    // this function is declared inside the class to avoid a VS error with __declspec(dllimport)
+    C4_NO_INLINE C4_PURE basic_substring _first_real_span_hex(size_t pos) const noexcept
+    {
+        bool intchars = false;
+        bool fracchars = false;
+        bool powchars;
+        // integral part
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(_is_hex_char(c))
+            {
+                intchars = true;
+            }
+            else if(c == '.')
+            {
+                ++pos;
+                goto fractional_part_hex;
+            }
+            else if(c == 'p' || c == 'P')
+            {
+                ++pos;
+                goto power_part_hex;
+            }
+            else if(_is_delim_char(c))
+            {
+                return intchars ? first(pos) : first(0);
+            }
+            else
+            {
+                return first(0);
+            }
+        }
+        // no . or p were found; this is either an integral number
+        // or not a number at all
+        return intchars ?
+            *this :
+            first(0);
+    fractional_part_hex:
+        C4_ASSERT(pos > 0);
+        C4_ASSERT(str[pos - 1] == '.');
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(_is_hex_char(c))
+            {
+                fracchars = true;
+            }
+            else if(c == 'p' || c == 'P')
+            {
+                ++pos;
+                goto power_part_hex;
+            }
+            else if(_is_delim_char(c))
+            {
+                return intchars || fracchars ? first(pos) : first(0);
+            }
+            else
+            {
+                return first(0);
+            }
+        }
+        return intchars || fracchars ?
+            *this :
+            first(0);
+    power_part_hex:
+        C4_ASSERT(pos > 0);
+        C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
+        // either a + or a - is expected here, followed by more chars.
+        // also, using (pos+1) in this check will cause an early
+        // return when no more chars follow the sign.
+        if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
+            return first(0);
+        ++pos; // this was the sign.
+        // ... so the (pos+1) ensures that we enter the loop and
+        // hence that there exist chars in the power part
+        powchars = false;
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c >= '0' && c <= '9')
+                powchars = true;
+            else if(powchars && _is_delim_char(c))
+                return first(pos);
+            else
+                return first(0);
+        }
+        return *this;
+    }
+
+    // this function is declared inside the class to avoid a VS error with __declspec(dllimport)
+    C4_NO_INLINE C4_PURE basic_substring _first_real_span_bin(size_t pos) const noexcept
+    {
+        bool intchars = false;
+        bool fracchars = false;
+        bool powchars;
+        // integral part
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c == '0' || c == '1')
+            {
+                intchars = true;
+            }
+            else if(c == '.')
+            {
+                ++pos;
+                goto fractional_part_bin;
+            }
+            else if(c == 'p' || c == 'P')
+            {
+                ++pos;
+                goto power_part_bin;
+            }
+            else if(_is_delim_char(c))
+            {
+                return intchars ? first(pos) : first(0);
+            }
+            else
+            {
+                return first(0);
+            }
+        }
+        // no . or p were found; this is either an integral number
+        // or not a number at all
+        return intchars ?
+            *this :
+            first(0);
+    fractional_part_bin:
+        C4_ASSERT(pos > 0);
+        C4_ASSERT(str[pos - 1] == '.');
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c == '0' || c == '1')
+            {
+                fracchars = true;
+            }
+            else if(c == 'p' || c == 'P')
+            {
+                ++pos;
+                goto power_part_bin;
+            }
+            else if(_is_delim_char(c))
+            {
+                return intchars || fracchars ? first(pos) : first(0);
+            }
+            else
+            {
+                return first(0);
+            }
+        }
+        return intchars || fracchars ?
+            *this :
+            first(0);
+    power_part_bin:
+        C4_ASSERT(pos > 0);
+        C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
+        // either a + or a - is expected here, followed by more chars.
+        // also, using (pos+1) in this check will cause an early
+        // return when no more chars follow the sign.
+        if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
+            return first(0);
+        ++pos; // this was the sign.
+        // ... so the (pos+1) ensures that we enter the loop and
+        // hence that there exist chars in the power part
+        powchars = false;
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c >= '0' && c <= '9')
+                powchars = true;
+            else if(powchars && _is_delim_char(c))
+                return first(pos);
+            else
+                return first(0);
+        }
+        return *this;
+    }
+
+    // this function is declared inside the class to avoid a VS error with __declspec(dllimport)
+    C4_NO_INLINE C4_PURE basic_substring _first_real_span_oct(size_t pos) const noexcept
+    {
+        bool intchars = false;
+        bool fracchars = false;
+        bool powchars;
+        // integral part
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c >= '0' && c <= '7')
+            {
+                intchars = true;
+            }
+            else if(c == '.')
+            {
+                ++pos;
+                goto fractional_part_oct;
+            }
+            else if(c == 'p' || c == 'P')
+            {
+                ++pos;
+                goto power_part_oct;
+            }
+            else if(_is_delim_char(c))
+            {
+                return intchars ? first(pos) : first(0);
+            }
+            else
+            {
+                return first(0);
+            }
+        }
+        // no . or p were found; this is either an integral number
+        // or not a number at all
+        return intchars ?
+            *this :
+            first(0);
+    fractional_part_oct:
+        C4_ASSERT(pos > 0);
+        C4_ASSERT(str[pos - 1] == '.');
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c >= '0' && c <= '7')
+            {
+                fracchars = true;
+            }
+            else if(c == 'p' || c == 'P')
+            {
+                ++pos;
+                goto power_part_oct;
+            }
+            else if(_is_delim_char(c))
+            {
+                return intchars || fracchars ? first(pos) : first(0);
+            }
+            else
+            {
+                return first(0);
+            }
+        }
+        return intchars || fracchars ?
+            *this :
+            first(0);
+    power_part_oct:
+        C4_ASSERT(pos > 0);
+        C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
+        // either a + or a - is expected here, followed by more chars.
+        // also, using (pos+1) in this check will cause an early
+        // return when no more chars follow the sign.
+        if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
+            return first(0);
+        ++pos; // this was the sign.
+        // ... so the (pos+1) ensures that we enter the loop and
+        // hence that there exist chars in the power part
+        powchars = false;
+        for( ; pos < len; ++pos)
+        {
+            const char c = str[pos];
+            if(c >= '0' && c <= '9')
+                powchars = true;
+            else if(powchars && _is_delim_char(c))
+                return first(pos);
+            else
+                return first(0);
+        }
+        return *this;
     }
 
     /** @} */
@@ -1743,442 +2102,6 @@ public:
 #undef C4_REQUIRE_RW
 #undef C4_REQUIRE_RO
 #undef C4_NC2C
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-template<class C>
-C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_dec(size_t pos) const noexcept
-{
-    bool intchars = false;
-    bool fracchars = false;
-    bool powchars;
-    // integral part
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c >= '0' && c <= '9')
-        {
-            intchars = true;
-        }
-        else if(c == '.')
-        {
-            ++pos;
-            goto fractional_part_dec;
-        }
-        else if(c == 'e' || c == 'E')
-        {
-            ++pos;
-            goto power_part_dec;
-        }
-        else if(_is_delim_char(c))
-        {
-            return intchars ? first(pos) : first(0);
-        }
-        else
-        {
-            return first(0);
-        }
-    }
-    // no . or p were found; this is either an integral number
-    // or not a number at all
-    return intchars ?
-        *this :
-        first(0);
-fractional_part_dec:
-    C4_ASSERT(pos > 0);
-    C4_ASSERT(str[pos - 1] == '.');
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c >= '0' && c <= '9')
-        {
-            fracchars = true;
-        }
-        else if(c == 'e' || c == 'E')
-        {
-            ++pos;
-            goto power_part_dec;
-        }
-        else if(_is_delim_char(c))
-        {
-            return intchars || fracchars ? first(pos) : first(0);
-        }
-        else
-        {
-            return first(0);
-        }
-    }
-    return intchars || fracchars ?
-        *this :
-        first(0);
-power_part_dec:
-    C4_ASSERT(pos > 0);
-    C4_ASSERT(str[pos - 1] == 'e' || str[pos - 1] == 'E');
-    // either a + or a - is expected here, followed by more chars.
-    // also, using (pos+1) in this check will cause an early
-    // return when no more chars follow the sign.
-    if(len <= (pos+1) || ((!intchars) && (!fracchars)))
-        return first(0);
-    ++pos; // this was the sign.
-    // ... so the (pos+1) ensures that we enter the loop and
-    // hence that there exist chars in the power part
-    powchars = false;
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c >= '0' && c <= '9')
-            powchars = true;
-        else if(powchars && _is_delim_char(c))
-            return first(pos);
-        else
-            return first(0);
-    }
-    return *this;
-}
-
-
-template<class C>
-C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_hex(size_t pos) const noexcept
-{
-    bool intchars = false;
-    bool fracchars = false;
-    bool powchars;
-    // integral part
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(_is_hex_char(c))
-        {
-            intchars = true;
-        }
-        else if(c == '.')
-        {
-            ++pos;
-            goto fractional_part_hex;
-        }
-        else if(c == 'p' || c == 'P')
-        {
-            ++pos;
-            goto power_part_hex;
-        }
-        else if(_is_delim_char(c))
-        {
-            return intchars ? first(pos) : first(0);
-        }
-        else
-        {
-            return first(0);
-        }
-    }
-    // no . or p were found; this is either an integral number
-    // or not a number at all
-    return intchars ?
-        *this :
-        first(0);
-fractional_part_hex:
-    C4_ASSERT(pos > 0);
-    C4_ASSERT(str[pos - 1] == '.');
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(_is_hex_char(c))
-        {
-            fracchars = true;
-        }
-        else if(c == 'p' || c == 'P')
-        {
-            ++pos;
-            goto power_part_hex;
-        }
-        else if(_is_delim_char(c))
-        {
-            return intchars || fracchars ? first(pos) : first(0);
-        }
-        else
-        {
-            return first(0);
-        }
-    }
-    return intchars || fracchars ?
-        *this :
-        first(0);
-power_part_hex:
-    C4_ASSERT(pos > 0);
-    C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
-    // either a + or a - is expected here, followed by more chars.
-    // also, using (pos+1) in this check will cause an early
-    // return when no more chars follow the sign.
-    if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
-        return first(0);
-    ++pos; // this was the sign.
-    // ... so the (pos+1) ensures that we enter the loop and
-    // hence that there exist chars in the power part
-    powchars = false;
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c >= '0' && c <= '9')
-            powchars = true;
-        else if(powchars && _is_delim_char(c))
-            return first(pos);
-        else
-            return first(0);
-    }
-    return *this;
-}
-
-
-template<class C>
-C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_bin(size_t pos) const noexcept
-{
-    bool intchars = false;
-    bool fracchars = false;
-    bool powchars;
-    // integral part
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c == '0' || c == '1')
-        {
-            intchars = true;
-        }
-        else if(c == '.')
-        {
-            ++pos;
-            goto fractional_part_dec;
-        }
-        else if(c == 'p' || c == 'P')
-        {
-            ++pos;
-            goto power_part_dec;
-        }
-        else if(_is_delim_char(c))
-        {
-            return intchars ? first(pos) : first(0);
-        }
-        else
-        {
-            return first(0);
-        }
-    }
-    // no . or p were found; this is either an integral number
-    // or not a number at all
-    return intchars ?
-        *this :
-        first(0);
-fractional_part_dec:
-    C4_ASSERT(pos > 0);
-    C4_ASSERT(str[pos - 1] == '.');
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c == '0' || c == '1')
-        {
-            fracchars = true;
-        }
-        else if(c == 'p' || c == 'P')
-        {
-            ++pos;
-            goto power_part_dec;
-        }
-        else if(_is_delim_char(c))
-        {
-            return intchars || fracchars ? first(pos) : first(0);
-        }
-        else
-        {
-            return first(0);
-        }
-    }
-    return intchars || fracchars ?
-        *this :
-        first(0);
-power_part_dec:
-    C4_ASSERT(pos > 0);
-    C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
-    // either a + or a - is expected here, followed by more chars.
-    // also, using (pos+1) in this check will cause an early
-    // return when no more chars follow the sign.
-    if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
-        return first(0);
-    ++pos; // this was the sign.
-    // ... so the (pos+1) ensures that we enter the loop and
-    // hence that there exist chars in the power part
-    powchars = false;
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c >= '0' && c <= '9')
-            powchars = true;
-        else if(powchars && _is_delim_char(c))
-            return first(pos);
-        else
-            return first(0);
-    }
-    return *this;
-}
-
-
-template<class C>
-C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_oct(size_t pos) const noexcept
-{
-    bool intchars = false;
-    bool fracchars = false;
-    bool powchars;
-    // integral part
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c >= '0' && c <= '7')
-        {
-            intchars = true;
-        }
-        else if(c == '.')
-        {
-            ++pos;
-            goto fractional_part_dec;
-        }
-        else if(c == 'p' || c == 'P')
-        {
-            ++pos;
-            goto power_part_dec;
-        }
-        else if(_is_delim_char(c))
-        {
-            return intchars ? first(pos) : first(0);
-        }
-        else
-        {
-            return first(0);
-        }
-    }
-    // no . or p were found; this is either an integral number
-    // or not a number at all
-    return intchars ?
-        *this :
-        first(0);
-fractional_part_dec:
-    C4_ASSERT(pos > 0);
-    C4_ASSERT(str[pos - 1] == '.');
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c >= '0' && c <= '7')
-        {
-            fracchars = true;
-        }
-        else if(c == 'p' || c == 'P')
-        {
-            ++pos;
-            goto power_part_dec;
-        }
-        else if(_is_delim_char(c))
-        {
-            return intchars || fracchars ? first(pos) : first(0);
-        }
-        else
-        {
-            return first(0);
-        }
-    }
-    return intchars || fracchars ?
-        *this :
-        first(0);
-power_part_dec:
-    C4_ASSERT(pos > 0);
-    C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
-    // either a + or a - is expected here, followed by more chars.
-    // also, using (pos+1) in this check will cause an early
-    // return when no more chars follow the sign.
-    if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
-        return first(0);
-    ++pos; // this was the sign.
-    // ... so the (pos+1) ensures that we enter the loop and
-    // hence that there exist chars in the power part
-    powchars = false;
-    for( ; pos < len; ++pos)
-    {
-        const char c = str[pos];
-        if(c >= '0' && c <= '9')
-            powchars = true;
-        else if(powchars && _is_delim_char(c))
-            return first(pos);
-        else
-            return first(0);
-    }
-    return *this;
-}
-
-
-template<class C>
-C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_inf(size_t pos) const noexcept
-{
-    size_t pos8 = pos + 8;
-    if(len >= pos8 && sub(pos, 8) == "infinity")
-    {
-        if(len == pos8)
-        {
-            return first(pos8);
-        }
-        else
-        {
-            C4_ASSERT(len > pos8);
-            if(_is_delim_char(str[pos8]))
-                return first(pos8);
-            else
-                return first(0);
-        }
-    }
-    else
-    {
-        size_t pos3 = pos + 3;
-        if(len >= pos3 && sub(pos, 3) == "inf")
-        {
-            if(len == pos3)
-            {
-                return first(pos3);
-            }
-            else
-            {
-                C4_ASSERT(len > pos3);
-                if(_is_delim_char(str[pos3]))
-                    return first(pos3);
-                else
-                    return first(0);
-            }
-        }
-        else
-            return first(0);
-    }
-}
-
-
-template<class C>
-C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_nan(size_t pos) const noexcept
-{
-    size_t pos3 = pos + 3;
-    if(len >= pos3 && sub(pos, 3) == "nan")
-    {
-        if(len == pos3)
-        {
-            return first(pos3);
-        }
-        else
-        {
-            C4_ASSERT(len > pos3);
-            if(_is_delim_char(str[pos3]))
-                return first(pos3);
-            else
-                return first(0);
-        }
-    }
-    else
-        return first(0);
-}
-
 
 
 //-----------------------------------------------------------------------------
