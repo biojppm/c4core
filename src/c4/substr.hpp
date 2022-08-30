@@ -340,14 +340,14 @@ public:
         return basic_substring(str + first, last - first);
     }
 
-    /** return [0,num[*/
+    /** return the first @p num elements: [0,num[*/
     C4_ALWAYS_INLINE C4_PURE basic_substring first(size_t num) const noexcept
     {
         C4_ASSERT(num <= len || num == npos);
         return basic_substring(str, num != npos ? num : len);
     }
 
-    /** return [len-num,len[*/
+    /** return the last @num elements: [len-num,len[*/
     C4_ALWAYS_INLINE C4_PURE basic_substring last(size_t num) const noexcept
     {
         C4_ASSERT(num <= len || num == npos);
@@ -368,17 +368,13 @@ public:
     /** return [0, pos[ */
     C4_ALWAYS_INLINE C4_PURE basic_substring left_of(size_t pos) const noexcept
     {
-        if(pos == npos)
-            return *this;
-        return first(pos);
+        return (pos != npos) ? basic_substring(str, pos) : *this;
     }
 
     /** return [0, pos+include_pos[ */
     C4_ALWAYS_INLINE C4_PURE basic_substring left_of(size_t pos, bool include_pos) const noexcept
     {
-        if(pos == npos)
-            return *this;
-        return first(pos + include_pos);
+        return (pos != npos) ? basic_substring(str, pos+include_pos) : *this;
     }
 
     /** return [pos+1, len[ */
@@ -1077,55 +1073,64 @@ public:
     basic_substring _first_integral_span(size_t skip_start) const
     {
         C4_ASSERT(!empty());
-        if(skip_start == len) {
+        if(skip_start == len)
             return first(0);
-        }
         C4_ASSERT(skip_start < len);
-        if(first_of_any("0x", "0X")) // hexadecimal
+        if(len >= skip_start + 3)
         {
-            skip_start += 2;
-            if(len == skip_start)
-                return first(0);
-            for(size_t i = skip_start; i < len; ++i)
+            if(str[skip_start] != '0')
             {
-                if( ! _is_hex_char(str[i]))
-                    return _is_delim_char(str[i]) ? first(i) : first(0);
+                for(size_t i = skip_start; i < len; ++i)
+                {
+                    char c = str[i];
+                    if(c < '0' || c > '9')
+                        return i > skip_start && _is_delim_char(c) ? first(i) : first(0);
+                }
+            }
+            else
+            {
+                char next = str[skip_start + 1];
+                if(next == 'x' || next == 'X')
+                {
+                    skip_start += 2;
+                    for(size_t i = skip_start; i < len; ++i)
+                    {
+                        const char c = str[i];
+                        if( ! _is_hex_char(c))
+                            return i > skip_start && _is_delim_char(c) ? first(i) : first(0);
+                    }
+                    return *this;
+                }
+                else if(next == 'b' || next == 'B')
+                {
+                    skip_start += 2;
+                    for(size_t i = skip_start; i < len; ++i)
+                    {
+                        const char c = str[i];
+                        if(c != '0' && c != '1')
+                            return i > skip_start && _is_delim_char(c) ? first(i) : first(0);
+                    }
+                    return *this;
+                }
+                else if(next == 'o' || next == 'O')
+                {
+                    skip_start += 2;
+                    for(size_t i = skip_start; i < len; ++i)
+                    {
+                        const char c = str[i];
+                        if(c < '0' || c > '7')
+                            return i > skip_start && _is_delim_char(c) ? first(i) : first(0);
+                    }
+                    return *this;
+                }
             }
         }
-        else if(first_of_any("0o", "0O")) // octal
+        // must be a decimal, or it is not a an number
+        for(size_t i = skip_start; i < len; ++i)
         {
-            skip_start += 2;
-            if(len == skip_start)
-                return first(0);
-            for(size_t i = skip_start; i < len; ++i)
-            {
-                char c = str[i];
-                if(c < '0' || c > '7')
-                    return _is_delim_char(str[i]) ? first(i) : first(0);
-            }
-        }
-        else if(first_of_any("0b", "0B")) // binary
-        {
-            skip_start += 2;
-            if(len == skip_start)
-                return first(0);
-            for(size_t i = skip_start; i < len; ++i)
-            {
-                char c = str[i];
-                if(c != '0' && c != '1')
-                    return _is_delim_char(c) ? first(i) : first(0);
-            }
-        }
-        else // otherwise, decimal
-        {
-            if(len == skip_start)
-                return first(0);
-            for(size_t i = skip_start; i < len; ++i)
-            {
-                char c = str[i];
-                if(c < '0' || c > '9')
-                    return _is_delim_char(c) ? first(i) : first(0);
-            }
+            const char c = str[i];
+            if(c < '0' || c > '9')
+                return i > skip_start && _is_delim_char(c) ? first(i) : first(0);
         }
         return *this;
     }
@@ -1136,123 +1141,75 @@ public:
         basic_substring ne = first_non_empty_span();
         if(ne.empty())
             return ne;
-        size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-') ? 1 : 0;
-        if(ne.first_of_any("0x", "0X")) // hexadecimal
+        size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-');
+        C4_ASSERT(skip_start == 0 || skip_start == 1);
+        // if we have at least three digits after the leading sign, it
+        // can be decimal, or hex, or bin or oct. Ex:
+        // non-decimal: 0x0, 0b0, 0o0
+        // decimal: 1.0, 10., 1e1, 100, inf, nan, infinity
+        if(ne.len >= skip_start+3)
         {
-            skip_start += 2;
-            if(ne.len == skip_start)
-                return ne.first(0);
-            for(size_t i = skip_start; i < ne.len; ++i)
+            // if it does not have leading 0, it must be decimal, or it is not a real
+            if(ne.str[skip_start] != '0')
             {
-                char c = ne.str[i];
-                if(( ! _is_hex_char(c)) && c != '.' && c != 'p' && c != 'P')
+                if(ne.str[skip_start] == 'i') // is it infinity?
                 {
-                    if(c == '-' || c == '+')
-                    {
-                        // we can also have a sign for the exponent
-                        if(i > 1 && (ne[i-1] == 'p' || ne[i-1] == 'P'))
-                        {
-                            continue;
-                        }
-                    }
-                    return _is_delim_char(c) ? ne.first(i) : ne.first(0);
+                    return ne._first_real_span_inf(skip_start);
+                }
+                else if(ne.str[skip_start] == 'n') // is it nan?
+                {
+                    return ne._first_real_span_nan(skip_start);
+                }
+                else // must be a decimal, or it is not a real
+                {
+                    return ne._first_real_span_dec(skip_start);
                 }
             }
-        }
-        else if(ne.first_of_any("0b", "0B")) // binary
-        {
-            skip_start += 2;
-            if(ne.len == skip_start)
-                return ne.first(0);
-            for(size_t i = skip_start; i < ne.len; ++i)
+            else // starts with 0. is it 0x, 0b or 0o?
             {
-                char c = ne.str[i];
-                if(c != '0' && c != '1' && c != '.')
-                {
-                    return _is_delim_char(c) ? ne.first(i) : ne.first(0);
-                }
+                const char next = ne.str[skip_start + 1];
+                // hexadecimal
+                if(next == 'x' || next == 'X')
+                    return ne._first_real_span_hex(skip_start + 2);
+                // binary
+                else if(next == 'b' || next == 'B')
+                    return ne._first_real_span_bin(skip_start + 2);
+                // octal
+                else if(next == 'o' || next == 'O')
+                    return ne._first_real_span_oct(skip_start + 2);
+                // none of the above. may still be a decimal.
+                else
+                    return ne._first_real_span_dec(skip_start); // do not skip the 0.
             }
         }
-        else if(ne.first_of_any("0o", "0O")) // octal
-        {
-            skip_start += 2;
-            if(ne.len == skip_start)
-                return ne.first(0);
-            for(size_t i = skip_start; i < ne.len; ++i)
-            {
-                char c = ne.str[i];
-                if((c < '0' || c > '7') && c != '.')
-                {
-                    return _is_delim_char(c) ? ne.first(i) : ne.first(0);
-                }
-            }
-        }
-        else // assume decimal
-        {
-            if(ne.len == skip_start)
-                return ne.first(0);
-            for(size_t i = skip_start; i < ne.len; ++i)
-            {
-                char c = ne.str[i];
-                if((c < '0' || c > '9') && (c != '.' && c != 'e' && c != 'E'))
-                {
-                    if(c == '-' || c == '+')
-                    {
-                        // we can also have a sign for the exponent
-                        if(i > 1 && (ne[i-1] == 'e' || ne[i-1] == 'E'))
-                        {
-                            continue;
-                        }
-                    }
-                    else if(i == skip_start)
-                    {
-                        if(c == 'i')
-                        {
-                            if(ne.len >= skip_start + 8 && ne.sub(skip_start, 8) == "infinity")
-                                return _is_delim_char(ne.str[skip_start + 8]) ? ne.first(skip_start + 8) : ne.first(0);
-                            else if(ne.len >= skip_start + 3 && ne.sub(skip_start, 3) == "inf")
-                                return _is_delim_char(ne.str[skip_start + 3]) ? ne.first(skip_start + 3) : ne.first(0);
-                            else
-                                return ne.first(0);
-                        }
-                        else if(c == 'n')
-                        {
-                            if(ne.len >= skip_start + 3 && ne.sub(skip_start, 3) == "nan")
-                                return _is_delim_char(ne.str[skip_start + 3]) ? ne.first(skip_start + 3) : ne.first(0);
-                            else
-                                return ne.first(0);
-                        }
-                        else
-                        {
-                            return ne.first(0);
-                        }
-                    }
-                    else
-                    {
-                        return _is_delim_char(c) ? ne.first(i) : ne.first(0);
-                    }
-                }
-            }
-        }
-        return ne;
+        // less than 3 chars after the leading sign. It is either a
+        // decimal or it is not a real. (cannot be any of 0x0, etc).
+        return ne._first_real_span_dec(skip_start);
     }
 
+    C4_NO_INLINE basic_substring _first_real_span_dec(size_t pos) const noexcept;
+    C4_NO_INLINE basic_substring _first_real_span_hex(size_t pos) const noexcept;
+    C4_NO_INLINE basic_substring _first_real_span_bin(size_t pos) const noexcept;
+    C4_NO_INLINE basic_substring _first_real_span_oct(size_t pos) const noexcept;
+    C4_NO_INLINE basic_substring _first_real_span_inf(size_t pos) const noexcept;
+    C4_NO_INLINE basic_substring _first_real_span_nan(size_t pos) const noexcept;
+
     /** true if the character is a delimiter character *at the end* */
-    static constexpr C4_ALWAYS_INLINE bool _is_delim_char(char c) noexcept
+    static constexpr C4_ALWAYS_INLINE C4_CONST bool _is_delim_char(char c) noexcept
     {
-        return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\0'
+        return c == ' ' || c == '\n'
             || c == ']' || c == ')'  || c == '}'
-            || c == ',' || c == ';';
+            || c == ',' || c == ';' || c == '\r' || c == '\t' || c == '\0';
     }
 
     /** true if the character is in [0-9a-fA-F] */
-    static constexpr C4_ALWAYS_INLINE bool _is_hex_char(char c) noexcept
+    static constexpr C4_ALWAYS_INLINE C4_CONST bool _is_hex_char(char c) noexcept
     {
         return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
     /** true if the character is in [0-9a-fA-F] */
-    static constexpr C4_ALWAYS_INLINE bool _is_oct_char(char c) noexcept
+    static constexpr C4_ALWAYS_INLINE C4_CONST bool _is_oct_char(char c) noexcept
     {
         return (c >= '0' && c <= '7');
     }
@@ -1776,6 +1733,442 @@ public:
 #undef C4_REQUIRE_RW
 #undef C4_REQUIRE_RO
 #undef C4_NC2C
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+template<class C>
+C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_dec(size_t pos) const noexcept
+{
+    bool intchars = false;
+    bool fracchars = false;
+    bool powchars;
+    // integral part
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c >= '0' && c <= '9')
+        {
+            intchars = true;
+        }
+        else if(c == '.')
+        {
+            ++pos;
+            goto fractional_part_dec;
+        }
+        else if(c == 'e' || c == 'E')
+        {
+            ++pos;
+            goto power_part_dec;
+        }
+        else if(_is_delim_char(c))
+        {
+            return intchars ? first(pos) : first(0);
+        }
+        else
+        {
+            return first(0);
+        }
+    }
+    // no . or p were found; this is either an integral number
+    // or not a number at all
+    return intchars ?
+        *this :
+        first(0);
+fractional_part_dec:
+    C4_ASSERT(pos > 0);
+    C4_ASSERT(str[pos - 1] == '.');
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c >= '0' && c <= '9')
+        {
+            fracchars = true;
+        }
+        else if(c == 'e' || c == 'E')
+        {
+            ++pos;
+            goto power_part_dec;
+        }
+        else if(_is_delim_char(c))
+        {
+            return intchars || fracchars ? first(pos) : first(0);
+        }
+        else
+        {
+            return first(0);
+        }
+    }
+    return intchars || fracchars ?
+        *this :
+        first(0);
+power_part_dec:
+    C4_ASSERT(pos > 0);
+    C4_ASSERT(str[pos - 1] == 'e' || str[pos - 1] == 'E');
+    // either a + or a - is expected here, followed by more chars.
+    // also, using (pos+1) in this check will cause an early
+    // return when no more chars follow the sign.
+    if(len <= (pos+1) || ((!intchars) && (!fracchars)))
+        return first(0);
+    ++pos; // this was the sign.
+    // ... so the (pos+1) ensures that we enter the loop and
+    // hence that there exist chars in the power part
+    powchars = false;
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c >= '0' && c <= '9')
+            powchars = true;
+        else if(powchars && _is_delim_char(c))
+            return first(pos);
+        else
+            return first(0);
+    }
+    return *this;
+}
+
+
+template<class C>
+C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_hex(size_t pos) const noexcept
+{
+    bool intchars = false;
+    bool fracchars = false;
+    bool powchars;
+    // integral part
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(_is_hex_char(c))
+        {
+            intchars = true;
+        }
+        else if(c == '.')
+        {
+            ++pos;
+            goto fractional_part_hex;
+        }
+        else if(c == 'p' || c == 'P')
+        {
+            ++pos;
+            goto power_part_hex;
+        }
+        else if(_is_delim_char(c))
+        {
+            return intchars ? first(pos) : first(0);
+        }
+        else
+        {
+            return first(0);
+        }
+    }
+    // no . or p were found; this is either an integral number
+    // or not a number at all
+    return intchars ?
+        *this :
+        first(0);
+fractional_part_hex:
+    C4_ASSERT(pos > 0);
+    C4_ASSERT(str[pos - 1] == '.');
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(_is_hex_char(c))
+        {
+            fracchars = true;
+        }
+        else if(c == 'p' || c == 'P')
+        {
+            ++pos;
+            goto power_part_hex;
+        }
+        else if(_is_delim_char(c))
+        {
+            return intchars || fracchars ? first(pos) : first(0);
+        }
+        else
+        {
+            return first(0);
+        }
+    }
+    return intchars || fracchars ?
+        *this :
+        first(0);
+power_part_hex:
+    C4_ASSERT(pos > 0);
+    C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
+    // either a + or a - is expected here, followed by more chars.
+    // also, using (pos+1) in this check will cause an early
+    // return when no more chars follow the sign.
+    if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
+        return first(0);
+    ++pos; // this was the sign.
+    // ... so the (pos+1) ensures that we enter the loop and
+    // hence that there exist chars in the power part
+    powchars = false;
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c >= '0' && c <= '9')
+            powchars = true;
+        else if(powchars && _is_delim_char(c))
+            return first(pos);
+        else
+            return first(0);
+    }
+    return *this;
+}
+
+
+template<class C>
+C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_bin(size_t pos) const noexcept
+{
+    bool intchars = false;
+    bool fracchars = false;
+    bool powchars;
+    // integral part
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c == '0' || c == '1')
+        {
+            intchars = true;
+        }
+        else if(c == '.')
+        {
+            ++pos;
+            goto fractional_part_dec;
+        }
+        else if(c == 'p' || c == 'P')
+        {
+            ++pos;
+            goto power_part_dec;
+        }
+        else if(_is_delim_char(c))
+        {
+            return intchars ? first(pos) : first(0);
+        }
+        else
+        {
+            return first(0);
+        }
+    }
+    // no . or p were found; this is either an integral number
+    // or not a number at all
+    return intchars ?
+        *this :
+        first(0);
+fractional_part_dec:
+    C4_ASSERT(pos > 0);
+    C4_ASSERT(str[pos - 1] == '.');
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c == '0' || c == '1')
+        {
+            fracchars = true;
+        }
+        else if(c == 'p' || c == 'P')
+        {
+            ++pos;
+            goto power_part_dec;
+        }
+        else if(_is_delim_char(c))
+        {
+            return intchars || fracchars ? first(pos) : first(0);
+        }
+        else
+        {
+            return first(0);
+        }
+    }
+    return intchars || fracchars ?
+        *this :
+        first(0);
+power_part_dec:
+    C4_ASSERT(pos > 0);
+    C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
+    // either a + or a - is expected here, followed by more chars.
+    // also, using (pos+1) in this check will cause an early
+    // return when no more chars follow the sign.
+    if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
+        return first(0);
+    ++pos; // this was the sign.
+    // ... so the (pos+1) ensures that we enter the loop and
+    // hence that there exist chars in the power part
+    powchars = false;
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c == '0' || c == '1')
+            powchars = true;
+        else if(powchars && _is_delim_char(c))
+            return first(pos);
+        else
+            return first(0);
+    }
+    return *this;
+}
+
+
+template<class C>
+C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_oct(size_t pos) const noexcept
+{
+    bool intchars = false;
+    bool fracchars = false;
+    bool powchars;
+    // integral part
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c >= '0' && c <= '7')
+        {
+            intchars = true;
+        }
+        else if(c == '.')
+        {
+            ++pos;
+            goto fractional_part_dec;
+        }
+        else if(c == 'p' || c == 'P')
+        {
+            ++pos;
+            goto power_part_dec;
+        }
+        else if(_is_delim_char(c))
+        {
+            return intchars ? first(pos) : first(0);
+        }
+        else
+        {
+            return first(0);
+        }
+    }
+    // no . or p were found; this is either an integral number
+    // or not a number at all
+    return intchars ?
+        *this :
+        first(0);
+fractional_part_dec:
+    C4_ASSERT(pos > 0);
+    C4_ASSERT(str[pos - 1] == '.');
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c >= '0' && c <= '7')
+        {
+            fracchars = true;
+        }
+        else if(c == 'p' || c == 'P')
+        {
+            ++pos;
+            goto power_part_dec;
+        }
+        else if(_is_delim_char(c))
+        {
+            return intchars || fracchars ? first(pos) : first(0);
+        }
+        else
+        {
+            return first(0);
+        }
+    }
+    return intchars || fracchars ?
+        *this :
+        first(0);
+power_part_dec:
+    C4_ASSERT(pos > 0);
+    C4_ASSERT(str[pos - 1] == 'p' || str[pos - 1] == 'P');
+    // either a + or a - is expected here, followed by more chars.
+    // also, using (pos+1) in this check will cause an early
+    // return when no more chars follow the sign.
+    if(len <= (pos+1) || (str[pos] != '+' && str[pos] != '-') || ((!intchars) && (!fracchars)))
+        return first(0);
+    ++pos; // this was the sign.
+    // ... so the (pos+1) ensures that we enter the loop and
+    // hence that there exist chars in the power part
+    powchars = false;
+    for( ; pos < len; ++pos)
+    {
+        const char c = str[pos];
+        if(c >= '0' && c <= '7')
+            powchars = true;
+        else if(powchars && _is_delim_char(c))
+            return first(pos);
+        else
+            return first(0);
+    }
+    return *this;
+}
+
+
+template<class C>
+C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_inf(size_t pos) const noexcept
+{
+    size_t pos8 = pos + 8;
+    if(len >= pos8 && sub(pos, 8) == "infinity")
+    {
+        if(len == pos8)
+        {
+            return first(pos8);
+        }
+        else
+        {
+            C4_ASSERT(len > pos8);
+            if(_is_delim_char(str[pos8]))
+                return first(pos8);
+            else
+                return first(0);
+        }
+    }
+    else
+    {
+        size_t pos3 = pos + 3;
+        if(len >= pos3 && sub(pos, 3) == "inf")
+        {
+            if(len == pos3)
+            {
+                return first(pos3);
+            }
+            else
+            {
+                C4_ASSERT(len > pos3);
+                if(_is_delim_char(str[pos3]))
+                    return first(pos3);
+                else
+                    return first(0);
+            }
+        }
+        else
+            return first(0);
+    }
+}
+
+
+template<class C>
+C4_NO_INLINE basic_substring<C> basic_substring<C>::_first_real_span_nan(size_t pos) const noexcept
+{
+    size_t pos3 = pos + 3;
+    if(len >= pos3 && sub(pos, 3) == "nan")
+    {
+        if(len == pos3)
+        {
+            return first(pos3);
+        }
+        else
+        {
+            C4_ASSERT(len > pos3);
+            if(_is_delim_char(str[pos3]))
+                return first(pos3);
+            else
+                return first(0);
+        }
+    }
+    else
+        return first(0);
+}
+
 
 
 //-----------------------------------------------------------------------------
