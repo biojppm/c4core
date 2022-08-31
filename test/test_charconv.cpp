@@ -189,6 +189,22 @@ csubstr underflow_by(substr buf, T val, T how_much, T radix)
 
 } // namespace
 
+TEST_CASE("charconv.to_chars_format")
+{
+#if C4CORE_HAVE_STD_TO_CHARS
+    CHECK(FTOA_FLOAT == static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::fixed));
+    CHECK(FTOA_SCIENT == static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::scientific));
+    CHECK(FTOA_FLEX == static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::general));
+    CHECK(FTOA_HEXA == static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::hex));
+#elif !C4CORE_HAVE_FAST_FLOAT
+    CHECK(FTOA_FLOAT == 'f');
+    CHECK(FTOA_SCIENT == 'e');
+    CHECK(FTOA_FLEX == 'g');
+    CHECK(FTOA_HEXA == 'a');
+#endif
+}
+
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
