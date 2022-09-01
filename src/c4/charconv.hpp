@@ -155,51 +155,32 @@
 
 namespace c4 {
 
-typedef enum : uint8_t {
-    /** print the real number in floating point format (like %f) */
-    FTOA_FLOAT = 0,
-    /** print the real number in scientific format (like %e) */
-    FTOA_SCIENT = 1,
-    /** print the real number in flexible format (like %g) */
-    FTOA_FLEX = 2,
-    /** print the real number in hexadecimal format (like %a) */
-    FTOA_HEXA = 3,
-    _FTOA_COUNT
-} RealFormat_e;
-
-
-C4_ALWAYS_INLINE C4_CONST C4_CONSTEXPR14 char to_c_fmt(RealFormat_e f) noexcept
-{
-    constexpr const char fmt[] = {
-        'f',  // FTOA_FLOAT
-        'e',  // FTOA_SCIENT
-        'g',  // FTOA_FLEX
-        'a',  // FTOA_HEXA
-    };
-    C4_STATIC_ASSERT(C4_COUNTOF(fmt) == _FTOA_COUNT);
-    #if C4_CPP > 14
-    C4_ASSERT(f < _FTOA_COUNT);
-    #endif
-    return fmt[f];
-}
-
-
 #if C4CORE_HAVE_STD_TOCHARS
-C4_ALWAYS_INLINE C4_CONST C4_CONSTEXPR14 std::chars_format to_std_fmt(RealFormat_e f) noexcept
-{
-    constexpr const std::chars_format fmt[] = {
-        std::chars_format::fixed,       // FTOA_FLOAT
-        std::chars_format::scientific,  // FTOA_SCIENT
-        std::chars_format::general,     // FTOA_FLEX
-        std::chars_format::hex,         // FTOA_HEXA
-    };
-    C4_STATIC_ASSERT(C4_COUNTOF(fmt) == _FTOA_COUNT);
-    #if C4_CPP >= 14
-    C4_ASSERT(f < _FTOA_COUNT);
-    #endif
-    return fmt[f];
-}
-#endif // C4CORE_HAVE_STD_TOCHARS
+/** @warning Use only the symbol. Do not rely on the type or naked value of this enum. */
+typedef enum : std::underlying_type<std::chars_format>::type {
+    /** print the real number in floating point format (like %f) */
+    FTOA_FLOAT = static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::fixed),
+    /** print the real number in scientific format (like %e) */
+    FTOA_SCIENT = static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::scientific),
+    /** print the real number in flexible format (like %g) */
+    FTOA_FLEX = static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::general),
+    /** print the real number in hexadecimal format (like %a) */
+    FTOA_HEXA = static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::hex),
+} RealFormat_e;
+#else
+/** @warning Use only the symbol. Do not rely on the type or naked value of this enum. */
+typedef enum : char {
+    /** print the real number in floating point format (like %f) */
+    FTOA_FLOAT = 'f',
+    /** print the real number in scientific format (like %e) */
+    FTOA_SCIENT = 'e',
+    /** print the real number in flexible format (like %g) */
+    FTOA_FLEX = 'g',
+    /** print the real number in hexadecimal format (like %a) */
+    FTOA_HEXA = 'a',
+} RealFormat_e;
+#endif
+
 
 /** in some platforms, int,unsigned int
  *  are not any of int8_t...int64_t and
@@ -1700,17 +1681,18 @@ auto overflows(csubstr str)
 namespace detail {
 
 
+#if (!C4CORE_HAVE_STD_FROMCHARS)
 /** @see http://www.exploringbinary.com/ for many good examples on float-str conversion */
 template<size_t N>
 void get_real_format_str(char (& C4_RESTRICT fmt)[N], int precision, RealFormat_e formatting, const char* length_modifier="")
 {
     int iret;
     if(precision == -1)
-        iret = snprintf(fmt, sizeof(fmt), "%%%s%c", length_modifier, to_c_fmt(formatting));
+        iret = snprintf(fmt, sizeof(fmt), "%%%s%c", length_modifier, formatting);
     else if(precision == 0)
-        iret = snprintf(fmt, sizeof(fmt), "%%.%s%c", length_modifier, to_c_fmt(formatting));
+        iret = snprintf(fmt, sizeof(fmt), "%%.%s%c", length_modifier, formatting);
     else
-        iret = snprintf(fmt, sizeof(fmt), "%%.%d%s%c", precision, length_modifier, to_c_fmt(formatting));
+        iret = snprintf(fmt, sizeof(fmt), "%%.%d%s%c", precision, length_modifier, formatting);
     C4_ASSERT(iret >= 2 && size_t(iret) < sizeof(fmt));
     C4_UNUSED(iret);
 }
@@ -1755,8 +1737,10 @@ size_t print_one(substr str, const char* full_fmt, T v)
     return ret;
 #endif
 }
+#endif // (!C4CORE_HAVE_STD_FROMCHARS)
 
-#if !C4CORE_HAVE_STD_FROMCHARS
+
+#if (!C4CORE_HAVE_STD_FROMCHARS) && (!C4CORE_HAVE_FAST_FLOAT)
 /** scans a string using the given type format, while at the same time
  * allowing non-null-terminated strings AND guaranteeing that the given
  * string length is strictly respected, so that no buffer overflows
@@ -1793,24 +1777,28 @@ inline size_t scan_one(csubstr str, const char *type_fmt, T *v)
     C4_ASSERT(num_chars >= 0);
     return (size_t)(num_chars);
 }
-#endif
+#endif // (!C4CORE_HAVE_STD_FROMCHARS) && (!C4CORE_HAVE_FAST_FLOAT)
 
 
 #if C4CORE_HAVE_STD_TOCHARS
 template<class T>
-size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX)
+C4_ALWAYS_INLINE size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e formatting=FTOA_FLEX) noexcept
 {
     std::to_chars_result result;
     size_t pos = 0;
     if(formatting == FTOA_HEXA)
     {
-        _c4append('0');
-        _c4append('x');
+        if(buf.len > size_t(2))
+        {
+            buf.str[0] = '0';
+            buf.str[1] = 'x';
+        }
+        pos += size_t(2);
     }
     if(precision == -1)
-        result = std::to_chars(buf.str + pos, buf.str + buf.len, v, to_std_fmt(formatting));
+        result = std::to_chars(buf.str + pos, buf.str + buf.len, v, (std::chars_format)formatting);
     else
-        result = std::to_chars(buf.str + pos, buf.str + buf.len, v, to_std_fmt(formatting), precision);
+        result = std::to_chars(buf.str + pos, buf.str + buf.len, v, (std::chars_format)formatting, precision);
     if(result.ec == std::errc())
     {
         // all good, no errors.
@@ -1901,10 +1889,10 @@ power:
             ++pos;
         if(C4_LIKELY(pos < s.len))
         {
-            int16_t p;
-            if(C4_LIKELY(atoi(s.sub(pos), &p)))
+            int16_t powval;
+            if(C4_LIKELY(atoi(s.sub(pos), &powval)))
             {
-                *val *= ipow<T, int16_t, 16>(p);
+                *val *= ipow<T, int16_t, 16>(powval);
                 return true;
             }
         }
@@ -1966,7 +1954,7 @@ C4_ALWAYS_INLINE size_t dtoa(substr str, double v, int precision=-1, RealFormat_
  * @return true iff the conversion succeeded
  * @see atof_first() if the string is not trimmed
  */
-inline bool atof(csubstr str, float * C4_RESTRICT v) noexcept
+C4_ALWAYS_INLINE bool atof(csubstr str, float * C4_RESTRICT v) noexcept
 {
     C4_ASSERT(str.len > 0);
     C4_ASSERT(str.triml(" \r\t\n").len == str.len);
@@ -1974,13 +1962,13 @@ inline bool atof(csubstr str, float * C4_RESTRICT v) noexcept
     // fastfloat cannot parse hexadecimal floats
     bool isneg = (str.str[0] == '-');
     csubstr rem = str.sub(isneg || str.str[0] == '+');
-    if(!(rem.begins_with("0x") || rem.begins_with("0X")))
+    if(!(rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X')))
     {
         fast_float::from_chars_result result;
         result = fast_float::from_chars(str.str, str.str + str.len, *v);
         return result.ec == std::errc();
     }
-    else if(C4_LIKELY(detail::scan_rhex(rem.sub(2), v)))
+    else if(detail::scan_rhex(rem.sub(2), v))
     {
         *v *= isneg ? -1.f : 1.f;
         return true;
@@ -2006,20 +1994,20 @@ inline bool atof(csubstr str, float * C4_RESTRICT v) noexcept
  * @return true iff the conversion succeeded
  * @see atod_first() if the string is not trimmed
  */
-inline bool atod(csubstr str, double * C4_RESTRICT v) noexcept
+C4_ALWAYS_INLINE bool atod(csubstr str, double * C4_RESTRICT v) noexcept
 {
     C4_ASSERT(str.triml(" \r\t\n").len == str.len);
 #if C4CORE_HAVE_FAST_FLOAT
     // fastfloat cannot parse hexadecimal floats
     bool isneg = (str.str[0] == '-');
     csubstr rem = str.sub(isneg || str.str[0] == '+');
-    if(!(rem.begins_with("0x") || rem.begins_with("0X")))
+    if(!(rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X')))
     {
         fast_float::from_chars_result result;
         result = fast_float::from_chars(str.str, str.str + str.len, *v);
         return result.ec == std::errc();
     }
-    else if(C4_LIKELY(detail::scan_rhex(rem.sub(2), v)))
+    else if(detail::scan_rhex(rem.sub(2), v))
     {
         *v *= isneg ? -1. : 1.;
         return true;
