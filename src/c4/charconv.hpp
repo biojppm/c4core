@@ -1962,7 +1962,7 @@ C4_ALWAYS_INLINE bool atof(csubstr str, float * C4_RESTRICT v) noexcept
     // fastfloat cannot parse hexadecimal floats
     bool isneg = (str.str[0] == '-');
     csubstr rem = str.sub(isneg || str.str[0] == '+');
-    if(!(rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X')))
+    if(!(rem.len >= 2 && (rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X'))))
     {
         fast_float::from_chars_result result;
         result = fast_float::from_chars(str.str, str.str + str.len, *v);
@@ -1980,7 +1980,7 @@ C4_ALWAYS_INLINE bool atof(csubstr str, float * C4_RESTRICT v) noexcept
     return result.ec == std::errc();
 #else
     csubstr rem = str.sub(str.str[0] == '-' || str.str[0] == '+');
-    if(!(rem.begins_with("0x") || rem.begins_with("0X")))
+    if(!(rem.len >= 2 && (rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X'))))
         return detail::scan_one(str, "f", v) != csubstr::npos;
     else
         return detail::scan_one(str, "a", v) != csubstr::npos;
@@ -2001,7 +2001,7 @@ C4_ALWAYS_INLINE bool atod(csubstr str, double * C4_RESTRICT v) noexcept
     // fastfloat cannot parse hexadecimal floats
     bool isneg = (str.str[0] == '-');
     csubstr rem = str.sub(isneg || str.str[0] == '+');
-    if(!(rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X')))
+    if(!(rem.len >= 2 && (rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X'))))
     {
         fast_float::from_chars_result result;
         result = fast_float::from_chars(str.str, str.str + str.len, *v);
@@ -2019,7 +2019,7 @@ C4_ALWAYS_INLINE bool atod(csubstr str, double * C4_RESTRICT v) noexcept
     return result.ec == std::errc();
 #else
     csubstr rem = str.sub(str.str[0] == '-' || str.str[0] == '+');
-    if(!(rem.begins_with("0x") || rem.begins_with("0X")))
+    if(!(rem.len >= 2 && (rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X'))))
         return detail::scan_one(str, "lf", v) != csubstr::npos;
     else
         return detail::scan_one(str, "la", v) != csubstr::npos;
