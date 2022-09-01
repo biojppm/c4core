@@ -21,10 +21,13 @@
 - `csubstr`: add `C4_RESTRICT` to incoming string on `csubstr::compare()`
 - `csubstr::first_real_span()` ([PR#89](https://github.com/biojppm/c4core/pull/89)):
   - Refactor to fix number matching rules. Now fully valid for floating point numbers in decimal (eg `0.123/1.23e+01`), hexadecimal (eg `0x123.abc/0x1.23abcp+01`), binary (eg `0b101.10/0b1.0110p+01`) and octal format (eg `0o701.10/0o7.0110p+01`) , with or without exponent or power, in lower or upper case.
-  - Also, ensure cases where repeated characters occur, (like e.g. `0.1.0` or `1.23e+e10`) are no longer understood as numbers (see [biojppm/rapidyaml#291](https://github.com/biojppm/rapidyaml/issues/291)).
+  - Also, make the number parsing stateful to fix cases where repeated characters occur, (like e.g. `0.1.0` or `1.23e+e10`) which are no longer reported as numbers (see [biojppm/rapidyaml#291](https://github.com/biojppm/rapidyaml/issues/291)).
 - `csubstr::first_int_span()`, `csubstr::first_uint_span()`: fix edge cases like e.g. `0xzz` which were wrongly reported as numbers.
 - Add fully qualified `__ARM_ARCH_7EM__` ARM detection macro ([PR#90](https://github.com/biojppm/c4core/pull/90)).
+- Improve linux and unix platform detection: detect both `__linux` and `__linux__` ([PR#92](https://github.com/biojppm/c4core/pull/92)).
+
 
 ### Thanks
 
 - @mlondono74
+- @musicinmybrain
