@@ -26,7 +26,7 @@
 #elif defined(__linux__) || defined(__linux)
 #   define C4_UNIX
 #   define C4_LINUX
-#elif defined(__unix)
+#elif defined(__unix__) || defined(__unix)
 #   define C4_UNIX
 #elif defined(__arm__) || defined(__aarch64__)
 #   define C4_ARM
@@ -36,7 +36,7 @@
 #   error "unknown platform"
 #endif
 
-#if defined(__posix) || defined(__unix__) || defined(C4_LINUX)
+#if defined(__posix) || defined(C4_UNIX) || defined(C4_LINUX)
 #   define C4_POSIX
 #endif
 
