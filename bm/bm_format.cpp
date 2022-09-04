@@ -38,8 +38,8 @@ double getrange(std::vector<double> const& v)
 /** convenience wrapper to avoid boilerplate code */
 void report(bm::State &st, size_t sz)
 {
-    st.SetBytesProcessed(static_cast<int64_t>(st.iterations() * sz));
-    st.SetItemsProcessed(static_cast<int64_t>(st.iterations()));
+    st.SetBytesProcessed(st.iterations() * static_cast<int64_t>(sz));
+    st.SetItemsProcessed(st.iterations());
 }
 
 
