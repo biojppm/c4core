@@ -5,7 +5,7 @@ if(C4CORE_BM_USE_RYU)
 
     c4_download_remote_proj(ryu RYU_DIR
         GIT_REPOSITORY https://github.com/ulfjack/ryu
-        GIT_TAG master)
+        GIT_TAG master GIT_SHALLOW ON)
     set(RYU_HDR
         ${RYU_DIR}/ryu/common.h
         ${RYU_DIR}/ryu/d2fixed_full_table.h

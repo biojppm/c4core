@@ -78,7 +78,7 @@ if(C4CORE_BM_USE_FP)
     c4_require_subproject(fp
         REMOTE
             GIT_REPOSITORY https://github.com/jk-jeon/fp
-            GIT_TAG master
+            GIT_TAG master GIT_SHALLOW ON
         EXCLUDE_FROM_ALL)
     target_link_libraries(c4core-bm-charconv PRIVATE jkj_fp)
     target_compile_definitions(c4core-bm-charconv PUBLIC -DC4CORE_BM_USE_FP)
@@ -134,11 +134,12 @@ endif()
 option(C4CORE_BM_ITOA_THREADS "compare itoa thread degradation across alternative implementations" OFF)
 if(C4CORE_BM_ITOA_THREADS)
     c4_download_remote_proj(stb stbdir REMOTE
-        GIT_REPOSITORY https://github.com/nothings/stb)
+        GIT_REPOSITORY https://github.com/nothings/stb GIT_SHALLOW ON)
 
     c4_require_subproject(fmtlib REMOTE
         GIT_REPOSITORY https://github.com/fmtlib/fmt
-        GIT_TAG 8.1.1)
+        GIT_TAG 8.1.1
+        GIT_SHALLOW ON)
     c4_set_folder_remote_project_targets(ext fmt)
 
     c4_add_executable(c4core-bm-itoa_threads
