@@ -232,6 +232,24 @@ Here are the results:
 | `std::stringstream<i64>` |   27.62 |  `std::stringstream<i64>`|    25.12 |
 
 
+Or here are plots for g++12.1 and VS2019 (from the same computer):
+
+| Linux gxx12.1 | Windows VS2019 |
+|---------------|----------------|
+| ![atox-u32-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-atox-mega_bytes_per_second-u32.png "atox-u32-linux") | ![atox-u32-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-atox-mega_bytes_per_second-u32.png "atox-u32-windows") |
+| ![atox-i32-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-atox-mega_bytes_per_second-i32.png "atox-i32-linux") | ![atox-i32-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-atox-mega_bytes_per_second-i32.png "atox-i32-windows") |
+| ![atox-u64-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-atox-mega_bytes_per_second-u64.png "atox-u64-linux") | ![atox-u64-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-atox-mega_bytes_per_second-u64.png "atox-u64-windows") |
+| ![atox-i64-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-atox-mega_bytes_per_second-i64.png "atox-i64-linux") | ![atox-i64-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-atox-mega_bytes_per_second-i64.png "atox-i64-windows") |
+| ![atof-double-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-atof-mega_bytes_per_second-double.png "atof-double-linux") | ![atof-double-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-atof-mega_bytes_per_second-double.png "atof-double-windows") |
+| ![atof-float-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-atof-mega_bytes_per_second-float.png "atof-float-linux") | ![atof-float-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-atof-mega_bytes_per_second-float.png "atof-float-windows") |
+|      |      |
+| ![xtoa-u32-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-xtoa-mega_bytes_per_second-u32.png "xtoa-u32-linux") | ![xtoa-u32-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-xtoa-mega_bytes_per_second-u32.png "xtoa-u32-windows") |
+| ![xtoa-i32-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-xtoa-mega_bytes_per_second-i32.png "xtoa-i32-linux") | ![xtoa-i32-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-xtoa-mega_bytes_per_second-i32.png "xtoa-i32-windows") |
+| ![xtoa-u64-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-xtoa-mega_bytes_per_second-u64.png "xtoa-u64-linux") | ![xtoa-u64-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-xtoa-mega_bytes_per_second-u64.png "xtoa-u64-windows") |
+| ![xtoa-i64-linux](doc/img/linux-x86_64-gxx12.1-Release/c4core-bm-charconv-xtoa-mega_bytes_per_second-i64.png "xtoa-i64-linux") | ![xtoa-i64-windows](doc/img/windows-x86_64-vs2019-Release/c4core-bm-charconv-xtoa-mega_bytes_per_second-i64.png "xtoa-i64-windows") |
+
+
+
 ### String formatting and parsing
 
 * [`#include <c4/format.hpp>`](src/c4/format.hpp)
