@@ -98,8 +98,8 @@ void report_threadavg(bm::State &st, size_t numvals=1)
 {
     int64_t iters = (int64_t)(st.iterations() * numvals);
     int64_t bytes = (int64_t)(st.iterations() * numvals * sizeof(T));
-    st.SetBytesProcessed(bytes / (int64_t)st.threads);
-    st.SetItemsProcessed(iters / (int64_t)st.threads);
+    st.SetBytesProcessed(bytes / (int64_t)st.threads());
+    st.SetItemsProcessed(iters / (int64_t)st.threads());
 }
 
 template<class T>
