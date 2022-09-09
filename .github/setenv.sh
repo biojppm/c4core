@@ -246,7 +246,7 @@ function c4_cfg_test()
         # export CODECOV_TOKEN=.......
         # export COVERALLS_REPO_TOKEN=.......
         _addprojflags COVERAGE_CODECOV=ON COVERAGE_CODECOV_SILENT=OFF
-        _addprojflags COVERAGE_COVERALLS=OFF COVERAGE_COVERALLS_SILENT=ON
+        _addprojflags COVERAGE_COVERALLS=ON COVERAGE_COVERALLS_SILENT=OFF
     fi
     if [ ! -z "$VERBOSE_MAKEFILES" ] ; then
         _addcmkflags -DCMAKE_VERBOSE_MAKEFILES=$VERBOSE_MAKEFILES

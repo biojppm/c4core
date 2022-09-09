@@ -24,36 +24,11 @@ env:
   NUM_JOBS_BUILD: # 4
 
 
-# ubuntu-20.04:
-#   # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
-#   gcc: 7.5.0, 8.4.0, 9.3.0, 10.2.0
-#   clang: 8.0.1, 9.0.1, 10.0.0
-# ubuntu-18.04:
-#   # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu1804-README.md
-#   gcc: 7.5.0, 8.4.0, 9.3.0, 10.1.0
-#   clang: 6.0.0, 8.0.0, 9.0.0
-# macos-11.0: macOS Big Sur 11.0
-#   # https://github.com/actions/virtual-environments/blob/main/images/macos/macos-11.0-Readme.md
-#   Xcode 12.1 11.7
-#   clang/LLVM 10.0.1
-#   gcc-8 gcc-9
-# macos-10.15: macOS Catalina 10.15
-#   # https://github.com/actions/virtual-environments/blob/main/images/macos/macos-10.15-Readme.md
-#   Xcode 12.1 11.7
-#   clang/LLVM 11.0.0
-#   gcc-8 gcc-9
-# windows-2019:
-#   # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-#   vs2019
-# windows-2016:
-#   # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2016-Readme.md
-#   vs2017
-
 jobs:
 
   #----------------------------------------------------------------------------
   coverage:
-    name: coverage/c++${{matrix.std}}
+    name: coverage/${{matrix.name}}
     # if: github.ref == 'refs/heads/master'
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
@@ -62,64 +37,51 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
-          - {std: 14, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
-          - {std: 17, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
-          #- {std: 20, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-20.04}
-    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}", CODECOV_TOKEN: "${{secrets.CODECOV_TOKEN}}", COVERALLS_REPO_TOKEN: "${{secrets.COVERALLS_REPO_TOKEN}}"}
+          - {name: c++11, std: 11, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
+          - {name: c++17, std: 17, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
+          #- {name: c++20, std: 20, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-20.04}
+    env: {
+      STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}",
+      CODECOV_TOKEN: "${{secrets.CODECOV_TOKEN}}",
+      COVERALLS_REPO_TOKEN: "${{secrets.COVERALLS_REPO_TOKEN}}",
+      COVERALLS_PARALLEL: true,
+      }
     steps:
       - {name: checkout, uses: actions/checkout@v2, with: {submodules: recursive}}
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
-      - name: shared64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared64
-      - {name: shared64-build, run: source .github/setenv.sh && c4_build_test shared64}
-      - {name: shared64-run, run: source .github/setenv.sh && c4_run_test shared64}
-      - name: shared64-submit
-        run: |
-          source .github/setenv.sh
-          c4_submit_coverage shared64 codecov
-          #c4_submit_coverage shared64 coveralls  # only accepts one submission per job
       - name: static64-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test static64
       - {name: static64-build, run: source .github/setenv.sh && c4_build_test static64}
-      - {name: static64-run, run: source .github/setenv.sh && c4_run_test static64}
-      - name: static64-submit
-        run: |
-          source .github/setenv.sh
-          c4_submit_coverage static64 codecov
-          #c4_submit_coverage static64 coveralls
+      - {name: static64-run, run: source .github/setenv.sh && c4_build_target static64 c4core-coverage}
+      - name: static64-coverage-artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-static64
+          path: |
+            build/static64/lcov/
+            build/static64/coverage3-final_filtered.lcov
+      - {name: static64-submit-codecov, run: source .github/setenv.sh && c4_submit_coverage static64 codecov}
+      - {name: static64-submit-coveralls, run: source .github/setenv.sh && c4_submit_coverage static64 coveralls,
+         env: {COVERALLS_FLAG_NAME: "${{matrix.name}}/static64"}}
       - name: static32-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test static32
       - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
-      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
-      - name: static32-submit
-        run: |
-          source .github/setenv.sh
-          c4_submit_coverage static32 codecov
-          #c4_submit_coverage static32 coveralls  # only accepts one submission per job
-      - name: shared32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared32
-      - {name: shared32-build, run: source .github/setenv.sh && c4_build_test shared32}
-      - {name: shared32-run, run: source .github/setenv.sh && c4_run_test shared32}
-      - name: shared32-submit
-        run: |
-          source .github/setenv.sh
-          c4_submit_coverage shared32 codecov
-          #c4_submit_coverage shared32 coveralls  # only accepts one submission per job
-      - name: static32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static32
-      - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
-      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
-      - name: static32-submit
-        run: |
-          source .github/setenv.sh
-          c4_submit_coverage static32 codecov
-          #c4_submit_coverage static32 coveralls  # only accepts one submission per job
+      - {name: static32-run, run: source .github/setenv.sh && c4_build_target static32 c4core-coverage}
+      - name: static32-coverage-artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-static32
+          path: |
+            build/static32/lcov/
+            build/static32/coverage3-final_filtered.lcov
+      - {name: static32-submit-codecov, run: source .github/setenv.sh && c4_submit_coverage static32 codecov}
+      - {name: static32-submit-coveralls, run: source .github/setenv.sh && c4_submit_coverage static32 coveralls,
+         env: {COVERALLS_FLAG_NAME: "${{matrix.name}}/static32"}}
 
   #----------------------------------------------------------------------------
   coverage_nofastfloat:
-    name: coverage/c++${{matrix.std}}/nofastfloat
+    name: coverage/${{matrix.name}}
     # if: github.ref == 'refs/heads/master'
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
@@ -128,9 +90,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
-          - {std: 14, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
-          - {std: 17, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
+          - {name: nofastfloat/c++11, std: 11, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
+          - {name: nofastfloat/c++17, std: 17, cxx: g++-7, cc: gcc-7, bt: Coverage, os: ubuntu-18.04}
     env: {
       STD: "${{matrix.std}}",
       CXX_: "${{matrix.cxx}}",
@@ -138,6 +99,8 @@ jobs:
       OS: "${{matrix.os}}",
       CODECOV_TOKEN: "${{secrets.CODECOV_TOKEN}}",
       COVERALLS_REPO_TOKEN: "${{secrets.COVERALLS_REPO_TOKEN}}",
+      COVERALLS_PARALLEL: true,   # https://docs.coveralls.io/parallel-build-webhook
+      COVERALLS_FLAG_NAME: "${{matrix.name}}",
       BDIR:   "build/nofastfloat-${{matrix.cxx}}-cxx${{matrix.std}}",
       IDIR: "install/nofastfloat-${{matrix.cxx}}-cxx${{matrix.std}}",
     }
@@ -157,20 +120,31 @@ jobs:
             -DC4CORE_BUILD_TESTS=ON \
             -DC4CORE_VALGRIND=OFF \
             -DC4CORE_COVERAGE_CODECOV=ON \
-            -DC4CORE_COVERAGE_CODECOV_SILENT=ON \
             -DC4CORE_COVERAGE_COVERALLS=ON \
-            -DC4CORE_COVERAGE_COVERALLS_SILENT=ON \
             -DCMAKE_INSTALL_PREFIX=$IDIR \
             -DCMAKE_BUILD_TYPE=Coverage \
             -DCMAKE_CXX_COMPILER=${{matrix.cxx}} \
             -DCMAKE_C_COMPILER=${{matrix.cc}}
-      - name: nofastfloat-build
-        run: |
-          cmake --build $BDIR --config Coverage --target c4core-test-build -j
-      - name: nofastfloat-run
-        run: |
-          cmake --build $BDIR --config Coverage --target c4core-test-run
-      - name: nofastfloat-submit
-        run: |
-          cmake --build $BDIR --config Coverage --target c4core-coverage-submit-codecov
-          #cmake --build $BDIR --config Coverage --target c4core-coverage-submit-coveralls
+      - {name: nofastfloat-build, run: cmake --build $BDIR --config Coverage --target c4core-test-build -j}
+      - {name: nofastfloat-run, run: cmake --build $BDIR --config Coverage --target c4core-coverage}
+      - name: nofastfloat-coverage-artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-shared32
+          path: |
+            build/nofastfloat-${{matrix.cxx}}-cxx${{matrix.std}}/lcov/
+            build/nofastfloat-${{matrix.cxx}}-cxx${{matrix.std}}/coverage3-final_filtered.lcov
+      - {name: nofastfloat-submit-codecov, run: cmake --build $BDIR --config Coverage --target c4core-coverage-submit-codecov}
+      - {name: nofastfloat-submit-coveralls, run: cmake --build $BDIR --config Coverage --target c4core-coverage-submit-coveralls}
+
+  # https://github.com/marketplace/actions/coveralls-github-action
+  coveralls_finish:
+    needs: [coverage, coverage_nofastfloat]
+    runs-on: ubuntu-latest
+    steps:
+      - name: coveralls-notify
+        continue-on-error: true
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true
