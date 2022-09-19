@@ -1,86 +1,5 @@
-#include <cstdio>
-#include <chrono>
-#include <c4/substr.hpp>
-#include <c4/charconv.hpp>
-#include <c4/memory_resource.hpp>
 
-using csubstr = c4::csubstr;
-
-
-//-----------------------------------------------------------------------------
-
-struct timed_section
-{
-    using myclock = std::chrono::steady_clock;
-    using msecs = std::chrono::duration<double, std::milli>;
-
-    csubstr name;
-    myclock::time_point start;
-
-    msecs since() const { return myclock::now() - start; }
-    timed_section(csubstr n) : name(n), start(myclock::now()) {}
-    ~timed_section()
-    {
-        fprintf(stderr, "%.6fms: %.*s\n", since().count(), (int)name.len, name.str);
-        fflush(stderr);
-    }
-};
-
-#define TIMEDSECTION(name) timed_section C4_XCAT(time_section__, C4_XCAT(name, __LINE__))(#name)
-
-
-//-----------------------------------------------------------------------------
-
-template<class T>
-struct buffer
-{
-    buffer() = default;
-    ~buffer() { release(); }
-    C4_NO_COPY_OR_MOVE(buffer); // good enough for now
-    void acquire(size_t sz)
-    {
-        ptr = (T *)c4::aalloc(sz * sizeof(T), alignof(max_align_t));
-        dim = sz;
-    }
-    void release()
-    {
-        if(ptr)
-            c4::afree(ptr);
-        ptr = nullptr;
-        dim = 0;
-    }
-
-    T *C4_RESTRICT ptr = nullptr;
-    size_t dim = 0;
-};
-
-
-//-----------------------------------------------------------------------------
-
-/** load a file from disk to a buffer */
-size_t file_get_contents(const char *filename, buffer<char> *v)
-{
-    C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(4996) // fopen: this function or variable may be unsafe
-    ::FILE *fp = ::fopen(filename, "rb");
-    C4_CHECK_MSG(fp != nullptr, "could not open file");
-    ::fseek(fp, 0, SEEK_END);
-    long sz = ::ftell(fp);
-    if(sz)
-    {
-        v->acquire(static_cast<size_t>(sz));
-        ::rewind(fp);
-        size_t ret = ::fread(v->ptr, 1, v->dim, fp);
-        C4_CHECK(ret == (size_t)sz);
-    }
-    else
-    {
-        v->release();
-    }
-    ::fclose(fp);
-    return v->dim;
-    C4_SUPPRESS_WARNING_MSVC_POP
-}
-
+#include "bm_c4corecsv_common.hpp"
 
 //-----------------------------------------------------------------------------
 
@@ -121,6 +40,7 @@ struct csv_data
     template<class T>
     void column_as(size_t col, buffer<T> *buf) const noexcept
     {
+        C4_ASSERT(col < ncols);
         if(buf->dim != nrows)
         {
             buf->release();
@@ -135,22 +55,6 @@ struct csv_data
             else
                 buf->ptr[row] = {};
         }
-    }
-    template<class T>
-    void column_as(csubstr name, buffer<T> *buf) const noexcept
-    {
-        size_t col = lookup_column(name);
-        C4_CHECK_MSG(col != c4::csubstr::npos, "name='%.*s'", (int)name.len, name.str);
-        column_as(col, buf);
-    }
-    size_t lookup_column(csubstr name) const noexcept
-    {
-        // just do a linear search, it's fast because the number of
-        // cols is generally small
-        for(size_t col = 0; col < ncols; ++col)
-            if(columns.ptr[col].name == name)
-                return col;
-        return csubstr::npos;
     }
 };
 
@@ -180,6 +84,7 @@ C4_ALWAYS_INLINE void readline(csubstr line, size_t row, csv_data *C4_RESTRICT d
     }
 }
 
+template<class CsvData>
 void print_first(csv_data const& C4_RESTRICT data, size_t num=20)
 {
     for(size_t col = 0; col < data.ncols; ++col)
@@ -201,7 +106,6 @@ void print_first(csv_data const& C4_RESTRICT data, size_t num=20)
         }
         putchar('\n');
     }
-
 }
 
 
@@ -237,7 +141,7 @@ int main(int argc, const char *argv[])
         {
             TIMEDSECTION(count);
             numcols = 1 + header_line.count(',');
-            numlines = 1 + data_lines.count('\n');
+            numlines = data_lines.count('\n');
             printf("cols=%zu rows=%zu\n", numcols, numlines);
         }
         // size the data as needed
@@ -253,20 +157,23 @@ int main(int argc, const char *argv[])
         // read all the fields to the proper place
         {
             TIMEDSECTION(populate_string_views);
-            size_t row = 0;
-            for(csubstr line : data_lines.split('\n'))
-                readline(line.trimr('\r'), row++, &data);
-            C4_ASSERT(row == numlines);
+            for(size_t row = 0; row < numlines; ++row)
+            {
+                csubstr line = data_lines.first(data_lines.first_of('\n'));
+                C4_ASSERT(line.len);
+                readline(line.trimr('\r'), row, &data);
+                data_lines = data_lines.right_of(line.len + 1);
+            }
         }
         // parse the columns to data type
         {
             TIMEDSECTION(convert_int_data);
-            data.column_as<int>("retail_and_recreation_percent_change_from_baseline", &retail_and_recreation);
-            data.column_as<int>("grocery_and_pharmacy_percent_change_from_baseline", &grocery_and_pharmacy);
-            data.column_as<int>("parks_percent_change_from_baseline", &parks);
-            data.column_as<int>("transit_stations_percent_change_from_baseline", &transit_stations);
-            data.column_as<int>("workplaces_percent_change_from_baseline", &workplaces);
-            data.column_as<int>("residential_percent_change_from_baseline", &residential);
+            data.column_as(9u, &retail_and_recreation);
+            data.column_as(10u, &grocery_and_pharmacy);
+            data.column_as(11u, &parks);
+            data.column_as(12u, &transit_stations);
+            data.column_as(13u, &workplaces);
+            data.column_as(14u, &residential);
         }
     }
     print_first(data);

@@ -8,35 +8,8 @@ c4_require_subproject(c4core
         GIT_REPOSITORY https://github.com/biojppm/c4core
         GIT_TAG master GIT_SHALLOW ON
     EXCLUDE_FROM_ALL)
-c4_require_subproject(arrow
-    REMOTE
-        GIT_REPOSITORY https://github.com/apache/arrow
-        GIT_TAG apache-arrow-9.0.0 GIT_SHALLOW ON
-    SUBDIR cpp
-    OVERRIDE
-        ARROW_DEFINE_OPTIONS_DEFAULT ON
-        ARROW_PYTHON ON
-        ARROW_PARQUET ON
-        ARROW_FLIGHT OFF
-        ARROW_PLASMA ON
-        ARROW_GANDIVA ON
-        ARROW_THRIFT OFF
-        ARROW_BUILD_BENCHMARKS ON
-        ARROW_BUILD_BENCHMARKS_REFERENCE ON
-        ARROW_BUILD_TESTS OFF
-        ARROW_BUILD_UTILITIES ON
-        ARROW_S3 OFF
-        ARROW_WITH_BROTLI ON
-        ARROW_WITH_BZ2 ON
-        ARROW_WITH_LZ4 ON
-        ARROW_WITH_SNAPPY ON
-        ARROW_WITH_ZLIB ON
-        ARROW_WITH_ZSTD ON
-    EXCLUDE_FROM_ALL)
 
-c4_add_executable(c4corecsv-c4core
-    SOURCES bm_csv.cpp
-    LIBS c4core)
+find_package(Arrow REQUIRED)
 
 set(csv_url https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv)
 set(csv_file ${CMAKE_CURRENT_SOURCE_DIR}/Global_Mobility_Report.csv)
@@ -48,9 +21,28 @@ add_custom_command(OUTPUT ${csv_file}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
-add_custom_target(c4corecsv-c4core-run
-    DEPENDS c4corecsv-c4core ${csv_file}
-    COMMAND ${CMAKE_COMMAND} -E echo $<TARGET_FILE:c4corecsv-c4core> ${csv_file}
-    COMMAND $<TARGET_FILE:c4corecsv-c4core> ${csv_file}
-    VERBATIM
-)
+
+function(add_case lib name)
+    set(llib ${lib})
+    if(${lib} STREQUAL "arrow")
+        set(llib arrow_static)
+    endif()
+    set(exe ${lib}csv-${name})
+    c4_add_executable(${exe}
+        SOURCES bm_${lib}csv_${name}.cpp bm_c4corecsv_common.hpp
+        LIBS ${llib} c4core)
+    target_compile_features(${exe} PUBLIC cxx_std_17)
+    add_custom_target(${exe}-run
+        DEPENDS ${exe} ${csv_file}
+        COMMAND ${CMAKE_COMMAND} -E echo $<TARGET_FILE:${exe}> ${csv_file}
+        COMMAND $<TARGET_FILE:${exe}> ${csv_file}
+        VERBATIM
+    )
+endfunction()
+
+add_case(c4core 1_strings_serial)
+add_case(c4core 2_values_serial)
+add_case(c4core 3_values_parallel)
+add_case(c4core 4_values_parallel_cols)
+
+add_case(arrow 1_plain)
