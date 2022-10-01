@@ -1,3 +1,14 @@
+
+### Breaking changes
+
+- `csubstr::operator==(std::nullptr_t)` now strictly checks if the pointer is null and no longer looks at the length ([rapidyaml#264](https://github.com/biojppm/rapidyaml/pull/264)):
+  ```diff
+  -bool csubstr::operator== (std::nullptr_t) const noexcept { return str == nullptr || len == 0; }
+  -bool csubstr::operator!= (std::nullptr_t) const noexcept { return str != nullptr || len == 0; }
+  +bool csubstr::operator== (std::nullptr_t) const noexcept { return str == nullptr; }
+  +bool csubstr::operator!= (std::nullptr_t) const noexcept { return str != nullptr; }
+  ```
+
 ### New features
 
 - `charconv.hpp`: added `xtoa()` floating-point overloads accepting precision and format ([PR#88](https://github.com/biojppm/c4core/pull/88)):
