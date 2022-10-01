@@ -30,8 +30,8 @@ using string = basic_string<char, char_traits<char>, allocator<char>>;
 
 namespace c4 {
 
-c4::substr to_substr(std::string &s);
-c4::csubstr to_csubstr(std::string const& s);
+C4_ALWAYS_INLINE c4::substr to_substr(std::string &s) noexcept;
+C4_ALWAYS_INLINE c4::csubstr to_csubstr(std::string const& s) noexcept;
 
 bool operator== (c4::csubstr ss, std::string const& s);
 bool operator!= (c4::csubstr ss, std::string const& s);

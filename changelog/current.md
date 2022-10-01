@@ -8,6 +8,11 @@
   +bool csubstr::operator== (std::nullptr_t) const noexcept { return str == nullptr; }
   +bool csubstr::operator!= (std::nullptr_t) const noexcept { return str != nullptr; }
   ```
+- `to_substr(std::string &s)` and `to_csubstr(std::string const& s)` now point at the first element when the string is empty ([rapidyaml#264](https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1264421024)):
+  ```diff
+  -    return c4::substr(!s.empty() ? &s[0] : nullptr, s.size());
+  +    return c4::substr(&s[0], s.size());
+  ```
 
 ### New features
 
