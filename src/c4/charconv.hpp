@@ -2290,7 +2290,15 @@ inline size_t to_chars(substr buf, csubstr v) noexcept
 {
     C4_ASSERT(!buf.overlaps(v));
     size_t len = buf.len < v.len ? buf.len : v.len;
-    memcpy(buf.str, v.str, len);
+    // calling memcpy with null strings is undefined behavior
+    // and will wreak havoc in calling code's branches.
+    // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
+    if(len)
+    {
+        C4_ASSERT(buf.str != nullptr);
+        C4_ASSERT(v.str != nullptr);
+        memcpy(buf.str, v.str, len);
+    }
     return v.len;
 }
 
@@ -2317,20 +2325,36 @@ inline size_t to_chars(substr buf, substr v) noexcept
 {
     C4_ASSERT(!buf.overlaps(v));
     size_t len = buf.len < v.len ? buf.len : v.len;
-    memcpy(buf.str, v.str, len);
+    // calling memcpy with null strings is undefined behavior
+    // and will wreak havoc in calling code's branches.
+    // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
+    if(len)
+    {
+        C4_ASSERT(buf.str != nullptr);
+        C4_ASSERT(v.str != nullptr);
+        memcpy(buf.str, v.str, len);
+    }
     return v.len;
 }
 
 inline bool from_chars(csubstr buf, substr * C4_RESTRICT v) noexcept
 {
     C4_ASSERT(!buf.overlaps(*v));
-    if(buf.len <= v->len)
+    // is the destination buffer wide enough?
+    if(v->len >= buf.len)
     {
-        memcpy(v->str, buf.str, buf.len);
+        // calling memcpy with null strings is undefined behavior
+        // and will wreak havoc in calling code's branches.
+        // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
+        if(buf.len)
+        {
+            C4_ASSERT(buf.str != nullptr);
+            C4_ASSERT(v->str != nullptr);
+            memcpy(v->str, buf.str, buf.len);
+        }
         v->len = buf.len;
         return true;
     }
-    memcpy(v->str, buf.str, v->len);
     return false;
 }
 
@@ -2341,7 +2365,15 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v) noexcept
     if(C4_UNLIKELY(trimmed.len == 0))
         return csubstr::npos;
     size_t len = trimmed.len > v->len ? v->len : trimmed.len;
-    memcpy(v->str, trimmed.str, len);
+    // calling memcpy with null strings is undefined behavior
+    // and will wreak havoc in calling code's branches.
+    // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
+    if(len)
+    {
+        C4_ASSERT(buf.str != nullptr);
+        C4_ASSERT(v->str != nullptr);
+        memcpy(v->str, trimmed.str, len);
+    }
     if(C4_UNLIKELY(trimmed.len > v->len))
         return csubstr::npos;
     return static_cast<size_t>(trimmed.end() - buf.begin());

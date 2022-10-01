@@ -26,6 +26,7 @@
 
 ### Fixes
 
+- `substr`, `to_chars()`, charconv: ensure `memcpy` is not called when the length is zero. Doing this is UB and enabled the optimizer to wreak havoc in the branches of calling code. See comments at [rapidyaml#264](https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637) for an example and fix. See [Raymond Chen's blog](https://devblogs.microsoft.com/oldnewthing/20140627-00/?p=633) for an explanation.
 - `atof()` and `atod()` ([PR#88](https://github.com/biojppm/c4core/pull/88)):
   - Always use the fastest implementation available: `std::from_chars()` if available (C++17 or higher standard, with later compilers), `fast_float::from_chars()` otherwise. On Visual Studio, `fast_float::from_chars()` is preferred over `std::from_chars()`.
   - If `std::from_chars()` is not available and `C4CORE_NO_FAST_FLOAT` is defined, then the fallback is based on `sscanf()`.
@@ -50,3 +51,4 @@
 - @mlondono74
 - @musicinmybrain
 - @pkubaj
+- @Gei0r
