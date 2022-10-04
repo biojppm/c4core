@@ -11,6 +11,7 @@ c4_project(VERSION 0.1.10
 
 option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
 
+# NOTE: If updating source files list please update BUILD.bazel as well
 set(C4CORE_SRC_FILES
     c4/allocator.hpp
     c4/base64.hpp

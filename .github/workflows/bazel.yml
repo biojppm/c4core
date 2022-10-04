@@ -1,0 +1,40 @@
+name: bazel
+
+on:
+  push:
+    branches:
+      - "**"
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bazel-test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/cache@v3
+        with:
+          path: |
+            /Users/runneradmin/AppData/Local/bazelisk
+            /Users/runneradmin/.cache/bazel-disk-cache
+          key: ${{runner.os}}-bazel-cache
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - run: bazel test --config=ci //...
+  build-test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/bazelisk
+            ~/.cache/bazel-disk-cache
+          key: ${{runner.os}}-bazel-cache
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - run: bazel test --config=ci //...

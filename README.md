@@ -84,14 +84,14 @@ init` followed by `git submodule update`.
 
 ## Using c4core in your project
 
-c4core can be built with [cmake](#cmake), or can be used header only. It can also be obtained through some package managers.
+c4core can be built with [cmake](#cmake) or [bazel](#bazel), or can be used [header only](#header-only). It can also be obtained through some [package managers](#package-managers).
 
 ### CMake
 
 The recommended way to use c4core is by making it part of your project
 by using `add_subdirectory(${path_to_c4core_root})` in your
 CMakeLists.txt. Doing this is not intrusive to your cmake project
-because c4core is fast to build, also prefixes every cmake
+because c4core is fast to build, and it also prefixes every cmake
 variable with `C4CORE_`. But more importantly, this will enable you to
 compile c4core with the exact same compile settings used by your
 project.
@@ -110,6 +110,61 @@ Note above that the call to `target_link_libraries()` is using PUBLIC
 linking. This is required to make sure the include directories from `c4core`
 are transitively used by clients of `foo`.
 
+### Bazel
+
+Add c4core to your `WORKSPACE.bazel`:
+
+```python
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "c4core",
+    init_submodules = True,
+    tag = "v{current_version}",
+)
+```
+
+Use in your `BUILD.bazel` files by adding to your `deps`:
+
+```python
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    # ...
+    deps = ["@c4core"],
+)
+```
+
+### Header-only
+
+If you prefer to pick a single header to get you quickly going, [there is an amalgamation tool](tools/amalgamate.py) which generates this header:
+```console
+[user@host c4core]$ python tools/amalgamate.py -h
+usage: amalgamate.py [-h] [--fastfloat | --no-fastfloat] [--stl | --no-stl] [output]
+
+positional arguments:
+  output          output file. defaults to stdout
+
+options:
+  -h, --help      show this help message and exit
+  --fastfloat     enable fastfloat library. this is the default.
+  --no-fastfloat  enable fastfloat library. the default is --fastfloat.
+  --stl           enable stl interop. this is the default.
+  --no-stl        enable stl interop. the default is --stl.
+```
+
+
+### Package managers
+
+c4core is available through the following package managers:
+
+  * [vcpkg](https://vcpkg.io/en/packages.html): `vcpkg install c4core`
+  * Arch Linux/Manjaro:
+    * [rapidyaml](https://aur.archlinux.org/packages/rapidyaml/)
+
+
+
+<!----------------------------------------------------->
 
 ### Header-only
 

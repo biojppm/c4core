@@ -1,0 +1,263 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "lib",
+    srcs = [
+        "c4/libtest/archetypes.cpp",
+        "c4/libtest/test.cpp",
+        "c4/main.cpp",
+    ],
+    hdrs = [
+        "c4/libtest/archetypes.hpp",
+        "c4/libtest/supprwarn_pop.hpp",
+        "c4/libtest/supprwarn_push.hpp",
+        "c4/test.hpp",
+    ],
+    includes = ["."],
+    deps = [
+        "//:c4core",
+        "@doctest//doctest:custom_main",
+    ],
+)
+
+cc_test(
+    name = "allocator",
+    srcs = ["test_allocator.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "base64",
+    srcs = ["test_base64.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "bitmask",
+    srcs = [
+        "test_bitmask.cpp",
+        "test_enum_common.hpp",
+    ],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "blob",
+    srcs = ["test_blob.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "char_traits",
+    srcs = ["test_char_traits.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "charconv",
+    srcs = [
+        "test_charconv.cpp",
+        "test_numbers.hpp",
+    ],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "ctor_dtor",
+    srcs = ["test_ctor_dtor.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "dump",
+    srcs = ["test_dump.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "enum",
+    srcs = [
+        "test_enum.cpp",
+        "test_enum_common.hpp",
+    ],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "error_exception",
+    srcs = ["test_error_exception.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "error",
+    srcs = ["test_error.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "format",
+    srcs = ["test_format.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "memory_util",
+    srcs = ["test_memory_util.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "preprocessor",
+    srcs = ["test_preprocessor.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "span",
+    srcs = ["test_span.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "std_string",
+    srcs = ["test_std_string.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "std_vector",
+    srcs = ["test_std_vector.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "substr",
+    srcs = ["test_substr.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "type_name",
+    srcs = ["test_type_name.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "types",
+    srcs = ["test_types.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "utf",
+    srcs = [
+        "test_utf.cpp",
+        "utfchars.inc",
+    ],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "memory_resource",
+    srcs = ["test_memory_resource.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
+
+cc_test(
+    name = "szconv",
+    srcs = ["test_szconv.cpp"],
+    includes = ["."],
+    deps = [
+        ":lib",
+        "//:c4core",
+    ],
+)
