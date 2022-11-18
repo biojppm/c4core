@@ -43,6 +43,7 @@
 - Add fully qualified ARM detection macros:
   - `__ARM_ARCH_7EM__` ([PR#90](https://github.com/biojppm/c4core/pull/90)).
   - `__ARM_ARCH_6KZ__` ([PR#93](https://github.com/biojppm/c4core/pull/93)).
+  - `__ARM_ARCH_8A__` ([#94](https://github.com/biojppm/c4core/issues/94)).
 - Improve linux and unix platform detection: detect both `__linux` and `__linux__` ([PR#92](https://github.com/biojppm/c4core/pull/92)).
 
 
