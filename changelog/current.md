@@ -22,6 +22,8 @@
   size_t xtoa(substr s, double v, int precision, RealFormat_e formatting=FTOA_FLEX) noexcept;
   ```
 - `memory_util.hpp`: added `ipow()` overloads for computing powers with integral exponents ([PR#88](https://github.com/biojppm/c4core/pull/88)).
+- Add `C4_NO_DEBUG_BREAK` preprocessor check to disable calls to `c4::debug_break()` (see [rapidyaml#326](https://github.com/biojppm/rapidyaml/issues/326))
+  - The cmake project conditionally enables this macro if the cmake option `C4CORE_NO_DEBUG_BREAK` is set to `ON`.
 
 
 ### Fixes

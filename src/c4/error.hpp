@@ -58,7 +58,7 @@ struct fail_type__ {};
 #endif // _DOXYGEN_
 
 
-#ifdef NDEBUG
+#if defined(NDEBUG) || defined(C4_NO_DEBUG_BREAK)
 #   define C4_DEBUG_BREAK()
 #else
 #   ifdef __clang__

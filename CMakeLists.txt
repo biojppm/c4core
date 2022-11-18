@@ -10,6 +10,7 @@ c4_project(VERSION 0.1.10
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
 option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
+option(C4CORE_NO_DEBUG_BREAK "disable use of debug break even in debug builds" OFF)
 
 set(C4CORE_SRC_FILES
     c4/allocator.hpp
@@ -91,9 +92,11 @@ c4_add_library(c4core
     SOURCE_ROOT ${C4CORE_SRC_DIR}
     SOURCES ${C4CORE_SRC_FILES}
 )
-
 if(NOT C4CORE_WITH_FASTFLOAT)
     target_compile_definitions(c4core PUBLIC -DC4CORE_NO_FAST_FLOAT)
+endif()
+if(C4CORE_NO_DEBUG_BREAK)
+    target_compile_definitions(c4core PUBLIC -DC4_NO_DEBUG_BREAK)
 endif()
 
 
