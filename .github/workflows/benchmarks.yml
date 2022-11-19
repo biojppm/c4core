@@ -76,8 +76,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 17, cxx: g++-10, bt: Release, os: ubuntu-18.04, bitlinks: static64 static32}
-          - {std: 20, cxx: g++-10, bt: Release, os: ubuntu-18.04, bitlinks: static64 static32}
+          - {std: 17, cxx: g++-10, bt: Release, os: ubuntu-20.04, bitlinks: static64 static32}
+          - {std: 20, cxx: g++-10, bt: Release, os: ubuntu-20.04, bitlinks: static64 static32}
           #
           - {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: static64 static32}
           - {std: 20, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: static64 static32}
@@ -178,7 +178,7 @@ jobs:
         uses: actions/download-artifact@v3
         with: {name: vars.sh, path: ./}
       - name: test
-        uses: uraimo/run-on-arch-action@v2.0.5
+        uses: uraimo/run-on-arch-action@v2.3.0
         with:
           arch: ${{matrix.arch}}
           distro: ${{matrix.distro}}

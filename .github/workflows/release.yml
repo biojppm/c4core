@@ -117,9 +117,7 @@ jobs:
       matrix:
         config:
           #  name of the artifact    | suffix (gen)    | suffix (package)         | cpack gen | mime type                      | os              | cxx
-          # ubuntu 20.04 is disabled because of a problem installing libc++:i386:
-          #- {name: Ubuntu 20.04 deb  , sfxg: unix64-shared-Release.deb, sfxp: ubuntu-20.04.deb   , gen: DEB  , mime: vnd.debian.binary-package, os: ubuntu-20.04             }
-          - {name: Ubuntu 18.04 deb  , sfxg: unix64-shared-Release.deb, sfxp: ubuntu-18.04.deb   , gen: DEB  , mime: vnd.debian.binary-package, os: ubuntu-18.04             }
+          - {name: Ubuntu 20.04 deb  , sfxg: unix64-shared-Release.deb, sfxp: ubuntu-20.04.deb   , gen: DEB  , mime: vnd.debian.binary-package, os: ubuntu-20.04             }
           - {name: Windows VS2019 zip, sfxg: win64-shared-Release.zip , sfxp: windows-vs2019.zip , gen: ZIP  , mime: zip                      , os: windows-2019, cxx: vs2019}
           - {name: MacOSX sh         , sfxg: apple64-shared-Release.sh, sfxp: macosx-xcode.sh    , gen: STGZ , mime: x-sh                     , os: macos-11.0  , cxx: xcode }
     steps:

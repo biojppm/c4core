@@ -183,6 +183,7 @@ function _c4_gather_compilers()
 {
     cxx=$1
     case $cxx in
+        g++-12     ) _c4_addgcc 12 ;;
         g++-11     ) _c4_addgcc 11 ;;
         g++-10     ) _c4_addgcc 10 ;;
         g++-9      ) _c4_addgcc 9  ;;
@@ -253,6 +254,9 @@ function _c4_addclang()
             _c4_addgcc 10
             _c4_addgcc 9
             ;;
+        "")
+            _add_apt clang
+            ;;
         *)
             _add_apt clang-$clversion
             ;;
@@ -264,12 +268,13 @@ function _c4_addclang()
 # add libc++
 function _c4_addlibcxx()
 {
+    _add_apt clang
     _add_apt libc++1
     _add_apt libc++abi-dev
     _add_apt libc++-dev
-    _add_apt libc++1:i386
-    _add_apt libc++abi-dev:i386
-    _add_apt libc++-dev:i386
+    #_add_apt libc++1:i386
+    #_add_apt libc++abi-dev:i386
+    #_add_apt libc++-dev:i386
 }
 
 
