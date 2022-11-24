@@ -1889,7 +1889,7 @@ power:
             ++pos;
         if(C4_LIKELY(pos < s.len))
         {
-            int16_t powval;
+            int16_t powval = {};
             if(C4_LIKELY(atoi(s.sub(pos), &powval)))
             {
                 *val *= ipow<T, int16_t, 16>(powval);
