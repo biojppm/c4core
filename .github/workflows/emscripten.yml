@@ -84,10 +84,10 @@ jobs:
       EM_VERSION: "${{matrix.emver}}"
       EM_CACHE_FOLDER: 'emsdk-cache'
     steps:
-      - {name: checkout, uses: actions/checkout@v2, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
       - name: setup emscripten cache
         id: cache-system-libraries
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with: {path: "${{env.EM_CACHE_FOLDER}}", key: "${{env.EM_VERSION}}-${{runner.os}}"}
       - name: setup emscripten
         uses: mymindstorm/setup-emsdk@v11
