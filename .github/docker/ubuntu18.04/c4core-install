@@ -8,6 +8,7 @@ case $what in
         $script gcc-all
         $script clang-all
         $script embedded
+        $script intel
         ;;
     gcc-all)
         $script gcc-4.8
@@ -291,6 +292,21 @@ case $what in
         apt-get update
         apt-get install -y \
                 qemu
+        ;;
+    intel)
+        wget -O - https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | apt-key add -
+        apt-add-repository --yes --no-update "deb https://apt.repos.intel.com/oneapi all main"
+        apt-get update
+        # intel-basekit - all basic compilers (C,C++,Fortran,Python)
+        # intel-hpckit
+        # intel-iotkit
+        # intel-aikit
+        # intel-renderkit
+        apt-get install -y \
+                intel-basekit
+        # then:
+        # - for root: `. /opt/intel/oneapi/setvars.sh`
+        # - for all users: `. ~/intel/oneapi/setvars.sh`
         ;;
     *)
         ;;

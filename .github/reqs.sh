@@ -258,6 +258,11 @@ function _c4_gather_compilers()
         clang++-5.0) _c4_addclang 5.0 ;;
         clang++-4.0) _c4_addclang 4.0 ;;
         clang++-3.9) _c4_addclang 3.9 ;;
+        arm*) ;;
+        icc) _c4_add_intelcxx ;;
+        icx) _c4_add_intelcxx ;;
+        icpc) _c4_add_intelcxx ;;
+        icpx) _c4_add_intelcxx ;;
         all)
             for ver in 11 10 9 8 7 6 5 4.9 4.8 ; do
                 all="$all g++-$ver"
@@ -275,8 +280,6 @@ function _c4_gather_compilers()
             ;;
         "")
             # use default compiler
-            ;;
-        arm*)
             ;;
         *)
             echo "unknown compiler: $cxx"
@@ -375,6 +378,35 @@ function _c4_addlibcxx()
     #_add_apt libc++-dev:i386
 }
 
+# add the intel compiler
+function _c4_add_intelcxx()
+{
+    # https://www.scivision.dev/intel-oneapi-github-actions/
+    # https://neelravi.com/post/intel-oneapi-install/
+
+    # add the key and the apt source
+    wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+    sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+    rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+    echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+
+    # this is required for 32 bit https://askubuntu.com/questions/1057341/unable-to-find-stl-headers-in-ubuntu-18-04
+    _add_apt g++-multilib
+
+    #_add_apt intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
+    _add_apt intel-basekit  # all basic compilers
+    _add_apt intel-basekit-32bit  # all basic compilers
+    #_add_apt intel-hpckit  # HPC toolkits
+    #_add_apt intel-iotkit  # IoT toolkits
+    #_add_apt intel-aikit   # AI analytics toolkit
+    #_add_apt intel-dlfdkit  # Deep learning framework
+    #_add_apt intel-renderkit  # Rendering toolkit
+
+    # NOTE after installation:
+    # . /opt/intel/oneapi/setvars.sh (root access)
+    # . ~/intel/oneapi/setvars.sh (single user)
+}
+
 
 #-------------------------------------------------------------------------------
 
@@ -393,7 +425,9 @@ function _add_apt()
     sourceslist=$2
     APT_PKG="$APT_PKG $pkgs"
     echo "adding to apt packages: $pkgs"
-    _add_src "$pkgs" "$sourceslist"
+    if [ ! -z "$sourceslist" ] ; then
+        _add_src "$sourceslist" "# for packages: $pkgs"
+    fi
 }
 
 # add an apt source
