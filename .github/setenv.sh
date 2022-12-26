@@ -5,6 +5,15 @@ set -x
 
 PROJ_DIR=$(pwd)
 
+
+# if this is the intel compiler, read the intel environment
+case "$CXX_" in
+    icpx|icpc|icx|icc)
+        source /opt/intel/oneapi/setvars.sh
+        ;;
+esac
+
+
 function c4_show_info()
 {
     set +x
@@ -45,7 +54,7 @@ function c4_show_info()
             #defaults read com.apple.dt.xcodebuild | grep -i Number | grep -i Build
             #defaults read com.apple.dt.Xcode | grep -i Number | grep -i Tasks
             ;;
-        gcc*|g++*|*clang*)
+        gcc*|g++*|*clang*|icpx|icpc|icx|icc)
             echo "number of cores=$(nproc)"
             $CXX_ --version
             ;;
@@ -307,8 +316,8 @@ function c4_cfg_test()
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
             ;;
-        *g++*|*gcc*|*clang*)
-            export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
+        *g++*|*gcc*|*clang*|icpx|icpc)
+            export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g' | sed 's:icpx:icx:g' | sed 's:icpc:icc:g')
             _c4_choose_clang_tidy $CXX_
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
@@ -404,7 +413,7 @@ function _c4_parallel_build_flags()
                 echo "-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=$NUM_JOBS_BUILD"
             fi
             ;;
-        *g++*|*gcc*|*clang*|em++)
+        *g++*|*gcc*|*clang*|em++|icpx|icpc|icx|icc)
             if [ -z "$NUM_JOBS_BUILD" ] ; then
                 echo "-j $(nproc)"
             else
@@ -431,7 +440,7 @@ function _c4_generator_build_flags()
             # https://stackoverflow.com/questions/51153525/xcode-10-unable-to-attach-db-error
             echo "-UseModernBuildSystem=NO"
             ;;
-        *g++*|*gcc*|*clang*|em++)
+        *g++*|*gcc*|*clang*|em++|icpx|icpc|icx|icc)
             ;;
         "") # allow empty compiler
             ;;
