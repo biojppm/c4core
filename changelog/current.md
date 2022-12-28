@@ -4,10 +4,28 @@
    - `catrs(append_t, ...) -> catrs_append(...)`
    - `catseprs(append_t, ...) -> catseprs_append(...)`
    - `formatrs(append_t, ...) -> formatrs_append(...)`
+- [#PR101](https://github.com/biojppm/c4core/pulls/101): As part of the `substr` ctor cleanup, the `to_substr(char (&arr)[N])` overload no longer decays to `char*` inside. This changes calling code by now returning a `substr` with length equal to `N-1` instead of `strlen(arr)` as before:
+```c++
+// longer than "foo", ie longer than {'f', 'o', 'o', '\0'}:
+char arr[] = "foo\0\0\0\0\0\0";
+assert(strlen(arr) == 3);
+assert(sizeof(arr) == 9);
 
+// previously:
+assert(to_substr(arr).len == 3);
+// now:
+assert(to_substr(arr).len == 9);
+
+// the breaking change happens only with arrays:
+assert(to_substr((char*)ptr).len == 3); // as before
+```
 
 ### New features
 
+- [#PR101](https://github.com/biojppm/c4core/pulls/101): For `substr` and `csubstr`:
+  - add simultaneous ctors from `char[]` and `char*`. Using SFINAE to narrow the `char*` overload prevents it from overriding the `char[]` overload. Thanks to @huangqinjin for the idea (see [#97](https://github.com/biojppm/c4core/issues/97)).
+  - remove unneeded constructors of `csubstr` from non-const chars.
+  - to each single-argument ctor, add corresponding functions `to_csubstr()` and `to_substr()` to enable clients coercing their types in generic code such as `c4::cat()` and `c4::format()`.
 - [PR#105](https://github.com/biojppm/c4core/pull/105): Add macros in `c4/language.hpp` for compile-time flow of exceptions:
   - `C4_EXCEPTIONS`: defined when exceptions are enabled
   - `C4_IF_EXCEPTIONS(code_with_exc, code_without_exc)`: select statements for exceptions enabled/disabled

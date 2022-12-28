@@ -366,8 +366,8 @@ TEST_CASE("align.right")
     auto r = [](double val, size_t width) { return fmt::right(fmt::real(val, 1), width); };
     CHECK_EQ(to_chars_sub(buf, r(1234.5, 7)), " 1234.5");
     c4::format(buf, "freq={}Hz\0", r(1234.5, 7));
-    CHECK_EQ(to_csubstr(buf).len, to_csubstr("freq= 1234.5Hz").len);
-    CHECK_EQ(to_csubstr(buf), "freq= 1234.5Hz");
+    CHECK_EQ(to_csubstr((const char*)buf).len, to_csubstr("freq= 1234.5Hz").len);
+    CHECK_EQ(to_csubstr((const char*)buf), "freq= 1234.5Hz");
 }
 
 

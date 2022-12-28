@@ -21,7 +21,7 @@ namespace c4 {
 C4_ALWAYS_INLINE c4::substr to_substr(std::string &s) noexcept
 {
     #if C4_CPP < 11
-    #error this function will do undefined behavior
+    #error this function will have undefined behavior
     #endif
     // since c++11 it is legal to call s[s.size()].
     return c4::substr(&s[0], s.size());
@@ -35,7 +35,7 @@ C4_ALWAYS_INLINE c4::substr to_substr(std::string &s) noexcept
 C4_ALWAYS_INLINE c4::csubstr to_csubstr(std::string const& s) noexcept
 {
     #if C4_CPP < 11
-    #error this function will do undefined behavior
+    #error this function will have undefined behavior
     #endif
     // since c++11 it is legal to call s[s.size()].
     return c4::csubstr(&s[0], s.size());
