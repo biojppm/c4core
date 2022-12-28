@@ -50,6 +50,7 @@ set(C4CORE_SRC_FILES
     c4/std/std_fwd.hpp
     c4/std/string.hpp
     c4/std/string_fwd.hpp
+    c4/std/string_view.hpp
     c4/std/tuple.hpp
     c4/std/vector.hpp
     c4/std/vector_fwd.hpp

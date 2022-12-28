@@ -26,6 +26,13 @@ assert(to_substr((char*)ptr).len == 3); // as before
   - add simultaneous ctors from `char[]` and `char*`. Using SFINAE to narrow the `char*` overload prevents it from overriding the `char[]` overload. Thanks to @huangqinjin for the idea (see [#97](https://github.com/biojppm/c4core/issues/97)).
   - remove unneeded constructors of `csubstr` from non-const chars.
   - to each single-argument ctor, add corresponding functions `to_csubstr()` and `to_substr()` to enable clients coercing their types in generic code such as `c4::cat()` and `c4::format()`.
+  - Add interop with `std::string_view` when the standard is at least C++17 ([#PR101](https://github.com/biojppm/c4core/pulls/101)):
+    - provided in the header [`c4/std/string_view.hpp`](src/c4/std/string_view.hpp)
+    - similarly to existing interop headers, this is opt-in and requires explicit inclusion
+    - implemented:
+      - `to_csubstr()` (since `std::string_view` is not writeable, cannot provide `to_csubstr()`)
+      - `to_chars()` (since `std::string_view` is not writeable, cannot provide `from_chars()`)
+      - comparison operators
 - [PR#105](https://github.com/biojppm/c4core/pull/105): Add macros in `c4/language.hpp` for compile-time flow of exceptions:
   - `C4_EXCEPTIONS`: defined when exceptions are enabled
   - `C4_IF_EXCEPTIONS(code_with_exc, code_without_exc)`: select statements for exceptions enabled/disabled
@@ -34,6 +41,7 @@ assert(to_substr((char*)ptr).len == 3); // as before
   - `C4_RTTI`: defined when rtti is enabled
   - `C4_IF_RTTI(code_with_rtti, code_without_rtti)`: select statements for rtti enabled/disabled
   - `C4_IF_RTTI_(code_with_rtti, code_without_rtti)`: select code tokens for rtti enabled/disabled
+
 
 
 ### Fixes
