@@ -3,6 +3,7 @@
 
 #ifdef _MSC_VER
 #   pragma warning(push)
+#   pragma warning(disable: 4365) // '=': conversion from 'const _Ty' to 'fast_float::limb', signed/unsigned mismatch
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
 #elif defined(__clang__) || defined(__APPLE_CC__) || defined(_LIBCPP_VERSION)
 #   pragma clang diagnostic push

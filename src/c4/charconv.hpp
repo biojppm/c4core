@@ -561,7 +561,8 @@ void write_dec_unchecked(substr buf, T v, unsigned digits_v) noexcept
     // in bm_xtoa: checkoncelog_singlediv_write2
     while(v >= T(100))
     {
-        const T quo = v / T(100);
+        T quo = v;
+        quo /= T(100);
         const auto num = (v - quo * T(100)) << 1u;
         v = quo;
         buf.str[--digits_v] = detail::digits0099[num + 1];
@@ -770,6 +771,10 @@ C4_SUPPRESS_WARNING_GCC_POP
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+
+C4_SUPPRESS_WARNING_MSVC_PUSH
+C4_SUPPRESS_WARNING_MSVC(4365) // '=': conversion from 'int' to 'I', signed/unsigned mismatch
+
 /** read a decimal integer from a string. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
@@ -885,6 +890,8 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v) noexcept
     }
     return true;
 }
+
+C4_SUPPRESS_WARNING_MSVC_POP
 
 
 //-----------------------------------------------------------------------------

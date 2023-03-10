@@ -1066,7 +1066,7 @@ public:
             return ne;
         if(ne.str[0] == '-')
             return first(0);
-        size_t skip_start = (ne.str[0] == '+') ? 1 : 0;
+        size_t skip_start = size_t(ne.str[0] == '+');
         return ne._first_integral_span(skip_start);
     }
 
@@ -1076,7 +1076,7 @@ public:
         basic_substring ne = first_non_empty_span();
         if(ne.empty())
             return ne;
-        size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-') ? 1 : 0;
+        size_t skip_start = size_t(ne.str[0] == '+' || ne.str[0] == '-');
         return ne._first_integral_span(skip_start);
     }
 
