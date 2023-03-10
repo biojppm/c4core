@@ -898,6 +898,8 @@ C4_SUPPRESS_WARNING_MSVC_POP
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wswitch-default")
+
 namespace detail {
 inline size_t _itoa2buf(substr buf, size_t pos, csubstr val) noexcept
 {
@@ -986,7 +988,7 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
         buf.str[pos++] = 'x';
         pos = _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_hex());
         break;
-    case I( 2):
+    case I(2):
         // add 3 to account for -0b
         needed_digits = num_digits+3 > digits_type::maxdigits_bin ? num_digits+3 : digits_type::maxdigits_bin;
         if(C4_UNLIKELY(buf.len < needed_digits))
@@ -996,7 +998,7 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
         buf.str[pos++] = 'b';
         pos = _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_bin());
         break;
-    case I( 8):
+    case I(8):
         // add 3 to account for -0o
         needed_digits = num_digits+3 > digits_type::maxdigits_oct ? num_digits+3 : digits_type::maxdigits_oct;
         if(C4_UNLIKELY(buf.len < needed_digits))
@@ -1323,6 +1325,7 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexce
     }
     return total_digits;
 }
+C4_SUPPRESS_WARNING_GCC_POP
 
 
 //-----------------------------------------------------------------------------

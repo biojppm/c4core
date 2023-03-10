@@ -3015,7 +3015,7 @@ fastfloat_really_inline bool rounds_to_nearest() noexcept {
   //
   // Note: This may fail to be accurate if fast-math has been
   // enabled, as rounding conventions may not apply.
-  #if FASTFLOAT_VISUAL_STUDIO
+  #ifdef _MSC_VER
   #   pragma warning(push)
   //  todo: is there a VS warning?
   //  see https://stackoverflow.com/questions/46079446/is-there-a-warning-for-floating-point-equality-checking-in-visual-studio-2013
@@ -3027,7 +3027,7 @@ fastfloat_really_inline bool rounds_to_nearest() noexcept {
   #   pragma GCC diagnostic ignored "-Wfloat-equal"
   #endif
   return (fmini + 1.0f == 1.0f - fmini);
-  #if FASTFLOAT_VISUAL_STUDIO
+  #ifdef _MSC_VER
   #   pragma warning(pop)
   #elif defined(__clang__)
   #   pragma clang diagnostic pop
