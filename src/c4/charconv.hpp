@@ -90,7 +90,7 @@
 #   if C4CORE_HAVE_FAST_FLOAT
         C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wsign-conversion")
         C4_SUPPRESS_WARNING_GCC("-Warray-bounds")
-#       if __GNUC__ >= 5
+#       if defined(__GNUC__) && __GNUC__ >= 5
             C4_SUPPRESS_WARNING_GCC("-Wshift-count-overflow")
 #       endif
 #       include "c4/ext/fast_float.hpp"
