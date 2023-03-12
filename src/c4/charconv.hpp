@@ -90,7 +90,7 @@
 #   if C4CORE_HAVE_FAST_FLOAT
         C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wsign-conversion")
         C4_SUPPRESS_WARNING_GCC("-Warray-bounds")
-#       if __GNUC__ >= 5
+#       if defined(__GNUC__) && __GNUC__ >= 5
             C4_SUPPRESS_WARNING_GCC("-Wshift-count-overflow")
 #       endif
 #       include "c4/ext/fast_float.hpp"
@@ -561,7 +561,8 @@ void write_dec_unchecked(substr buf, T v, unsigned digits_v) noexcept
     // in bm_xtoa: checkoncelog_singlediv_write2
     while(v >= T(100))
     {
-        const T quo = v / T(100);
+        T quo = v;
+        quo /= T(100);
         const auto num = (v - quo * T(100)) << 1u;
         v = quo;
         buf.str[--digits_v] = detail::digits0099[num + 1];
@@ -770,6 +771,10 @@ C4_SUPPRESS_WARNING_GCC_POP
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+
+C4_SUPPRESS_WARNING_MSVC_PUSH
+C4_SUPPRESS_WARNING_MSVC(4365) // '=': conversion from 'int' to 'I', signed/unsigned mismatch
+
 /** read a decimal integer from a string. This is the
  * lowest level (and the fastest) function to do this task.
  * @note does not accept negative numbers
@@ -886,10 +891,14 @@ C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v) noexcept
     return true;
 }
 
+C4_SUPPRESS_WARNING_MSVC_POP
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
+C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wswitch-default")
 
 namespace detail {
 inline size_t _itoa2buf(substr buf, size_t pos, csubstr val) noexcept
@@ -979,7 +988,7 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
         buf.str[pos++] = 'x';
         pos = _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_hex());
         break;
-    case I( 2):
+    case I(2):
         // add 3 to account for -0b
         needed_digits = num_digits+3 > digits_type::maxdigits_bin ? num_digits+3 : digits_type::maxdigits_bin;
         if(C4_UNLIKELY(buf.len < needed_digits))
@@ -989,7 +998,7 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
         buf.str[pos++] = 'b';
         pos = _itoa2bufwithdigits(buf, pos, num_digits, digits_type::min_value_bin());
         break;
-    case I( 8):
+    case I(8):
         // add 3 to account for -0o
         needed_digits = num_digits+3 > digits_type::maxdigits_oct ? num_digits+3 : digits_type::maxdigits_oct;
         if(C4_UNLIKELY(buf.len < needed_digits))
@@ -1316,6 +1325,7 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexce
     }
     return total_digits;
 }
+C4_SUPPRESS_WARNING_GCC_POP
 
 
 //-----------------------------------------------------------------------------

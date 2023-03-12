@@ -50,6 +50,13 @@ using ssize_t = typename std::make_signed<size_t>::type;
 
 // some tag types
 
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic push
+#if __GNUC__ >= 6
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
+#endif
+#endif
+
 /** a tag type for initializing the containers with variadic arguments a la
  * initializer_list, minus the initializer_list overload problems.
  */
@@ -66,6 +73,10 @@ constexpr const with_capacity_t with_capacity{};
 struct varargs_t {};
 /** @see with_capacity_t */
 constexpr const varargs_t varargs{};
+
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 
 //--------------------------------------------------
