@@ -94,17 +94,30 @@ TEST_CASE("small_allocator_mr_linear_arr.traits_compat_construct")
 
 //-----------------------------------------------------------------------------
 
-template< class Alloc >
-void clear_mr(Alloc a)
+template<bool IsSingleChunk>
+struct clear_mr
 {
-    auto mrl = dynamic_cast<MemoryResourceLinear*>(a.resource());
-    if(mrl)
+    template<class Alloc>
+    static void clear(Alloc)
     {
+        //std::cout << C4_PRETTY_FUNC << "\n"; std::cout.flush();
+    }
+};
+
+template<>
+struct clear_mr<true>
+{
+    template<class Alloc>
+    static void clear(Alloc a)
+    {
+        //std::cout << C4_PRETTY_FUNC << "\n"; std::cout.flush();
+        MemoryResourceLinear* mrl = static_cast<MemoryResourceLinear*>(a.resource());
         mrl->clear();
     }
-}
+};
 
-template< class Alloc >
+
+template<bool Clear, class Alloc>
 void do_std_containers_test(Alloc alloc)
 {
     _c4definealloctypes(Alloc);
@@ -116,7 +129,7 @@ void do_std_containers_test(Alloc alloc)
         CHECK_EQ(v, "adskjhsdfkjdflkjsdfkjhsdfkjh");
     }
 
-    clear_mr(alloc);
+    clear_mr<Clear>::clear(alloc);
 
     {
         int arr[128];
@@ -131,7 +144,7 @@ void do_std_containers_test(Alloc alloc)
         }
     }
 
-    clear_mr(alloc);
+    clear_mr<Clear>::clear(alloc);
 
     {
         AllocChar a = alloc;
@@ -144,7 +157,7 @@ void do_std_containers_test(Alloc alloc)
         CHECK_EQ(v[4], "bax");
     }
 
-    clear_mr(alloc);
+    clear_mr<Clear>::clear(alloc);
 
     {
         AllocString a = alloc;
@@ -158,7 +171,7 @@ void do_std_containers_test(Alloc alloc)
         }
     }
 
-    clear_mr(alloc);
+    clear_mr<Clear>::clear(alloc);
 
     {
 #if !defined(__GNUC__) || (__GNUC__ >= 5)
@@ -179,12 +192,14 @@ void do_std_containers_test(Alloc alloc)
         CHECK_EQ(v["baz"], 2);
         CHECK_EQ(v["bat"], 3);
     }
+
+    clear_mr<Clear>::clear(alloc);
 }
 
 TEST_CASE("allocator_global.std_containers")
 {
     allocator<int> a;
-    do_std_containers_test(a);
+    do_std_containers_test<false>(a);
 }
 
 TEST_CASE("small_allocator_global.std_containers")
@@ -198,28 +213,28 @@ TEST_CASE("small_allocator_global.std_containers")
 TEST_CASE("allocator_mr_global.std_containers")
 {
     allocator_mr<int> a;
-    do_std_containers_test(a);
+    do_std_containers_test<false>(a);
 }
 
 TEST_CASE("allocator_mr_linear.std_containers")
 {
     MemoryResourceLinear mr(1024);
     allocator_mr<int> a(&mr);
-    do_std_containers_test(a);
+    do_std_containers_test<true>(a);
 }
 
 TEST_CASE("allocator_mr_linear_arr.std_containers")
 {
     MemoryResourceLinearArr<1024> mr;
     allocator_mr<int> a(&mr);
-    do_std_containers_test(a);
+    do_std_containers_test<true>(a);
 }
 
 TEST_CASE("small_allocator_mr_global.std_containers")
 {
     /* this is failing, investigate
     small_allocator_mr<int> a;
-    do_std_containers_test(a);
+    do_std_containers_test<false>(a);
     */
 }
 
@@ -228,7 +243,7 @@ TEST_CASE("small_allocator_mr_linear.std_containers")
     /* this is failing, investigate
     MemoryResourceLinear mr(1024);
     small_allocator_mr<int> a(&mr);
-    do_std_containers_test(a);
+    do_std_containers_test<true>(a);
     */
 }
 
@@ -237,7 +252,7 @@ TEST_CASE("small_allocator_mr_linear_arr.std_containers")
     /* this is failing, investigate
     MemoryResourceLinearArr<1024> mr;
     small_allocator_mr<int> a(&mr);
-    do_std_containers_test(a);
+    do_std_containers_test<true>(a);
     */
 }
 

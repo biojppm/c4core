@@ -96,6 +96,46 @@ jobs:
       - {name: shared32-pack, run: source .github/setenv.sh && c4_package shared32}
 
   #----------------------------------------------------------------------------
+  gcc_noexceptions:
+    name: gcc_noexceptions/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {std: 11, cxx: g++-7      , bt: Debug  , os: ubuntu-20.04, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-7      , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
+          - {std: 20, cxx: g++-10     , bt: Debug  , os: ubuntu-20.04, bitlinks: shared64 static32}
+          - {std: 20, cxx: g++-10     , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
+    env: {CXXFLAGS: "-fno-exceptions -fno-rtti", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+    steps:
+      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - {name: show info, run: source .github/setenv.sh && c4_show_info}
+      - name: shared64-configure---------------------------------------------------
+        run: source .github/setenv.sh && c4_cfg_test shared64
+      - {name: shared64-build, run: source .github/setenv.sh && c4_build_test shared64}
+      - {name: shared64-run, run: source .github/setenv.sh && c4_run_test shared64}
+      - {name: shared64-pack, run: source .github/setenv.sh && c4_package shared64}
+      - name: static64-configure---------------------------------------------------
+        run: source .github/setenv.sh && c4_cfg_test static64
+      - {name: static64-build, run: source .github/setenv.sh && c4_build_test static64}
+      - {name: static64-run, run: source .github/setenv.sh && c4_run_test static64}
+      - {name: static64-pack, run: source .github/setenv.sh && c4_package static64}
+      - name: static32-configure---------------------------------------------------
+        run: source .github/setenv.sh && c4_cfg_test static32
+      - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
+      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
+      - {name: static32-pack, run: source .github/setenv.sh && c4_package static32}
+      - name: shared32-configure---------------------------------------------------
+        run: source .github/setenv.sh && c4_cfg_test shared32
+      - {name: shared32-build, run: source .github/setenv.sh && c4_build_test shared32}
+      - {name: shared32-run, run: source .github/setenv.sh && c4_run_test shared32}
+      - {name: shared32-pack, run: source .github/setenv.sh && c4_package shared32}
+
+  #----------------------------------------------------------------------------
   gcc_extended:
     name: gcc_extended/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}/vg${{matrix.vg}}
     continue-on-error: true

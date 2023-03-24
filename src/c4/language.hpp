@@ -149,6 +149,42 @@
 #define C4_INLINE_CONSTEXPR inline constexpr
 #endif
 
+#ifdef _MSC_VER
+#  if (defined(_CPPUNWIND) && (__CPPUNWIND == 1))
+#    define C4_EXCEPTIONS
+#  endif
+#else
+#  if defined(__EXCEPTIONS) || defined(__cpp_exceptions)
+#    define C4_EXCEPTIONS
+#  endif
+#endif
+
+#ifdef C4_EXCEPTIONS
+#  define C4_IF_EXCEPTIONS_(exc_code, setjmp_code) exc_code
+#  define C4_IF_EXCEPTIONS(exc_code, setjmp_code) do { exc_code } while(0)
+#else
+#  define C4_IF_EXCEPTIONS_(exc_code, setjmp_code) setjmp_code
+#  define C4_IF_EXCEPTIONS(exc_code, setjmp_code) do { setjmp_code } while(0)
+#endif
+
+#ifdef _MSC_VER
+#  if defined(_CPPRTTI)
+#    define C4_RTTI
+#  endif
+#else
+#  if defined(__GXX_RTTI)
+#    define C4_RTTI
+#  endif
+#endif
+
+#ifdef C4_RTTI
+#  define C4_IF_RTTI_(code_rtti, code_no_rtti) code_rtti
+#  define C4_IF_RTTI(code_rtti, code_no_rtti) do { code_rtti } while(0)
+#else
+#  define C4_IF_RTTI_(code_rtti, code_no_rtti) code_no_rtti
+#  define C4_IF_RTTI(code_rtti, code_no_rtti) do { code_no_rtti } while(0)
+#endif
+
 
 //------------------------------------------------------------
 

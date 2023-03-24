@@ -29,6 +29,7 @@
 #include <type_traits>
 #include <utility>
 #include <functional>
+#include <cstdlib>
 
 namespace stdext {
 
@@ -81,7 +82,15 @@ template<typename R, typename... Args> struct vtable
 
     explicit constexpr vtable() noexcept :
         invoke_ptr{ [](storage_ptr_t, Args&&...) -> R
-            { throw std::bad_function_call(); }
+            {
+                #if (defined(_MSC_VER) && (defined(_CPPUNWIND) && (__CPPUNWIND == 1)))  \
+                    ||                                                  \
+                    (defined(__EXCEPTIONS) || defined(__cpp_exceptions))
+                throw std::bad_function_call();
+                #else
+                std::abort();
+                #endif
+            }
         },
         copy_ptr{ [](storage_ptr_t, storage_ptr_t) noexcept -> void {} },
         move_ptr{ [](storage_ptr_t, storage_ptr_t) noexcept -> void {} },

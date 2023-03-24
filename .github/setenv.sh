@@ -255,6 +255,34 @@ function c4_cfg_test()
     if [ ! -z "$CMAKE_FLAGS" ] ; then
         _addcmkflags $CMAKE_FLAGS
     fi
+    # do this before setting CMAKE_C_FLAGS
+    case "$CXX_" in
+        vs*)
+            # WATCHOUT: leave a leading space in the _FLAGS options!
+            # This is needed because bash will expand a leading
+            # /DWIN32 to the fs root, ie to something like
+            # C:/Git/DWIN32. The leading space prevents this.
+            #
+            # see https://github.com/bmatzelle/gow/issues/196
+            CFLAGS=" /DWIN32 /D_WINDOWS $CFLAGS"
+            CXXFLAGS=" /DWIN32 /D_WINDOWS /EHsc /GR $CXXFLAGS"
+            ;;
+        xcode) ;;
+        arm*|"") # make sure arm* comes before *g++ or *gcc*
+            ;;
+        *g++*|*gcc*|*clang*)
+            CFLAGS="-std=c99 -m$bits $CFLAGS"
+            CXXFLAGS="-m$bits $CXXFLAGS"
+            ;;
+        em++)
+            CFLAGS="-s DISABLE_EXCEPTION_CATCHING=0 $CFLAGS"
+            CXXFLAGS="-s DISABLE_EXCEPTION_CATCHING=0 $CXXFLAGS"
+            ;;
+        *)
+            echo "unknown compiler"
+            exit 1
+            ;;
+    esac
 
     echo "building with additional cmake flags: $CMFLAGS"
 
@@ -273,13 +301,15 @@ function c4_cfg_test()
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -G 'Visual Studio 17 2022' -A $(_c4vsarchtype $id) \
                   $(_c4_add_ehsc_to_vs_arm32 $id) \
-                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
+                  -DCMAKE_C_FLAGS=" $CFLAGS" -DCMAKE_CXX_FLAGS=" $CXXFLAGS"
             ;;
         vs2019)
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -G 'Visual Studio 16 2019' -A $(_c4vsarchtype $id) \
                   $(_c4_add_ehsc_to_vs_arm32 $id) \
-                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
+                  -DCMAKE_C_FLAGS=" $CFLAGS" -DCMAKE_CXX_FLAGS=" $CXXFLAGS"
             ;;
         vs2017)
             case "$bits" in
@@ -289,7 +319,8 @@ function c4_cfg_test()
             esac
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   $(_c4_add_ehsc_to_vs_arm32 $id) \
-                  -DCMAKE_BUILD_TYPE=$BT -G "$g" $CMFLAGS
+                  -DCMAKE_BUILD_TYPE=$BT -G "$g" \
+                  -DCMAKE_C_FLAGS=" $CFLAGS" -DCMAKE_CXX_FLAGS=" $CXXFLAGS"
             ;;
         xcode)
             g=Xcode
@@ -301,24 +332,28 @@ function c4_cfg_test()
                     ;;
             esac
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
-                  -DCMAKE_BUILD_TYPE=$BT -G "$g" -DCMAKE_OSX_ARCHITECTURES=$a $CMFLAGS
+                  -DCMAKE_BUILD_TYPE=$BT -G "$g" \
+                  -DCMAKE_OSX_ARCHITECTURES=$a $CMFLAGS \
+                  -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
             ;;
         arm*|"") # make sure arm* comes before *g++ or *gcc*
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
-                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
+                  -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
             ;;
         *g++*|*gcc*|*clang*)
             export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
             _c4_choose_clang_tidy $CXX_
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
-                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
                   -DCMAKE_C_COMPILER=$CC_ -DCMAKE_CXX_COMPILER=$CXX_ \
-                  -DCMAKE_C_FLAGS="-std=c99 -m$bits" -DCMAKE_CXX_FLAGS="-m$bits"
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
+                  -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
             cmake --build $build_dir --target help | sed 1d | sort
             ;;
         em++)
             emcmake cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
-                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS -DCMAKE_CXX_FLAGS="-s DISABLE_EXCEPTION_CATCHING=0"
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
+                  -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
             ;;
         *)
             echo "unknown compiler"
