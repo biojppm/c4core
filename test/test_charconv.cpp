@@ -130,6 +130,7 @@ number_case<T> const& front(size_t skip=0)
 template<class T>
 number_case<T> const& back(size_t skip=0)
 {
+    static_assert(std::is_array<decltype(numbers<T>::vals)>::value, "must be array");
     return *(numbers<T>::vals + C4_COUNTOF(numbers<T>::vals) - 1 - skip);
 }
 
@@ -1657,6 +1658,7 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
             }
         }
     };
+    C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(4296)  // '>=': expression is always true
     auto do_test_overflow = [&](T exceed_how_much, T radix){
         REQUIRE(exceed_how_much >= 0);
         number_case<T> const& backelm = back<T>();
@@ -1671,6 +1673,7 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
         csubstr exceeded = underflow_by(buf, frntelm.val, exceed_how_much, radix);
         do_test(exceed_how_much > 0, frntelm, exceeded, wrapelm);
     };
+    C4_SUPPRESS_WARNING_MSVC_POP
     SUBCASE("zeroes")
     {
         test_no_overflow_zeroes<T>();

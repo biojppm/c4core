@@ -4,6 +4,10 @@
 
 #include "c4/test.hpp"
 #include "c4/libtest/supprwarn_push.hpp"
+#ifndef C4_EXCEPTIONS
+#include <csetjmp>
+#endif
+C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(4611) // interaction between '_setjmp' and C++ object destruction is non-portable
 
 C4_BEGIN_HIDDEN_NAMESPACE
 bool got_an_error = false;
@@ -57,6 +61,8 @@ TEST_CASE("Error.outside_of_c4_namespace")
 
 #include <string>    // temporary; just for the exception example
 #include <iostream>  // temporary; just for the exception example
+
+C4_IF_EXCEPTIONS_( , static std::jmp_buf s_jmp_buf; static std::string s_jmp_errmsg; );
 
 namespace c4 {
 
@@ -237,7 +243,7 @@ TEST_CASE("ErrorBehaviorAbort.default_obj")
 void fputi(int val, FILE *f);
 void _append(std::string *s, int line);
 
-/** example implementation using vanilla c++ std::runtime_error */
+/** example implementation using vanilla c++ std::runtime_error (or setjmp when exceptions are disabled) */
 struct ErrorBehaviorRuntimeError : public ErrorCallbacksBridgeFull<ErrorBehaviorRuntimeError>
 {
     std::string exc_msg{};
@@ -261,10 +267,11 @@ struct ErrorBehaviorRuntimeError : public ErrorCallbacksBridgeFull<ErrorBehavior
     }
     void err(locref)
     {
-        throw std::runtime_error(exc_msg);
+        C4_IF_EXCEPTIONS_(throw std::runtime_error(exc_msg), { s_jmp_errmsg = exc_msg; std::longjmp(s_jmp_buf, 1); });
     }
     void warn(locref)
     {
+        // nothing to do
     }
 };
 
@@ -390,29 +397,41 @@ void test_error_exception(const char (&msg)[N])
         {
             auto tmp2 = C4_TMP_ERR_BHV(ErrorBehaviorRuntimeError);
 
-            bool got_exc = false;
-            try {
-                C4_ERROR_NEW(msg);
+            {
+                bool got_exc = false;
+                C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
+                {
+                    C4_ERROR_NEW(msg);
+                }
+                C4_IF_EXCEPTIONS_(catch(std::exception const& e), else)
+                {
+                    // check that the given message is found verbatim on the error message
+                    c4::csubstr errmsg = c4::to_csubstr(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
+                    INFO("full message: '''" << errmsg << "'''");
+                    size_t pos = errmsg.find(msg);
+                    CHECK_NE(pos, c4::csubstr::npos);
+                    got_exc = (pos != c4::csubstr::npos);
+                }
+                CHECK(got_exc);
             }
-            catch(std::exception const& e) {
-                // check that the error terminates with the given message
-                auto what = c4::to_csubstr(e.what()).last(N-1);
-                CHECK_EQ(what, msg);
-                got_exc = (what == msg);
-            }
-            CHECK(got_exc);
 
-            got_exc = false;
-            try {
-                C4_ERROR_NEW_SZ(msg, N-1);
+            {
+                bool got_exc = false;
+                C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
+                {
+                    C4_ERROR_NEW_SZ(msg, N-1);
+                }
+                C4_IF_EXCEPTIONS_(catch(std::exception const& e), else)
+                {
+                    // check that the given message is found verbatim on the error message
+                    c4::csubstr errmsg = c4::to_csubstr(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
+                    INFO("full message: '''" << errmsg << "'''");
+                    size_t pos = errmsg.find(msg);
+                    CHECK_NE(pos, c4::csubstr::npos);
+                    got_exc = (pos != c4::csubstr::npos);
+                }
+                CHECK(got_exc);
             }
-            catch(std::exception const& e) {
-                // check that the error terminates with the given message
-                auto what = c4::to_csubstr(e.what()).last(N-1);
-                CHECK_EQ(what, msg);
-                got_exc = (what == msg);
-            }
-            CHECK(got_exc);
         }
     }
 }
@@ -541,47 +560,53 @@ void warn_fmt(locref loc, const char (&fmt)[N], Args const& C4_RESTRICT ...args)
     warn_fmt(loc, N-1, fmt, args...);
 }
 
-#define C4_ERROR_FMT_NEW(fmt, ...) c4::err_fmt(C4_SRCLOC(), fmt, __VA_ARGS__)
-#define C4_WARNING_FMT_NEW(msg, ...) c4::warn_fmt(C4_SRCLOC(), fmt, __VA_ARGS__)
-
-#define C4_ERROR_FMT_NEW_SZ(fmt, fmtlen, ...) c4::err_fmt(C4_SRCLOC(), fmtlen, fmt, __VA_ARGS__)
-#define C4_WARNING_FMT_NEW_SZ(fmt, fmtlen, ...) c4::warn_fmt(C4_SRCLOC(), fmtlen, fmt, __VA_ARGS__)
-
 } // namespace c4
 
 template<size_t N, size_t M, class... Args>
 void test_error_fmt_exception(const char (&expected)[M], const char (&fmt)[N], Args const& ...args)
 {
-    INFO(expected);
+    INFO("expected is: '" << expected << "'");
     {
         auto tmp1 = C4_TMP_ERR_BHV(ErrorBehaviorAbort);
 
         {
             auto tmp2 = C4_TMP_ERR_BHV(ErrorBehaviorRuntimeError);
 
-            bool got_exc = false;
-            try {
-                C4_ERROR_FMT_NEW(fmt, args...);
+            {
+                bool got_exc = false;
+                C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
+                {
+                    c4::err_fmt(C4_SRCLOC(), fmt, args...);
+                }
+                C4_IF_EXCEPTIONS_(catch(std::exception const& e), else)
+                {
+                    // check that the given message is found verbatim on the error message
+                    c4::csubstr errmsg = c4::to_csubstr(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
+                    INFO("full message: '''" << errmsg << "'''");
+                    size_t pos = errmsg.find(expected);
+                    CHECK_NE(pos, c4::csubstr::npos);
+                    got_exc = (pos != c4::csubstr::npos);
+                }
+                CHECK(got_exc);
             }
-            catch(std::exception const& e) {
-                // check that the error terminates with the given message
-                auto what = c4::to_csubstr(e.what()).last(M-1);
-                CHECK_EQ(what, expected);
-                got_exc = (what == expected);
-            }
-            CHECK(got_exc);
 
-            got_exc = false;
-            try {
-                C4_ERROR_FMT_NEW_SZ(fmt, N-1, args...);
+            {
+                bool got_exc = false;
+                C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
+                {
+                    c4 ::err_fmt(C4_SRCLOC(), N - 1, fmt, args...);
+                }
+                C4_IF_EXCEPTIONS_(catch(std::exception const& e), else)
+                {
+                    // check that the given message is found verbatim on the error message
+                    c4::csubstr errmsg = c4::to_csubstr(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
+                    INFO("full message: '''" << errmsg << "'''");
+                    size_t pos = errmsg.find(expected);
+                    CHECK_NE(pos, c4::csubstr::npos);
+                    got_exc = (pos != c4::csubstr::npos);
+                }
+                CHECK(got_exc);
             }
-            catch(std::exception const& e) {
-                // check that the error terminates with the given message
-                auto what = c4::to_csubstr(e.what()).last(M-1);
-                CHECK_EQ(what, expected);
-                got_exc = (what == expected);
-            }
-            CHECK(got_exc);
         }
     }
 }
@@ -593,13 +618,13 @@ void test_warning_fmt_exception(const char (&expected)[M], const char (&fmt)[N],
 
     auto tmp = C4_TMP_ERR_BHV(ErrorBehaviorRuntimeError);
     auto const& wmsg = tmp.m_tmp.exc_msg;
-    C4_WARNING_FMT_NEW(fmt, args...);
+    c4 ::warn_fmt(C4_SRCLOC(), fmt, args...);
     REQUIRE_FALSE(wmsg.empty());
     REQUIRE_GT(wmsg.size(), M);
     auto what = c4::to_csubstr(wmsg.c_str()).last(M-1);
     CHECK_EQ(what, expected);
 
-    C4_WARNING_FMT_NEW_SZ(fmt, N-1, args...);
+    c4 ::warn_fmt(C4_SRCLOC(), N - 1, fmt, args...);
     REQUIRE_FALSE(wmsg.empty());
     REQUIRE_GT(wmsg.size(), M);
     what = c4::to_csubstr(wmsg.c_str()).last(M-1);
@@ -609,27 +634,29 @@ void test_warning_fmt_exception(const char (&expected)[M], const char (&fmt)[N],
 
 TEST_CASE("error.fmt")
 {
-    test_error_fmt_exception("aaa is 2 is it not?",
-                             "{} is {} is it not?", "aaa", 2);
-    test_error_fmt_exception("aaa is bbb is it not?",
-                             "{} is {} is it not?", "aaa", "bbb");
-    test_error_fmt_exception("aaa is {} is it not?",
-                             "{} is {} is it not?", "aaa");
-    test_error_fmt_exception("aaa is {} is it not?",
-                             "{} is {} is it not?", "aaa");
+    test_error_fmt_exception("abc is 2 is it not?",
+                             "{} is {} is it not?", "abc", 2);
+    test_error_fmt_exception("abc is bbb is it not?",
+                             "{} is {} is it not?", "abc", "bbb");
+    test_error_fmt_exception("abc is {} is it not?",
+                             "{} is {} is it not?", "abc");
+    test_error_fmt_exception("abc is {} is it not?",
+                             "{} is {} is it not?", "abc");
 }
 
 TEST_CASE("warning.fmt")
 {
-    test_warning_fmt_exception("aaa is 2 is it not?",
-                               "{} is {} is it not?", "aaa", 2);
-    test_warning_fmt_exception("aaa is bbb is it not?",
-                               "{} is {} is it not?", "aaa", "bbb");
-    test_warning_fmt_exception("aaa is {} is it not?",
-                               "{} is {} is it not?", "aaa");
-    test_warning_fmt_exception("aaa is {} is it not?",
-                               "{} is {} is it not?", "aaa");
+    test_warning_fmt_exception("abc is 2 is it not?",
+                               "{} is {} is it not?", "abc", 2);
+    test_warning_fmt_exception("abc is bbb is it not?",
+                               "{} is {} is it not?", "abc", "bbb");
+    test_warning_fmt_exception("abc is {} is it not?",
+                               "{} is {} is it not?", "abc");
+    test_warning_fmt_exception("abc is {} is it not?",
+                               "{} is {} is it not?", "abc");
 }
+
+C4_SUPPRESS_WARNING_MSVC_POP
 
 
 #include "c4/libtest/supprwarn_pop.hpp"

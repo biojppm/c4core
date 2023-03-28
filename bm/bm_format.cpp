@@ -92,16 +92,24 @@ const c4::csubstr sep = " --- ";
 //-----------------------------------------------------------------------------
 
 namespace dump2str {
+static constexpr size_t strsz = 20000000u;
 std::string c_style_subject;
 void c_style(c4::csubstr s) { c_style_subject.append(s.str, s.len); }
+void reset_c_style() noexcept
+{
+    c_style_subject.clear();
+    c_style_subject.reserve(strsz);
+}
 struct cpp_style
 {
     std::string subject = {};
+    cpp_style() { subject.reserve(strsz); }
     void operator() (c4::csubstr s) { subject.append(s.str, s.len); }
 };
 struct lambda_style
 {
     std::string subject = {};
+    lambda_style() { subject.reserve(strsz); }
 };
 } // namespace dump2str
 
@@ -237,6 +245,7 @@ void cat_c4catrs_no_reuse(bm::State &st)
 
 void cat_c4catdump_c_style_static_dispatch(bm::State &st)
 {
+    dump2str::reset_c_style();
     char buf_[256];
     c4::substr buf(buf_);
     size_t sz = c4::cat(buf, _c4argbundle);
@@ -249,6 +258,7 @@ void cat_c4catdump_c_style_static_dispatch(bm::State &st)
 
 void cat_c4catdump_c_style_dynamic_dispatch(bm::State &st)
 {
+    dump2str::reset_c_style();
     char buf_[256];
     c4::substr buf(buf_);
     size_t sz = c4::cat(buf, _c4argbundle);
@@ -463,6 +473,7 @@ void catsep_c4catrs_no_reuse(bm::State &st)
 
 void catsep_c4catdump_c_style_static_dispatch(bm::State &st)
 {
+    dump2str::reset_c_style();
     char buf_[256];
     c4::substr buf(buf_);
     size_t sz = c4::catsep(buf, _c4argbundle);
@@ -475,6 +486,7 @@ void catsep_c4catdump_c_style_static_dispatch(bm::State &st)
 
 void catsep_c4catdump_c_style_dynamic_dispatch(bm::State &st)
 {
+    dump2str::reset_c_style();
     char buf_[256];
     c4::substr buf(buf_);
     size_t sz = c4::catsep(buf, _c4argbundle);
@@ -689,6 +701,7 @@ void format_c4formatrs_no_reuse(bm::State &st)
 
 void format_c4formatdump_c_style_static_dispatch(bm::State &st)
 {
+    dump2str::reset_c_style();
     char buf_[256];
     c4::substr buf(buf_);
     size_t sz = c4::format(buf, _c4argbundle_fmt, _c4argbundle);
@@ -701,6 +714,7 @@ void format_c4formatdump_c_style_static_dispatch(bm::State &st)
 
 void format_c4formatdump_c_style_dynamic_dispatch(bm::State &st)
 {
+    dump2str::reset_c_style();
     char buf_[256];
     c4::substr buf(buf_);
     size_t sz = c4::format(buf, _c4argbundle_fmt, _c4argbundle);

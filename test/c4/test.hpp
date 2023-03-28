@@ -19,6 +19,59 @@
 
 #define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
 #include <doctest/doctest.h>
+// doctest does not provide these macros when exceptions are disabled
+// see https://github.com/doctest/doctest/issues/439
+#if !defined(C4_EXCEPTIONS)
+#  ifndef _MSC_VER
+#    ifndef DOCTEST_REQUIRE
+#      define _C4_DEFINE_DOCTEST_REQUIRE
+#    endif
+#  else
+#    define _C4_DEFINE_DOCTEST_REQUIRE
+#  endif
+#  ifdef _C4_DEFINE_DOCTEST_REQUIRE
+#    undef DOCTEST_REQUIRE
+#    undef         REQUIRE
+#    undef DOCTEST_REQUIRE_TRUE
+#    undef         REQUIRE_TRUE
+#    undef DOCTEST_REQUIRE_FALSE
+#    undef         REQUIRE_FALSE
+#    undef DOCTEST_REQUIRE_EQ
+#    undef         REQUIRE_EQ
+#    undef DOCTEST_REQUIRE_NE
+#    undef         REQUIRE_NE
+#    undef DOCTEST_REQUIRE_GE
+#    undef         REQUIRE_GE
+#    undef DOCTEST_REQUIRE_LE
+#    undef         REQUIRE_LE
+#    undef DOCTEST_REQUIRE_GT
+#    undef         REQUIRE_GT
+#    undef DOCTEST_REQUIRE_LT
+#    undef         REQUIRE_LT
+#    define _DOCTEST_FAIL_IF_NOT1(cond) if(cond) {} else { std::abort(); }
+#    define _DOCTEST_FAIL_IF_NOT2(lhs, op, rhs) if((lhs) op (rhs)) {} else { std::abort(); }
+#    define _DOCTEST_REQUIRE2(id, lhs, op, rhs) do { CHECK##id(lhs, rhs); _DOCTEST_FAIL_IF_NOT2(lhs, op, rhs) } while(0)
+#    define DOCTEST_REQUIRE(cond) do { CHECK(cond); _DOCTEST_FAIL_IF_NOT1(cond) } while(0)
+#    define         REQUIRE(cond) do { CHECK(cond); _DOCTEST_FAIL_IF_NOT1(cond) } while(0)
+#    define DOCTEST_REQUIRE_TRUE(cond) do { CHECK(cond); _DOCTEST_FAIL_IF_NOT1(cond) } while(0)
+#    define         REQUIRE_TRUE(cond) do { CHECK(cond); _DOCTEST_FAIL_IF_NOT1(cond) } while(0)
+#    define DOCTEST_REQUIRE_FALSE(cond) do { CHECK_FALSE(cond); _DOCTEST_FAIL_IF_NOT1(!(cond)) } while(0)
+#    define         REQUIRE_FALSE(cond) do { CHECK_FALSE(cond); _DOCTEST_FAIL_IF_NOT1(!(cond)) } while(0)
+#    define DOCTEST_REQUIRE_EQ(lhs, rhs) _DOCTEST_REQUIRE2(_EQ, lhs, ==, rhs)
+#    define         REQUIRE_EQ(lhs, rhs) _DOCTEST_REQUIRE2(_EQ, lhs, ==, rhs)
+#    define DOCTEST_REQUIRE_NE(lhs, rhs) _DOCTEST_REQUIRE2(_NE, lhs, !=, rhs)
+#    define         REQUIRE_NE(lhs, rhs) _DOCTEST_REQUIRE2(_NE, lhs, !=, rhs)
+#    define DOCTEST_REQUIRE_GE(lhs, rhs) _DOCTEST_REQUIRE2(_GE, lhs, >=, rhs)
+#    define         REQUIRE_GE(lhs, rhs) _DOCTEST_REQUIRE2(_GE, lhs, >=, rhs)
+#    define DOCTEST_REQUIRE_LE(lhs, rhs) _DOCTEST_REQUIRE2(_LE, lhs, <=, rhs)
+#    define         REQUIRE_LE(lhs, rhs) _DOCTEST_REQUIRE2(_LE, lhs, <=, rhs)
+#    define DOCTEST_REQUIRE_GT(lhs, rhs) _DOCTEST_REQUIRE2(_GT, lhs, > , rhs)
+#    define         REQUIRE_GT(lhs, rhs) _DOCTEST_REQUIRE2(_GT, lhs, > , rhs)
+#    define DOCTEST_REQUIRE_LT(lhs, rhs) _DOCTEST_REQUIRE2(_LT, lhs, < , rhs)
+#    define         REQUIRE_LT(lhs, rhs) _DOCTEST_REQUIRE2(_LT, lhs, < , rhs)
+#  endif
+#endif
+
 
 #define CHECK_STREQ(lhs, rhs) CHECK_EQ(c4::to_csubstr(lhs), c4::to_csubstr(rhs))
 #define CHECK_FLOAT_EQ(lhs, rhs) CHECK((double)(lhs) == doctest::Approx((double)(rhs)))
