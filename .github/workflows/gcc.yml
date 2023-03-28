@@ -24,31 +24,6 @@ env:
   NUM_JOBS_BUILD: # 4
 
 
-# ubuntu-20.04:
-#   # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
-#   gcc: 7.5.0, 8.4.0, 9.3.0, 10.2.0
-#   clang: 8.0.1, 9.0.1, 10.0.0
-# ubuntu-18.04:
-#   # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu1804-README.md
-#   gcc: 7.5.0, 8.4.0, 9.3.0, 10.1.0
-#   clang: 6.0.0, 8.0.0, 9.0.0
-# macos-11.0: macOS Big Sur 11.0
-#   # https://github.com/actions/virtual-environments/blob/main/images/macos/macos-11.0-Readme.md
-#   Xcode 12.1 11.7
-#   clang/LLVM 10.0.1
-#   gcc-8 gcc-9
-# macos-10.15: macOS Catalina 10.15
-#   # https://github.com/actions/virtual-environments/blob/main/images/macos/macos-10.15-Readme.md
-#   Xcode 12.1 11.7
-#   clang/LLVM 11.0.0
-#   gcc-8 gcc-9
-# windows-2019:
-#   # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-#   vs2019
-# windows-2016:
-#   # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2016-Readme.md
-#   vs2017
-
 jobs:
 
   #----------------------------------------------------------------------------
@@ -67,8 +42,8 @@ jobs:
           - {std: 20, cxx: g++-10     , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
           - {std: 11, cxx: g++-5      , bt: Debug  , os: ubuntu-20.04, bitlinks: shared64 static32}
           - {std: 11, cxx: g++-5      , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-4.8    , bt: Debug,   os: ubuntu-18.04, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-4.8    , bt: Release, os: ubuntu-18.04, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-4.8    , bt: Debug,   os: ubuntu-20.04, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-4.8    , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
@@ -161,12 +136,12 @@ jobs:
           - {std: 11, cxx: g++-8, bt: Release, os: ubuntu-20.04}
           - {std: 11, cxx: g++-7, bt: Debug  , os: ubuntu-20.04}
           - {std: 11, cxx: g++-7, bt: Release, os: ubuntu-20.04}
-          - {std: 11, cxx: g++-6, bt: Debug  , os: ubuntu-18.04}
-          - {std: 11, cxx: g++-6, bt: Release, os: ubuntu-18.04}
-          - {std: 11, cxx: g++-5, bt: Debug  , os: ubuntu-18.04}
-          - {std: 11, cxx: g++-5, bt: Release, os: ubuntu-18.04}
-          - {std: 11, cxx: g++-4.8, bt: Debug, os: ubuntu-18.04}
-          - {std: 11, cxx: g++-4.8, bt: Release, os: ubuntu-18.04}
+          - {std: 11, cxx: g++-6, bt: Debug  , os: ubuntu-20.04}
+          - {std: 11, cxx: g++-6, bt: Release, os: ubuntu-20.04}
+          - {std: 11, cxx: g++-5, bt: Debug  , os: ubuntu-20.04}
+          - {std: 11, cxx: g++-5, bt: Release, os: ubuntu-20.04}
+          - {std: 11, cxx: g++-4.8, bt: Debug, os: ubuntu-20.04}
+          - {std: 11, cxx: g++-4.8, bt: Release, os: ubuntu-20.04}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
@@ -203,12 +178,12 @@ jobs:
       matrix:
         include:
           # these jobs take much longer, so run only one bitlink pair per job to profit from parallelism
-          - {std: 11, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 11, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 14, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 14, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 17, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 17, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
+          - {std: 11, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 11, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 14, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 14, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 17, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 17, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
     env: {TOOLCHAIN: "${{matrix.toolchain}}", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}

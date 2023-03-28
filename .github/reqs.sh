@@ -228,6 +228,12 @@ function _c4_addgcc()
 {
     gccversion=$1
     case $gccversion in
+        6 )
+            if [ "$UBUNTU_RELEASE_NAME" == "focal" ] ; then  # focal is 20.04
+                _add_apt gcc-6 "deb http://dk.archive.ubuntu.com/ubuntu/ bionic main"
+                _add_apt gcc-6 "deb http://dk.archive.ubuntu.com/ubuntu/ bionic universe"
+            fi
+            ;;
         5 )
             _add_apt gcc-5 "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main"
             _add_apt gcc-5 "deb http://dk.archive.ubuntu.com/ubuntu/ xenial universe"
@@ -258,6 +264,9 @@ function _c4_addclang()
             _add_apt clang
             ;;
         *)
+            if [ "$UBUNTU_RELEASE_NAME" == "focal" ] ; then  # focal is 20.04
+                _add_apt clang-$clversion "deb http://apt.llvm.org/$UBUNTU_RELEASE_NAME/ llvm-toolchain-$UBUNTU_RELEASE_NAME-$clversion main"
+            fi
             _add_apt clang-$clversion
             ;;
     esac
