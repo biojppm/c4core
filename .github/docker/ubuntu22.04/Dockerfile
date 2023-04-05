@@ -26,6 +26,13 @@ RUN apt-get update \
     && \
     echo "basics done"
 
+# git version must be >= 2.18
+RUN add-apt-repository --yes --no-update ppa:git-core/ppa \
+ && apt-get update \
+ && apt-get install -y \
+      git \
+ && echo "git done"
+
 # cmake
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - \
  && apt-add-repository --yes --no-update "deb https://apt.kitware.com/ubuntu/ bionic main" \
@@ -170,9 +177,20 @@ RUN apt-get install -y \
       qemu \
  && echo "qemu done"
 
+RUN apt-get install -y \
+      valgrind \
+ && echo "valgrind done"
+
+# cmany
+RUN ( cd tmp \
+ && git clone --recursive https://github.com/biojppm/cmany -b dev \
+ && cd cmany \
+ && pip install . ) \
+ && echo "cmany done"
+
 RUN \
     # Standard Cleanup on Debian images
-    &&  apt-get -y clean \
+    apt-get -y clean \
     &&  apt-get -y autoclean \
     &&  apt-get -y autoremove \
     &&  rm -rf /var/lib/apt/lists/* \

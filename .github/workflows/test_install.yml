@@ -27,7 +27,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   install_tests:
-    name: ${{matrix.name}}/${{matrix.bt}}
+    name: ${{matrix.name}}
     # if: github.ref == 'refs/heads/master'
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
