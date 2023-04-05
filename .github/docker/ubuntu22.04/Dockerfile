@@ -170,6 +170,17 @@ RUN apt-get install -y \
       qemu \
  && echo "qemu done"
 
+RUN apt-get install -y \
+      valgrind \
+ && echo "valgrind done"
+
+# cmany
+RUN ( cd tmp \
+ && git clone --recursive https://github.com/biojppm/cmany -b dev \
+ && cd cmany \
+ && pip install . ) \
+ && echo "cmany done"
+
 RUN \
     # Standard Cleanup on Debian images
     &&  apt-get -y clean \

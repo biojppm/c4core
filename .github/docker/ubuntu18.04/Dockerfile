@@ -17,12 +17,18 @@ RUN apt-get update \
       wget \
       curl \
       sudo \
-      git \
       build-essential \
       swig \
       musl-dev \
     && \
     echo "basics done"
+
+# git version must be >= 2.18
+RUN add-apt-repository --yes --no-update ppa:git-core/ppa \
+ && apt-get update \
+ && apt-get install -y \
+      git \
+ && echo "git done"
 
 # cmake
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - \
@@ -165,6 +171,17 @@ RUN ( \
 RUN apt-get install -y \
       qemu \
  && echo "qemu done"
+
+RUN apt-get install -y \
+      valgrind \
+ && echo "valgrind done"
+
+# cmany
+RUN ( cd tmp \
+ && git clone --recursive https://github.com/biojppm/cmany -b dev \
+ && cd cmany \
+ && pip install . ) \
+ && echo "cmany done"
 
 RUN \
     # Standard Cleanup on Debian images
