@@ -382,8 +382,58 @@ TEST_CASE("cat.vars")
     csubstr result;
     size_t sz;
 
+    sz = cat({}, 1, 2, 3, 4);
+    CHECK_EQ(sz, 4);
+    sp.fill('+');
+    sz = cat(sp.first(2), 1, 2, 3, 4);
+    CHECK_EQ(sz, 4);
+    CHECK_EQ(sp.right_of(sz).first(sz - 2), "++");
+    sz = cat(buf, 1, 2, 3, 4);
+    CHECK_EQ(sz, 4);
+    result = sp.first(sz);
+    CHECK_EQ(result, "1234");
+
+    sz = cat({}, 1, 2, 3);
+    CHECK_EQ(sz, 3);
+    sp.fill('+');
+    sz = cat(sp.first(2), 1, 2, 3);
+    CHECK_EQ(sz, 3);
+    CHECK_EQ(sp.right_of(sz).first(sz - 2), "+");
+    sz = cat(buf, 1, 2, 3);
+    CHECK_EQ(sz, 3);
+    result = sp.first(sz);
+    CHECK_EQ(result, "123");
+
+    sz = cat({}, 1, 2);
+    CHECK_EQ(sz, 2);
+    sp.fill('+');
+    sz = cat(sp.first(1), 1, 2);
+    CHECK_EQ(sz, 2);
+    CHECK_EQ(sp.right_of(sz).first(sz - 1), "+");
+    sz = cat(buf, 1, 2);
+    CHECK_EQ(sz, 2);
+    result = sp.first(sz);
+    CHECK_EQ(result, "12");
+
+    sz = cat({}, 1);
+    CHECK_EQ(sz, 1);
+    sz = cat(buf, 1);
+    CHECK_EQ(sz, 1);
+    result = sp.first(sz);
+    CHECK_EQ(result, "1");
+
+    sz = cat({});
+    CHECK_EQ(sz, 0);
+    sz = cat(buf);
+    CHECK_EQ(sz, 0);
+    result = sp.first(sz);
+    CHECK_EQ(result, "");
+
+    sz = cat({}, 1, ' ', 2, ' ', 3, ' ', 4);
+    CHECK_EQ(sz, 7);
     sz = cat(buf, 1, ' ', 2, ' ', 3, ' ', 4);
-    result = sp.left_of(sz);
+    CHECK_EQ(sz, 7);
+    result = sp.first(sz);
     CHECK_EQ(result, "1 2 3 4");
 }
 
@@ -441,20 +491,67 @@ TEST_CASE("catsep.vars")
     csubstr result;
     size_t sz;
 
+    sz = catsep({}, ' ');
+    CHECK_EQ(sz, 0);
+    sz = catsep(buf, ' ');
+    CHECK_EQ(sz, 0);
+
+    sz = catsep({}, ' ', 1);
+    CHECK_EQ(sz, 1);
+    sz = catsep(buf, ' ', 1);
+    CHECK_EQ(sz, 1);
+    CHECK_EQ(sp.first(1), "1");
+
+    sz = catsep({}, ' ', 1, 2);
+    CHECK_EQ(sz, 3);
     sz = catsep(buf, ' ', 1, 2);
     CHECK_EQ(sz, 3);
     result = sp.left_of(sz);
     CHECK_EQ(result, "1 2");
+    sp.fill('+');
+    sz = catsep(sp.first(1), ' ', 1, 2);
+    CHECK_EQ(sz, 3);
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1++");
+    sp.fill('+');
+    sz = catsep(sp.first(2), ' ', 1, 2);
+    CHECK_EQ(sz, 3);
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 +");
 
+    sz = catsep({}, '/', 1, 2);
+    CHECK_EQ(sz, 3);
     sz = catsep(buf, '/', 1, 2);
     CHECK_EQ(sz, 3);
     result = sp.left_of(sz);
     CHECK_EQ(result, "1/2");
 
+    sz = catsep({}, ' ', 1, 2, 3, 4);
+    CHECK_EQ(sz, 7);
     sz = catsep(buf, ' ', 1, 2, 3, 4);
     CHECK_EQ(sz, 7);
     result = sp.left_of(sz);
     CHECK_EQ(result, "1 2 3 4");
+    sp.fill('+');
+    sz = catsep(sp.first(3), ' ', 1, 2, 3, 4);
+    CHECK_EQ(sz, 7);
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 2++++");
+    sp.fill('+');
+    sz = catsep(sp.first(4), ' ', 1, 2, 3, 4);
+    CHECK_EQ(sz, 7);
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 2 +++");
+    sp.fill('+');
+    sz = catsep(sp.first(5), ' ', 1, 2, 3, 4);
+    CHECK_EQ(sz, 7);
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 2 3++");
+    sp.fill('+');
+    sz = catsep(sp.first(6), ' ', 1, 2, 3, 4);
+    CHECK_EQ(sz, 7);
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 2 3 +");
 
     sz = catsep(buf, '/', 1, 2, 3, 4);
     CHECK_EQ(sz, 7);
@@ -530,13 +627,128 @@ TEST_CASE("format.vars")
     csubstr result;
     size_t sz;
 
+    sz = format({}, "{} and {} and {} and {}");
+    CHECK_EQ(sz, strlen("{} and {} and {} and {}"));
+    sz = format(buf, "{} and {} and {} and {}");
+    CHECK_EQ(sz, strlen("{} and {} and {} and {}"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "{} and {} and {} and {}");
+
+    sz = format({}, "{} and {} and {} and {}", 1);
+    CHECK_EQ(sz, strlen("1 and {} and {} and {}"));
+    sz = format(buf, "{} and {} and {} and {}", 1);
+    CHECK_EQ(sz, strlen("1 and {} and {} and {}"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 and {} and {} and {}");
+
+    sz = format({}, "{} and {} and {} and {}", 1, 2);
+    CHECK_EQ(sz, strlen("1 and 2 and {} and {}"));
+    sz = format(buf, "{} and {} and {} and {}", 1, 2);
+    CHECK_EQ(sz, strlen("1 and 2 and {} and {}"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 and 2 and {} and {}");
+
+    sz = format({}, "{} and {} and {} and {}", 1, 2, 3);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and {}"));
+    sz = format(buf, "{} and {} and {} and {}", 1, 2, 3);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and {}"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 and 2 and 3 and {}");
+
+    sz = format({}, "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
     sz = format(buf, "{} and {} and {} and {}", 1, 2, 3, 4);
     CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
     result = sp.left_of(sz);
     CHECK_EQ(result, "1 and 2 and 3 and 4");
+    sp.fill('+');
+    sz = format(sp.first(1), "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1++++++++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(4), "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 an+++++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(6), "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 and +++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(7), "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 and 2++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(8), "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 and 2 +++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(10), "{} and {} and {} and {}", 1, 2, 3, 4);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "1 and 2 an+++++++++");
+    sp.fill('+');
+    sz = format(sp.first(2), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "+++++++++++++++++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(3), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111++++++++++++++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(4), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 +++++++++++++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(8), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 and +++++++++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(11), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 and 222++++++++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(16), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 and 222 and +++++++++++");
+    sp.fill('+');
+    sz = format(sp.first(20), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 and 222 and 333 +++++++");
+    sp.fill('+');
+    sz = format(sp.first(25), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 and 222 and 333 and +++");
+    sp.fill('+');
+    sz = format(sp.first(26), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 and 222 and 333 and +++");
+    sp.fill('+');
+    sz = format(sp.first(28), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 and 222 and 333 and 444");
+    sp.fill('+');
+    sz = format(sp.first(30), "{} and {} and {} and {}", 111, 222, 333, 444);
+    CHECK_EQ(sz, strlen("111 and 222 and 333 and 444"));
+    result = sp.left_of(sz);
+    CHECK_EQ(result, "111 and 222 and 333 and 444");
 
     sz = format(buf, "{} and {} and {} and {}", 1, 2, 3, 4, 5, 6, 7);
-    CHECK_EQ(sz, 19);
+    CHECK_EQ(sz, strlen("1 and 2 and 3 and 4"));
     result = sp.left_of(sz);
     CHECK_EQ(result, "1 and 2 and 3 and 4");
 
@@ -703,14 +915,14 @@ TEST_CASE("catrs.basic_append")
 {
     std::vector<char> buf;
 
-    catrs(append, &buf);
+    catrs_append(&buf);
     CHECK_EQ(to_csubstr(buf), "");
 
-    catrs(append, &buf, 1, 2, 3, 4);
+    catrs_append(&buf, 1, 2, 3, 4);
     CHECK_EQ(to_csubstr(buf), "1234");
-    catrs(append, &buf, 5, 6, 7, 8);
+    catrs_append(&buf, 5, 6, 7, 8);
     CHECK_EQ(to_csubstr(buf), "12345678");
-    catrs(append, &buf, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8);
+    catrs_append(&buf, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8);
     CHECK_EQ(to_csubstr(buf), "123456789012345678");
 }
 
@@ -795,21 +1007,21 @@ TEST_CASE("catseprs.basic_append")
 {
     std::vector<char> buf;
 
-    auto ret = catseprs(append, &buf, ' ');
+    auto ret = catseprs_append(&buf, ' ');
     CHECK_EQ(to_csubstr(buf), "");
     CHECK_EQ(ret, "");
 
-    ret = catseprs(append, &buf, ' ', 1, 2, 3, 4);
+    ret = catseprs_append(&buf, ' ', 1, 2, 3, 4);
     CHECK_EQ(to_csubstr(buf), "1 2 3 4");
     CHECK_EQ(ret, "1 2 3 4");
-    ret = catseprs(append, &buf, ' ', 5, 6, 7, 8);
+    ret = catseprs_append(&buf, ' ', 5, 6, 7, 8);
     CHECK_EQ(to_csubstr(buf), "1 2 3 45 6 7 8");
     CHECK_EQ(ret, "5 6 7 8");
-    ret = catseprs(append, &buf, ' ', 9, 0, 1, 2, 3, 4, 5, 6, 7, 8);
+    ret = catseprs_append(&buf, ' ', 9, 0, 1, 2, 3, 4, 5, 6, 7, 8);
     CHECK_EQ(to_csubstr(buf), "1 2 3 45 6 7 89 0 1 2 3 4 5 6 7 8");
     CHECK_EQ(ret, "9 0 1 2 3 4 5 6 7 8");
 
-    ret = catseprs(append, &buf, ' ');
+    ret = catseprs_append(&buf, ' ');
     CHECK_EQ(to_csubstr(buf), "1 2 3 45 6 7 89 0 1 2 3 4 5 6 7 8");
     CHECK_EQ(ret, "");
 }
@@ -876,14 +1088,14 @@ TEST_CASE("formatrs.basic_append")
 {
     std::vector<char> buf;
 
-    formatrs(append, &buf, "{} goes with food", "wine");
+    formatrs_append(&buf, "{} goes with food", "wine");
     CHECK_EQ(to_csubstr(buf), "wine goes with food");
-    formatrs(append, &buf, ", {} goes with heat", "beer");
+    formatrs_append(&buf, ", {} goes with heat", "beer");
     CHECK_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat");
-    formatrs(append, &buf, ", {} anytime", "coffee");
+    formatrs_append(&buf, ", {} anytime", "coffee");
     CHECK_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat, coffee anytime");
 
-    formatrs(append, &buf, ". And water. {} glass of {}cl in the morning clears you up for the day", 1, 40);
+    formatrs_append(&buf, ". And water. {} glass of {}cl in the morning clears you up for the day", 1, 40);
     CHECK_EQ(to_csubstr(buf), "wine goes with food, beer goes with heat, coffee anytime. And water. 1 glass of 40cl in the morning clears you up for the day");
 }
 
