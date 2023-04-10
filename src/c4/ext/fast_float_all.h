@@ -40,10 +40,52 @@
 //    DEALINGS IN THE SOFTWARE.
 //
 
+#ifndef FASTFLOAT_CONSTEXPR_FEATURE_DETECT_H
+#define FASTFLOAT_CONSTEXPR_FEATURE_DETECT_H
+
+#ifdef __has_include
+#if __has_include(<version>)
+#include <version>
+#endif
+#endif
+
+// Testing for https://wg21.link/N3652, adopted in C++14
+#if __cpp_constexpr >= 201304
+#define FASTFLOAT_CONSTEXPR14 constexpr
+#else
+#define FASTFLOAT_CONSTEXPR14
+#endif
+
+#if defined(__cpp_lib_bit_cast) && __cpp_lib_bit_cast >= 201806L
+#define FASTFLOAT_HAS_BIT_CAST 1
+#else
+#define FASTFLOAT_HAS_BIT_CAST 0
+#endif
+
+#if defined(__cpp_lib_is_constant_evaluated) && __cpp_lib_is_constant_evaluated >= 201811L
+#define FASTFLOAT_HAS_IS_CONSTANT_EVALUATED 1
+#else
+#define FASTFLOAT_HAS_IS_CONSTANT_EVALUATED 0
+#endif
+
+// Testing for relevant C++20 constexpr library features
+#if FASTFLOAT_HAS_IS_CONSTANT_EVALUATED \
+    && FASTFLOAT_HAS_BIT_CAST \
+    && __cpp_lib_constexpr_algorithms >= 201806L /*For std::copy and std::fill*/
+#define FASTFLOAT_CONSTEXPR20 constexpr
+#define FASTFLOAT_IS_CONSTEXPR 1
+#else
+#define FASTFLOAT_CONSTEXPR20
+#define FASTFLOAT_IS_CONSTEXPR 0
+#endif
+
+#endif // FASTFLOAT_CONSTEXPR_FEATURE_DETECT_H
+
 #ifndef FASTFLOAT_FAST_FLOAT_H
 #define FASTFLOAT_FAST_FLOAT_H
 
 #include <system_error>
+
 
 namespace fast_float {
 enum chars_format {
@@ -90,6 +132,7 @@ struct parse_options {
  * The default is  `fast_float::chars_format::general` which allows both `fixed` and `scientific`.
  */
 template<typename T>
+FASTFLOAT_CONSTEXPR20
 from_chars_result from_chars(const char *first, const char *last,
                              T &value, chars_format fmt = chars_format::general)  noexcept;
 
@@ -97,6 +140,7 @@ from_chars_result from_chars(const char *first, const char *last,
  * Like from_chars, but accepts an `options` argument to govern number parsing.
  */
 template<typename T>
+FASTFLOAT_CONSTEXPR20
 from_chars_result from_chars_advanced(const char *first, const char *last,
                                       T &value, parse_options options)  noexcept;
 
@@ -112,23 +156,8 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 #include <cstring>
 #include <type_traits>
 
-#ifdef __has_include
-#if __has_include(<version>)
-#include <version>
-#endif
-#endif
-
-#if __cpp_lib_bit_cast >= 201806L
+#if FASTFLOAT_HAS_BIT_CAST
 #include <bit>
-#define FASTFLOAT_HAS_BIT_CAST 1
-#else
-#define FASTFLOAT_HAS_BIT_CAST 0
-#endif
-
-#if __cpp_lib_is_constant_evaluated >= 201811L
-#define FASTFLOAT_HAS_IS_CONSTANT_EVALUATED 1
-#else
-#define FASTFLOAT_HAS_IS_CONSTANT_EVALUATED 0
 #endif
 
 #if (defined(__x86_64) || defined(__x86_64__) || defined(_M_X64)   \
@@ -214,22 +243,6 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 
 // rust style `try!()` macro, or `?` operator
 #define FASTFLOAT_TRY(x) { if (!(x)) return false; }
-
-// Testing for https://wg21.link/N3652, adopted in C++14
-#if __cpp_constexpr >= 201304
-#define FASTFLOAT_CONSTEXPR14 constexpr
-#else
-#define FASTFLOAT_CONSTEXPR14
-#endif
-
-// Testing for relevant C++20 constexpr library features
-#if FASTFLOAT_HAS_IS_CONSTANT_EVALUATED \
-    && FASTFLOAT_HAS_BIT_CAST \
-    && __cpp_lib_constexpr_algorithms >= 201806L /*For std::copy and std::fill*/
-#define FASTFLOAT_CONSTEXPR20 constexpr
-#else
-#define FASTFLOAT_CONSTEXPR20
-#endif
 
 namespace fast_float {
 
@@ -617,7 +630,7 @@ void to_float(bool negative, adjusted_mantissa am, T &value) {
 #endif
 }
 
-#if FASTFLOAT_SKIP_WHITE_SPACE // disabled by default
+#ifdef FASTFLOAT_SKIP_WHITE_SPACE // disabled by default
 template <typename = void>
 struct space_lut {
   static constexpr bool value[] = {
@@ -671,7 +684,16 @@ fastfloat_really_inline constexpr uint64_t byteswap(uint64_t val) {
     | (val & 0x00000000000000FF) << 56;
 }
 
-fastfloat_really_inline uint64_t read_u64(const char *chars) {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+uint64_t read_u64(const char *chars) {
+  if (cpp20_and_in_constexpr()) {
+    uint64_t val = 0;
+    for(int i = 0; i < 8; ++i) {
+      val |= uint64_t(*chars) << (i*8);
+      ++chars;
+    }
+    return val;
+  }
   uint64_t val;
   ::memcpy(&val, chars, sizeof(uint64_t));
 #if FASTFLOAT_IS_BIG_ENDIAN == 1
@@ -681,7 +703,16 @@ fastfloat_really_inline uint64_t read_u64(const char *chars) {
   return val;
 }
 
-fastfloat_really_inline void write_u64(uint8_t *chars, uint64_t val) {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+void write_u64(uint8_t *chars, uint64_t val) {
+  if (cpp20_and_in_constexpr()) {
+    for(int i = 0; i < 8; ++i) {
+      *chars = uint8_t(val);
+      val >>= 8;
+      ++chars;
+    }
+    return;
+  }
 #if FASTFLOAT_IS_BIG_ENDIAN == 1
   // Need to read as-if the number was in little-endian order.
   val = byteswap(val);
@@ -701,7 +732,8 @@ uint32_t parse_eight_digits_unrolled(uint64_t val) {
   return uint32_t(val);
 }
 
-fastfloat_really_inline uint32_t parse_eight_digits_unrolled(const char *chars)  noexcept  {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+uint32_t parse_eight_digits_unrolled(const char *chars)  noexcept  {
   return parse_eight_digits_unrolled(read_u64(chars));
 }
 
@@ -711,7 +743,8 @@ fastfloat_really_inline constexpr bool is_made_of_eight_digits_fast(uint64_t val
      0x8080808080808080));
 }
 
-fastfloat_really_inline bool is_made_of_eight_digits_fast(const char *chars)  noexcept  {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+bool is_made_of_eight_digits_fast(const char *chars)  noexcept  {
   return is_made_of_eight_digits_fast(read_u64(chars));
 }
 
@@ -731,7 +764,7 @@ struct parsed_number_string {
 
 // Assuming that you use no more than 19 digits, this will
 // parse an ASCII string.
-fastfloat_really_inline
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
 parsed_number_string parse_number_string(const char *p, const char *pend, parse_options options) noexcept {
   const chars_format fmt = options.format;
   const char decimal_point = options.decimal_point;
@@ -740,7 +773,7 @@ parsed_number_string parse_number_string(const char *p, const char *pend, parse_
   answer.valid = false;
   answer.too_many_digits = false;
   answer.negative = (*p == '-');
-#if FASTFLOAT_ALLOWS_LEADING_PLUS // disabled by default
+#ifdef FASTFLOAT_ALLOWS_LEADING_PLUS // disabled by default
   if ((*p == '-') || (*p == '+')) {
 #else
   if (*p == '-') { // C++17 20.19.3.(7.1) explicitly forbids '+' sign here
@@ -1595,7 +1628,7 @@ namespace fast_float {
 // low part corresponding to the least significant bits.
 //
 template <int bit_precision>
-fastfloat_really_inline
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
 value128 compute_product_approximation(int64_t q, uint64_t w) {
   const int index = 2 * int(q - powers::smallest_power_of_five);
   // For small values of q, e.g., q in [0,27], the answer is always exact because
@@ -1626,9 +1659,9 @@ namespace detail {
  * where
  *   p = log(5**q)/log(2) = q * log(5)/log(2)
  *
- * For negative values of q in (-400,0), we have that 
+ * For negative values of q in (-400,0), we have that
  *  f = (((152170 + 65536) * q ) >> 16);
- * is equal to 
+ * is equal to
  *   -ceil(p) + q
  * where
  *   p = log(5**-q)/log(2) = -q * log(5)/log(2)
@@ -1654,7 +1687,7 @@ adjusted_mantissa compute_error_scaled(int64_t q, uint64_t w, int lz) noexcept  
 // w * 10 ** q, without rounding the representation up.
 // the power2 in the exponent will be adjusted by invalid_am_bias.
 template <typename binary>
-fastfloat_really_inline
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
 adjusted_mantissa compute_error(int64_t q, uint64_t w)  noexcept  {
   int lz = leading_zeroes(w);
   w <<= lz;
@@ -1668,7 +1701,7 @@ adjusted_mantissa compute_error(int64_t q, uint64_t w)  noexcept  {
 // return an adjusted_mantissa with a negative power of 2: the caller should recompute
 // in such cases.
 template <typename binary>
-fastfloat_really_inline
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
 adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
   adjusted_mantissa answer;
   if ((w == 0) || (q < binary::smallest_power_of_ten())) {
@@ -2281,7 +2314,7 @@ struct bigint : pow5_tables<> {
       // move limbs
       limb* dst = vec.data + n;
       const limb* src = vec.data;
-      ::memmove(dst, src, sizeof(limb) * vec.len());
+      std::copy_backward(src, src + vec.len(), dst + vec.len());
       // fill in empty limbs
       limb* first = vec.data;
       limb* last = first + n;
@@ -2361,7 +2394,12 @@ struct bigint : pow5_tables<> {
       exp -= small_step;
     }
     if (exp != 0) {
-      FASTFLOAT_TRY(small_mul(vec, limb(small_power_of_5[exp])));
+      // Work around clang bug https://godbolt.org/z/zedh7rrhc
+      // This is similar to https://github.com/llvm/llvm-project/issues/47746,
+      // except the workaround described there don't work here
+      FASTFLOAT_TRY(
+        small_mul(vec, limb(((void)small_power_of_5[0], small_power_of_5[exp])))
+      );
     }
 
     return true;
@@ -2406,7 +2444,16 @@ fastfloat_really_inline constexpr uint64_t byteswap(uint64_t val) {
     | (val & 0x00000000000000FF) << 56;
 }
 
-fastfloat_really_inline uint64_t read_u64(const char *chars) {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+uint64_t read_u64(const char *chars) {
+  if (cpp20_and_in_constexpr()) {
+    uint64_t val = 0;
+    for(int i = 0; i < 8; ++i) {
+      val |= uint64_t(*chars) << (i*8);
+      ++chars;
+    }
+    return val;
+  }
   uint64_t val;
   ::memcpy(&val, chars, sizeof(uint64_t));
 #if FASTFLOAT_IS_BIG_ENDIAN == 1
@@ -2416,7 +2463,16 @@ fastfloat_really_inline uint64_t read_u64(const char *chars) {
   return val;
 }
 
-fastfloat_really_inline void write_u64(uint8_t *chars, uint64_t val) {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+void write_u64(uint8_t *chars, uint64_t val) {
+  if (cpp20_and_in_constexpr()) {
+    for(int i = 0; i < 8; ++i) {
+      *chars = uint8_t(val);
+      val >>= 8;
+      ++chars;
+    }
+    return;
+  }
 #if FASTFLOAT_IS_BIG_ENDIAN == 1
   // Need to read as-if the number was in little-endian order.
   val = byteswap(val);
@@ -2436,7 +2492,8 @@ uint32_t parse_eight_digits_unrolled(uint64_t val) {
   return uint32_t(val);
 }
 
-fastfloat_really_inline uint32_t parse_eight_digits_unrolled(const char *chars)  noexcept  {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+uint32_t parse_eight_digits_unrolled(const char *chars)  noexcept  {
   return parse_eight_digits_unrolled(read_u64(chars));
 }
 
@@ -2446,7 +2503,8 @@ fastfloat_really_inline constexpr bool is_made_of_eight_digits_fast(uint64_t val
      0x8080808080808080));
 }
 
-fastfloat_really_inline bool is_made_of_eight_digits_fast(const char *chars)  noexcept  {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+bool is_made_of_eight_digits_fast(const char *chars)  noexcept  {
   return is_made_of_eight_digits_fast(read_u64(chars));
 }
 
@@ -2466,7 +2524,7 @@ struct parsed_number_string {
 
 // Assuming that you use no more than 19 digits, this will
 // parse an ASCII string.
-fastfloat_really_inline
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
 parsed_number_string parse_number_string(const char *p, const char *pend, parse_options options) noexcept {
   const chars_format fmt = options.format;
   const char decimal_point = options.decimal_point;
@@ -2475,7 +2533,7 @@ parsed_number_string parse_number_string(const char *p, const char *pend, parse_
   answer.valid = false;
   answer.too_many_digits = false;
   answer.negative = (*p == '-');
-#if FASTFLOAT_ALLOWS_LEADING_PLUS // disabled by default
+#ifdef FASTFLOAT_ALLOWS_LEADING_PLUS // disabled by default
   if ((*p == '-') || (*p == '+')) {
 #else
   if (*p == '-') { // C++17 20.19.3.(7.1) explicitly forbids '+' sign here
@@ -2655,7 +2713,8 @@ int32_t scientific_exponent(parsed_number_string& num) noexcept {
 
 // this converts a native floating-point number to an extended-precision float.
 template <typename T>
-fastfloat_really_inline adjusted_mantissa to_extended(T value) noexcept {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+adjusted_mantissa to_extended(T value) noexcept {
   using equiv_uint = typename binary_format<T>::equiv_uint;
   constexpr equiv_uint exponent_mask = binary_format<T>::exponent_mask();
   constexpr equiv_uint mantissa_mask = binary_format<T>::mantissa_mask();
@@ -2664,7 +2723,11 @@ fastfloat_really_inline adjusted_mantissa to_extended(T value) noexcept {
   adjusted_mantissa am;
   int32_t bias = binary_format<T>::mantissa_explicit_bits() - binary_format<T>::minimum_exponent();
   equiv_uint bits;
+#if FASTFLOAT_HAS_BIT_CAST
+  bits = std::bit_cast<equiv_uint>(value);
+#else
   ::memcpy(&bits, &value, sizeof(T));
+#endif
   if ((bits & exponent_mask) == 0) {
     // denormal
     am.power2 = 1 - bias;
@@ -2683,7 +2746,8 @@ fastfloat_really_inline adjusted_mantissa to_extended(T value) noexcept {
 // we are given a native float that represents b, so we need to adjust it
 // halfway between b and b+u.
 template <typename T>
-fastfloat_really_inline adjusted_mantissa to_extended_halfway(T value) noexcept {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+adjusted_mantissa to_extended_halfway(T value) noexcept {
   adjusted_mantissa am = to_extended(value);
   am.mantissa <<= 1;
   am.mantissa += 1;
@@ -2759,9 +2823,10 @@ void round_down(adjusted_mantissa& am, int32_t shift) noexcept {
   am.power2 += shift;
 }
 
-fastfloat_really_inline void skip_zeros(const char*& first, const char* last) noexcept {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+void skip_zeros(const char*& first, const char* last) noexcept {
   uint64_t val;
-  while (std::distance(first, last) >= 8) {
+  while (!cpp20_and_in_constexpr() && std::distance(first, last) >= 8) {
     ::memcpy(&val, first, sizeof(uint64_t));
     if (val != 0x3030303030303030) {
       break;
@@ -2778,10 +2843,11 @@ fastfloat_really_inline void skip_zeros(const char*& first, const char* last) no
 
 // determine if any non-zero digits were truncated.
 // all characters must be valid digits.
-fastfloat_really_inline bool is_truncated(const char* first, const char* last) noexcept {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+bool is_truncated(const char* first, const char* last) noexcept {
   // do 8-bit optimizations, can just compare to 8 literal 0s.
   uint64_t val;
-  while (std::distance(first, last) >= 8) {
+  while (!cpp20_and_in_constexpr() && std::distance(first, last) >= 8) {
     ::memcpy(&val, first, sizeof(uint64_t));
     if (val != 0x3030303030303030) {
       return true;
@@ -2797,11 +2863,12 @@ fastfloat_really_inline bool is_truncated(const char* first, const char* last) n
   return false;
 }
 
-fastfloat_really_inline bool is_truncated(byte_span s) noexcept {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+bool is_truncated(byte_span s) noexcept {
   return is_truncated(s.ptr, s.ptr + s.len());
 }
 
-fastfloat_really_inline
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
 void parse_eight_digits(const char*& p, limb& value, size_t& counter, size_t& count) noexcept {
   value = value * 100000000 + parse_eight_digits_unrolled(p);
   p += 8;
@@ -2817,13 +2884,14 @@ void parse_one_digit(const char*& p, limb& value, size_t& counter, size_t& count
   count++;
 }
 
-fastfloat_really_inline
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
 void add_native(bigint& big, limb power, limb value) noexcept {
   big.mul(power);
   big.add(value);
 }
 
-fastfloat_really_inline void round_up_bigint(bigint& big, size_t& count) noexcept {
+fastfloat_really_inline FASTFLOAT_CONSTEXPR20
+void round_up_bigint(bigint& big, size_t& count) noexcept {
   // need to round-up the digits, but need to avoid rounding
   // ....9999 to ...10000, which could cause a false halfway point.
   add_native(big, 10, 1);
@@ -2831,7 +2899,8 @@ fastfloat_really_inline void round_up_bigint(bigint& big, size_t& count) noexcep
 }
 
 // parse the significant digits into a big integer
-inline void parse_mantissa(bigint& result, parsed_number_string& num, size_t max_digits, size_t& digits) noexcept {
+inline FASTFLOAT_CONSTEXPR20
+void parse_mantissa(bigint& result, parsed_number_string& num, size_t max_digits, size_t& digits) noexcept {
   // try to minimize the number of big integer and scalar multiplication.
   // therefore, try to parse 8 digits at a time, and multiply by the largest
   // scalar value (9 or 19 digits) for each step.
@@ -2911,7 +2980,8 @@ inline void parse_mantissa(bigint& result, parsed_number_string& num, size_t max
 }
 
 template <typename T>
-inline adjusted_mantissa positive_digit_comp(bigint& bigmant, int32_t exponent) noexcept {
+inline FASTFLOAT_CONSTEXPR20
+adjusted_mantissa positive_digit_comp(bigint& bigmant, int32_t exponent) noexcept {
   FASTFLOAT_ASSERT(bigmant.pow10(uint32_t(exponent)));
   adjusted_mantissa answer;
   bool truncated;
@@ -2934,7 +3004,8 @@ inline adjusted_mantissa positive_digit_comp(bigint& bigmant, int32_t exponent) 
 // we then need to scale by `2^(f- e)`, and then the two significant digits
 // are of the same magnitude.
 template <typename T>
-inline adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa am, int32_t exponent) noexcept {
+inline FASTFLOAT_CONSTEXPR20
+adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa am, int32_t exponent) noexcept {
   bigint& real_digits = bigmant;
   int32_t real_exp = exponent;
 
@@ -2994,7 +3065,8 @@ inline adjusted_mantissa negative_digit_comp(bigint& bigmant, adjusted_mantissa 
 // the actual digits. we then compare the big integer representations
 // of both, and use that to direct rounding.
 template <typename T>
-inline adjusted_mantissa digit_comp(parsed_number_string& num, adjusted_mantissa am) noexcept {
+inline FASTFLOAT_CONSTEXPR20
+adjusted_mantissa digit_comp(parsed_number_string& num, adjusted_mantissa am) noexcept {
   // remove the invalid exponent bias
   am.power2 -= invalid_am_bias;
 
@@ -3035,8 +3107,9 @@ namespace detail {
  * strings a null-free and fixed.
  **/
 template <typename T>
-from_chars_result parse_infnan(const char *first, const char *last, T &value)  noexcept  {
-  from_chars_result answer;
+from_chars_result FASTFLOAT_CONSTEXPR14
+parse_infnan(const char *first, const char *last, T &value)  noexcept  {
+  from_chars_result answer{};
   answer.ptr = first;
   answer.ec = std::errc(); // be optimistic
   bool minusSign = false;
@@ -3044,7 +3117,7 @@ from_chars_result parse_infnan(const char *first, const char *last, T &value)  n
       minusSign = true;
       ++first;
   }
-#if FASTFLOAT_ALLOWS_LEADING_PLUS // disabled by default
+#ifdef FASTFLOAT_ALLOWS_LEADING_PLUS // disabled by default
   if (*first == '+') {
       ++first;
   }
@@ -3123,7 +3196,7 @@ fastfloat_really_inline bool rounds_to_nearest() noexcept {
   //
   // Note: This may fail to be accurate if fast-math has been
   // enabled, as rounding conventions may not apply.
-  #if FASTFLOAT_VISUAL_STUDIO
+  #ifdef FASTFLOAT_VISUAL_STUDIO
   #   pragma warning(push)
   //  todo: is there a VS warning?
   //  see https://stackoverflow.com/questions/46079446/is-there-a-warning-for-floating-point-equality-checking-in-visual-studio-2013
@@ -3135,7 +3208,7 @@ fastfloat_really_inline bool rounds_to_nearest() noexcept {
   #   pragma GCC diagnostic ignored "-Wfloat-equal"
   #endif
   return (fmini + 1.0f == 1.0f - fmini);
-  #if FASTFLOAT_VISUAL_STUDIO
+  #ifdef FASTFLOAT_VISUAL_STUDIO
   #   pragma warning(pop)
   #elif defined(__clang__)
   #   pragma clang diagnostic pop
@@ -3147,12 +3220,14 @@ fastfloat_really_inline bool rounds_to_nearest() noexcept {
 } // namespace detail
 
 template<typename T>
+FASTFLOAT_CONSTEXPR20
 from_chars_result from_chars(const char *first, const char *last,
                              T &value, chars_format fmt /*= chars_format::general*/)  noexcept  {
   return from_chars_advanced(first, last, value, parse_options{fmt});
 }
 
 template<typename T>
+FASTFLOAT_CONSTEXPR20
 from_chars_result from_chars_advanced(const char *first, const char *last,
                                       T &value, parse_options options)  noexcept  {
 
@@ -3160,7 +3235,7 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 
 
   from_chars_result answer;
-#if FASTFLOAT_SKIP_WHITE_SPACE  // disabled by default
+#ifdef FASTFLOAT_SKIP_WHITE_SPACE  // disabled by default
   while ((first != last) && fast_float::is_space(uint8_t(*first))) {
     first++;
   }
@@ -3189,7 +3264,7 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
     // We could check it first (before the previous branch), but
     // there might be performance advantages at having the check
     // be last.
-    if(detail::rounds_to_nearest())  {
+    if(!cpp20_and_in_constexpr() && detail::rounds_to_nearest())  {
       // We have that fegetround() == FE_TONEAREST.
       // Next is Clinger's fast path.
       if (pns.mantissa <=binary_format<T>::max_mantissa_fast_path()) {
@@ -3206,7 +3281,7 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
 #if defined(__clang__)
         // Clang may map 0 to -0.0 when fegetround() == FE_DOWNWARD
         if(pns.mantissa == 0) {
-          value = 0;
+          value = pns.negative ? -0. : 0.;
           return answer;
         }
 #endif
@@ -3226,6 +3301,10 @@ from_chars_result from_chars_advanced(const char *first, const char *last,
   // then we need to go the long way around again. This is very uncommon.
   if(am.power2 < 0) { am = digit_comp<T>(pns, am); }
   to_float(pns.negative, am, value);
+  // Test for over/underflow.
+  if ((pns.mantissa != 0 && am.mantissa == 0 && am.power2 == 0) || am.power2 == binary_format<T>::infinite_power()) {
+    answer.ec = std::errc::result_out_of_range;
+  }
   return answer;
 }
 
