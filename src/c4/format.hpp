@@ -530,7 +530,7 @@ size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 namespace detail {
 
 template<class Sep>
-inline size_t catsep_more(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
+C4_ALWAYS_INLINE size_t catsep_more(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
 {
     return 0;
 }
@@ -538,7 +538,8 @@ inline size_t catsep_more(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
 template<class Sep, class Arg, class... Args>
 size_t catsep_more(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    size_t ret = to_chars(buf, sep), num = ret;
+    size_t ret = to_chars(buf, sep);
+    size_t num = ret;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
     ret  = to_chars(buf, a);
     num += ret;
@@ -547,6 +548,7 @@ size_t catsep_more(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRIC
     num += ret;
     return num;
 }
+
 
 template<class Sep>
 inline size_t uncatsep_more(csubstr /*buf*/, Sep & /*sep*/)
@@ -557,7 +559,8 @@ inline size_t uncatsep_more(csubstr /*buf*/, Sep & /*sep*/)
 template<class Sep, class Arg, class... Args>
 size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
-    size_t ret = from_chars_first(buf, &sep), num = ret;
+    size_t ret = from_chars_first(buf, &sep);
+    size_t num = ret;
     if(C4_UNLIKELY(ret == csubstr::npos))
         return csubstr::npos;
     buf  = buf.len >= ret ? buf.sub(ret) : substr{};
@@ -575,6 +578,13 @@ size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Ar
 
 } // namespace detail
 
+/// @cond dev
+template<class Sep>
+size_t catsep(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
+{
+    return 0;
+}
+/// @endcond
 
 /** serialize the arguments, concatenating them to the given fixed-size
  * buffer, using a separator between each argument.
@@ -721,17 +731,6 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** a tag type for marking append to container
- * @see c4::catrs() */
-struct append_t {};
-
-/** a tag variable
- * @see c4::catrs() */
-constexpr const append_t append = {};
-
-
-//-----------------------------------------------------------------------------
-
 /** like c4::cat(), but receives a container, and resizes it as needed to contain
  * the result. The container is overwritten. To append to it, use the append
  * overload.
@@ -764,7 +763,7 @@ inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
  * @see c4::cat()
  * @see c4::catrs() */
 template<class CharOwningContainer, class... Args>
-inline csubstr catrs(append_t, CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
+inline csubstr catrs_append(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
 retry:
@@ -778,16 +777,6 @@ retry:
 
 
 //-----------------------------------------------------------------------------
-
-/// @cond dev
-// terminates the recursion
-template<class CharOwningContainer, class Sep, class... Args>
-inline void catseprs(CharOwningContainer * C4_RESTRICT, Sep const& C4_RESTRICT)
-{
-    return;
-}
-/// @end cond
-
 
 /** like c4::catsep(), but receives a container, and resizes it as needed to contain the result.
  * The container is overwritten. To append to the container use the append overload.
@@ -814,22 +803,12 @@ inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_R
 }
 
 
-/// @cond dev
-// terminates the recursion
-template<class CharOwningContainer, class Sep, class... Args>
-inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT, Sep const& C4_RESTRICT)
-{
-    csubstr s;
-    return s;
-}
-/// @endcond
-
 /** like catsep(), but receives a container, and appends the arguments, resizing the
  * container as needed to contain the result. The buffer is appended to.
  * @return a csubstr of the appended part
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class Sep, class... Args>
-inline csubstr catseprs(append_t, CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
+inline csubstr catseprs_append(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
 retry:
@@ -875,7 +854,7 @@ inline CharOwningContainer formatrs(csubstr fmt, Args const& C4_RESTRICT ...args
  * @return the region newly appended to the original container
  * @ingroup formatting_functions */
 template<class CharOwningContainer, class... Args>
-inline csubstr formatrs(append_t, CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
+inline csubstr formatrs_append(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
 retry:
