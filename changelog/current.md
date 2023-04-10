@@ -1,3 +1,11 @@
+### Breaking changes
+
+- [PR#111](https://github.com/biojppm/c4core/pull/111) - Rename formatting overloads accepting `c4::append`:
+   - `catrs(append_t, ...) -> catrs_append(...)`
+   - `catseprs(append_t, ...) -> catseprs_append(...)`
+   - `formatrs(append_t, ...) -> formatrs_append(...)`
+
+
 ### New features
 
 - [PR#105](https://github.com/biojppm/c4core/pull/105): Add macros in `c4/language.hpp` for compile-time flow of exceptions:
