@@ -12,7 +12,7 @@
 
 ### Fixes
 
-- [PR#107](https://github.com/biojppm/c4core/pull/107) - Update fast_float.
+- [PR#110](https://github.com/biojppm/c4core/pull/110)/[PR#107](https://github.com/biojppm/c4core/pull/107) - Update fast_float.
 - [PR#106](https://github.com/biojppm/c4core/pull/106) - Fix include guard in the gcc 4.8 compatibility header, causing it to be missing from the amalgamated header.
 - [PR#105](https://github.com/biojppm/c4core/pull/105) - Fix existing throw in `c4/ext/sg14/inplace_function.h`. Ensure tests run with exceptions disabled and RTTI disabled. Add examples of exceptional control flow with `setjmp()/std::longjmp()`.
 - [PR#104](https://github.com/biojppm/c4core/pull/104) - Fix pedantic warnings in gcc, clang and MSVC
