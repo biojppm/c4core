@@ -150,7 +150,7 @@
 #endif
 
 #ifdef _MSC_VER
-#  if (defined(_CPPUNWIND) && (__CPPUNWIND == 1))
+#  if (defined(_CPPUNWIND) && (_CPPUNWIND == 1))
 #    define C4_EXCEPTIONS
 #  endif
 #else
