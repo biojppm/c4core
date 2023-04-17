@@ -119,7 +119,7 @@ size_t base64_encode(substr buf, cblob data)
 
     size_t rem, pos = 0;
     constexpr const uint32_t sextet_mask = uint32_t(1 << 6) - 1;
-    const unsigned char *C4_RESTRICT d = (unsigned char *) data.buf; // cast to unsigned to avoid wrapping high-bits
+    const unsigned char *C4_RESTRICT d = (const unsigned char *) data.buf; // cast to unsigned to avoid wrapping high-bits
     for(rem = data.len; rem >= 3; rem -= 3, d += 3)
     {
         const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8) | (uint32_t(d[2])));

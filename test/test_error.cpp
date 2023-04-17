@@ -126,6 +126,7 @@ struct ErrorCallbacksBridgeFull
 {
     ErrorCallbacks callbacks() const
     {
+        C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wcast-qual")
         return {
             (ErrBhv*)this,
             ErrorCallbacksBridgeFull<ErrBhv>::on_err,
@@ -134,6 +135,7 @@ struct ErrorCallbacksBridgeFull
             ErrorCallbacksBridgeFull<ErrBhv>::on_msg_part,
             ErrorCallbacksBridgeFull<ErrBhv>::on_msg_end,
         };
+        C4_SUPPRESS_WARNING_GCC_CLANG_POP
     }
     static void on_err(locref loc, void *data)
     {
@@ -162,6 +164,7 @@ struct ErrorCallbacksBridge
 {
     ErrorCallbacks callbacks() const
     {
+        C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wcast-qual")
         return {
             (ErrBhv*)this,
             ErrorCallbacksBridge<ErrBhv>::on_err,
@@ -170,6 +173,7 @@ struct ErrorCallbacksBridge
             (pfn_msg_part)nullptr,
             (pfn_msg_end)nullptr
         };
+        C4_SUPPRESS_WARNING_GCC_CLANG_POP
     }
     static void on_err(locref loc, void *data)
     {
