@@ -15,22 +15,100 @@
 
 namespace c4 {
 
-template<class T>
-void test_blob()
+TEST_CASE("blob.default_ctor")
 {
-    T v;
+    {
+        blob b = {};
+        CHECK_EQ(b.buf, nullptr);
+        CHECK_EQ(b.len, 0u);
+    }
+    {
+        cblob b = {};
+        CHECK_EQ(b.buf, nullptr);
+        CHECK_EQ(b.len, 0u);
+    }
+}
+
+template<class B>
+void test_blob_copy(blob const& b)
+{
+    {
+        blob_<B> b2(b);
+        CHECK_EQ(b2.buf, b.buf);
+        CHECK_EQ(b2.len, b.len);
+    }
+    {
+        blob_<B> b2 = b;
+        CHECK_EQ(b2.buf, b.buf);
+        CHECK_EQ(b2.len, b.len);
+    }
+    {
+        blob_<const B> b3(b);
+        CHECK_EQ(b3.buf, b.buf);
+        CHECK_EQ(b3.len, b.len);
+    }
+    {
+        blob_<const B> b3 = b;
+        CHECK_EQ(b3.buf, b.buf);
+        CHECK_EQ(b3.len, b.len);
+    }
+    {
+        blob_<B> b2(b);
+        CHECK_EQ(b2.buf, b.buf);
+        CHECK_EQ(b2.len, b.len);
+        blob_<const B> b4(b2);
+        CHECK_EQ(b4.buf, b.buf);
+        CHECK_EQ(b4.len, b.len);
+    }
+    {
+        blob_<B> b2 = b;
+        CHECK_EQ(b2.buf, b.buf);
+        CHECK_EQ(b2.len, b.len);
+        blob_<const B> b4 = b2;
+        CHECK_EQ(b4.buf, b.buf);
+        CHECK_EQ(b4.len, b.len);
+    }
+}
+void test_blob_copy(blob const& b)
+{
+    test_blob_copy<byte>(b);
+    test_blob_copy<cbyte>(b);
+}
+template<class T>
+void test_blob(T v)
+{
     blob b(v);
     CHECK_EQ((T*)b.buf, &v);
     CHECK_EQ(b.len, sizeof(T));
-
-    blob b2 = b;
-    CHECK_EQ((T*)b2.buf, &v);
-    CHECK_EQ(b2.len, sizeof(T));
+    test_blob_copy(b);
 }
 
-TEST_CASE("blob.basic")
+TEST_CASE("blob.fundamental_type")
 {
-    test_blob<int>();
+    SUBCASE("int")
+    {
+        test_blob(1);
+    }
+    SUBCASE("u64")
+    {
+        test_blob(UINT64_C(1));
+    }
+    SUBCASE("int.arr")
+    {
+        int arr[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        cblob b(arr);
+        CHECK_EQ((int const*)b.buf, arr);
+        CHECK_EQ(b.len, sizeof(arr));
+        test_blob(arr);
+    }
+    SUBCASE("u64.arr")
+    {
+        uint64_t arr[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        cblob b(arr);
+        CHECK_EQ((uint64_t const*)b.buf, arr);
+        CHECK_EQ(b.len, sizeof(arr));
+        test_blob(arr);
+    }
 }
 
 

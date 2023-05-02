@@ -11,21 +11,45 @@
 
 namespace c4 {
 
+
 /** check that the given buffer is a valid base64 encoding
  * @see https://en.wikipedia.org/wiki/Base64 */
 bool base64_valid(csubstr encoded);
 
+
 /** base64-encode binary data.
  * @param encoded [out] output buffer for encoded data
  * @param data [in] the input buffer with the binary data
- * @return the number of bytes needed to return the output. No writes occur beyond the end of the output buffer.
+ *
+ * @return the number of bytes needed to return the output (ie the
+ * required size for @p encoded). No writes occur beyond the end of
+ * the output buffer, so it is safe to do a speculative call where the
+ * encoded buffer is empty, or maybe too small. The caller should
+ * ensure that the returned size is smaller than the size of the
+ * encoded buffer.
+ *
+ * @note the result depends on endianness. If transfer between
+ * little/big endian systems is desired, the caller should normalize
+ * @p data before encoding.
+ *
  * @see https://en.wikipedia.org/wiki/Base64 */
 size_t base64_encode(substr encoded, cblob data);
+
 
 /** decode the base64 encoding in the given buffer
  * @param encoded [in] the encoded base64
  * @param data [out] the output buffer
- * @return the number of bytes needed to return the output.. No writes occur beyond the end of the output buffer.
+ *
+ * @return the number of bytes needed to return the output (ie the
+ * required size for @p data). No writes occur beyond the end of the
+ * output buffer, so it is safe to do a speculative call where the
+ * data buffer is empty, or maybe too small. The caller should ensure
+ * that the returned size is smaller than the size of the data buffer.
+ *
+ * @note the result depends on endianness. If transfer between
+ * little/big endian systems is desired, the caller should normalize
+ * @p data after decoding.
+ *
  * @see https://en.wikipedia.org/wiki/Base64 */
 size_t base64_decode(csubstr encoded, blob data);
 
@@ -39,7 +63,9 @@ struct base64_wrapper_
     base64_wrapper_() : data() {}
     base64_wrapper_(blob_<CharOrConstChar> blob) : data(blob) {}
 };
+/** a tag type to mark a payload as base64-encoded */
 using const_base64_wrapper = base64_wrapper_<cbyte>;
+/** a tag type to mark a payload to be encoded as base64 */
 using base64_wrapper = base64_wrapper_<byte>;
 
 
