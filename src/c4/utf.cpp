@@ -3,6 +3,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 size_t decode_code_point(uint8_t *C4_RESTRICT buf, size_t buflen, const uint32_t code)
 {
     C4_UNUSED(buflen);
@@ -52,5 +54,7 @@ substr decode_code_point(substr out, csubstr code_point)
     C4_ASSERT(ret <= 4);
     return out.first(ret);
 }
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4

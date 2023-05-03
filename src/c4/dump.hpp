@@ -5,6 +5,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -572,6 +574,7 @@ C4_ALWAYS_INLINE DumpResults format_dump_resume(DumperFn &&dumpfn, substr buf, c
     return detail::format_dump_resume(0u, dumpfn, DumpResults{}, buf, fmt, more...);
 }
 
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 

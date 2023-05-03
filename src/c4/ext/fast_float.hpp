@@ -11,9 +11,11 @@
 #       pragma clang diagnostic ignored "-Wfortify-source"
 #   endif
 #   pragma clang diagnostic ignored "-Wshift-count-overflow"
+#   pragma clang diagnostic ignored "-Wold-style-cast"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wuseless-cast"
+#   pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 #include "c4/ext/fast_float_all.h"

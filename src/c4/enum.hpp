@@ -10,6 +10,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 //! taken from http://stackoverflow.com/questions/15586163/c11-type-trait-to-differentiate-between-enum-class-and-regular-enum
 template<typename Enum>
 using is_scoped_enum = std::integral_constant<bool, std::is_enum<Enum>::value && !std::is_convertible<Enum, int>::value>;
@@ -270,6 +272,8 @@ const char* EnumSymbols<Enum>::Sym::name_offs(EnumOffsetType t) const
     C4_ASSERT(eoffs<Enum>(t) < strlen(name));
     return name + eoffs<Enum>(t);
 }
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 

@@ -13,8 +13,11 @@
 #   pragma warning(push)
 #   pragma warning(disable : 4996) // 'strncpy', fopen, etc: This function or variable may be unsafe
 #elif defined(__clang__)
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wold-style-cast"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wold-style-cast"
 #   if __GNUC__ >= 8
 #       pragma GCC diagnostic ignored "-Wstringop-truncation"
 #       pragma GCC diagnostic ignored "-Wstringop-overflow"

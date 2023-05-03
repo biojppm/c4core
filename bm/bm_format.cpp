@@ -8,7 +8,16 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
+
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wunused-const-variable")
+#endif
 #include <benchmark/benchmark.h>
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+C4_SUPPRESS_WARNING_GCC_POP
+#endif
+
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
 
 namespace bm = benchmark;
 
@@ -908,6 +917,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 #include <c4/c4_pop.hpp>
 

@@ -55,8 +55,14 @@ C4_SUPPRESS_WARNING_GCC_CLANG("-Wdouble-promotion")
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wdeprecated")
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wsign-conversion")
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wconversion")
-
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wold-style-cast")
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wunused-const-variable")
+#endif
 #include <benchmark/benchmark.h>
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+C4_SUPPRESS_WARNING_GCC_POP
+#endif
 
 
 namespace bm = benchmark;
