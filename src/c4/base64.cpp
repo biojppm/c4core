@@ -94,7 +94,8 @@ void base64_test_tables()
 
 bool base64_valid(csubstr encoded)
 {
-    if(encoded.len % 4) return false;
+    if(encoded.len & 3u) // (encoded.len % 4u)
+        return false;
     for(const char c : encoded)
     {
         if(c < 0/* || c >= 128*/)
@@ -116,7 +117,6 @@ size_t base64_encode(substr buf, cblob data)
          C4_XASSERT((char_idx) < sizeof(detail::base64_sextet_to_char_));\
          c4append_(detail::base64_sextet_to_char_[(char_idx)]);\
     }
-
     size_t rem, pos = 0;
     constexpr const uint32_t sextet_mask = uint32_t(1 << 6) - 1;
     const unsigned char *C4_RESTRICT d = (unsigned char *) data.buf; // cast to unsigned to avoid wrapping high-bits
@@ -161,9 +161,8 @@ size_t base64_decode(csubstr encoded, blob data)
         C4_XASSERT(size_t(c) < sizeof(detail::base64_char_to_sextet_));\
         val |= static_cast<uint32_t>(detail::base64_char_to_sextet_[(c)]) << ((shift) * 6);\
     }
-
     C4_ASSERT(base64_valid(encoded));
-    C4_CHECK(encoded.len % 4 == 0);
+    C4_CHECK((encoded.len & 3u) == 0);
     size_t wpos = 0;  // the write position
     const char *C4_RESTRICT d = encoded.str;
     constexpr const uint32_t full_byte = 0xff;

@@ -20,6 +20,7 @@
 
 ### Fixes
 
+- [PR#115](https://github.com/biojppm/c4core/pull/115) - Refactor of `c4::blob`/`c4::cblob`. Use SFINAE to invalidate some of the constructors.
 - [PR#110](https://github.com/biojppm/c4core/pull/110)/[PR#107](https://github.com/biojppm/c4core/pull/107) - Update fast_float.
 - [PR#106](https://github.com/biojppm/c4core/pull/106) - Fix include guard in the gcc 4.8 compatibility header, causing it to be missing from the amalgamated header.
 - [PR#105](https://github.com/biojppm/c4core/pull/105) - Fix existing throw in `c4/ext/sg14/inplace_function.h`. Ensure tests run with exceptions disabled and RTTI disabled. Add examples of exceptional control flow with `setjmp()/std::longjmp()`.

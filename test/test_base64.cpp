@@ -118,6 +118,20 @@ base64_test_pair<csubstr> base64_str_pairs[] = {
 #undef __
 };
 
+TEST_CASE("base64.invalid")
+{
+    csubstr enc = "YW55IGNhcm5hbCBwbGVhc3VyZS4=";
+    CHECK_EQ(base64_valid({nullptr, size_t(0)}), true);
+    CHECK_EQ(base64_valid(enc.first(0)), true);
+    CHECK_EQ(base64_valid(enc.first(1)), false);
+    CHECK_EQ(base64_valid(enc.first(2)), false);
+    CHECK_EQ(base64_valid(enc.first(3)), false);
+    CHECK_EQ(base64_valid(enc.first(4)), true);
+    CHECK_EQ(base64_valid(enc.first(5)), false);
+    CHECK_EQ(base64_valid(enc.first(6)), false);
+    CHECK_EQ(base64_valid(enc.first(7)), false);
+    CHECK_EQ(base64_valid(enc.first(8)), true);
+}
 
 TEST_CASE("base64.str")
 {
