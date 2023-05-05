@@ -5,9 +5,11 @@
 #ifdef __clang__
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wformat-nonliteral"
+#   pragma clang diagnostic ignored "-Wold-style-cast"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#   pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 namespace c4 {
@@ -36,7 +38,9 @@ size_t to_chars(substr buf, fmt::const_raw_wrapper r)
 
 bool from_chars(csubstr buf, fmt::raw_wrapper *r)
 {
+    C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wcast-qual")
     void * vptr = (void*)buf.str;
+    C4_SUPPRESS_WARNING_GCC_POP
     size_t space = buf.len;
     auto ptr = (decltype(buf.str)) std::align(r->alignment, r->len, vptr, space);
     C4_CHECK(ptr != nullptr);

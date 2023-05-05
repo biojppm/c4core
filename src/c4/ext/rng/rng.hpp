@@ -10,9 +10,16 @@
 #include <random>
 
 
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wold-style-cast"
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
 namespace c4 {
 namespace rng {
-
 
 class splitmix
 {
@@ -188,5 +195,11 @@ inline bool operator!=(pcg const &lhs, pcg const &rhs)
 
 } // namespace rng
 } // namespace c4
+
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#   pragma GCC diagnostic pop
+#endif
 
 #endif /* AG_RANDOM_H */

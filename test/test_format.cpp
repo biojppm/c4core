@@ -1200,14 +1200,15 @@ TEST_CASE("fmt.hex")
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template<class T> void test_raw_roundtrip(const char *valstr, T const& orig)
+template<class T>
+void test_raw_roundtrip(const char *valstr, T const& orig)
 {
     INFO("valstr=" << valstr);
     alignas(alignof(T)) char buf_[2 * (sizeof(T) + alignof(T))] = {};
     substr buf = buf_;
 
     fmt::const_raw_wrapper rawwrap = fmt::raw(orig);
-    REQUIRE_EQ((void*)rawwrap.buf, (void*)&orig);
+    REQUIRE_EQ((void const*)rawwrap.buf, (void const*)&orig);
     REQUIRE_EQ(rawwrap.len, sizeof(orig));
 
     for(size_t i = 0; i < alignof(T); ++i)

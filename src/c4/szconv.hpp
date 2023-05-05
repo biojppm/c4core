@@ -10,6 +10,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 /** @todo this would be so much easier with calls to numeric_limits::max()... */
 template<class SizeOut, class SizeIn>
 struct is_narrower_size : std::conditional
@@ -58,6 +60,8 @@ szconv(SizeIn sz) C4_NOEXCEPT_X
     SizeOut szo = static_cast<SizeOut>(sz);
     return szo;
 }
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 

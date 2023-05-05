@@ -27,6 +27,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 /** set the given memory to zero */
 C4_ALWAYS_INLINE void mem_zero(void* mem, size_t num_bytes)
 {
@@ -768,6 +770,8 @@ struct tight_pair<First, Second, tpc_second_empty> : public Second
 
 template<class First, class Second>
 using tight_pair = detail::tight_pair<First, Second, detail::tpc_which_case<First,Second>()>;
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 

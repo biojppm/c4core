@@ -18,6 +18,7 @@
 #   pragma clang diagnostic ignored "-Wwritable-strings" // ISO C++11 does not allow conversion from string literal to char*
 #   pragma clang diagnostic ignored "-Wunused-variable"
 #   pragma clang diagnostic ignored "-Wunused-parameter"
+#   pragma clang diagnostic ignored "-Wold-style-cast"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
     /* GCC also issues a warning for zero-args calls to variadic macros.
@@ -36,6 +37,7 @@
 #   pragma GCC diagnostic ignored "-Wfloat-equal" // warning: comparing floating point with == or != is unsafe
 #   pragma GCC diagnostic ignored "-Wpedantic"
 #   pragma GCC diagnostic ignored "-pedantic"
+#   pragma GCC diagnostic ignored "-Wold-style-cast"
 #elif defined(_MSC_VER)
 #   pragma warning(push)
 #   pragma warning(disable:4018)   // '>=': signed/unsigned mismatch

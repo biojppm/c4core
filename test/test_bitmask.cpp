@@ -17,6 +17,8 @@ void cmp_enum(Enum lhs, Enum rhs)
     CHECK_EQ(static_cast<I>(lhs), static_cast<I>(rhs));
 }
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -383,3 +385,5 @@ void test_bm2str()
         } // while(1)
     } // for k
 }
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP

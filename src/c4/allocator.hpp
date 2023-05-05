@@ -24,6 +24,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 namespace detail {
 template<class T> inline size_t size_for      (size_t num_objs) noexcept { return num_objs * sizeof(T); }
 template<       > inline size_t size_for<void>(size_t num_objs) noexcept { return num_objs;             }
@@ -399,6 +401,8 @@ template<class T> using allocator_mr = Allocator<T, MemRes>;
 template<class T, size_t N=16, size_t Alignment=alignof(T)> using small_allocator = SmallAllocator<T, N, Alignment, MemResGlobal>;
 /** @ingroup allocators */
 template<class T, size_t N=16, size_t Alignment=alignof(T)> using small_allocator_mr = SmallAllocator<T, N, Alignment, MemRes>;
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 

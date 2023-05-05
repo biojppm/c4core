@@ -16,6 +16,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 template< class String > class sstream;
 
 //-----------------------------------------------------------------------------
@@ -546,6 +548,9 @@ using containees = std::tuple<
 #endif
 
 } // namespace archetypes
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
+
 } // namespace c4
 
 #endif // _C4_TEST_ARCHETYPES_HPP_

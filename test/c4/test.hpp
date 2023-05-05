@@ -18,6 +18,9 @@
 #define C4_LOGP(msg, ...) printf(msg)
 
 #define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
+#if !defined(C4_EXCEPTIONS)
+#define DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS
+#endif
 #include <doctest/doctest.h>
 // doctest does not provide these macros when exceptions are disabled
 // see https://github.com/doctest/doctest/issues/439

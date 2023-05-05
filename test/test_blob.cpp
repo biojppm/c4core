@@ -7,9 +7,11 @@
 #ifdef __clang__
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wcast-align"
+#   pragma clang diagnostic ignored "-Wold-style-cast"
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wcast-align"
+#   pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 
@@ -111,11 +113,10 @@ TEST_CASE("blob.fundamental_type")
     }
 }
 
+} // namespace c4
 
 #ifdef __clang__
 #   pragma clang diagnostic pop
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic pop
 #endif
-
-} // namespace c4

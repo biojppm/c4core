@@ -24,31 +24,6 @@ env:
   NUM_JOBS_BUILD: # 4
 
 
-# ubuntu-20.04:
-#   # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
-#   gcc: 7.5.0, 8.4.0, 9.3.0, 10.2.0
-#   clang: 8.0.1, 9.0.1, 10.0.0
-# ubuntu-18.04:
-#   # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu1804-README.md
-#   gcc: 7.5.0, 8.4.0, 9.3.0, 10.1.0
-#   clang: 6.0.0, 8.0.0, 9.0.0
-# macos-11.0: macOS Big Sur 11.0
-#   # https://github.com/actions/virtual-environments/blob/main/images/macos/macos-11.0-Readme.md
-#   Xcode 12.1 11.7
-#   clang/LLVM 10.0.1
-#   gcc-8 gcc-9
-# macos-10.15: macOS Catalina 10.15
-#   # https://github.com/actions/virtual-environments/blob/main/images/macos/macos-10.15-Readme.md
-#   Xcode 12.1 11.7
-#   clang/LLVM 11.0.0
-#   gcc-8 gcc-9
-# windows-2019:
-#   # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-#   vs2019
-# windows-2016:
-#   # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2016-Readme.md
-#   vs2017
-
 jobs:
 
   #----------------------------------------------------------------------------
@@ -56,23 +31,24 @@ jobs:
     name: gcc_canary/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
+    container: ghcr.io/biojppm/c4core/ubuntu18.04:latest  # use the docker image
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-7      , bt: Debug  , os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-7      , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10     , bt: Debug  , os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10     , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-5      , bt: Debug  , os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-5      , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-4.8    , bt: Debug,   os: ubuntu-18.04, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-4.8    , bt: Release, os: ubuntu-18.04, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-7      , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-7      , bt: Release, bitlinks: shared64 static32}
+          - {std: 20, cxx: g++-10     , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 20, cxx: g++-10     , bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-5      , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-5      , bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-4.8    , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-4.8    , bt: Release, bitlinks: shared64 static32}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
-      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test shared64
@@ -100,19 +76,20 @@ jobs:
     name: gcc_noexceptions/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
+    container: ghcr.io/biojppm/c4core/ubuntu18.04:latest  # use the docker image
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-7      , bt: Debug  , os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-7      , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10     , bt: Debug  , os: ubuntu-20.04, bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10     , bt: Release, os: ubuntu-20.04, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-7      , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-7      , bt: Release, bitlinks: shared64 static32}
+          - {std: 20, cxx: g++-10     , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 20, cxx: g++-10     , bt: Release, bitlinks: shared64 static32}
     env: {CXXFLAGS: "-fno-exceptions -fno-rtti", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
-      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test shared64
@@ -140,37 +117,38 @@ jobs:
     name: gcc_extended/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}/vg${{matrix.vg}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
+    container: ghcr.io/biojppm/c4core/ubuntu18.04:latest  # use the docker image
     strategy:
       fail-fast: false
       matrix:
         include:
           #                                     VALGRIND
-          - {std: 11, cxx: g++-10, bt: Debug  , vg: ON, os: ubuntu-20.04}
-          - {std: 11, cxx: g++-10, bt: Release, vg: ON, os: ubuntu-20.04}
-          - {std: 14, cxx: g++-10, bt: Debug  , vg: ON, os: ubuntu-20.04}
-          - {std: 14, cxx: g++-10, bt: Release, vg: ON, os: ubuntu-20.04}
-          - {std: 17, cxx: g++-10, bt: Debug  , vg: ON, os: ubuntu-20.04}
-          - {std: 17, cxx: g++-10, bt: Release, vg: ON, os: ubuntu-20.04}
-          - {std: 20, cxx: g++-10, bt: Debug  , vg: ON, os: ubuntu-20.04}
-          - {std: 20, cxx: g++-10, bt: Release, vg: ON, os: ubuntu-20.04}
+          - {std: 11, cxx: g++-10, bt: Debug  , vg: ON}
+          - {std: 11, cxx: g++-10, bt: Release, vg: ON}
+          - {std: 14, cxx: g++-10, bt: Debug  , vg: ON}
+          - {std: 14, cxx: g++-10, bt: Release, vg: ON}
+          - {std: 17, cxx: g++-10, bt: Debug  , vg: ON}
+          - {std: 17, cxx: g++-10, bt: Release, vg: ON}
+          - {std: 20, cxx: g++-10, bt: Debug  , vg: ON}
+          - {std: 20, cxx: g++-10, bt: Release, vg: ON}
           #
-          - {std: 11, cxx: g++-9, bt: Debug  , os: ubuntu-20.04}
-          - {std: 11, cxx: g++-9, bt: Release, os: ubuntu-20.04}
-          - {std: 11, cxx: g++-8, bt: Debug  , os: ubuntu-20.04}
-          - {std: 11, cxx: g++-8, bt: Release, os: ubuntu-20.04}
-          - {std: 11, cxx: g++-7, bt: Debug  , os: ubuntu-20.04}
-          - {std: 11, cxx: g++-7, bt: Release, os: ubuntu-20.04}
-          - {std: 11, cxx: g++-6, bt: Debug  , os: ubuntu-18.04}
-          - {std: 11, cxx: g++-6, bt: Release, os: ubuntu-18.04}
-          - {std: 11, cxx: g++-5, bt: Debug  , os: ubuntu-18.04}
-          - {std: 11, cxx: g++-5, bt: Release, os: ubuntu-18.04}
-          - {std: 11, cxx: g++-4.8, bt: Debug, os: ubuntu-18.04}
-          - {std: 11, cxx: g++-4.8, bt: Release, os: ubuntu-18.04}
+          - {std: 11, cxx: g++-9, bt: Debug  }
+          - {std: 11, cxx: g++-9, bt: Release}
+          - {std: 11, cxx: g++-8, bt: Debug  }
+          - {std: 11, cxx: g++-8, bt: Release}
+          - {std: 11, cxx: g++-7, bt: Debug  }
+          - {std: 11, cxx: g++-7, bt: Release}
+          - {std: 11, cxx: g++-6, bt: Debug  }
+          - {std: 11, cxx: g++-6, bt: Release}
+          - {std: 11, cxx: g++-5, bt: Debug  }
+          - {std: 11, cxx: g++-5, bt: Release}
+          - {std: 11, cxx: g++-4.8, bt: Debug}
+          - {std: 11, cxx: g++-4.8, bt: Release}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
-      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test shared64
@@ -196,23 +174,29 @@ jobs:
   #----------------------------------------------------------------------------
   arm:
     continue-on-error: true
-    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ${{matrix.os}}
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct 
+    runs-on: ubuntu-latest
+    container: ghcr.io/biojppm/c4core/ubuntu18.04:latest  # use the docker image
     strategy:
       fail-fast: false
       matrix:
         include:
           # these jobs take much longer, so run only one bitlink pair per job to profit from parallelism
-          - {std: 11, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 11, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 14, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 14, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 17, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
-          - {std: 17, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-18.04}
+          - {std: 11, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 11, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 14, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 14, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 17, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
+          - {std: 17, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
     env: {TOOLCHAIN: "${{matrix.toolchain}}", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
-      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+      - name: install gcc-arm-linux-gnueabihf
+        run: |
+          set -x
+          apt-get update
+          apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test arm

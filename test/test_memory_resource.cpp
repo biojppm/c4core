@@ -10,6 +10,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 TEST_CASE("set_aalloc.basic")
 {
     auto a = get_aalloc();
@@ -103,34 +105,34 @@ void do_memreslinear_realloc_test(MemoryResourceLinear &mr)
     C4_ASSERT(mr.capacity() >= 128); // this is needed for the tests below
 
     char * mem = (char*) mr.allocate(32);
-    CHECK_EQ(mem-(char*)mr.mem(), 0);
+    CHECK_EQ(mem-(const char*)mr.mem(), 0);
     CHECK_EQ(mr.size(), 32);
     CHECK_EQ(mr.slack(), mr.capacity() - 32);
 
     mem = (char*) mr.reallocate(mem, 32, 16);
-    CHECK_EQ(mem-(char*)mr.mem(), 0);
+    CHECK_EQ(mem-(const char*)mr.mem(), 0);
     CHECK_EQ(mr.size(), 16);
     CHECK_EQ(mr.slack(), mr.capacity() - 16);
 
     mem = (char*) mr.reallocate(mem, 16, 64);
-    CHECK_EQ(mem-(char*)mr.mem(), 0);
+    CHECK_EQ(mem-(const char*)mr.mem(), 0);
     CHECK_EQ(mr.size(), 64);
     CHECK_EQ(mr.slack(), mr.capacity() - 64);
 
     mem = (char*) mr.reallocate(mem, 64, 32);
-    CHECK_EQ(mem-(char*)mr.mem(), 0);
+    CHECK_EQ(mem-(const char*)mr.mem(), 0);
     CHECK_EQ(mr.size(), 32);
     CHECK_EQ(mr.slack(), mr.capacity() - 32);
 
 
     char *mem2 = (char*) mr.allocate(32);
-    CHECK_EQ(mem-(char*)mr.mem(), 0);
-    CHECK_EQ(mem2-(char*)mr.mem(), 32);
+    CHECK_EQ(mem-(const char*)mr.mem(), 0);
+    CHECK_EQ(mem2-(const char*)mr.mem(), 32);
     CHECK_EQ(mr.size(), 64);
     CHECK_EQ(mr.slack(), mr.capacity() - 64);
 
     mem = (char*) mr.reallocate(mem, 32, 16);
-    CHECK_EQ(mem-(char*)mr.mem(), 0);
+    CHECK_EQ(mem-(const char*)mr.mem(), 0);
     CHECK_EQ(mr.size(), 64);
     CHECK_EQ(mr.slack(), mr.capacity() - 64);
 }
@@ -249,6 +251,8 @@ TEST_CASE("ScopedMemoryResourceCounts.counts")
     }
 
 }
+
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 

@@ -14,6 +14,8 @@
 
 namespace c4 {
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+
 /** default-construct an object, trivial version */
 template <class U> C4_ALWAYS_INLINE typename std::enable_if<std::is_trivially_default_constructible<U>::value, void>::type
 construct(U *ptr) noexcept
@@ -455,8 +457,8 @@ destroy_room(U *dst, U const* src, I n, I room, I pos)
     }
 }
 
-} // namespace c4
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
-#undef _C4REQUIRE
+} // namespace c4
 
 #endif /* _C4_CTOR_DTOR_HPP_ */

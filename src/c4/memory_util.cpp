@@ -3,13 +3,14 @@
 
 namespace c4 {
 
+
 /** Fills 'dest' with the first 'pattern_size' bytes at 'pattern', 'num_times'. */
 void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times)
 {
     if(C4_UNLIKELY(num_times == 0))
         return;
     C4_ASSERT( ! mem_overlaps(dest, pattern, num_times*pattern_size, pattern_size));
-    char *begin = (char*)dest;
+    char *begin = static_cast<char*>(dest);
     char *end   = begin + num_times * pattern_size;
     // copy the pattern once
     ::memcpy(begin, pattern, pattern_size);
@@ -26,5 +27,6 @@ void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num
         ::memcpy(begin + n, begin, static_cast<size_t>(end - (begin + n)));
     }
 }
+
 
 } // namespace c4
