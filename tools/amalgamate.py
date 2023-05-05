@@ -36,6 +36,12 @@ def amalgamate_c4core(filename: str,
 #include <type_traits>
 #include <cstring>
 """
+    required_charconv_include = """// this include is needed to work around conditional
+// includes in charconv.hpp
+#if __cplusplus >= 201703L
+#include <charconv>
+#endif
+"""
     srcblocks = [
         am.cmttext(f"""
 c4core - C++ utilities
@@ -84,6 +90,7 @@ INSTRUCTIONS:
         "src/c4/std/vector_fwd.hpp",
         "src/c4/std/string_fwd.hpp",
         "src/c4/std/std_fwd.hpp",
+        am.injcode(required_charconv_include),
         "src/c4/charconv.hpp",
         "src/c4/utf.hpp",
         "src/c4/format.hpp",

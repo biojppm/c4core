@@ -359,6 +359,8 @@ struct srcloc
 // helpers for warning suppression
 // idea adapted from https://github.com/onqtam/doctest/
 
+// TODO: add C4_MESSAGE() https://stackoverflow.com/questions/18252351/custom-preprocessor-macro-for-a-conditional-pragma-message-xxx?rq=1
+
 
 #ifdef C4_MSVC
 #define C4_SUPPRESS_WARNING_MSVC_PUSH __pragma(warning(push))
