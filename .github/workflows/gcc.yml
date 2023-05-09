@@ -37,18 +37,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-7      , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-7      , bt: Release, bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10     , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10     , bt: Release, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-5      , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-5      , bt: Release, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-4.8    , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-4.8    , bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-7  , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-7  , bt: Release, bitlinks: shared64 static32}
+          - {std: 20, cxx: g++-10 , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 20, cxx: g++-10 , bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-5  , bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-5  , bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-4.8, bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-4.8, bt: Release, bitlinks: shared64 static32}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+      - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test shared64
@@ -90,6 +91,7 @@ jobs:
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+      - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test shared64
@@ -149,6 +151,7 @@ jobs:
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+      - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test shared64
@@ -194,9 +197,8 @@ jobs:
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - name: install gcc-arm-linux-gnueabihf
         run: |
-          set -x
-          apt-get update
-          apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+          c4core-install arm-linux-gnueabihf
+          c4core-install qemu
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: configure---------------------------------------------------
         run: source .github/setenv.sh && c4_cfg_test arm
