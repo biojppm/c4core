@@ -16,7 +16,7 @@
   - `C4_RTTI`: defined when rtti is enabled
   - `C4_IF_RTTI(code_with_rtti, code_without_rtti)`: select statements for rtti enabled/disabled
   - `C4_IF_RTTI_(code_with_rtti, code_without_rtti)`: select code tokens for rtti enabled/disabled
-- Add partial support for XTENSA processors (missing implementation of `c4::aalloc()`) ([PR#108](https://github.com/biojppm/c4core/pull/108)). See [rapidyaml#358](https://github.com/biojppm/rapidyaml/issues/358).
+- [PR#109](https://github.com/biojppm/c4core/pull/109): Add partial support for XTENSA processors (missing implementation of `c4::aalloc()`). See [rapidyaml#358](https://github.com/biojppm/rapidyaml/issues/358).
 
 
 ### Fixes
