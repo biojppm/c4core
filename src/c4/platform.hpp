@@ -30,6 +30,8 @@
 #   define C4_UNIX
 #elif defined(__arm__) || defined(__aarch64__)
 #   define C4_ARM
+#elif defined(__xtensa__) || defined(__XTENSA__)
+#   define C4_XTENSA
 #elif defined(SWIG)
 #   define C4_SWIG
 #else
