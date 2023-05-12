@@ -10,24 +10,263 @@
 
 namespace c4 {
 
-TEST_CASE("substr.ctor_from_char")
+TEST_CASE("substr.empty_ctor")
 {
-    char buf1[] = "{foo: 1}";
-    char buf2[] = "{foo: 2}";
-    substr s(buf1);
-    CHECK_EQ(s, "{foo: 1}");
-    s = buf2;
-    CHECK_EQ(s, "{foo: 2}");
+    {
+        substr s;
+        CHECK_EQ(s.str, nullptr);
+        CHECK_EQ(s.len, 0u);
+    }
+    {
+        csubstr s;
+        CHECK_EQ(s.str, nullptr);
+        CHECK_EQ(s.len, 0u);
+    }
+    {
+        substr s = {};
+        CHECK_EQ(s.str, nullptr);
+        CHECK_EQ(s.len, 0u);
+    }
+    {
+        csubstr s = {};
+        CHECK_EQ(s.str, nullptr);
+        CHECK_EQ(s.len, 0u);
+    }
 }
 
-TEST_CASE("csubstr.ctor_from_char")
+TEST_CASE("substr.ctor_from_char_arr")
 {
-    char buf1[] = "{foo: 1}";
-    char buf2[] = "{foo: 2}";
-    csubstr s(buf1);
-    CHECK_EQ(s, "{foo: 1}");
-    s = buf2;
-    CHECK_EQ(s, "{foo: 2}");
+    SUBCASE("substr from char")
+    {
+        char buf1[] = "01";
+        char buf2[] = "012";
+        substr s(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = buf2;
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        s.assign(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = to_substr(buf2);
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        //s = to_csubstr(buf1); // deliberate compile error
+        //CHECK_EQ(s, "01");
+        //CHECK_EQ(s.str, buf1);
+        //CHECK_EQ(s.len, strlen(buf1));
+    }
+    SUBCASE("csubstr from char")
+    {
+        char buf1[] = "01";
+        char buf2[] = "012";
+        csubstr s(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = buf2;
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        s.assign(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = to_substr(buf2);
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        s = to_csubstr(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+    }
+    SUBCASE("csubstr from const char")
+    {
+        const char buf1[] = "01";
+        const char buf2[] = "012";
+        csubstr s(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = buf2;
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        s.assign(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        // s = to_substr(buf2); // deliberate compile error
+        s = to_csubstr(buf2);
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+    }
+}
+
+TEST_CASE("substr.ctor_from_char_ptr")
+{
+    {
+        char buf1_[] = "01";
+        char buf2_[] = "012";
+        char *buf1 = buf1_;
+        char *buf2 = buf2_;
+        substr s(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = buf2;
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        s.assign(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = to_substr(buf2);
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        //s = to_csubstr(buf1);  // deliberate compile error
+        //CHECK_EQ(s, "01");
+        //CHECK_EQ(s.str, buf1);
+        //CHECK_EQ(s.len, strlen(buf1));
+    }
+    {
+        char buf1_[] = "01";
+        char buf2_[] = "012";
+        char *buf1 = buf1_;
+        char *buf2 = buf2_;
+        csubstr s(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = buf2;
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        s.assign(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = to_substr(buf2);
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        s = to_csubstr(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+    }
+    {
+        const char buf1_[] = "01";
+        const char buf2_[] = "012";
+        const char *buf1 = buf1_;
+        const char *buf2 = buf2_;
+        csubstr s(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        s = buf2;
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+        s.assign(buf1);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, strlen(buf1));
+        //s = to_substr(buf2);  // deliberate compile error
+        s = to_csubstr(buf2);
+        CHECK_EQ(s, "012");
+        CHECK_EQ(s.str, buf2);
+        CHECK_EQ(s.len, strlen(buf2));
+    }
+}
+
+TEST_CASE("substr.ctor_from_two_ptrs")
+{
+    {
+        char buf1_[] = "0123456789";
+        char *buf1 = buf1_;
+        substr s(buf1 + 1, buf1_ + 5);
+        CHECK_EQ(s, "1234");
+        CHECK_EQ(s.str, buf1 + 1);
+        CHECK_EQ(s.len, 4);
+        s.assign(buf1, buf1 + 2);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, 2);
+    }
+    {
+        char buf1_[] = "0123456789";
+        char *buf1 = buf1_;
+        csubstr s(buf1 + 1, buf1_ + 5);
+        CHECK_EQ(s, "1234");
+        CHECK_EQ(s.str, buf1 + 1);
+        CHECK_EQ(s.len, 4);
+        s.assign(buf1, buf1 + 2);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, 2);
+    }
+    {
+        const char buf1_[] = "0123456789";
+        const char *buf1 = buf1_;
+        csubstr s(buf1 + 1, buf1_ + 5);
+        CHECK_EQ(s, "1234");
+        CHECK_EQ(s.str, buf1 + 1);
+        CHECK_EQ(s.len, 4);
+        s.assign(buf1, buf1 + 2);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, 2);
+    }
+}
+
+TEST_CASE("substr.ctor_from_ptr_len")
+{
+    {
+        char buf1_[] = "0123456789";
+        char *buf1 = buf1_;
+        substr s(buf1 + 1, 4);
+        CHECK_EQ(s, "1234");
+        CHECK_EQ(s.str, buf1 + 1);
+        CHECK_EQ(s.len, 4);
+        s.assign(buf1, 2);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, 2);
+    }
+    {
+        char buf1_[] = "0123456789";
+        char *buf1 = buf1_;
+        csubstr s(buf1 + 1, 4);
+        CHECK_EQ(s, "1234");
+        CHECK_EQ(s.str, buf1 + 1);
+        CHECK_EQ(s.len, 4);
+        s.assign(buf1, 2);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, 2);
+    }
+    {
+        const char buf1_[] = "0123456789";
+        const char *buf1 = buf1_;
+        csubstr s(buf1 + 1, 4);
+        CHECK_EQ(s, "1234");
+        CHECK_EQ(s.str, buf1 + 1);
+        CHECK_EQ(s.len, 4);
+        s.assign(buf1, 2);
+        CHECK_EQ(s, "01");
+        CHECK_EQ(s.str, buf1);
+        CHECK_EQ(s.len, 2);
+    }
 }
 
 TEST_CASE("csubstr.empty_vs_null")
@@ -1024,11 +1263,11 @@ TEST_CASE("substr.right_of")
     CHECK_UNARY(s.is_super(s.right_of(s.sub(0, 6))));
 }
 
-TEST_CASE("substr.compare_different_length")
+TEST_CASE_TEMPLATE("substr.compare_different_length", SS, csubstr, substr)
 {
-    const char s1[] = "one empty doc";
-    const char s2[] = "one empty doc, explicit termination";
-    csubstr c1(s1), c2(s2);
+    typename SS::char_type s1[] = "one empty doc";
+    typename SS::char_type s2[] = "one empty doc, explicit termination";
+    SS c1(s1), c2(s2);
     CHECK_NE(c1, c2);
     CHECK_NE(c1, s2);
     CHECK_NE(s1, c2);
@@ -1052,9 +1291,10 @@ TEST_CASE("substr.compare_different_length")
     CHECK_NE((s2 == c1), (s2 != c1));
 }
 
-TEST_CASE("substr.compare_null")
+TEST_CASE_TEMPLATE("substr.compare_null", SS, csubstr, substr)
 {
-    csubstr s1, s2, sp(" ");
+    typename SS::char_type spbuf[] = " ";
+    SS s1, s2, sp(spbuf);
     CHECK_EQ(s1, "");
     CHECK_EQ(s1, s2);
     CHECK(!(s1 > s2));
@@ -1072,38 +1312,67 @@ TEST_CASE("substr.compare_null")
     CHECK_EQ(sp.compare(" ", 1u), 0);
 }
 
-TEST_CASE("substr.compare_vs_char")
+TEST_CASE_TEMPLATE("substr.compare_vs_char", SS, csubstr, substr)
 {
-    CHECK_EQ(csubstr().compare('1'), -1); // str==null, len==0
-    CHECK_EQ(csubstr("0123").first(0).compare('1'), -1); // str!=null, len==0
-    CHECK_EQ(csubstr("0123").first(1).compare('1'), -1);
+    CHECK_EQ(SS().compare('1'), -1); // str==null, len==0
+    typename SS::char_type numbuf[] = "0123"; SS num(numbuf);
+    CHECK_EQ(num.first(0).compare('1'), -1); // str!=null, len==0
+    CHECK_EQ(num.first(1).compare('1'), -1);
 
-    CHECK_EQ(csubstr("-"), '-');
-    CHECK_NE(csubstr("+"), '-');
+    typename SS::char_type dashbuf[] = "-"; SS dash(dashbuf);
+    CHECK_EQ(dash, '-');
+    CHECK_EQ(dash, "-");
+    CHECK_EQ('-', dash);
+    CHECK_EQ("-", dash);
 
-    CHECK_NE(csubstr("---"), '-');
-    CHECK_NE(csubstr("---"), "-");
+    typename SS::char_type plusbuf[] = "+"; SS plus(plusbuf);
+    CHECK_NE(plus, '-');
+    CHECK_NE(plus, "-");
+    CHECK_NE('-', plus);
+    CHECK_NE("-", plus);
 
-    CHECK_NE(csubstr("aaa"), 'a');
-    CHECK_NE(csubstr("aaa"), "a");
+    typename SS::char_type dash3buf[] = "---"; SS dash3(dash3buf);
+    CHECK_NE(dash3, '-');
+    CHECK_NE(dash3, "-");
+    CHECK_NE('-', dash3);
+    CHECK_NE("-", dash3);
 
-    CHECK_NE(csubstr("aaa"), 'b');
-    CHECK_NE(csubstr("aaa"), "b");
+    typename SS::char_type aaabuf[] = "aaa"; SS aaa(aaabuf);
+    CHECK_NE(aaa, 'a');
+    CHECK_NE(aaa, "a");
+    CHECK_NE('a', aaa);
+    CHECK_NE("a", aaa);
 
-    CHECK_LT(csubstr("aaa"), 'b');
-    CHECK_LT(csubstr("aaa"), "b");
+    CHECK_NE(aaa, 'b');
+    CHECK_NE(aaa, "b");
+    CHECK_NE('b', aaa);
+    CHECK_NE("b", aaa);
 
-    CHECK_LE(csubstr("aaa"), 'b');
-    CHECK_LE(csubstr("aaa"), "b");
+    CHECK_LT(aaa, 'b');
+    CHECK_LT(aaa, "b");
+    CHECK_GT('b', aaa);
+    CHECK_GT("b", aaa);
 
-    CHECK_NE(csubstr("bbb"), 'a');
-    CHECK_NE(csubstr("bbb"), "a");
+    CHECK_LE(aaa, 'b');
+    CHECK_LE(aaa, "b");
+    CHECK_GE('b', aaa);
+    CHECK_GE("b", aaa);
 
-    CHECK_GT(csubstr("bbb"), 'a');
-    CHECK_GT(csubstr("bbb"), "a");
+    typename SS::char_type bbbbuf[] = "bbb"; SS bbb(bbbbuf);
+    CHECK_NE(bbb, 'a');
+    CHECK_NE(bbb, "a");
+    CHECK_NE('a', bbb);
+    CHECK_NE("a", bbb);
 
-    CHECK_GE(csubstr("bbb"), 'a');
-    CHECK_GE(csubstr("bbb"), "a");
+    CHECK_GT(bbb, 'a');
+    CHECK_GT(bbb, "a");
+    CHECK_LT('a', bbb);
+    CHECK_LT("a", bbb);
+
+    CHECK_GE(bbb, 'a');
+    CHECK_GE(bbb, "a");
+    CHECK_LE('a', bbb);
+    CHECK_LE("a", bbb);
 }
 
 TEST_CASE("substr.mixed_cmp")
@@ -1161,21 +1430,26 @@ TEST_CASE("substr.mixed_cmp")
     CHECK_GE( sb, csb);
 }
 
-TEST_CASE("substr.eqne")
+TEST_CASE_TEMPLATE("substr.eqne", SS, csubstr, substr)
 {
     char buf[128];
     for(size_t i = 0; i < 5; ++i) buf[i] = (char)('0' + i);
-    csubstr cmp(buf, 5);
+    SS cmp(buf, 5);
 
-    CHECK_EQ(csubstr("01234"), cmp);
-    CHECK_EQ(        "01234" , cmp);
-    CHECK_EQ(             cmp, "01234");
-    CHECK_NE(csubstr("0123"), cmp);
-    CHECK_NE(        "0123" , cmp);
-    CHECK_NE(            cmp, "0123");
-    CHECK_NE(csubstr("012345"), cmp);
-    CHECK_NE(        "012345" , cmp);
-    CHECK_NE(              cmp, "012345");
+    typename SS::char_type buf2[] = "0123456789";
+    SS ref(buf2);
+
+    CHECK_EQ(ref.first(5), cmp);
+    CHECK_EQ("01234", cmp);
+    CHECK_EQ(cmp, "01234");
+
+    CHECK_NE(ref.first(4), cmp);
+    CHECK_NE("0123", cmp);
+    CHECK_NE(cmp, "0123");
+
+    CHECK_NE(ref.first(6), cmp);
+    CHECK_NE("012345", cmp);
+    CHECK_NE(cmp, "012345");
 }
 
 TEST_CASE("substr.substr2csubstr")

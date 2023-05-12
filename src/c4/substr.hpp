@@ -54,20 +54,12 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 #define C4_REQUIRE_RW(ret_type) \
     template <typename U=C> \
     typename std::enable_if< ! std::is_const<U>::value, ret_type>::type
-// non-const-to-const
-#define C4_NC2C(ty) \
-    typename std::enable_if<std::is_const<C>::value && ( ! std::is_const<ty>::value), ty>::type
 
 
 /** a non-owning string-view, consisting of a character pointer
  * and a length.
  *
  * @note The pointer is explicitly restricted.
- * @note Because of a C++ limitation, there cannot coexist overloads for
- * constructing from a char[N] and a char*; the latter will always be chosen
- * by the compiler. To construct an object of this type, call to_substr() or
- * to_csubstr(). For a more detailed explanation on why the overloads cannot
- * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html
  *
  * @see to_substr()
  * @see to_csubstr()
@@ -102,7 +94,11 @@ public:
     enum : size_t { npos = (size_t)-1, NONE = (size_t)-1 };
 
     /// convert automatically to substring of const C
-    operator ro_substr () const { ro_substr s(str, len); return s; }
+    template<class U=C>
+    C4_ALWAYS_INLINE operator typename std::enable_if<!std::is_const<U>::value, ro_substr const&>::type () const noexcept
+    {
+        return *(ro_substr const*)this; // don't call the str+len ctor because it does a check
+    }
 
     /** @} */
 
@@ -111,15 +107,17 @@ public:
     /** @name Default construction and assignment */
     /** @{ */
 
-    constexpr basic_substring() : str(nullptr), len(0) {}
+    C4_ALWAYS_INLINE constexpr basic_substring() noexcept : str(), len() {}
 
-    constexpr basic_substring(basic_substring const&) = default;
-    constexpr basic_substring(basic_substring     &&) = default;
-    constexpr basic_substring(std::nullptr_t) : str(nullptr), len(0) {}
+    C4_ALWAYS_INLINE basic_substring(basic_substring const&) noexcept = default;
+    C4_ALWAYS_INLINE basic_substring(basic_substring     &&) noexcept = default;
+    C4_ALWAYS_INLINE basic_substring(std::nullptr_t) noexcept : str(nullptr), len(0) {}
 
-    basic_substring& operator= (basic_substring const&) = default;
-    basic_substring& operator= (basic_substring     &&) = default;
-    basic_substring& operator= (std::nullptr_t) { str = nullptr; len = 0; return *this; }
+    C4_ALWAYS_INLINE basic_substring& operator= (basic_substring const&) noexcept = default;
+    C4_ALWAYS_INLINE basic_substring& operator= (basic_substring     &&) noexcept = default;
+    C4_ALWAYS_INLINE basic_substring& operator= (std::nullptr_t) noexcept { str = nullptr; len = 0; return *this; }
+
+    C4_ALWAYS_INLINE void clear() noexcept { str = nullptr; len = 0; }
 
     /** @} */
 
@@ -128,62 +126,60 @@ public:
     /** @name Construction and assignment from characters with the same type */
     /** @{ */
 
-    //basic_substring(C *s_) : str(s_), len(s_ ? strlen(s_) : 0) {}
-    /** the overload for receiving a single C* pointer will always
-     * hide the array[N] overload. So it is disabled. If you want to
-     * construct a substr from a single pointer containing a C-style string,
-     * you can call c4::to_substr()/c4::to_csubstr().
-     * @see c4::to_substr()
-     * @see c4::to_csubstr() */
+    /** Construct from an array.
+     * @warning the input string need not be zero terminated, but the
+     * length is taken as if the string was zero terminated */
     template<size_t N>
-    constexpr basic_substring(C (&s_)[N]) noexcept : str(s_), len(N-1) {}
-    basic_substring(C *s_, size_t len_) : str(s_), len(len_) { C4_ASSERT(str || !len_); }
-    basic_substring(C *beg_, C *end_) : str(beg_), len(static_cast<size_t>(end_ - beg_)) { C4_ASSERT(end_ >= beg_); }
+    C4_ALWAYS_INLINE constexpr basic_substring(C (&s_)[N]) noexcept : str(s_), len(N-1) {}
+    /** Construct from a pointer and length.
+     * @warning the input string need not be zero terminated. */
+    C4_ALWAYS_INLINE basic_substring(C *s_, size_t len_) noexcept : str(s_), len(len_) { C4_ASSERT(str || !len_); }
+    /** Construct from two pointers.
+     * @warning the end pointer MUST BE larger than or equal to the begin pointer
+     * @warning the input string need not be zero terminated */
+    C4_ALWAYS_INLINE basic_substring(C *beg_, C *end_) noexcept : str(beg_), len(static_cast<size_t>(end_ - beg_)) { C4_ASSERT(end_ >= beg_); }
+    /** Construct from a C-string (zero-terminated string)
+     * @warning the input string MUST BE zero terminated.
+     * @warning will call strlen()
+     * @note this overload uses SFINAE to prevent it from overriding the array ctor
+     * @see For a more detailed explanation on why the plain overloads cannot
+     * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+    template<class U, typename std::enable_if<std::is_same<U, C*>::value || std::is_same<U, NCC_*>::value, int>::type=0>
+    C4_ALWAYS_INLINE basic_substring(U s_) noexcept : str(s_), len(s_ ? strlen(s_) : 0) {}
 
-    //basic_substring& operator= (C *s_) { this->assign(s_); return *this; }
+    /** Assign from an array.
+     * @warning the input string need not be zero terminated, but the
+     * length is taken as if the string was zero terminated */
     template<size_t N>
-    basic_substring& operator= (C (&s_)[N]) { this->assign<N>(s_); return *this; }
+    C4_ALWAYS_INLINE void assign(C (&s_)[N]) noexcept { str = (s_); len = (N-1); }
+    /** Assign from a pointer and length.
+     * @warning the input string need not be zero terminated. */
+    C4_ALWAYS_INLINE void assign(C *s_, size_t len_) noexcept { str = s_; len = len_; C4_ASSERT(str || !len_); }
+    /** Assign from two pointers.
+     * @warning the end pointer MUST BE larger than or equal to the begin pointer
+     * @warning the input string need not be zero terminated. */
+    C4_ALWAYS_INLINE void assign(C *beg_, C *end_) noexcept { C4_ASSERT(end_ >= beg_); str = (beg_); len = static_cast<size_t>(end_ - beg_); }
+    /** Assign from a C-string (zero-terminated string)
+     * @warning the input string must be zero terminated.
+     * @warning will call strlen()
+     * @note this overload uses SFINAE to prevent it from overriding the array ctor
+     * @see For a more detailed explanation on why the plain overloads cannot
+     * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+    template<class U, typename std::enable_if<std::is_same<U, C*>::value || std::is_same<U, NCC_*>::value, int>::type=0>
+    C4_ALWAYS_INLINE void assign(U s_) noexcept { str = (s_); len = (s_ ? strlen(s_) : 0); }
 
-    //void assign(C *s_) { str = (s_); len = (s_ ? strlen(s_) : 0); }
-    /** the overload for receiving a single C* pointer will always
-     * hide the array[N] overload. So it is disabled. If you want to
-     * construct a substr from a single pointer containing a C-style string,
-     * you can call c4::to_substr()/c4::to_csubstr().
-     * @see c4::to_substr()
-     * @see c4::to_csubstr() */
+    /** Assign from an array.
+     * @warning the input string need not be zero terminated. */
     template<size_t N>
-    void assign(C (&s_)[N]) { str = (s_); len = (N-1); }
-    void assign(C *s_, size_t len_) { str = s_; len = len_; C4_ASSERT(str || !len_); }
-    void assign(C *beg_, C *end_) { C4_ASSERT(end_ >= beg_); str = (beg_); len = (end_ - beg_); }
-
-    void clear() { str = nullptr; len = 0; }
-
-    /** @} */
-
-public:
-
-    /** @name Construction from non-const characters */
-    /** @{ */
-
-    // when the char type is const, allow construction and assignment from non-const chars
-
-    /** only available when the char type is const */
-    template<size_t N, class U=NCC_> explicit basic_substring(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
-    /** only available when the char type is const */
-    template<          class U=NCC_>          basic_substring(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
-    /** only available when the char type is const */
-    template<          class U=NCC_>          basic_substring(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
-
-    /** only available when the char type is const */
-    template<size_t N, class U=NCC_> void assign(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; }
-    /** only available when the char type is const */
-    template<          class U=NCC_> void assign(C4_NC2C(U) *s_, size_t len_) { str = s_; len = len_; }
-    /** only available when the char type is const */
-    template<          class U=NCC_> void assign(C4_NC2C(U) *beg_, C4_NC2C(U) *end_) { C4_ASSERT(end_ >= beg_); str = beg_; len = end_ - beg_;  }
-
-    /** only available when the char type is const */
-    template<size_t N, class U=NCC_>
-    basic_substring& operator=(C4_NC2C(U) (&s_)[N]) { str = s_; len = N-1; return *this; }
+    C4_ALWAYS_INLINE basic_substring& operator= (C (&s_)[N]) noexcept { str = (s_); len = (N-1); return *this; }
+    /** Assign from a C-string (zero-terminated string)
+     * @warning the input string MUST BE zero terminated.
+     * @warning will call strlen()
+     * @note this overload uses SFINAE to prevent it from overriding the array ctor
+     * @see For a more detailed explanation on why the plain overloads cannot
+     * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+    template<class U, typename std::enable_if<std::is_same<U, C*>::value || std::is_same<U, NCC_*>::value, int>::type=0>
+    C4_ALWAYS_INLINE basic_substring& operator= (U s_) noexcept { str = s_; len = s_ ? strlen(s_) : 0; return *this; }
 
     /** @} */
 
@@ -2106,95 +2102,69 @@ public:
 
 
 #undef C4_REQUIRE_RW
-#undef C4_REQUIRE_RO
-#undef C4_NC2C
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** Because of a C++ limitation, substr cannot provide simultaneous
- * overloads for constructing from a char[N] and a char*; the latter
- * will always be chosen by the compiler. So this specialization is
- * provided to simplify obtaining a substr from a char*. Being a
- * function has the advantage of highlighting the strlen() cost.
- *
- * @see to_csubstr
- * @see For a more detailed explanation on why the overloads cannot
- * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
-inline substr to_substr(char *s)
-{
-    return substr(s, s ? strlen(s) : 0);
-}
 
-/** Because of a C++ limitation, substr cannot provide simultaneous
- * overloads for constructing from a char[N] and a char*; the latter
- * will always be chosen by the compiler. So this specialization is
- * provided to simplify obtaining a substr from a char*. Being a
- * function has the advantage of highlighting the strlen() cost.
- *
- * @see to_substr
- * @see For a more detailed explanation on why the overloads cannot
- * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
-inline csubstr to_csubstr(char *s)
-{
-    return csubstr(s, s ? strlen(s) : 0);
-}
-
-/** Because of a C++ limitation, substr cannot provide simultaneous
- * overloads for constructing from a const char[N] and a const char*;
- * the latter will always be chosen by the compiler. So this
- * specialization is provided to simplify obtaining a substr from a
- * char*. Being a function has the advantage of highlighting the
- * strlen() cost.
- *
- * @overload to_csubstr
- * @see to_substr
- * @see For a more detailed explanation on why the overloads cannot
- * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
-inline csubstr to_csubstr(const char *s)
-{
-    return csubstr(s, s ? strlen(s) : 0);
-}
+/** @name Adapter functions. to_substr() and to_csubstr() is used in
+ * generic code like format(), and allow adding construction of
+ * substrings from new types like containers. */
+/** @{ */
 
 
 /** neutral version for use in generic code */
-inline csubstr to_csubstr(csubstr s)
-{
-    return s;
-}
-
+C4_ALWAYS_INLINE substr to_substr(substr s) noexcept { return s; }
 /** neutral version for use in generic code */
-inline csubstr to_csubstr(substr s)
-{
-    return s;
-}
-
+C4_ALWAYS_INLINE csubstr to_csubstr(substr s) noexcept { return s; }
 /** neutral version for use in generic code */
-inline substr to_substr(substr s)
-{
-    return s;
-}
+C4_ALWAYS_INLINE csubstr to_csubstr(csubstr s) noexcept { return s; }
+
+
+template<size_t N>
+C4_ALWAYS_INLINE substr
+to_substr(char (&s)[N]) noexcept { substr ss(s, N-1); return ss; }
+template<size_t N>
+C4_ALWAYS_INLINE csubstr
+to_csubstr(const char (&s)[N]) noexcept { csubstr ss(s, N-1); return ss; }
+
+
+/** @note this overload uses SFINAE to prevent it from overriding the array overload
+ * @see For a more detailed explanation on why the plain overloads cannot
+ * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+template<class U>
+C4_ALWAYS_INLINE typename std::enable_if<std::is_same<U, char*>::value, substr>::type
+to_substr(U s) noexcept { substr ss(s); return ss; }
+/** @note this overload uses SFINAE to prevent it from overriding the array overload
+ * @see For a more detailed explanation on why the plain overloads cannot
+ * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+template<class U>
+C4_ALWAYS_INLINE typename std::enable_if<std::is_same<U, const char*>::value || std::is_same<U, char*>::value, csubstr>::type
+to_csubstr(U s) noexcept { csubstr ss(s); return ss; }
+
+
+/** @} */
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-template<typename C, size_t N> inline bool operator== (const C (&s)[N], basic_substring<C> const that) { return that.compare(s) == 0; }
-template<typename C, size_t N> inline bool operator!= (const C (&s)[N], basic_substring<C> const that) { return that.compare(s) != 0; }
-template<typename C, size_t N> inline bool operator<  (const C (&s)[N], basic_substring<C> const that) { return that.compare(s) >  0; }
-template<typename C, size_t N> inline bool operator>  (const C (&s)[N], basic_substring<C> const that) { return that.compare(s) <  0; }
-template<typename C, size_t N> inline bool operator<= (const C (&s)[N], basic_substring<C> const that) { return that.compare(s) >= 0; }
-template<typename C, size_t N> inline bool operator>= (const C (&s)[N], basic_substring<C> const that) { return that.compare(s) <= 0; }
+template<typename C, size_t N> inline bool operator== (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) == 0; }
+template<typename C, size_t N> inline bool operator!= (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) != 0; }
+template<typename C, size_t N> inline bool operator<  (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) >  0; }
+template<typename C, size_t N> inline bool operator>  (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) <  0; }
+template<typename C, size_t N> inline bool operator<= (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) >= 0; }
+template<typename C, size_t N> inline bool operator>= (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) <= 0; }
 
-template<typename C> inline bool operator== (C const c, basic_substring<C> const that) { return that.compare(c) == 0; }
-template<typename C> inline bool operator!= (C const c, basic_substring<C> const that) { return that.compare(c) != 0; }
-template<typename C> inline bool operator<  (C const c, basic_substring<C> const that) { return that.compare(c) >  0; }
-template<typename C> inline bool operator>  (C const c, basic_substring<C> const that) { return that.compare(c) <  0; }
-template<typename C> inline bool operator<= (C const c, basic_substring<C> const that) { return that.compare(c) >= 0; }
-template<typename C> inline bool operator>= (C const c, basic_substring<C> const that) { return that.compare(c) <= 0; }
+template<typename C> inline bool operator== (const char c, basic_substring<C> const that) noexcept { return that.compare(c) == 0; }
+template<typename C> inline bool operator!= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) != 0; }
+template<typename C> inline bool operator<  (const char c, basic_substring<C> const that) noexcept { return that.compare(c) >  0; }
+template<typename C> inline bool operator>  (const char c, basic_substring<C> const that) noexcept { return that.compare(c) <  0; }
+template<typename C> inline bool operator<= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) >= 0; }
+template<typename C> inline bool operator>= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) <= 0; }
 
 
 //-----------------------------------------------------------------------------

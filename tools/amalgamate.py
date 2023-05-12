@@ -102,6 +102,7 @@ INSTRUCTIONS:
         "src/c4/base64.hpp",
         am.onlyif(with_stl, am.ignfile("src/c4/std/std.hpp")), # this is an umbrella include
         am.onlyif(with_stl, "src/c4/std/string.hpp"),
+        am.onlyif(with_stl, "src/c4/std/string_view.hpp"),
         am.onlyif(with_stl, "src/c4/std/vector.hpp"),
         am.onlyif(with_stl, "src/c4/std/tuple.hpp"),
         "src/c4/ext/rng/rng.hpp",

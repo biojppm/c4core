@@ -2,6 +2,7 @@
 #ifndef C4CORE_SINGLE_HEADER
 #include "c4/std/string_fwd.hpp"
 #include "c4/std/string.hpp"
+#include "c4/std/string_view.hpp"
 #endif
 
 namespace c4 {
@@ -28,12 +29,26 @@ TEST_CASE("std_string.to_csubstr")
     CHECK_EQ(ss[0], 'B');
 }
 
-TEST_CASE("std_string.compare_csubstr")
+#if (C4_CPP >= 17 && defined(__cpp_lib_string_view))
+TEST_CASE("std_string_view.to_csubstr")
 {
-    std::string s0 = "000";
-    std::string s1 = "111";
-    csubstr ss0 = "000";
-    csubstr ss1 = "111";
+    std::string_view s("barnabe");
+    csubstr ss = to_csubstr(s);
+    CHECK_EQ(ss.str, s.data());
+    CHECK_EQ(ss.len, s.size());
+}
+#endif
+
+#if (C4_CPP >= 17 && defined(__cpp_lib_string_view))
+TEST_CASE_TEMPLATE("std_string.compare_csubstr", T, std::string, std::string_view)
+#else
+TEST_CASE_TEMPLATE("std_string.compare_csubstr", T, std::string)
+#endif
+{
+    T s0 = "000";
+    T s1 = "111";
+    csubstr ss0 = csubstr("0001").first(3);
+    csubstr ss1 = csubstr("1112").first(3);
     CHECK_NE(s0.data(), ss0.data());
     CHECK_NE(s1.data(), ss1.data());
     //
@@ -62,10 +77,14 @@ TEST_CASE("std_string.compare_csubstr")
     CHECK_LT(ss0, s1);
 }
 
-TEST_CASE("std_string.compare_substr")
+#if (C4_CPP >= 17 && defined(__cpp_lib_string_view))
+TEST_CASE_TEMPLATE("std_string.compare_substr", T, std::string, std::string_view)
+#else
+TEST_CASE_TEMPLATE("std_string.compare_substr", T, std::string)
+#endif
 {
-    std::string s0 = "000";
-    std::string s1 = "111";
+    T s0 = "000";
+    T s1 = "111";
     char buf0[] = "000";
     char buf1[] = "111";
     substr ss0 = buf0;
@@ -98,9 +117,13 @@ TEST_CASE("std_string.compare_substr")
     CHECK_LT(ss0, s1);
 }
 
-TEST_CASE("std_string.to_chars")
+#if (C4_CPP >= 17 && defined(__cpp_lib_string_view))
+TEST_CASE_TEMPLATE("std_string.to_chars", T, std::string, std::string_view)
+#else
+TEST_CASE_TEMPLATE("std_string.to_chars", T, std::string)
+#endif
 {
-    const std::string s0 = "000";
+    const T s0 = "000";
     char buf_[100] = {};
     substr buf = buf_;
     CHECK_NE(buf.data(), s0.data());
