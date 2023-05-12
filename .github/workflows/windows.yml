@@ -28,7 +28,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   windows:
-    name: win/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    name: ${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -85,7 +85,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   windows_noexc:
-    name: win_noexc/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    name: noexc/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}
@@ -126,9 +126,56 @@ jobs:
       - {name: static32-pack, run: source .github/setenv.sh && c4_package static32}
 
   #----------------------------------------------------------------------------
+  windows_clang:
+    name: clang/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          - {std: 14, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 14, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          - {std: 17, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 17, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}",
+          BDIR: "build_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}",
+          IDIR: "install_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}"
+    }
+    steps:
+      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: show info, run: source .github/setenv.sh && c4_show_info}
+      - name: configure
+        run: |
+          set -x
+          echo BDIR=$BDIR
+          echo IDIR=$IDIR
+          cmake -S . -B $BDIR \
+            -G "Unix Makefiles" \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_INSTALL_PREFIX=$IDIR \
+            -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
+            -DC4_CXX_STANDARD=${{matrix.std}} \
+            -DCXX_STANDARD=${{matrix.std}} \
+            -DC4CORE_DEV=ON \
+            -DC4CORE_BUILD_BENCHMARKS=OFF \
+            -DC4CORE_SANITIZE=OFF \
+            -DC4CORE_LINT=OFF \
+            -DC4CORE_VALGRIND=OFF
+      - name: build
+        run: cmake --build $BDIR -j --target c4core-test-build
+      - name: run
+        run: cmake --build $BDIR -j --target c4core-test-run
+
+  #----------------------------------------------------------------------------
   # TODO how to run?
   windows_arm:
-    name: win_arm/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    name: arm/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ${{matrix.os}}

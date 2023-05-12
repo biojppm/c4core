@@ -1,7 +1,7 @@
 #ifndef _C4_EXT_FAST_FLOAT_HPP_
 #define _C4_EXT_FAST_FLOAT_HPP_
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #   pragma warning(push)
 #   pragma warning(disable: 4365) // '=': conversion from 'const _Ty' to 'fast_float::limb', signed/unsigned mismatch
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe

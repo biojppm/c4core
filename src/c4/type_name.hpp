@@ -4,6 +4,7 @@
 /** @file type_name.hpp compile-time type name */
 
 #include "c4/span.hpp"
+#include "c4/compiler.hpp"
 
 /// @cond dev
 struct _c4t
@@ -36,26 +37,27 @@ C4_CONSTEXPR14 cspan<char> type_name()
 {
     const _c4t p = _c4tn<T>();
 
-#if (0) // _C4_THIS_IS_A_DEBUG_SCAFFOLD
+#if (0) // enable this to debug and find the offsets
     for(size_t index = 0; index < p.sz; ++index)
-    {
         printf(" %2c", p.str[index]);
-    }
     printf("\n");
     for(size_t index = 0; index < p.sz; ++index)
-    {
-        printf(" %2d", (int)index);
-    }
+        printf(" %2zu", index);
     printf("\n");
 #endif
 
 #if defined(_MSC_VER)
 #   if defined(__clang__) // Visual Studio has the clang toolset
+#   if (_MSC_VER >= 1930) // do not use this: defined(C4_MSVC_2022)
+    // ..............................xxx.
+    // _c4t __cdecl _c4tn(void) [T = int]
+    enum : size_t { tstart = 30, tend = 1};
+#   else
     // example:
     // ..........................xxx.
     // _c4t __cdecl _c4tn() [T = int]
     enum : size_t { tstart = 26, tend = 1};
-
+#   endif
 #   elif defined(C4_MSVC_2015) || defined(C4_MSVC_2017) || defined(C4_MSVC_2019) || defined(C4_MSVC_2022)
     // Note: subtract 7 at the end because the function terminates with ">(void)" in VS2015+
     cspan<char>::size_type tstart = 26, tend = 7;
