@@ -14,7 +14,7 @@ namespace c4 {
 
 /** check that the given buffer is a valid base64 encoding
  * @see https://en.wikipedia.org/wiki/Base64 */
-bool base64_valid(csubstr encoded);
+C4CORE_EXPORT bool base64_valid(csubstr encoded);
 
 
 /** base64-encode binary data.
@@ -33,7 +33,7 @@ bool base64_valid(csubstr encoded);
  * @p data before encoding.
  *
  * @see https://en.wikipedia.org/wiki/Base64 */
-size_t base64_encode(substr encoded, cblob data);
+C4CORE_EXPORT size_t base64_encode(substr encoded, cblob data);
 
 
 /** decode the base64 encoding in the given buffer
@@ -51,7 +51,7 @@ size_t base64_encode(substr encoded, cblob data);
  * @p data after decoding.
  *
  * @see https://en.wikipedia.org/wiki/Base64 */
-size_t base64_decode(csubstr encoded, blob data);
+C4CORE_EXPORT size_t base64_decode(csubstr encoded, blob data);
 
 
 namespace fmt {
