@@ -49,21 +49,24 @@ void  afree_impl(void *ptr);
 TEST_CASE("aalloc_impl.error_bad_align")
 {
 #if defined(C4_POSIX)
+    #if !defined(C4_ASAN) && !defined(C4_LSAN) && !defined(C4_TSAN) && !defined(C4_UBSAN)
     C4_EXPECT_ERROR_OCCURS(1);
     auto *mem = detail::aalloc_impl(64, 9); // allocating with a non-power of two value is invalid
     CHECK_EQ(mem, nullptr);
+    #endif
 #endif
 }
 
 TEST_CASE("aalloc_impl.error_out_of_mem")
 {
 #if defined(C4_POSIX)
+    #if !defined(C4_ASAN) && !defined(C4_LSAN) && !defined(C4_TSAN) && !defined(C4_UBSAN)
     if(sizeof(size_t) != 8) return; // valgrind complains that size is -1
     C4_EXPECT_ERROR_OCCURS(1);
-    size_t sz = std::numeric_limits<size_t>::max();
-    sz /= 2;
-    auto *mem = detail::aalloc_impl(sz);
+    size_t sz = std::numeric_limits<size_t>::max() / 2u;
+    void const* mem = detail::aalloc_impl(sz);
     CHECK_EQ(mem, nullptr);
+    #endif
 #endif
 }
 

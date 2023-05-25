@@ -62,7 +62,7 @@ C4_CONSTEXPR14 cspan<char> type_name()
     // Note: subtract 7 at the end because the function terminates with ">(void)" in VS2015+
     cspan<char>::size_type tstart = 26, tend = 7;
 
-    const char *s = p.str + tstart; // look at the start
+    const char *C4_RESTRICT s = p.str + tstart; // look at the start
 
     // we're not using strcmp() or memcmp() to spare the #include
 

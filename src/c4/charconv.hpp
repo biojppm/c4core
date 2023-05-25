@@ -2274,7 +2274,10 @@ inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v) noexcept
 inline size_t to_chars(substr buf, char v) noexcept
 {
     if(buf.len > 0)
-        buf[0] = v;
+    {
+        C4_XASSERT(buf.str);
+        buf.str[0] = v;
+    }
     return 1;
 }
 
@@ -2284,7 +2287,8 @@ inline bool from_chars(csubstr buf, char * C4_RESTRICT v) noexcept
 {
     if(buf.len != 1)
         return false;
-    *v = buf[0];
+    C4_XASSERT(buf.str);
+    *v = buf.str[0];
     return true;
 }
 
@@ -2292,7 +2296,7 @@ inline size_t from_chars_first(csubstr buf, char * C4_RESTRICT v) noexcept
 {
     if(buf.len < 1)
         return csubstr::npos;
-    *v = buf[0];
+    *v = buf.str[0];
     return 1;
 }
 
