@@ -1596,7 +1596,7 @@ public:
     {
         if(C4_LIKELY(*start_pos < len))
         {
-            for(size_t i = *start_pos, e = len; i < e; i++)
+            for(size_t i = *start_pos; i < len; i++)
             {
                 if(str[i] == sep)
                 {
@@ -1612,13 +1612,13 @@ public:
         else
         {
             bool valid = len > 0 && (*start_pos == len);
-            if(valid && !empty() && str[len-1] == sep)
+            if(valid && str && str[len-1] == sep)
             {
-                out->assign(str + len, (size_t)0); // the cast is needed to prevent overload ambiguity
+                out->assign(str + len, size_t(0)); // the cast is needed to prevent overload ambiguity
             }
             else
             {
-                out->assign(str + len + 1, (size_t)0); // the cast is needed to prevent overload ambiguity
+                out->assign(str + len + 1, size_t(0)); // the cast is needed to prevent overload ambiguity
             }
             *start_pos = len + 1;
             return valid;
