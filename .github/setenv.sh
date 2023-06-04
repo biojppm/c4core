@@ -5,6 +5,7 @@ set -x
 
 PROJ_DIR=$(pwd)
 
+
 function c4_show_info()
 {
     set +x
@@ -48,6 +49,10 @@ function c4_show_info()
         gcc*|g++*|*clang*)
             echo "number of cores=$(nproc)"
             $CXX_ --version
+            ;;
+        icpx|icpc|icx|icc)
+            echo "number of cores=$(nproc)"
+            ( source /opt/intel/oneapi/setvars.sh ; $CXX_ --version )
             ;;
     esac
     set -x
@@ -341,8 +346,8 @@ function c4_cfg_test()
                   -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
                   -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
             ;;
-        *g++*|*gcc*|*clang*)
-            export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
+        *g++*|*gcc*|*clang*|icpx|icpc)
+            export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g' | sed 's:icpx:icx:g' | sed 's:icpc:icc:g')
             _c4_choose_clang_tidy $CXX_
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_C_COMPILER=$CC_ -DCMAKE_CXX_COMPILER=$CXX_ \
@@ -439,7 +444,7 @@ function _c4_parallel_build_flags()
                 echo "-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=$NUM_JOBS_BUILD"
             fi
             ;;
-        *g++*|*gcc*|*clang*|em++)
+        *g++*|*gcc*|*clang*|em++|icpx|icpc|icx|icc)
             if [ -z "$NUM_JOBS_BUILD" ] ; then
                 echo "-j $(nproc)"
             else
@@ -466,7 +471,7 @@ function _c4_generator_build_flags()
             # https://stackoverflow.com/questions/51153525/xcode-10-unable-to-attach-db-error
             echo "-UseModernBuildSystem=NO"
             ;;
-        *g++*|*gcc*|*clang*|em++)
+        *g++*|*gcc*|*clang*|em++|icpx|icpc|icx|icc)
             ;;
         "") # allow empty compiler
             ;;
