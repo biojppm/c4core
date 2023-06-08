@@ -57,7 +57,7 @@ jobs:
       - name: static64-coverage-artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-static64
+          name: coverage-static64-cxx${{matrix.std}}
           path: |
             build/static64/lcov/
             build/static64/coverage3-final_filtered.lcov
@@ -71,7 +71,7 @@ jobs:
       - name: static32-coverage-artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-static32
+          name: coverage-static32-cxx${{matrix.std}}
           path: |
             build/static32/lcov/
             build/static32/coverage3-final_filtered.lcov

@@ -49,6 +49,8 @@ function c4_show_info()
             echo "number of cores=$(nproc)"
             $CXX_ --version
             ;;
+        *)
+            ;;
     esac
     set -x
     git branch

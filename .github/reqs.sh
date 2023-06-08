@@ -7,7 +7,8 @@ set -x
 # CXX_: the compiler version. eg, g++-9 or clang++-6.0
 # BT: the build type
 # VG: whether to install valgrind
-# ARM: whether to install arm cross-compiler and emulator
+# ARM: whether to arm cross-compiler and emulator
+# GITHUB_WORKFLOW: when run from github
 # API: whether to install swig
 # CMANY: whether to install cmany
 
