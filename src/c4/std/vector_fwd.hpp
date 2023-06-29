@@ -13,7 +13,13 @@ __pragma(warning(disable : 4643))
 #endif
 namespace std {
 template<typename> class allocator;
+#ifdef _GLIBCXX_DEBUG
+inline namespace __debug {
 template<typename T, typename Alloc> class vector;
+}
+#else
+template<typename T, typename Alloc> class vector;
+#endif
 } // namespace std
 #if defined(_MSC_VER)
 __pragma(warning(pop))
