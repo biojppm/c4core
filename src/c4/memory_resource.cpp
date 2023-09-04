@@ -46,6 +46,8 @@ void* aalloc_impl(size_t size, size_t alignment)
     mem = memalign(alignment, size);
     C4_CHECK(mem != nullptr || size == 0);
 #elif defined(C4_POSIX) || defined(C4_IOS) || defined(C4_MACOS)
+    // NOTE: alignment needs to be a power of two
+    C4_CHECK((alignment & (alignment - 1)) == 0u);
     // NOTE: alignment needs to be sized in multiples of sizeof(void*)
     size_t amult = alignment;
     if(C4_UNLIKELY(alignment < sizeof(void*)))
@@ -55,12 +57,7 @@ void* aalloc_impl(size_t size, size_t alignment)
     int ret = ::posix_memalign(&mem, amult, size);
     if(C4_UNLIKELY(ret))
     {
-        if(ret == EINVAL)
-        {
-            C4_ERROR("The alignment argument %zu was not a power of two, "
-                     "or was not a multiple of sizeof(void*)", alignment);
-        }
-        else if(ret == ENOMEM)
+        if(ret == ENOMEM)
         {
             C4_ERROR("There was insufficient memory to fulfill the "
                      "allocation request of %zu bytes (alignment=%lu)", size, size);

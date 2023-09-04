@@ -72,7 +72,7 @@ void set_error_callback(error_callback_type cb)
 
 void handle_error(srcloc where, const char *fmt, ...)
 {
-    char buf[1024];
+    char buf[1024] = {};
     size_t msglen = 0;
     if(s_error_flags & (ON_ERROR_LOG|ON_ERROR_CALLBACK))
     {

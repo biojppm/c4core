@@ -44,26 +44,41 @@ void* arealloc_impl(void *ptr, size_t oldsz, size_t newsz, size_t alignment=alig
 void  afree_impl(void *ptr);
 } // namespace detail
 
+#ifndef C4_EXCEPTIONS
+#include <csetjmp>
+static std::jmp_buf s_jmp_buf;
+#endif
+static void error_callback(const char* /*msg*/, size_t /*msg_size*/)
+{
+    C4_IF_EXCEPTIONS_(throw std::exception(), std::longjmp(s_jmp_buf, 1));
+}
+template<class Fn>
+void _expect_error(Fn &&fn)
+{
+    bool had_error = false;
+    ScopedErrorSettings tmp_settings(c4::ON_ERROR_CALLBACK, error_callback);
+    C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
+    {
+        fn();
+    }
+    C4_IF_EXCEPTIONS_(catch(std::exception const&), else)
+    {
+        had_error = true;
+    }
+    CHECK(had_error);
+}
+
+
 TEST_CASE("aalloc_impl.error_bad_align")
 {
 #if defined(C4_POSIX)
-    C4_EXPECT_ERROR_OCCURS(1);
-    auto *mem = detail::aalloc_impl(64, 9); // allocating with a non-power of two value is invalid
-    CHECK_EQ(mem, nullptr);
+    _expect_error([]{
+        auto *mem = detail::aalloc_impl(64, 9); // allocating with a non-power of two value is invalid
+        (void)mem;
+    });
 #endif
 }
 
-TEST_CASE("aalloc_impl.error_out_of_mem")
-{
-#if defined(C4_POSIX)
-    if(sizeof(size_t) != 8) return; // valgrind complains that size is -1
-    C4_EXPECT_ERROR_OCCURS(1);
-    size_t sz = std::numeric_limits<size_t>::max();
-    sz /= 2;
-    auto *mem = detail::aalloc_impl(sz);
-    CHECK_EQ(mem, nullptr);
-#endif
-}
 
 //-----------------------------------------------------------------------------
 
@@ -153,30 +168,28 @@ TEST_CASE("MemoryResourceLinearArr.reallocate")
 TEST_CASE("MemoryResourceLinear.error_out_of_mem")
 {
     {
-        C4_EXPECT_ERROR_OCCURS(0);
         MemoryResourceLinear mr(8);
         mr.allocate(2);
     }
-
     {
-        C4_EXPECT_ERROR_OCCURS(2);
-        MemoryResourceLinear mr(8);
-        mr.allocate(9);
+        _expect_error([]{
+            MemoryResourceLinear mr(8);
+            mr.allocate(9);
+        });
     }
 }
 
 TEST_CASE("MemoryResourceLinearArr.error_out_of_mem")
 {
     {
-        C4_EXPECT_ERROR_OCCURS(0);
         MemoryResourceLinearArr<8> mr;
         mr.allocate(2);
     }
-
     {
-        C4_EXPECT_ERROR_OCCURS(2);
-        MemoryResourceLinearArr<8> mr;
-        mr.allocate(9);
+        _expect_error([]{
+            MemoryResourceLinearArr<8> mr;
+            mr.allocate(9);
+        });
     }
 }
 

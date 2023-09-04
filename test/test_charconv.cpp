@@ -743,7 +743,7 @@ TEST_CASE_TEMPLATE("xtoa", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.dec);
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -769,7 +769,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.dec);
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -788,7 +788,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.dec.sub(number.val < 0)));
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -804,7 +804,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.dec.sub(number.val < 0)));
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -827,7 +827,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.hex);
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -851,7 +851,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             if(number.val < 0)
                 CHECK(buf.first(retb).begins_with('-'));
             CHECK(result.ends_with(ref));
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -867,7 +867,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.hex.sub(number.val < 0)));
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -890,7 +890,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.oct);
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -914,7 +914,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             if(number.val < 0)
                 CHECK(buf.first(retb).begins_with('-'));
             CHECK(result.ends_with(ref));
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -930,7 +930,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.oct.sub(number.val < 0)));
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -953,7 +953,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.bin);
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -976,7 +976,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("result=" << result << "  ref=" << ref);
             if(number.val < 0)
                 CHECK(buf.first(retb).begins_with('-'));
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -992,7 +992,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.bin.sub(number.val < 0)));
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = number.val ^ T(1);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
         }
@@ -1088,13 +1088,13 @@ TEST_CASE_TEMPLATE("read_dec", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
                 continue;
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(read_dec(number.dec, &val));
                 CHECK_EQ(val, number.val);
             }
             // capitalize
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 csubstr cbuf = capitalize(buf, number.dec);
                 CHECK(read_dec(cbuf, &val));
                 CHECK_EQ(val, number.val);
@@ -1102,7 +1102,7 @@ TEST_CASE_TEMPLATE("read_dec", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 substr buf2 = zpad(buf, number.dec, numz);
                 INFO("zprefix=" << buf2);
                 CHECK(read_dec(buf2, &val));
@@ -1139,14 +1139,14 @@ TEST_CASE_TEMPLATE("read_hex", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             INFO(number);
             // must not accept 0x prefix
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(!read_hex(number.hex, &val));
             }
             // must accept without prefix
             csubstr hex = nopfx(number.hex);
             INFO("nopfx(hex)=" << hex);
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(read_hex(hex, &val));
                 CHECK_EQ(val, number.val);
             }
@@ -1155,14 +1155,14 @@ TEST_CASE_TEMPLATE("read_hex", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
                 csubstr cbuf = capitalize(buf, hex);
                 INFO("capitalized=" << buf);
                 REQUIRE_EQ(cbuf.len, hex.len);
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(read_hex(cbuf, &val));
                 CHECK_EQ(val, number.val);
             }
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 substr zprefix = zpad(buf, hex, numz);
                 INFO("zprefix='" << zprefix << "'");
                 CHECK(read_hex(zprefix, &val));
@@ -1220,14 +1220,14 @@ TEST_CASE_TEMPLATE("read_oct", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             INFO(number);
             // must not accept 0x prefix
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(!read_oct(number.oct, &val));
             }
             // must accept without prefix
             csubstr oct = nopfx(number.oct);
             INFO("nopfx(oct)=" << oct);
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(read_oct(oct, &val));
                 CHECK_EQ(val, number.val);
             }
@@ -1236,14 +1236,14 @@ TEST_CASE_TEMPLATE("read_oct", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
                 csubstr cbuf = capitalize(buf, oct);
                 INFO("capitalized=" << buf);
                 REQUIRE_EQ(cbuf.len, oct.len);
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(read_oct(cbuf, &val));
                 CHECK_EQ(val, number.val);
             }
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 substr zprefix = zpad(buf, oct, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(read_oct(zprefix, &val));
@@ -1301,14 +1301,14 @@ TEST_CASE_TEMPLATE("read_bin", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             INFO(number);
             // must not accept 0x prefix
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(!read_bin(number.bin, &val));
             }
             // must accept without prefix
             csubstr bin = nopfx(number.bin);
             INFO("nopfx(bin)=" << bin);
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(read_bin(bin, &val));
                 CHECK_EQ(val, number.val);
             }
@@ -1317,14 +1317,14 @@ TEST_CASE_TEMPLATE("read_bin", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
                 csubstr cbuf = capitalize(buf, bin);
                 INFO("capitalized=" << buf);
                 REQUIRE_EQ(cbuf.len, bin.len);
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(read_bin(cbuf, &val));
                 CHECK_EQ(val, number.val);
             }
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 substr zprefix = zpad(buf, bin, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(read_bin(zprefix, &val));
@@ -1382,14 +1382,14 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
         {
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(atox(number.dec, &val));
                 CHECK_EQ(val, number.val);
             }
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 substr zprefix = zpad(buf, number.dec, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(atox(zprefix, &val));
@@ -1403,13 +1403,13 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
         {
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(atox(number.hex, &val));
                 CHECK_EQ(val, number.val);
             }
             // capitalize
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 csubstr cbuf = capitalize(buf, number.hex);
                 CHECK(atox(cbuf, &val));
                 CHECK_EQ(val, number.val);
@@ -1417,7 +1417,7 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 substr zprefix = zpad(buf, number.hex, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(atox(zprefix, &val));
@@ -1434,13 +1434,13 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
         {
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(atox(number.oct, &val));
                 CHECK_EQ(val, number.val);
             }
             // capitalize
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 csubstr cbuf = capitalize(buf, number.oct);
                 CHECK(atox(cbuf, &val));
                 CHECK_EQ(val, number.val);
@@ -1448,7 +1448,7 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 substr zprefix = zpad(buf, number.oct, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(atox(zprefix, &val));
@@ -1465,13 +1465,13 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
         {
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 CHECK(atox(number.bin, &val));
                 CHECK_EQ(val, number.val);
             }
             // capitalize
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 csubstr cbuf = capitalize(buf, number.bin);
                 CHECK(atox(cbuf, &val));
                 CHECK_EQ(val, number.val);
@@ -1479,7 +1479,7 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = number.val ^ T(1);
                 substr zprefix = zpad(buf, number.oct, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(atox(zprefix, &val));
@@ -1626,7 +1626,7 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
         else
             CHECK_EQ(&num, &wrapped);
         {
-            T val = num.val + T(1);
+            T val = num.val ^ T(1);
             CHECK(atox(exceeded, &val));
             CHECK_EQ(val, wrapped.val);
         }
@@ -1635,7 +1635,7 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
         INFO(buf2);
         CHECK_EQ(is_overflow, overflows<T>(buf2));
         {
-            T val = num.val + T(1);
+            T val = num.val ^ T(1);
             CHECK(atox(buf2, &val));
             CHECK_EQ(val, wrapped.val);
         }
@@ -1645,14 +1645,14 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
             buf2 = zpad(buf2_, exceeded, numz);
             CHECK_EQ(is_overflow, overflows<T>(buf2));
             {
-                T val = num.val + T(1);
+                T val = num.val ^ T(1);
                 CHECK(atox(buf2, &val));
                 CHECK_EQ(val, wrapped.val);
             }
             buf2.toupper();
             CHECK_EQ(is_overflow, overflows<T>(buf2));
             {
-                T val = num.val + T(1);
+                T val = num.val ^ T(1);
                 CHECK(atox(buf2, &val));
                 CHECK_EQ(val, wrapped.val);
             }
@@ -1746,7 +1746,7 @@ TEST_CASE_TEMPLATE("atox.overflow64", T, int64_t, uint64_t)
     substr buf = buf_;
     auto test_atox = [](csubstr s, overflow64case<T> const& c){
         INFO("s=" << s);
-        T val = c.wrapped + T(1);
+        T val = c.wrapped ^ T(1);
         if(std::is_signed<T>::value || !s.begins_with('-'))
         {
             CHECK(atox(s, &val));

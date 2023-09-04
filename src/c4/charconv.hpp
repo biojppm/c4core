@@ -780,13 +780,17 @@ C4_SUPPRESS_WARNING_MSVC(4365) // '=': conversion from 'int' to 'I', signed/unsi
  * @note does not accept negative numbers
  * @note The string must be trimmed. Whitespace is not accepted.
  * @note the string must not be empty
- * @note there is no check for overflow; the value wraps around
- * in a way similar to the standard C/C++ overflow behavior.
+ * @note there is no check for overflow; the value wraps around in a
+ * way similar to the C/C++ overflow behavior, even if the behavior is
+ * undefined for signed integers.
  * For example, `read_dec<int8_t>("128", &val)` returns true
  * and val will be set to 0 because 127 is the max i8 value.
  * @see overflows<T>() to find out if a number string overflows a type range
  * @return true if the conversion was successful (no overflow check) */
 template<class I>
+#if defined(__clang__) || defined(__GNUC__)
+__attribute__((no_sanitize("signed-integer-overflow")))
+#endif
 C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
@@ -807,13 +811,17 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v) noexcept
  * @note does not accept leading 0x or 0X
  * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
- * @note there is no check for overflow; the value wraps around
- * in a way similar to the standard C/C++ overflow behavior.
+ * @note there is no check for overflow; the value wraps around in a
+ * way similar to the C/C++ overflow behavior, even if the behavior is
+ * undefined for signed integers.
  * For example, `read_hex<int8_t>("80", &val)` returns true
  * and val will be set to 0 because 7f is the max i8 value.
  * @see overflows<T>() to find out if a number string overflows a type range
  * @return true if the conversion was successful (no overflow check) */
 template<class I>
+#if defined(__clang__) || defined(__GNUC__)
+__attribute__((no_sanitize("signed-integer-overflow")))
+#endif
 C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
@@ -841,9 +849,10 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v) noexcept
  * @note does not accept leading 0b or 0B
  * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
- * @note there is no check for overflow; the value wraps around
- * in a way similar to the standard C/C++ overflow behavior.
- * For example, `read_bin<int8_t>("10000000", &val)` returns true
+ * @note there is no check for overflow; the value wraps around in a
+ * way similar to the C/C++ overflow behavior, even if the behavior is
+ * undefined for signed integers. For example,
+ * `read_bin<int8_t>("10000000", &val)` returns true
  * and val will be set to 0 because 1111111 is the max i8 value.
  * @see overflows<T>() to find out if a number string overflows a type range
  * @return true if the conversion was successful (no overflow check) */
@@ -870,13 +879,17 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v) noexcept
  * @note does not accept leading 0o or 0O
  * @note the string must not be empty
  * @note the string must be trimmed. Whitespace is not accepted.
- * @note there is no check for overflow; the value wraps around
- * in a way similar to the standard C/C++ overflow behavior.
- * For example, `read_oct<int8_t>("200", &val)` returns true
- * and val will be set to 0 because 177 is the max i8 value.
+ * @note there is no check for overflow; the value wraps around in a
+ * way similar to the C/C++ overflow behavior, even if the behavior is
+ * undefined for signed integers. For example,
+ * `read_oct<int8_t>("200", &val)` returns true and val will be set to
+ * 0 because 177 is the max i8 value.
  * @see overflows<T>() to find out if a number string overflows a type range
  * @return true if the conversion was successful (no overflow check) */
 template<class I>
+#if defined(__clang__) || defined(__GNUC__)
+__attribute__((no_sanitize("signed-integer-overflow")))
+#endif
 C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
@@ -1352,6 +1365,9 @@ C4_SUPPRESS_WARNING_GCC_POP
  *
  * @see atoi_first() if the string is not trimmed to the value to read. */
 template<class T>
+#if defined(__clang__) || defined(__GNUC__)
+__attribute__((no_sanitize("signed-integer-overflow")))
+#endif
 C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);

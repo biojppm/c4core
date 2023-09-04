@@ -48,10 +48,6 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 //-----------------------------------------------------------------------------
 
 // utility macros to deuglify SFINAE code; undefined after the class.
-// https://stackoverflow.com/questions/43051882/how-to-disable-a-class-member-funrtion-for-certain-template-types
-#define C4_REQUIRE_RW(ret_type) \
-    template <typename U=C> \
-    typename std::enable_if< ! std::is_const<U>::value, ret_type>::type
 // non-const-to-const
 #define C4_NC2C(ty) \
     typename std::enable_if<std::is_const<C>::value && ( ! std::is_const<ty>::value), ty>::type
@@ -1618,9 +1614,13 @@ public:
             {
                 out->assign(str + len, (size_t)0); // the cast is needed to prevent overload ambiguity
             }
-            else
+            else if(str)
             {
                 out->assign(str + len + 1, (size_t)0); // the cast is needed to prevent overload ambiguity
+            }
+            else
+            {
+                out->clear();
             }
             *start_pos = len + 1;
             return valid;
@@ -1911,66 +1911,71 @@ public:
 
     /** convert the string to upper-case
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) toupper()
+    template <typename U=C>
+    auto toupper() -> typename std::enable_if< ! std::is_const<U>::value, void>::type
     {
         for(size_t i = 0; i < len; ++i)
-        {
             str[i] = static_cast<C>(::toupper(str[i]));
-        }
     }
 
     /** convert the string to lower-case
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) tolower()
+    template <typename U=C>
+    auto tolower() -> typename std::enable_if< ! std::is_const<U>::value, void>::type
     {
         for(size_t i = 0; i < len; ++i)
-        {
             str[i] = static_cast<C>(::tolower(str[i]));
-        }
     }
 
 public:
 
     /** fill the entire contents with the given @p val
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) fill(C val)
-    {
-        for(size_t i = 0; i < len; ++i)
-        {
-            str[i] = val;
-        }
-    }
+      template <typename U = C>
+      auto fill(C val) -> typename std ::enable_if<!std ::is_const<U>::value, void>::type
+      {
+          for(size_t i = 0; i < len; ++i)
+              str[i] = val;
+      }
 
 public:
 
     /** set the current substring to a copy of the given csubstr
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) copy_from(ro_substr that, size_t ifirst=0, size_t num=npos)
+    template <typename U = C>
+    auto copy_from(ro_substr that, size_t ifirst = 0, size_t num = npos)
+          -> typename std ::enable_if<!std ::is_const<U>::value, void>::type
     {
-        C4_ASSERT(ifirst >= 0 && ifirst <= len);
-        num = num != npos ? num : len - ifirst;
-        num = num < that.len ? num : that.len;
-        C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
-        // calling memcpy with null strings is undefined behavior
-        // and will wreak havoc in calling code's branches.
-        // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
-        if(num)
-            memcpy(str + sizeof(C) * ifirst, that.str, sizeof(C) * num);
-    }
+          C4_ASSERT(ifirst >= 0 && ifirst <= len);
+          num = num != npos ? num : len - ifirst;
+          num = num < that.len ? num : that.len;
+          C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
+          // calling memcpy with null strings is undefined behavior
+          // and will wreak havoc in calling code's branches.
+          // see
+          // https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
+          if (num)
+              memcpy(str + sizeof(C) * ifirst, that.str, sizeof(C) * num);
+  }
 
 public:
 
     /** reverse in place
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) reverse()
+    template<typename U=C>
+    auto reverse()
+        -> typename std ::enable_if<!std ::is_const<U>::value, void>::type
     {
-        if(len == 0) return;
+        if (len == 0)
+            return;
         detail::_do_reverse(str, str + len - 1);
     }
 
     /** revert a subpart in place
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) reverse_sub(size_t ifirst, size_t num)
+    template<typename U=C>
+    auto reverse_sub(size_t ifirst, size_t num)
+        -> typename std ::enable_if<!std ::is_const<U>::value, void>::type
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
@@ -1980,7 +1985,9 @@ public:
 
     /** revert a range in place
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) reverse_range(size_t ifirst, size_t ilast)
+    template<typename U=C>
+    auto reverse_range(size_t ifirst, size_t ilast)
+        -> typename std ::enable_if<!std ::is_const<U>::value, void>::type
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         C4_ASSERT(ilast  >= 0 && ilast  <= len);
@@ -1993,7 +2000,9 @@ public:
     /** erase part of the string. eg, with char s[] = "0123456789",
      * substr(s).erase(3, 2) = "01256789", and s is now "01245678989"
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(basic_substring) erase(size_t pos, size_t num)
+    template<typename U=C>
+    auto erase(size_t pos, size_t num)
+        -> typename std::enable_if<!std::is_const<U>::value, basic_substring>::type
     {
         C4_ASSERT(pos >= 0 && pos+num <= len);
         size_t num_to_move = len - pos - num;
@@ -2002,7 +2011,9 @@ public:
     }
 
     /** @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(basic_substring) erase_range(size_t first, size_t last)
+    template<typename U=C>
+    auto erase_range(size_t first, size_t last)
+        -> typename std::enable_if<!std::is_const<U>::value, basic_substring>::type
     {
         C4_ASSERT(first <= last);
         return erase(first, static_cast<size_t>(last-first));
@@ -2011,7 +2022,9 @@ public:
     /** erase a part of the string.
      * @note @p sub must be a substring of this string
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(basic_substring) erase(ro_substr sub)
+    template<typename U=C>
+    auto erase(ro_substr sub)
+        -> typename std::enable_if<!std::is_const<U>::value, basic_substring>::type
     {
         C4_ASSERT(is_super(sub));
         C4_ASSERT(sub.str >= str);
@@ -2023,7 +2036,9 @@ public:
     /** replace every occurrence of character @p value with the character @p repl
      * @return the number of characters that were replaced
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(size_t) replace(C value, C repl, size_t pos=0)
+    template<typename U=C>
+    auto replace(C value, C repl, size_t pos=0)
+        -> typename std::enable_if<!std::is_const<U>::value, size_t>::type
     {
         C4_ASSERT((pos >= 0 && pos <= len) || pos == npos);
         size_t did_it = 0;
@@ -2039,7 +2054,9 @@ public:
      * the character @p repl.
      * @return the number of characters that were replaced
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(size_t) replace(ro_substr chars, C repl, size_t pos=0)
+    template<typename U=C>
+    auto replace(ro_substr chars, C repl, size_t pos=0)
+        -> typename std::enable_if<!std::is_const<U>::value, size_t>::type
     {
         C4_ASSERT((pos >= 0 && pos <= len) || pos == npos);
         size_t did_it = 0;
@@ -2103,8 +2120,6 @@ public:
 }; // template class basic_substring
 
 
-#undef C4_REQUIRE_RW
-#undef C4_REQUIRE_RO
 #undef C4_NC2C
 
 

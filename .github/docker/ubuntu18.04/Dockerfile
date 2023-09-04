@@ -185,7 +185,7 @@ RUN ( cd tmp \
 
 RUN \
     # Standard Cleanup on Debian images
-    &&  apt-get -y clean \
+        apt-get -y clean \
     &&  apt-get -y autoclean \
     &&  apt-get -y autoremove \
     &&  rm -rf /var/lib/apt/lists/* \

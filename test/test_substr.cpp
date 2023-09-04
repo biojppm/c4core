@@ -3382,22 +3382,24 @@ TEST_CASE("substr.extlong")
 TEST_CASE("substr.next_split")
 {
     using S = csubstr;
-
     {
         S const n;
         typename S::size_type pos = 0;
         S ss;
         CHECK_EQ(n.next_split(':', &pos, &ss), false);
         CHECK_EQ(ss.empty(), true);
+        CHECK_EQ(pos, 1u);
         CHECK_EQ(n.next_split(':', &pos, &ss), false);
         CHECK_EQ(ss.empty(), true);
+        CHECK_EQ(pos, 1u);
         pos = 0;
         CHECK_EQ(n.next_split(',', &pos, &ss), false);
         CHECK_EQ(ss.empty(), true);
+        CHECK_EQ(pos, 1u);
         CHECK_EQ(n.next_split(',', &pos, &ss), false);
         CHECK_EQ(ss.empty(), true);
+        CHECK_EQ(pos, 1u);
     }
-
     {
         S const n("0");
         typename S::size_type pos = 0;
@@ -3416,7 +3418,6 @@ TEST_CASE("substr.next_split")
         CHECK_EQ(n.next_split(',', &pos, &ss), false);
         CHECK_EQ(ss.empty(), true);
     }
-
     {
         S const n;
         typename S::size_type pos = 0;
@@ -3428,7 +3429,6 @@ TEST_CASE("substr.next_split")
         }
         CHECK_EQ(count, 0);
     }
-
     {
         S const n("0123456");
         typename S::size_type pos = 0;
@@ -3450,7 +3450,6 @@ TEST_CASE("substr.next_split")
         }
         CHECK_EQ(count, 1);
     }
-
     {
         S const n("0123456:");
         typename S::size_type pos = 0;
@@ -3476,7 +3475,6 @@ TEST_CASE("substr.next_split")
         }
         CHECK_EQ(count, 2);
     }
-
     {
         S const n(":0123456:");
         typename S::size_type pos = 0;
@@ -3506,7 +3504,6 @@ TEST_CASE("substr.next_split")
         }
         CHECK_EQ(count, 3);
     }
-
     {
         S const n(":");
         typename S::size_type pos = 0;
@@ -3532,7 +3529,6 @@ TEST_CASE("substr.next_split")
         }
         CHECK_EQ(count, 2);
     }
-
     {
         S const n("01:23:45:67");
         typename S::size_type pos = 0;
@@ -3578,7 +3574,6 @@ TEST_CASE("substr.next_split")
         }
         CHECK_EQ(count, 4);
     }
-
     {
         const S n(":01:23:45:67:");
         typename S::size_type pos = 0;
@@ -3632,7 +3627,6 @@ TEST_CASE("substr.next_split")
         }
         CHECK_EQ(count, 6);
     }
-
     {
         const S n("::::01:23:45:67::::");
         typename S::size_type pos = 0;
