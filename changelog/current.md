@@ -49,8 +49,9 @@ assert(to_substr((char*)ptr).len == 3); // as before
 
 - [PR#115](https://github.com/biojppm/c4core/pull/115) - Refactor of `c4::blob`/`c4::cblob`. Use SFINAE to invalidate some of the constructors.
 - [PR#110](https://github.com/biojppm/c4core/pull/110)/[PR#107](https://github.com/biojppm/c4core/pull/107) - Update fast_float.
-- [PR#108](https://github.com/biojppm/c4core/pull/108) - Fix preprocessor pasting of strings in `C4_NOT_IMPLEMENTED_MSG()` and `C4_NOT_IMPLEMENTED_IF_MSG()`.
+- [PR#108](https://github.com/biojppm/c4core/pull/108) - Fix preprocessor concatenation of strings in `C4_NOT_IMPLEMENTED_MSG()` and `C4_NOT_IMPLEMENTED_IF_MSG()`.
 - [PR#106](https://github.com/biojppm/c4core/pull/106) - Fix include guard in the gcc 4.8 compatibility header, causing it to be missing from the amalgamated header.
+- [PR#123](https://github.com/biojppm/c4core/pull/123) - Ensure the gcc 4.8 compatibility header is installed (fixes [#103](https://github.com/biojppm/c4core/issues/103)).
 - [PR#105](https://github.com/biojppm/c4core/pull/105) - Fix existing throw in `c4/ext/sg14/inplace_function.h`. Ensure tests run with exceptions disabled and RTTI disabled. Add examples of exceptional control flow with `setjmp()/std::longjmp()`.
 - [PR#104](https://github.com/biojppm/c4core/pull/104)/[PR#112](https://github.com/biojppm/c4core/pull/112) - Fix pedantic warnings in gcc, clang and MSVC
 - [PR#104](https://github.com/biojppm/c4core/pull/104) - Fix possible compile error when `__GNUC__` is not defined
