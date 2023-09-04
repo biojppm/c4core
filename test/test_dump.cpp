@@ -18,18 +18,21 @@
 namespace c4 {
 
 
+void unpoison(std::string &s) { memset(&s[0] + s.size(), 0, s.capacity()-s.size()); }
 namespace example {
 
 std::string test_dumper_target = {};
 void test_dumper(csubstr str)
 {
     test_dumper_target.append(str.str, str.len);
+    unpoison(test_dumper_target);
 }
 
 template<class ...Args>
 void printf(csubstr fmt, Args&& ...args)
 {
     static thread_local std::string writebuf(16, '\0');
+    unpoison(writebuf);
     DumpResults results = format_dump_resume<&test_dumper>(c4::to_substr(writebuf), fmt, std::forward<Args>(args)...);
     if(C4_UNLIKELY(results.bufsize > writebuf.size())) // bufsize will be that of the largest element serialized. Eg int(1), will require 1 byte.
     {
@@ -37,32 +40,41 @@ void printf(csubstr fmt, Args&& ...args)
         writebuf.resize(dup > results.bufsize ? dup : results.bufsize);
         format_dump_resume<&test_dumper>(results, c4::to_substr(writebuf), fmt, std::forward<Args>(args)...);
     }
+    unpoison(test_dumper_target);
 }
 } // namespace example
 
 TEST_CASE("printf_example")
 {
     example::test_dumper_target.clear();
+    unpoison(example::test_dumper_target);
+    printf("0\n");
     SUBCASE("1")
     {
+        printf("1\n");
         example::printf("{} coffees per day.\n", 3);
         CHECK_EQ(example::test_dumper_target, "3 coffees per day.\n");
     }
     SUBCASE("2")
     {
+        printf("2\n");
         example::printf("{} would be {}.", "brecky", "nice");
         CHECK_EQ(example::test_dumper_target, "brecky would be nice.");
     }
     SUBCASE("resize writebuf")
     {
+        printf("3\n");
         // printed strings will not use the writebuf, so we write a zero-padded integer
         size_t dim = 128;  // pad with 128 zeroes
         std::string s1(dim, '0');
         std::string s2(dim, '0');
+        unpoison(s1);
+        unpoison(s2);
         s1.back() = '1';
         s2.back() = '2';
         example::printf("{} cannot be {}", fmt::zpad(1, dim), fmt::zpad(2, dim));
         CHECK_EQ(example::test_dumper_target, s1 + " cannot be " + s2);
+        unpoison(example::test_dumper_target);
     }
 }
 

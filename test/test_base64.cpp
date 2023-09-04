@@ -46,7 +46,7 @@ csubstr native(csubstr little_endian, csubstr big_endian)
 template<class T, class U>
 void test_base64_str_roundtrip(T const& val, csubstr expected, U *ws)
 {
-    char buf_[512];
+    char buf_[512] = {};
     substr buf(buf_);
 
     csubstr encoded = to_chars_sub(buf, fmt::base64(val));
@@ -62,7 +62,7 @@ void test_base64_str_roundtrip(T const& val, csubstr expected, U *ws)
 template<class T>
 void test_base64_roundtrip(T const& val, csubstr expected)
 {
-    char buf_[512];
+    char buf_[512] = {};
     substr buf(buf_);
 
     csubstr encoded = to_chars_sub(buf, fmt::base64(val));
@@ -121,7 +121,7 @@ base64_test_pair<csubstr> base64_str_pairs[] = {
 
 TEST_CASE("base64.str")
 {
-    char buf_[512];
+    char buf_[512] = {};
     substr buf(buf_);
     for(auto p : base64_str_pairs)
     {

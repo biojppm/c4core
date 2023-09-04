@@ -1,7 +1,6 @@
 #ifndef C4CORE_SINGLE_HEADER
 #include "c4/error.hpp"
 #endif
-
 #include "c4/test.hpp"
 #include "c4/libtest/supprwarn_push.hpp"
 #ifndef C4_EXCEPTIONS
@@ -247,31 +246,67 @@ TEST_CASE("ErrorBehaviorAbort.default_obj")
 void fputi(int val, FILE *f);
 void _append(std::string *s, int line);
 
+// there is a false-positive use-of-uninitialized-value in the clang
+// memory sanitizer. It finds that some of the bytes between
+// std::string.size() and std::string.capacity() are not initialized,
+// because it presumably scans all of those bytes. So we set them
+// here, ensuring that strlen() is not called:
+void _sanitizestr(std::string *s)
+{
+    // ensure that there are bytes to be set to 0:
+    if(s->capacity() == s->size())
+        s->reserve(s->capacity() + 1);
+    // now set them!
+    memset(&(*s)[0] + s->size(), 0, s->capacity() - s->size());
+}
+std::string _sanitize_for_strlen(const char *s)
+{
+    // do not call strlen! clang's msan will fail!
+    size_t len = 0;
+    for( ; s[len] != '\0'; ++len)
+        ;
+    std::string str(s, len);
+    // sanitize this as well:
+    _sanitizestr(&str);
+    return str;
+}
+struct MyRunTimeError : public std::exception
+{
+    std::string msg;
+    MyRunTimeError(std::string const& s) : msg(s) { _sanitizestr(&msg); }
+    const char *what() const noexcept override { return msg.c_str(); }
+};
+
+
 /** example implementation using vanilla c++ std::runtime_error (or setjmp when exceptions are disabled) */
 struct ErrorBehaviorRuntimeError : public ErrorCallbacksBridgeFull<ErrorBehaviorRuntimeError>
 {
-    std::string exc_msg{};
-
+    std::string exc_msg;
+    ErrorBehaviorRuntimeError() : exc_msg() { _sanitizestr(&exc_msg); }
     void msg_begin(locref loc)
     {
-        exc_msg.reserve(strlen(loc.file) + 16);
-        exc_msg = '\n';
-        exc_msg += loc.file;
-        exc_msg += ':';
+        exc_msg.resize(strlen(loc.file) + 32);
+        exc_msg.clear();
+        exc_msg = loc.file;
+        exc_msg += ":";
         _append(&exc_msg, loc.line);
         exc_msg += ": ";
+        _sanitizestr(&exc_msg);
     }
     void msg_part(const char *part, size_t part_size)
     {
+        _sanitizestr(&exc_msg);
         exc_msg.append(part, part_size);
     }
     void msg_end()
     {
-        std::cerr << exc_msg << "\n";
+        _sanitizestr(&exc_msg);
+        //std::cerr << "\n" << exc_msg << "\n";
     }
     void err(locref)
     {
-        C4_IF_EXCEPTIONS_(throw std::runtime_error(exc_msg), { s_jmp_errmsg = exc_msg; std::longjmp(s_jmp_buf, 1); });
+        _sanitizestr(&exc_msg);
+        C4_IF_EXCEPTIONS_(throw MyRunTimeError(exc_msg), { s_jmp_errmsg = exc_msg; std::longjmp(s_jmp_buf, 1); });
     }
     void warn(locref)
     {
@@ -300,7 +335,7 @@ ErrorBehaviorAbort s_err_abort = ErrorBehaviorAbort();
 ErrorCallbacks s_err_callbacks = s_err_abort.callbacks();
 
 
-void new_handle_error(locref loc, size_t msg_size, const char *msg)
+void new_handle_error(locref loc, const char *msg, size_t msg_size)
 {
     if(s_err_callbacks.msg_enabled())
     {
@@ -312,7 +347,7 @@ void new_handle_error(locref loc, size_t msg_size, const char *msg)
     s_err_callbacks.err(loc, s_err_callbacks.user_data);
 }
 
-void new_handle_warning(locref loc, size_t msg_size, const char *msg)
+void new_handle_warning(locref loc, const char *msg, size_t msg_size)
 {
     if(s_err_callbacks.msg_enabled())
     {
@@ -327,21 +362,21 @@ void new_handle_warning(locref loc, size_t msg_size, const char *msg)
 template<size_t N>
 C4_ALWAYS_INLINE void new_handle_error(locref loc, const char (&msg)[N])
 {
-    new_handle_error(loc, N-1, msg);
+    new_handle_error(loc, msg, N-1);
 }
 
 template<size_t N>
 C4_ALWAYS_INLINE void new_handle_warning(locref loc, const char (&msg)[N])
 {
-    new_handle_warning(loc, N-1, msg);
+    new_handle_warning(loc, msg, N-1);
 }
 
 
 #define C4_ERROR_NEW(msg) c4::new_handle_error(C4_SRCLOC(), msg)
 #define C4_WARNING_NEW(msg) c4::new_handle_warning(C4_SRCLOC(), msg)
 
-#define C4_ERROR_NEW_SZ(msg, msglen) c4::new_handle_error(C4_SRCLOC(), msglen, msg)
-#define C4_WARNING_NEW_SZ(msg, msglen) c4::new_handle_warning(C4_SRCLOC(), msglen, msg)
+#define C4_ERROR_NEW_SZ(msg, msglen) c4::new_handle_error(C4_SRCLOC(), msg, msglen)
+#define C4_WARNING_NEW_SZ(msg, msglen) c4::new_handle_warning(C4_SRCLOC(), msg, msglen)
 
 } // namespace c4
 
@@ -365,11 +400,13 @@ void _append(std::string *s, int line)
 {
     auto sz = s->size();
     s->resize(sz + 16);
-    auto ret = itoa(substr(&((*s)[0]) + sz, 16u), line);
+    substr rem = substr(&((*s)[0]) + sz, 16u);
+    size_t ret = itoa(rem, line);
     s->resize(sz + ret);
-    if(ret >= sz)
+    if(ret >= rem.len)
     {
-        itoa(substr(&((*s)[0]) + sz, 16u), line);
+        rem = substr(&((*s)[0]) + sz, ret);
+        itoa(rem, line);
     }
 }
 
@@ -394,45 +431,45 @@ struct ScopedErrorBehavior
 template<size_t N>
 void test_error_exception(const char (&msg)[N])
 {
+    bool got_exc = false;
+    auto check_msg_found = [&](const char* s_){
+        std::string sanitized = c4::_sanitize_for_strlen(s_);
+        c4::csubstr errmsg = c4::csubstr(sanitized.data(), sanitized.size());
+        INFO("full message: '''" << errmsg << "'''");
+        size_t pos = errmsg.find(msg);
+        CHECK_NE(pos, c4::csubstr::npos);
+        got_exc = (pos != c4::csubstr::npos);
+    };
     INFO(msg);
     {
         auto tmp1 = C4_TMP_ERR_BHV(ErrorBehaviorAbort);
-
         {
             auto tmp2 = C4_TMP_ERR_BHV(ErrorBehaviorRuntimeError);
-
             {
-                bool got_exc = false;
+                got_exc = false;
                 C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
                 {
                     C4_ERROR_NEW(msg);
                 }
-                C4_IF_EXCEPTIONS_(catch(std::exception const& e), else)
+                C4_IF_EXCEPTIONS_(catch(c4::MyRunTimeError const& e), else)
                 {
+                    const char* s = C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str());
                     // check that the given message is found verbatim on the error message
-                    c4::csubstr errmsg = c4::to_csubstr(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
-                    INFO("full message: '''" << errmsg << "'''");
-                    size_t pos = errmsg.find(msg);
-                    CHECK_NE(pos, c4::csubstr::npos);
-                    got_exc = (pos != c4::csubstr::npos);
+                    check_msg_found(s);
                 }
                 CHECK(got_exc);
             }
-
             {
-                bool got_exc = false;
+                got_exc = false;
                 C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
                 {
                     C4_ERROR_NEW_SZ(msg, N-1);
                 }
-                C4_IF_EXCEPTIONS_(catch(std::exception const& e), else)
+                C4_IF_EXCEPTIONS_(catch(c4::MyRunTimeError const& e), else)
                 {
+                    const char* s = C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str());
                     // check that the given message is found verbatim on the error message
-                    c4::csubstr errmsg = c4::to_csubstr(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
-                    INFO("full message: '''" << errmsg << "'''");
-                    size_t pos = errmsg.find(msg);
-                    CHECK_NE(pos, c4::csubstr::npos);
-                    got_exc = (pos != c4::csubstr::npos);
+                    check_msg_found(s);
                 }
                 CHECK(got_exc);
             }
@@ -563,51 +600,50 @@ void warn_fmt(locref loc, const char (&fmt)[N], Args const& C4_RESTRICT ...args)
 {
     warn_fmt(loc, N-1, fmt, args...);
 }
-
 } // namespace c4
+
 
 template<size_t N, size_t M, class... Args>
 void test_error_fmt_exception(const char (&expected)[M], const char (&fmt)[N], Args const& ...args)
 {
+    bool got_exc = false;
+    auto check_msg_found = [&](const char* s_){
+        std::string sanitized = c4::_sanitize_for_strlen(s_);
+        c4::csubstr errmsg = c4::csubstr(sanitized.data(), sanitized.size());
+        INFO("full message: '''" << errmsg << "'''");
+        size_t pos = errmsg.find(expected);
+        CHECK_NE(pos, c4::csubstr::npos);
+        got_exc = (pos != c4::csubstr::npos);
+    };
     INFO("expected is: '" << expected << "'");
     {
         auto tmp1 = C4_TMP_ERR_BHV(ErrorBehaviorAbort);
-
         {
             auto tmp2 = C4_TMP_ERR_BHV(ErrorBehaviorRuntimeError);
-
             {
-                bool got_exc = false;
+                got_exc = false;
                 C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
                 {
                     c4::err_fmt(C4_SRCLOC(), fmt, args...);
                 }
-                C4_IF_EXCEPTIONS_(catch(std::exception const& e), else)
+                C4_IF_EXCEPTIONS_(catch(c4::MyRunTimeError const& e), else)
                 {
                     // check that the given message is found verbatim on the error message
-                    c4::csubstr errmsg = c4::to_csubstr(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
-                    INFO("full message: '''" << errmsg << "'''");
-                    size_t pos = errmsg.find(expected);
-                    CHECK_NE(pos, c4::csubstr::npos);
-                    got_exc = (pos != c4::csubstr::npos);
+                    check_msg_found(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
                 }
                 CHECK(got_exc);
             }
 
             {
-                bool got_exc = false;
+                got_exc = false;
                 C4_IF_EXCEPTIONS_(try, if(setjmp(s_jmp_buf) == 0))
                 {
                     c4 ::err_fmt(C4_SRCLOC(), N - 1, fmt, args...);
                 }
-                C4_IF_EXCEPTIONS_(catch(std::exception const& e), else)
+                C4_IF_EXCEPTIONS_(catch(c4::MyRunTimeError const& e), else)
                 {
                     // check that the given message is found verbatim on the error message
-                    c4::csubstr errmsg = c4::to_csubstr(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
-                    INFO("full message: '''" << errmsg << "'''");
-                    size_t pos = errmsg.find(expected);
-                    CHECK_NE(pos, c4::csubstr::npos);
-                    got_exc = (pos != c4::csubstr::npos);
+                    check_msg_found(C4_IF_EXCEPTIONS_(e.what(), s_jmp_errmsg.c_str()));
                 }
                 CHECK(got_exc);
             }
