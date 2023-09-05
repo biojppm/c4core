@@ -35,6 +35,7 @@ set(C4CORE_SRC_FILES
     c4/export.hpp
     c4/format.hpp
     c4/format.cpp
+    c4/gcc-4.8.hpp
     c4/hash.hpp
     c4/language.hpp
     c4/language.cpp
