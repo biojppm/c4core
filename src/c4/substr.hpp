@@ -835,7 +835,17 @@ public:
 
 public:
 
-    size_t first_not_of(const C c, size_t start=0) const
+    size_t first_not_of(const C c) const
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            if(str[i] != c)
+                return i;
+        }
+        return npos;
+    }
+
+    size_t first_not_of(const C c, size_t start) const
     {
         C4_ASSERT((start >= 0 && start <= len) || (start == len && len == 0));
         for(size_t i = start; i < len; ++i)
@@ -846,7 +856,17 @@ public:
         return npos;
     }
 
-    size_t last_not_of(const C c, size_t start=npos) const
+    size_t last_not_of(const C c) const
+    {
+        for(size_t i = len-1; i != size_t(-1); --i)
+        {
+            if(str[i] != c)
+                return i;
+        }
+        return npos;
+    }
+
+    size_t last_not_of(const C c, size_t start) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
         if(start == npos)
@@ -859,7 +879,28 @@ public:
         return npos;
     }
 
-    size_t first_not_of(ro_substr chars, size_t start=0) const
+    size_t first_not_of(ro_substr chars) const
+    {
+        for(size_t i = 0; i < len; ++i)
+        {
+            bool gotit = true;
+            for(size_t j = 0; j < chars.len; ++j)
+            {
+                if(str[i] == chars.str[j])
+                {
+                    gotit = false;
+                    break;
+                }
+            }
+            if(gotit)
+            {
+                return i;
+            }
+        }
+        return npos;
+    }
+
+    size_t first_not_of(ro_substr chars, size_t start) const
     {
         C4_ASSERT((start >= 0 && start <= len) || (start == len && len == 0));
         for(size_t i = start; i < len; ++i)
@@ -881,7 +922,28 @@ public:
         return npos;
     }
 
-    size_t last_not_of(ro_substr chars, size_t start=npos) const
+    size_t last_not_of(ro_substr chars) const
+    {
+        for(size_t i = len-1; i != size_t(-1); --i)
+        {
+            bool gotit = true;
+            for(size_t j = 0; j < chars.len; ++j)
+            {
+                if(str[i] == chars.str[j])
+                {
+                    gotit = false;
+                    break;
+                }
+            }
+            if(gotit)
+            {
+                return i;
+            }
+        }
+        return npos;
+    }
+
+    size_t last_not_of(ro_substr chars, size_t start) const
     {
         C4_ASSERT(start == npos || (start >= 0 && start <= len));
         if(start == npos)

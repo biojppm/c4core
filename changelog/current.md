@@ -33,6 +33,10 @@ assert(to_substr((char*)ptr).len == 3); // as before
       - `to_csubstr()` (since `std::string_view` is not writeable, cannot provide `to_csubstr()`)
       - `to_chars()` (since `std::string_view` is not writeable, cannot provide `from_chars()`)
       - comparison operators
+- `substr`: split `.first_not_of()` and `.last_not_of()` into different overloads, removing the defaulted `start` parameter:
+  - `.first_not_of(T, start=0)` -> `.first_not_of(T)` , `.first_not_of(T, start)`
+  - `.last_not_of(T, start=npos)` -> `.first_not_of(T)` , `.first_not_of(T, npos)`
+  This may or may not result in a speedup.
 - [PR#105](https://github.com/biojppm/c4core/pull/105): Add macros in `c4/language.hpp` for compile-time flow of exceptions:
   - `C4_EXCEPTIONS`: defined when exceptions are enabled
   - `C4_IF_EXCEPTIONS(code_with_exc, code_without_exc)`: select statements for exceptions enabled/disabled
