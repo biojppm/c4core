@@ -156,6 +156,14 @@
 #   pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+#if defined(__clang__)
+#define C4_NO_UBSAN_IOVRFLW __attribute__((no_sanitize("signed-integer-overflow")))
+#elif defined(__GNUC__)
+#define C4_NO_UBSAN_IOVRFLW __attribute__((no_sanitize("signed-integer-overflow")))
+#else
+#define C4_NO_UBSAN_IOVRFLW
+#endif
+
 
 namespace c4 {
 
@@ -791,6 +799,7 @@ C4_SUPPRESS_WARNING_MSVC(4365) // '=': conversion from 'int' to 'I', signed/unsi
  * @see overflows<T>() to find out if a number string overflows a type range
  * @return true if the conversion was successful (no overflow check) */
 template<class I>
+C4_NO_UBSAN_IOVRFLW
 C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
@@ -818,6 +827,7 @@ C4_ALWAYS_INLINE bool read_dec(csubstr s, I *C4_RESTRICT v) noexcept
  * @see overflows<T>() to find out if a number string overflows a type range
  * @return true if the conversion was successful (no overflow check) */
 template<class I>
+C4_NO_UBSAN_IOVRFLW
 C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
@@ -852,6 +862,7 @@ C4_ALWAYS_INLINE bool read_hex(csubstr s, I *C4_RESTRICT v) noexcept
  * @see overflows<T>() to find out if a number string overflows a type range
  * @return true if the conversion was successful (no overflow check) */
 template<class I>
+C4_NO_UBSAN_IOVRFLW
 C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
@@ -881,6 +892,7 @@ C4_ALWAYS_INLINE bool read_bin(csubstr s, I *C4_RESTRICT v) noexcept
  * @see overflows<T>() to find out if a number string overflows a type range
  * @return true if the conversion was successful (no overflow check) */
 template<class I>
+C4_NO_UBSAN_IOVRFLW
 C4_ALWAYS_INLINE bool read_oct(csubstr s, I *C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<I>::value);
@@ -1356,6 +1368,7 @@ C4_SUPPRESS_WARNING_GCC_POP
  *
  * @see atoi_first() if the string is not trimmed to the value to read. */
 template<class T>
+C4_NO_UBSAN_IOVRFLW
 C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
