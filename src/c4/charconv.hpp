@@ -159,7 +159,11 @@
 #if defined(__clang__)
 #define C4_NO_UBSAN_IOVRFLW __attribute__((no_sanitize("signed-integer-overflow")))
 #elif defined(__GNUC__)
+#if __GNUC__ > 7
 #define C4_NO_UBSAN_IOVRFLW __attribute__((no_sanitize("signed-integer-overflow")))
+#else
+#define C4_NO_UBSAN_IOVRFLW
+#endif
 #else
 #define C4_NO_UBSAN_IOVRFLW
 #endif
