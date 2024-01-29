@@ -51,6 +51,7 @@ assert(to_substr((char*)ptr).len == 3); // as before
 
 ### Fixes
 
+- [PR#129](https://github.com/biojppm/c4core/pull/129) - Support android by enabling `aalloc()`'s call to `memalign()`, available for API 16+.
 - [PR#115](https://github.com/biojppm/c4core/pull/115) - Refactor of `c4::blob`/`c4::cblob`. Use SFINAE to invalidate some of the constructors.
 - [PR#110](https://github.com/biojppm/c4core/pull/110)/[PR#107](https://github.com/biojppm/c4core/pull/107) - Update fast_float.
 - [PR#108](https://github.com/biojppm/c4core/pull/108) - Fix preprocessor concatenation of strings in `C4_NOT_IMPLEMENTED_MSG()` and `C4_NOT_IMPLEMENTED_IF_MSG()`.
