@@ -135,6 +135,16 @@
 #   define C4_BYTE_ORDER _C4EL
 #   define C4_WORDSIZE 4
 
+#elif defined(__loongarch__)
+#   if defined(__loongarch64)
+#       define C4_CPU_LOONGARCH64
+#       define C4_WORDSIZE 8
+#   else
+#       define C4_CPU_LOONGARCH
+#       define C4_WORDSIZE 4
+#   endif
+#   define C4_BYTE_ORDER _C4EL
+
 #elif defined(SWIG)
 #   error "please define CPU architecture macros when compiling with swig"
 
