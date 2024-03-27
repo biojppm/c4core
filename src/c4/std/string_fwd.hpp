@@ -33,8 +33,8 @@ C4_SUPPRESS_WARNING_MSVC_POP
 
 namespace c4 {
 
-C4_ALWAYS_INLINE c4::substr to_substr(std::string &s) noexcept;
-C4_ALWAYS_INLINE c4::csubstr to_csubstr(std::string const& s) noexcept;
+c4::substr to_substr(std::string &s) noexcept;
+c4::csubstr to_csubstr(std::string const& s) noexcept;
 
 bool operator== (c4::csubstr ss, std::string const& s);
 bool operator!= (c4::csubstr ss, std::string const& s);
