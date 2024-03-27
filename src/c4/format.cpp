@@ -45,8 +45,12 @@ bool from_chars(csubstr buf, fmt::raw_wrapper *r)
     auto ptr = (decltype(buf.str)) std::align(r->alignment, r->len, vptr, space);
     C4_CHECK(ptr != nullptr);
     C4_CHECK(ptr >= buf.begin() && ptr <= buf.end());
-    //size_t dim = (ptr - buf.str) + r->len;
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if defined(__GNUC__) && __GNUC__ > 9
+    C4_SUPPRESS_WARNING_GCC("-Wanalyzer-null-argument")
+    #endif
     memcpy(r->buf, ptr, r->len);
+    C4_SUPPRESS_WARNING_GCC_POP
     return true;
 }
 

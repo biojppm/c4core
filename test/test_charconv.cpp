@@ -15,7 +15,7 @@ C4_SUPPRESS_WARNING_GCC("-Wuseless-cast")
 C4_SUPPRESS_WARNING_GCC("-Wconversion")
 C4_SUPPRESS_WARNING_GCC("-Wtype-limits")
 C4_SUPPRESS_WARNING_GCC("-Wfloat-equal")
-#if defined (__GNUC__) && __GNUC_MAJOR__ >= 7
+#if defined (__GNUC__) && __GNUC__ >= 9
 C4_SUPPRESS_WARNING_GCC("-Wno-noexcept-type")
 #endif
 C4_SUPPRESS_WARNING_CLANG_PUSH

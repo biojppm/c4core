@@ -151,33 +151,38 @@ bool is_debugger_attached()
     if(first_call)
     {
         first_call = false;
+        C4_SUPPRESS_WARNING_GCC_PUSH
+        #if defined(__GNUC__) && __GNUC__ > 9
+        C4_SUPPRESS_WARNING_GCC("-Wanalyzer-fd-leak")
+        #endif
         //! @see http://stackoverflow.com/questions/3596781/how-to-detect-if-the-current-process-is-being-run-by-gdb
         //! (this answer: http://stackoverflow.com/a/24969863/3968589 )
         char buf[1024] = "";
-
         int status_fd = open("/proc/self/status", O_RDONLY);
         if (status_fd == -1)
         {
             return 0;
         }
-
-        ssize_t num_read = ::read(status_fd, buf, sizeof(buf));
-
-        if (num_read > 0)
+        else
         {
-            static const char TracerPid[] = "TracerPid:";
-            char *tracer_pid;
-
-            if(num_read < 1024)
+            ssize_t num_read = ::read(status_fd, buf, sizeof(buf));
+            if (num_read > 0)
             {
-                buf[num_read] = 0;
+                static const char TracerPid[] = "TracerPid:";
+                char *tracer_pid;
+                if(num_read < 1024)
+                {
+                    buf[num_read] = 0;
+                }
+                tracer_pid = strstr(buf, TracerPid);
+                if (tracer_pid)
+                {
+                    first_call_result = !!::atoi(tracer_pid + sizeof(TracerPid) - 1);
+                }
             }
-            tracer_pid = strstr(buf, TracerPid);
-            if (tracer_pid)
-            {
-                first_call_result = !!::atoi(tracer_pid + sizeof(TracerPid) - 1);
-            }
+            close(status_fd);
         }
+        C4_SUPPRESS_WARNING_GCC_POP
     }
     return first_call_result;
 #elif defined(C4_PS4)
