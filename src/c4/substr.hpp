@@ -1211,7 +1211,7 @@ public:
         basic_substring ne = first_non_empty_span();
         if(ne.empty())
             return ne;
-        size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-');
+        const size_t skip_start = (ne.str[0] == '+' || ne.str[0] == '-');
         C4_ASSERT(skip_start == 0 || skip_start == 1);
         // if we have at least three digits after the leading sign, it
         // can be decimal, or hex, or bin or oct. Ex:
@@ -1351,14 +1351,11 @@ public:
     power_part_dec:
         C4_ASSERT(pos > 0);
         C4_ASSERT(str[pos - 1] == 'e' || str[pos - 1] == 'E');
-        // either a + or a - is expected here, followed by more chars.
-        // also, using (pos+1) in this check will cause an early
-        // return when no more chars follow the sign.
-        if(len <= (pos+1) || ((!intchars) && (!fracchars)))
+        // either digits, or +, or - are expected here, followed by more digits.
+        if((len == pos) || ((!intchars) && (!fracchars)))
             return first(0);
-        ++pos; // this was the sign.
-        // ... so the (pos+1) ensures that we enter the loop and
-        // hence that there exist chars in the power part
+        if(str[pos] == '-' || str[pos] == '+')
+            ++pos; // skip the sign
         powchars = false;
         for( ; pos < len; ++pos)
         {
@@ -1370,7 +1367,7 @@ public:
             else
                 return first(0);
         }
-        return *this;
+        return powchars ? *this : first(0);
     }
 
     // this function is declared inside the class to avoid a VS error with __declspec(dllimport)

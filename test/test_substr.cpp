@@ -1711,6 +1711,20 @@ TEST_CASE("substr.first_real_span")
     CHECK_EQ(csubstr("0").first_real_span(), "0");
     CHECK_EQ(csubstr("+0").first_real_span(), "+0");
     CHECK_EQ(csubstr("-0").first_real_span(), "-0");
+    CHECK_EQ(csubstr("1.").first_real_span(), "1.");
+    CHECK_EQ(csubstr("+1.").first_real_span(), "+1.");
+    CHECK_EQ(csubstr("-1.").first_real_span(), "-1.");
+    CHECK_EQ(csubstr("-0.").first_real_span(), "-0.");
+    CHECK_EQ(csubstr("0.").first_real_span(), "0.");
+    CHECK_EQ(csubstr("+0.").first_real_span(), "+0.");
+    CHECK_EQ(csubstr("-0.").first_real_span(), "-0.");
+    CHECK_EQ(csubstr("1.2").first_real_span(), "1.2");
+    CHECK_EQ(csubstr("+1.2").first_real_span(), "+1.2");
+    CHECK_EQ(csubstr("-1.2").first_real_span(), "-1.2");
+    CHECK_EQ(csubstr("-0.2").first_real_span(), "-0.2");
+    CHECK_EQ(csubstr("0.2").first_real_span(), "0.2");
+    CHECK_EQ(csubstr("+0.2").first_real_span(), "+0.2");
+    CHECK_EQ(csubstr("-0.2").first_real_span(), "-0.2");
     CHECK_EQ(csubstr("1234 abc").first_real_span(), "1234");
     CHECK_EQ(csubstr("abc 1234 abc").first_real_span(), "");
     CHECK_EQ(csubstr("+0x1234 abc").first_real_span(), "+0x1234");
@@ -1755,15 +1769,120 @@ TEST_CASE("substr.first_real_span")
     CHECK_EQ(csubstr("+0o").first_real_span(), "");
     CHECK_EQ(csubstr("-0o").first_real_span(), "");
     CHECK_EQ(csubstr("-1.234 asdkjh").first_real_span(), "-1.234");
-//    CHECK_EQ(csubstr("-1.234e5 asdkjh").first_real_span(), "-1.234e5");
+    CHECK_EQ(csubstr("-1.234e5 asdkjh").first_real_span(), "-1.234e5");
+    CHECK_EQ(csubstr("-1.234E5 asdkjh").first_real_span(), "-1.234E5");
     CHECK_EQ(csubstr("-1.234e+5 asdkjh").first_real_span(), "-1.234e+5");
+    CHECK_EQ(csubstr("-1.234E+5 asdkjh").first_real_span(), "-1.234E+5");
     CHECK_EQ(csubstr("-1.234e-5 asdkjh").first_real_span(), "-1.234e-5");
+    CHECK_EQ(csubstr("-1.234E-5 asdkjh").first_real_span(), "-1.234E-5");
+    CHECK_EQ(csubstr("9.5e7 asdkjh").first_real_span(), "9.5e7");
+    CHECK_EQ(csubstr("9.5E7 asdkjh").first_real_span(), "9.5E7");
+    CHECK_EQ(csubstr("9.5e+7 asdkjh").first_real_span(), "9.5e+7");
+    CHECK_EQ(csubstr("9.5E+7 asdkjh").first_real_span(), "9.5E+7");
+    CHECK_EQ(csubstr("9.5e-7 asdkjh").first_real_span(), "9.5e-7");
+    CHECK_EQ(csubstr("9.5E-7 asdkjh").first_real_span(), "9.5E-7");
+    CHECK_EQ(csubstr("-9.5e7 asdkjh").first_real_span(), "-9.5e7");
+    CHECK_EQ(csubstr("-9.5E7 asdkjh").first_real_span(), "-9.5E7");
+    CHECK_EQ(csubstr("-9.5e+7 asdkjh").first_real_span(), "-9.5e+7");
+    CHECK_EQ(csubstr("-9.5E+7 asdkjh").first_real_span(), "-9.5E+7");
+    CHECK_EQ(csubstr("-9.5e-7 asdkjh").first_real_span(), "-9.5e-7");
+    CHECK_EQ(csubstr("-9.5E-7 asdkjh").first_real_span(), "-9.5E-7");
+    CHECK_EQ(csubstr("+9.5e7 asdkjh").first_real_span(), "+9.5e7");
+    CHECK_EQ(csubstr("+9.5E7 asdkjh").first_real_span(), "+9.5E7");
+    CHECK_EQ(csubstr("+9.5e+7 asdkjh").first_real_span(), "+9.5e+7");
+    CHECK_EQ(csubstr("+9.5E+7 asdkjh").first_real_span(), "+9.5E+7");
+    CHECK_EQ(csubstr("+9.5e-7 asdkjh").first_real_span(), "+9.5e-7");
+    CHECK_EQ(csubstr("+9.5E-7 asdkjh").first_real_span(), "+9.5E-7");
+    CHECK_EQ(csubstr("9.5e17 asdkjh").first_real_span(), "9.5e17");
+    CHECK_EQ(csubstr("9.5E17 asdkjh").first_real_span(), "9.5E17");
+    CHECK_EQ(csubstr("9.5e+17 asdkjh").first_real_span(), "9.5e+17");
+    CHECK_EQ(csubstr("9.5E+17 asdkjh").first_real_span(), "9.5E+17");
+    CHECK_EQ(csubstr("9.5e-17 asdkjh").first_real_span(), "9.5e-17");
+    CHECK_EQ(csubstr("9.5E-17 asdkjh").first_real_span(), "9.5E-17");
+    CHECK_EQ(csubstr("-9.5e17 asdkjh").first_real_span(), "-9.5e17");
+    CHECK_EQ(csubstr("-9.5E17 asdkjh").first_real_span(), "-9.5E17");
+    CHECK_EQ(csubstr("-9.5e+17 asdkjh").first_real_span(), "-9.5e+17");
+    CHECK_EQ(csubstr("-9.5E+17 asdkjh").first_real_span(), "-9.5E+17");
+    CHECK_EQ(csubstr("-9.5e-17 asdkjh").first_real_span(), "-9.5e-17");
+    CHECK_EQ(csubstr("-9.5E-17 asdkjh").first_real_span(), "-9.5E-17");
+    CHECK_EQ(csubstr("+9.5e17 asdkjh").first_real_span(), "+9.5e17");
+    CHECK_EQ(csubstr("+9.5E17 asdkjh").first_real_span(), "+9.5E17");
+    CHECK_EQ(csubstr("+9.5e+17 asdkjh").first_real_span(), "+9.5e+17");
+    CHECK_EQ(csubstr("+9.5E+17 asdkjh").first_real_span(), "+9.5E+17");
+    CHECK_EQ(csubstr("+9.5e-17 asdkjh").first_real_span(), "+9.5e-17");
+    CHECK_EQ(csubstr("+9.5E-17 asdkjh").first_real_span(), "+9.5E-17");
+    CHECK_EQ(csubstr("129.532e7 asdkjh").first_real_span(), "129.532e7");
+    CHECK_EQ(csubstr("129.532E7 asdkjh").first_real_span(), "129.532E7");
+    CHECK_EQ(csubstr("129.532e+7 asdkjh").first_real_span(), "129.532e+7");
+    CHECK_EQ(csubstr("129.532E+7 asdkjh").first_real_span(), "129.532E+7");
+    CHECK_EQ(csubstr("129.532e-7 asdkjh").first_real_span(), "129.532e-7");
+    CHECK_EQ(csubstr("129.532E-7 asdkjh").first_real_span(), "129.532E-7");
+    CHECK_EQ(csubstr("-129.532e7 asdkjh").first_real_span(), "-129.532e7");
+    CHECK_EQ(csubstr("-129.532E7 asdkjh").first_real_span(), "-129.532E7");
+    CHECK_EQ(csubstr("-129.532e+7 asdkjh").first_real_span(), "-129.532e+7");
+    CHECK_EQ(csubstr("-129.532E+7 asdkjh").first_real_span(), "-129.532E+7");
+    CHECK_EQ(csubstr("-129.532e-7 asdkjh").first_real_span(), "-129.532e-7");
+    CHECK_EQ(csubstr("-129.532E-7 asdkjh").first_real_span(), "-129.532E-7");
+    CHECK_EQ(csubstr("+129.532e7 asdkjh").first_real_span(), "+129.532e7");
+    CHECK_EQ(csubstr("+129.532E7 asdkjh").first_real_span(), "+129.532E7");
+    CHECK_EQ(csubstr("+129.532e+7 asdkjh").first_real_span(), "+129.532e+7");
+    CHECK_EQ(csubstr("+129.532E+7 asdkjh").first_real_span(), "+129.532E+7");
+    CHECK_EQ(csubstr("+129.532e-7 asdkjh").first_real_span(), "+129.532e-7");
+    CHECK_EQ(csubstr("+129.532E-7 asdkjh").first_real_span(), "+129.532E-7");
+    CHECK_EQ(csubstr("129.532e17 asdkjh").first_real_span(), "129.532e17");
+    CHECK_EQ(csubstr("129.532E17 asdkjh").first_real_span(), "129.532E17");
+    CHECK_EQ(csubstr("129.532e+17 asdkjh").first_real_span(), "129.532e+17");
+    CHECK_EQ(csubstr("129.532E+17 asdkjh").first_real_span(), "129.532E+17");
+    CHECK_EQ(csubstr("129.532e-17 asdkjh").first_real_span(), "129.532e-17");
+    CHECK_EQ(csubstr("129.532E-17 asdkjh").first_real_span(), "129.532E-17");
+    CHECK_EQ(csubstr("-129.532e17 asdkjh").first_real_span(), "-129.532e17");
+    CHECK_EQ(csubstr("-129.532E17 asdkjh").first_real_span(), "-129.532E17");
+    CHECK_EQ(csubstr("-129.532e+17 asdkjh").first_real_span(), "-129.532e+17");
+    CHECK_EQ(csubstr("-129.532E+17 asdkjh").first_real_span(), "-129.532E+17");
+    CHECK_EQ(csubstr("-129.532e-17 asdkjh").first_real_span(), "-129.532e-17");
+    CHECK_EQ(csubstr("-129.532E-17 asdkjh").first_real_span(), "-129.532E-17");
+    CHECK_EQ(csubstr("+129.532e17 asdkjh").first_real_span(), "+129.532e17");
+    CHECK_EQ(csubstr("+129.532E17 asdkjh").first_real_span(), "+129.532E17");
+    CHECK_EQ(csubstr("+129.532e+17 asdkjh").first_real_span(), "+129.532e+17");
+    CHECK_EQ(csubstr("+129.532E+17 asdkjh").first_real_span(), "+129.532E+17");
+    CHECK_EQ(csubstr("+129.532e-17 asdkjh").first_real_span(), "+129.532e-17");
+    CHECK_EQ(csubstr("+129.532E-17 asdkjh").first_real_span(), "+129.532E-17");
+    CHECK_EQ(csubstr("129.532e asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("129.532E asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("129.532e+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("129.532E+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("129.532e- asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("129.532E- asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("-129.532e asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("-129.532E asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("-129.532e+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("-129.532E+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("-129.532e- asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("-129.532E- asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("+129.532e asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("+129.532E asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("+129.532e+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("+129.532E+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("+129.532e- asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("+129.532E- asdkjh").first_real_span(), "");
     CHECK_EQ(csubstr("0x1.e8480p+19 asdkjh").first_real_span(), "0x1.e8480p+19");
     CHECK_EQ(csubstr("0x1.e8480p-19 asdkjh").first_real_span(), "0x1.e8480p-19");
     CHECK_EQ(csubstr("-0x1.e8480p+19 asdkjh").first_real_span(), "-0x1.e8480p+19");
     CHECK_EQ(csubstr("-0x1.e8480p-19 asdkjh").first_real_span(), "-0x1.e8480p-19");
     CHECK_EQ(csubstr("+0x1.e8480p+19 asdkjh").first_real_span(), "+0x1.e8480p+19");
     CHECK_EQ(csubstr("+0x1.e8480p-19 asdkjh").first_real_span(), "+0x1.e8480p-19");
+    CHECK_EQ(csubstr("0x1.e8480p+1 asdkjh").first_real_span(), "0x1.e8480p+1");
+    CHECK_EQ(csubstr("0x1.e8480p-1 asdkjh").first_real_span(), "0x1.e8480p-1");
+    CHECK_EQ(csubstr("-0x1.e8480p+1 asdkjh").first_real_span(), "-0x1.e8480p+1");
+    CHECK_EQ(csubstr("-0x1.e8480p-1 asdkjh").first_real_span(), "-0x1.e8480p-1");
+    CHECK_EQ(csubstr("+0x1.e8480p+1 asdkjh").first_real_span(), "+0x1.e8480p+1");
+    CHECK_EQ(csubstr("+0x1.e8480p-1 asdkjh").first_real_span(), "+0x1.e8480p-1");
+    CHECK_EQ(csubstr("0x1.e8480p+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("0x1.e8480p- asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("-0x1.e8480p+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("-0x1.e8480p- asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("+0x1.e8480p+ asdkjh").first_real_span(), "");
+    CHECK_EQ(csubstr("+0x1.e8480p- asdkjh").first_real_span(), "");
     CHECK_EQ(csubstr("infinity").first_real_span(), "infinity");
     CHECK_EQ(csubstr(" infinity").first_real_span(), "infinity");
     CHECK_EQ(csubstr("-infinity").first_real_span(), "-infinity");
@@ -2210,6 +2329,88 @@ TEST_CASE("substr.is_real")
         CHECK_UNARY(csubstr("0.1").is_real());
         CHECK_UNARY(csubstr("-0.1").is_real());
     }
+    SUBCASE("scientific")
+    {
+        CHECK_UNARY(csubstr("-1.234").is_real());
+        CHECK_UNARY(csubstr("-1.234e5").is_real());
+        CHECK_UNARY(csubstr("-1.234E5").is_real());
+        CHECK_UNARY(csubstr("-1.234e+5").is_real());
+        CHECK_UNARY(csubstr("-1.234E+5").is_real());
+        CHECK_UNARY(csubstr("-1.234e-5").is_real());
+        CHECK_UNARY(csubstr("-1.234E-5").is_real());
+        CHECK_UNARY(csubstr("9.5e7").is_real());
+        CHECK_UNARY(csubstr("9.5E7").is_real());
+        CHECK_UNARY(csubstr("9.5e+7").is_real());
+        CHECK_UNARY(csubstr("9.5E+7").is_real());
+        CHECK_UNARY(csubstr("9.5e-7").is_real());
+        CHECK_UNARY(csubstr("9.5E-7").is_real());
+        CHECK_UNARY(csubstr("-9.5e7").is_real());
+        CHECK_UNARY(csubstr("-9.5E7").is_real());
+        CHECK_UNARY(csubstr("-9.5e+7").is_real());
+        CHECK_UNARY(csubstr("-9.5E+7").is_real());
+        CHECK_UNARY(csubstr("-9.5e-7").is_real());
+        CHECK_UNARY(csubstr("-9.5E-7").is_real());
+        CHECK_UNARY(csubstr("+9.5e7").is_real());
+        CHECK_UNARY(csubstr("+9.5E7").is_real());
+        CHECK_UNARY(csubstr("+9.5e+7").is_real());
+        CHECK_UNARY(csubstr("+9.5E+7").is_real());
+        CHECK_UNARY(csubstr("+9.5e-7").is_real());
+        CHECK_UNARY(csubstr("+9.5E-7").is_real());
+        CHECK_UNARY(csubstr("9.5e17").is_real());
+        CHECK_UNARY(csubstr("9.5E17").is_real());
+        CHECK_UNARY(csubstr("9.5e+17").is_real());
+        CHECK_UNARY(csubstr("9.5E+17").is_real());
+        CHECK_UNARY(csubstr("9.5e-17").is_real());
+        CHECK_UNARY(csubstr("9.5E-17").is_real());
+        CHECK_UNARY(csubstr("-9.5e17").is_real());
+        CHECK_UNARY(csubstr("-9.5E17").is_real());
+        CHECK_UNARY(csubstr("-9.5e+17").is_real());
+        CHECK_UNARY(csubstr("-9.5E+17").is_real());
+        CHECK_UNARY(csubstr("-9.5e-17").is_real());
+        CHECK_UNARY(csubstr("-9.5E-17").is_real());
+        CHECK_UNARY(csubstr("+9.5e17").is_real());
+        CHECK_UNARY(csubstr("+9.5E17").is_real());
+        CHECK_UNARY(csubstr("+9.5e+17").is_real());
+        CHECK_UNARY(csubstr("+9.5E+17").is_real());
+        CHECK_UNARY(csubstr("+9.5e-17").is_real());
+        CHECK_UNARY(csubstr("+9.5E-17").is_real());
+        CHECK_UNARY(csubstr("129.532e7").is_real());
+        CHECK_UNARY(csubstr("129.532E7").is_real());
+        CHECK_UNARY(csubstr("129.532e+7").is_real());
+        CHECK_UNARY(csubstr("129.532E+7").is_real());
+        CHECK_UNARY(csubstr("129.532e-7").is_real());
+        CHECK_UNARY(csubstr("129.532E-7").is_real());
+        CHECK_UNARY(csubstr("-129.532e7").is_real());
+        CHECK_UNARY(csubstr("-129.532E7").is_real());
+        CHECK_UNARY(csubstr("-129.532e+7").is_real());
+        CHECK_UNARY(csubstr("-129.532E+7").is_real());
+        CHECK_UNARY(csubstr("-129.532e-7").is_real());
+        CHECK_UNARY(csubstr("-129.532E-7").is_real());
+        CHECK_UNARY(csubstr("+129.532e7").is_real());
+        CHECK_UNARY(csubstr("+129.532E7").is_real());
+        CHECK_UNARY(csubstr("+129.532e+7").is_real());
+        CHECK_UNARY(csubstr("+129.532E+7").is_real());
+        CHECK_UNARY(csubstr("+129.532e-7").is_real());
+        CHECK_UNARY(csubstr("+129.532E-7").is_real());
+        CHECK_UNARY(csubstr("129.532e17").is_real());
+        CHECK_UNARY(csubstr("129.532E17").is_real());
+        CHECK_UNARY(csubstr("129.532e+17").is_real());
+        CHECK_UNARY(csubstr("129.532E+17").is_real());
+        CHECK_UNARY(csubstr("129.532e-17").is_real());
+        CHECK_UNARY(csubstr("129.532E-17").is_real());
+        CHECK_UNARY(csubstr("-129.532e17").is_real());
+        CHECK_UNARY(csubstr("-129.532E17").is_real());
+        CHECK_UNARY(csubstr("-129.532e+17").is_real());
+        CHECK_UNARY(csubstr("-129.532E+17").is_real());
+        CHECK_UNARY(csubstr("-129.532e-17").is_real());
+        CHECK_UNARY(csubstr("-129.532E-17").is_real());
+        CHECK_UNARY(csubstr("+129.532e17").is_real());
+        CHECK_UNARY(csubstr("+129.532E17").is_real());
+        CHECK_UNARY(csubstr("+129.532e+17").is_real());
+        CHECK_UNARY(csubstr("+129.532E+17").is_real());
+        CHECK_UNARY(csubstr("+129.532e-17").is_real());
+        CHECK_UNARY(csubstr("+129.532E-17").is_real());
+    }
     SUBCASE("hexadecimal")
     {
         CHECK_FALSE(csubstr("0x").is_real());
@@ -2637,6 +2838,85 @@ const number numbers[] = {
     {"infinity", kIsReal},
     {"inf", kIsReal},
     {"nan", kIsReal},
+        {"-1.234", kIsReal},
+        {"-1.234e5", kIsReal},
+        {"-1.234E5", kIsReal},
+        {"-1.234e+5", kIsReal},
+        {"-1.234E+5", kIsReal},
+        {"-1.234e-5", kIsReal},
+        {"-1.234E-5", kIsReal},
+        {"9.5e7", kIsReal},
+        {"9.5E7", kIsReal},
+        {"9.5e+7", kIsReal},
+        {"9.5E+7", kIsReal},
+        {"9.5e-7", kIsReal},
+        {"9.5E-7", kIsReal},
+        {"-9.5e7", kIsReal},
+        {"-9.5E7", kIsReal},
+        {"-9.5e+7", kIsReal},
+        {"-9.5E+7", kIsReal},
+        {"-9.5e-7", kIsReal},
+        {"-9.5E-7", kIsReal},
+        {"+9.5e7", kIsReal},
+        {"+9.5E7", kIsReal},
+        {"+9.5e+7", kIsReal},
+        {"+9.5E+7", kIsReal},
+        {"+9.5e-7", kIsReal},
+        {"+9.5E-7", kIsReal},
+        {"9.5e17", kIsReal},
+        {"9.5E17", kIsReal},
+        {"9.5e+17", kIsReal},
+        {"9.5E+17", kIsReal},
+        {"9.5e-17", kIsReal},
+        {"9.5E-17", kIsReal},
+        {"-9.5e17", kIsReal},
+        {"-9.5E17", kIsReal},
+        {"-9.5e+17", kIsReal},
+        {"-9.5E+17", kIsReal},
+        {"-9.5e-17", kIsReal},
+        {"-9.5E-17", kIsReal},
+        {"+9.5e17", kIsReal},
+        {"+9.5E17", kIsReal},
+        {"+9.5e+17", kIsReal},
+        {"+9.5E+17", kIsReal},
+        {"+9.5e-17", kIsReal},
+        {"+9.5E-17", kIsReal},
+        {"129.532e7", kIsReal},
+        {"129.532E7", kIsReal},
+        {"129.532e+7", kIsReal},
+        {"129.532E+7", kIsReal},
+        {"129.532e-7", kIsReal},
+        {"129.532E-7", kIsReal},
+        {"-129.532e7", kIsReal},
+        {"-129.532E7", kIsReal},
+        {"-129.532e+7", kIsReal},
+        {"-129.532E+7", kIsReal},
+        {"-129.532e-7", kIsReal},
+        {"-129.532E-7", kIsReal},
+        {"+129.532e7", kIsReal},
+        {"+129.532E7", kIsReal},
+        {"+129.532e+7", kIsReal},
+        {"+129.532E+7", kIsReal},
+        {"+129.532e-7", kIsReal},
+        {"+129.532E-7", kIsReal},
+        {"129.532e17", kIsReal},
+        {"129.532E17", kIsReal},
+        {"129.532e+17", kIsReal},
+        {"129.532E+17", kIsReal},
+        {"129.532e-17", kIsReal},
+        {"129.532E-17", kIsReal},
+        {"-129.532e17", kIsReal},
+        {"-129.532E17", kIsReal},
+        {"-129.532e+17", kIsReal},
+        {"-129.532E+17", kIsReal},
+        {"-129.532e-17", kIsReal},
+        {"-129.532E-17", kIsReal},
+        {"+129.532e17", kIsReal},
+        {"+129.532E17", kIsReal},
+        {"+129.532e+17", kIsReal},
+        {"+129.532E+17", kIsReal},
+        {"+129.532e-17", kIsReal},
+        {"+129.532E-17", kIsReal},
 };
 
 TEST_CASE("substr.is_number")
