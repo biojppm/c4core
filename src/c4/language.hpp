@@ -13,7 +13,7 @@
  * @see http://stackoverflow.com/a/7132549/5875572 */
 #ifndef C4_CPP
 #   if defined(_MSC_VER) && !defined(__clang__)
-#       if _MSC_VER >= 1910  // >VS2015: VS2017, VS2019
+#       if _MSC_VER >= 1910  // >VS2015: VS2017, VS2019, VS2022
 #           if (!defined(_MSVC_LANG))
 #               error _MSVC not defined
 #           endif
@@ -221,12 +221,20 @@
 #   define C4_FLATTEN
 #   define C4_HOT         /** @todo */
 #   define C4_COLD        /** @todo */
+#   define C4_ASSUME(...) __assume(__VA_ARGS__)
 #   define C4_EXPECT(x, y) x /** @todo */
-#   define C4_LIKELY(x)   x /** @todo */
-#   define C4_UNLIKELY(x) x /** @todo */
-#   define C4_UNREACHABLE() /** @todo */
+#   define C4_LIKELY(x)   x
+#   define C4_UNLIKELY(x) x
+#   define C4_UNREACHABLE() _c4_msvc_unreachable()
 #   define C4_ATTR_FORMAT(...) /** */
-#   define C4_NORETURN /** @todo */
+#   define C4_NORETURN [[noreturn]]
+#   if _MSC_VER >= 1700 // VS2012
+#       define C4_NODISCARD _Check_return_
+#   else
+#       define C4_NODISCARD
+#   endif
+[[noreturn]] __forceinline void _c4_msvc_unreachable() { __assume(false); } ///< https://stackoverflow.com/questions/60802864/emulating-gccs-builtin-unreachable-in-visual-studio
+#   define C4_UNREACHABLE_AFTER_ERR() /* */
 #else
     ///< @todo assuming gcc-like compiler. check it is actually so.
 /** for function attributes in GCC,
@@ -254,7 +262,51 @@
 #   define C4_UNREACHABLE() __builtin_unreachable()
 #   define C4_ATTR_FORMAT(...) //__attribute__((format (__VA_ARGS__))) ///< @see https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#Common-Function-Attributes
 #   define C4_NORETURN __attribute__((noreturn))
+#   define C4_NODISCARD __attribute__((warn_unused_result))
+#   define C4_UNREACHABLE_AFTER_ERR() C4_UNREACHABLE()
+// C4_ASSUME
+// see https://stackoverflow.com/questions/63493968/reproducing-clangs-builtin-assume-for-gcc
+// preferred option: C++ standard attribute
+#   ifdef __has_cpp_attribute
+#       if __has_cpp_attribute(assume) >= 202207L
+#           define C4_ASSUME(...) [[assume(__VA_ARGS__)]]
+#       endif
+#   endif
+// first fallback: compiler intrinsics/attributes for assumptions
+#   ifndef C4_ASSUME
+#       if defined(__clang__)
+#           define C4_ASSUME(...) __builtin_assume(__VA_ARGS__)
+#       elif defined(__GNUC__)
+#       if __GNUC__ >= 13
+#           define C4_ASSUME(...) __attribute__((__assume__(__VA_ARGS__)))
+#       endif
+#       endif
+#   endif
+// second fallback: possibly evaluating uses of unreachable()
+// Set this to 1 if you want to allow assumptions to possibly evaluate.
+#   ifndef C4_ASSUME_ALLOW_EVAL
+#       define C4_ASSUME_ALLOW_EVAL 0
+#   endif
+#   if !defined(C4_ASSUME) && (C4_ASSUME_ALLOW_EVAL)
+#       define C4_ASSUME(...) do { if (!bool(__VA_ARGS__)) C4_UNREACHABLE(); ) while(0)
+#   endif
+// last fallback: define macro as doing nothing
+#   ifndef C4_ASSUME
+#       define C4_ASSUME(...)
+#   endif
 #endif
+
+
+#if C4_CPP >= 14
+#   define C4_DEPRECATED(msg) [[deprecated(msg)]]
+#else
+#   if defined(_MSC_VER)
+#       define C4_DEPRECATED(msg) __declspec(deprecated(msg))
+#   else // defined(__GNUC__) || defined(__clang__)
+#       define C4_DEPRECATED(msg) __attribute__((deprecated(msg)))
+#   endif
+#endif
+
 
 #ifdef _MSC_VER
 #   define C4_FUNC __FUNCTION__

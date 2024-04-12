@@ -43,7 +43,7 @@ jobs:
           - {std: 11, cxx: clang++-6.0, bt: Release, bitlinks: shared64 static32}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -85,7 +85,7 @@ jobs:
           - {std: 11, cxx: clang++-6.0, bt: Release, bitlinks: shared64 static32}
     env: {CXXFLAGS: "-fno-exceptions -fno-rtti", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -151,7 +151,7 @@ jobs:
           - {std: 11, cxx: clang++-3.9, bt: Release, vg: on, img: ubuntu18.04}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -205,7 +205,7 @@ jobs:
           - {std: 20, cxx: clang++-16 , bt: ubsan, bitlinks: static64}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -251,7 +251,7 @@ jobs:
 #          - {std: 20, cxx: clang++-10, bt: Release, bitlinks: shared64, os: ubuntu-20.04}
 #    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
 #    steps:
-#      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+#      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
 #      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
 #      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
 #      - {name: show info, run: source .github/setenv.sh && c4_show_info}

@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # use fetch-depth to ensure all tags are fetched
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive, fetch-depth: 0}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive, fetch-depth: 0}}
       - name: Variables (from tag)
         if: contains(github.ref, 'tags/v')
         run: |
@@ -77,7 +77,7 @@ jobs:
     needs: gettag
     runs-on: ubuntu-latest
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - name: Download vars.sh
         uses: actions/download-artifact@v3
         with: {name: vars.sh, path: ./}
@@ -121,7 +121,7 @@ jobs:
           - {name: Windows VS2019 zip, sfxg: win64-shared-Release.zip , sfxp: windows-vs2019.zip , gen: ZIP  , mime: zip                      , os: windows-2019, cxx: vs2019}
           - {name: MacOSX sh         , sfxg: apple64-shared-Release.sh, sfxp: macosx-xcode.sh    , gen: STGZ , mime: x-sh                     , os: macos-11.0  , cxx: xcode }
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - name: Download vars.sh
         uses: actions/download-artifact@v3
         with: {name: vars.sh, path: ./}
@@ -152,7 +152,7 @@ jobs:
       - src
       - cpp
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - name: Gather artifacts - ./assets
         uses: actions/download-artifact@v3
         with: {name: assets, path: assets}
