@@ -11,6 +11,10 @@
 
 namespace c4 {
 
+/** @defgroup doc_base64 Base64 encoding/decoding
+ * @see https://en.wikipedia.org/wiki/Base64
+ * @see https://www.base64encode.org/
+ * @{ */
 
 /** check that the given buffer is a valid base64 encoding
  * @see https://en.wikipedia.org/wiki/Base64 */
@@ -53,8 +57,15 @@ C4CORE_EXPORT size_t base64_encode(substr encoded, cblob data);
  * @see https://en.wikipedia.org/wiki/Base64 */
 C4CORE_EXPORT size_t base64_decode(csubstr encoded, blob data);
 
+/** @} */ // base64
 
 namespace fmt {
+
+/** @addtogroup doc_format_specifiers
+ * @{ */
+
+/** @defgroup doc_base64_fmt Base64
+ * @{ */
 
 template<typename CharOrConstChar>
 struct base64_wrapper_
@@ -104,16 +115,22 @@ C4_ALWAYS_INLINE base64_wrapper base64(substr s)
     return base64_wrapper(blob(s.str, s.len));
 }
 
+/** @} */ // base64_fmt
+
+/** @} */ // format_specifiers
+
 } // namespace fmt
 
 
-/** write a variable in base64 format */
+/** write a variable in base64 format
+ * @ingroup doc_to_chars */
 inline size_t to_chars(substr buf, fmt::const_base64_wrapper b)
 {
     return base64_encode(buf, b.data);
 }
 
-/** read a variable in base64 format */
+/** read a variable in base64 format
+ * @ingroup doc_from_chars */
 inline size_t from_chars(csubstr buf, fmt::base64_wrapper *b)
 {
     return base64_decode(buf, b->data);
