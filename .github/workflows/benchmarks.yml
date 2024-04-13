@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # use fetch-depth to ensure all tags are fetched
-      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive, fetch-depth: 0}}
+      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive, fetch-depth: 0}}
       - name: Variables (from tag)
         if: contains(github.ref, 'tags/v')
         run: |
@@ -88,7 +88,7 @@ jobs:
     env: {BM: ON, STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       # use fetch-depth to ensure all tags are fetched
-      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive, fetch-depth: 0}}
+      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive, fetch-depth: 0}}
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
       - name: Download vars.sh
         uses: actions/download-artifact@v3
@@ -173,7 +173,7 @@ jobs:
           #- {std: 11, bt: Release, arch: armv7  , distro: ubuntu18.04}
           #- {std: 17, bt: Release, arch: armv7  , distro: ubuntu18.04}
     steps:
-      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive, fetch-depth: 0}}
+      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive, fetch-depth: 0}}
       - name: Download vars.sh
         uses: actions/download-artifact@v3
         with: {name: vars.sh, path: ./}

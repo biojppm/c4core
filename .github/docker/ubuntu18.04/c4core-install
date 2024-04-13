@@ -19,6 +19,8 @@ case $what in
         $script gcc-9
         $script gcc-10
         $script gcc-11
+        #$script gcc-12  #not available in ubuntu 18.04
+        $script gcc-13
         ;;
     clang-all)
         $script clang-16
@@ -115,6 +117,31 @@ case $what in
         apt-get update
         apt-get install -y \
                 cpp-11 gcc-11 g++-11 g++-11-multilib libstdc++-11-dev lib32stdc++-11-dev
+        ;;
+    #not available in ubuntu18.04
+    #g++-12|gcc-12)
+    #    apt-get update
+    #    apt-get install -y \
+    #            software-properties-common
+    #    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6AF7F09730B3F0A4
+    #    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5
+    #    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
+    #    apt-add-repository --yes --no-update ppa:ubuntu-toolchain-r/test
+    #    apt-get update
+    #    apt-get install -y \
+    #            cpp-12 gcc-12 g++-12 g++-12-multilib libstdc++-12-dev lib32stdc++-12-dev
+    #    ;;
+    g++-13|gcc-13)
+        apt-get update
+        apt-get install -y \
+                software-properties-common
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6AF7F09730B3F0A4
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
+        apt-add-repository --yes --no-update ppa:ubuntu-toolchain-r/test
+        apt-get update
+        apt-get install -y \
+                cpp-13 gcc-13 g++-13 g++-13-multilib libstdc++-13-dev lib32stdc++-13-dev
         ;;
     clang++-3.9|clang-3.9)
         apt-get update

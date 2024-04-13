@@ -20,6 +20,7 @@ case $what in
         $script gcc-10
         $script gcc-11
         $script gcc-12
+        $script gcc-13
         ;;
     clang-all)
         $script clang-16
@@ -116,16 +117,16 @@ case $what in
         apt-get install -y \
                 cpp-12 gcc-12 g++-12 g++-12-multilib libstdc++-12-dev lib32stdc++-12-dev
         ;;
-    #g++-13|#gcc-13)
-    #    apt-get update
-    #    apt-get install -y \
-    #            wget \
-    #            software-properties-common
-    #    apt-add-repository --yes --no-update ppa:ubuntu-toolchain-r/test
-    #    apt-get update
-    #    apt-get install -y \
-    #            cpp-13 gcc-13 g++-13 g++-13-multilib libstdc++-13-dev lib32stdc++-13-dev
-    #    ;;
+    g++-13|gcc-13)
+        apt-get update
+        apt-get install -y \
+                wget \
+                software-properties-common
+        apt-add-repository --yes --no-update ppa:ubuntu-toolchain-r/test
+        apt-get update
+        apt-get install -y \
+                cpp-13 gcc-13 g++-13 g++-13-multilib libstdc++-13-dev lib32stdc++-13-dev
+        ;;
     #clang++-3.9|clang-3.9)
     #    apt-get update
     #    apt-get install -y \
