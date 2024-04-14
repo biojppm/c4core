@@ -24,13 +24,15 @@
 
 namespace c4 {
 
+/** @defgroup doc_substr Substring: read/write string views
+ * @{ */
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** @cond dev */
 namespace detail {
-
 template<typename C>
 static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 {
@@ -41,19 +43,20 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
         *first++ = tmp;
     }
 }
-
 } // namespace detail
-
+/** @endcond */
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** @cond dev */
 // utility macros to deuglify SFINAE code; undefined after the class.
 // https://stackoverflow.com/questions/43051882/how-to-disable-a-class-member-funrtion-for-certain-template-types
 #define C4_REQUIRE_RW(ret_type) \
     template <typename U=C> \
     typename std::enable_if< ! std::is_const<U>::value, ret_type>::type
+/** @endcond */
 
 
 /** a non-owning string-view, consisting of a character pointer
@@ -345,7 +348,7 @@ public:
         return basic_substring(str, num != npos ? num : len);
     }
 
-    /** return the last @num elements: [len-num,len[*/
+    /** return the last @p num elements: [len-num,len[*/
     C4_ALWAYS_INLINE C4_PURE basic_substring last(size_t num) const noexcept
     {
         C4_ASSERT(num <= len || num == npos);
@@ -2109,7 +2112,7 @@ public:
     }
 
     /** replace @p pattern with @p repl, and write the result into
-     * @dst. pattern and repl don't need equal sizes.
+     * @p dst. pattern and repl don't need equal sizes.
      *
      * @return the required size for dst. No overflow occurs if
      * dst.len is smaller than the required size; this can be used to
@@ -2168,10 +2171,12 @@ public:
 //-----------------------------------------------------------------------------
 
 
-/** @name Adapter functions. to_substr() and to_csubstr() is used in
- * generic code like format(), and allow adding construction of
- * substrings from new types like containers. */
-/** @{ */
+/** @defgroup doc_substr_adapters substr adapters
+ *
+ * to_substr() and to_csubstr() is used in generic code like
+ * format(), and allow adding construction of substrings from new
+ * types like containers.
+ * @{ */
 
 
 /** neutral version for use in generic code */
@@ -2211,6 +2216,9 @@ to_csubstr(U s) noexcept { csubstr ss(s); return ss; }
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+/** @defgroup doc_substr_cmp substr comparison operators
+ * @{ */
+
 template<typename C, size_t N> inline bool operator== (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) == 0; }
 template<typename C, size_t N> inline bool operator!= (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) != 0; }
 template<typename C, size_t N> inline bool operator<  (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) >  0; }
@@ -2225,12 +2233,14 @@ template<typename C> inline bool operator>  (const char c, basic_substring<C> co
 template<typename C> inline bool operator<= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) >= 0; }
 template<typename C> inline bool operator>= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) <= 0; }
 
+/** @} */
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** @define C4_SUBSTR_NO_OSTREAM_LSHIFT doctest does not deal well with
+/* C4_SUBSTR_NO_OSTREAM_LSHIFT doctest does not deal well with
  * template operator<<
  * @see https://github.com/onqtam/doctest/pull/431 */
 #ifndef C4_SUBSTR_NO_OSTREAM_LSHIFT
@@ -2264,6 +2274,8 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
 #   pragma GCC diagnostic pop
 #endif
 #endif // !C4_SUBSTR_NO_OSTREAM_LSHIFT
+
+/** @} */
 
 } // namespace c4
 

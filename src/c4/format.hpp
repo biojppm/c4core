@@ -21,8 +21,28 @@
 #   pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
 
+/** @defgroup doc_format_utils Format utilities
+ *
+ * @brief Provides generic and type-safe formatting/scanning utilities
+ * built on top of @ref doc_to_chars() and @ref doc_from_chars,
+ * forwarding the arguments to these functions, which in turn use the
+ * @ref doc_charconv utilities. Like @ref doc_charconv, the formatting
+ * facilities are very efficient and many times faster than printf().
+ *
+ * @see @ref sample::sample_formatting
+ * */
+
+/** @defgroup doc_format_specifiers Format specifiers
+ *
+ * @brief Format specifiers are tag types and functions that are used
+ * together with @ref doc_to_chars and @ref doc_from_chars
+ *
+ * @ingroup doc_format_utils */
+
 namespace c4 {
 
+/** @addtogroup doc_format_utils
+ * @{ */
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -30,6 +50,12 @@ namespace c4 {
 // formatting truthy types as booleans
 
 namespace fmt {
+
+/** @addtogroup doc_format_specifiers
+ * @{ */
+
+/** @defgroup doc_boolean_specifiers boolean specifiers
+ * @{ */
 
 /** write a variable as an alphabetic boolean, ie as either true or false
  * @param strict_read */
@@ -47,9 +73,15 @@ boolalpha_<T> boolalpha(T const& val, bool strict_read=false)
     return boolalpha_<T>(val, strict_read);
 }
 
+/** @} */
+
+/** @} */
+
 } // namespace fmt
 
-/** write a variable as an alphabetic boolean, ie as either true or false */
+/** write a variable as an alphabetic boolean, ie as either true or
+ * false
+ * @ingroup doc_to_chars */
 template<class T>
 inline size_t to_chars(substr buf, fmt::boolalpha_<T> fmt)
 {
@@ -65,10 +97,17 @@ inline size_t to_chars(substr buf, fmt::boolalpha_<T> fmt)
 
 namespace fmt {
 
+/** @addtogroup doc_format_specifiers
+ * @{ */
+
+/** @defgroup doc_integer_specifiers Integer specifiers
+ * @{ */
+
 /** format an integral type with a custom radix */
 template<typename T>
 struct integral_
 {
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
     T val;
     T radix;
     C4_ALWAYS_INLINE integral_(T val_, T radix_) : val(val_), radix(radix_) {}
@@ -78,11 +117,13 @@ struct integral_
 template<typename T>
 struct integral_padded_
 {
+    C4_STATIC_ASSERT(std::is_integral<T>::value);
     T val;
     T radix;
     size_t num_digits;
     C4_ALWAYS_INLINE integral_padded_(T val_, T radix_, size_t nd) : val(val_), radix(radix_), num_digits(nd) {}
 };
+
 
 /** format an integral type with a custom radix */
 template<class T>
@@ -101,34 +142,6 @@ template<class T>
 C4_ALWAYS_INLINE integral_<intptr_t> integral(std::nullptr_t, T radix=10)
 {
     return integral_<intptr_t>(intptr_t(0), static_cast<intptr_t>(radix));
-}
-/** pad the argument with zeroes on the left, with decimal radix */
-template<class T>
-C4_ALWAYS_INLINE integral_padded_<T> zpad(T val, size_t num_digits)
-{
-    return integral_padded_<T>(val, T(10), num_digits);
-}
-/** pad the argument with zeroes on the left */
-template<class T>
-C4_ALWAYS_INLINE integral_padded_<T> zpad(integral_<T> val, size_t num_digits)
-{
-    return integral_padded_<T>(val.val, val.radix, num_digits);
-}
-/** pad the argument with zeroes on the left */
-C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(std::nullptr_t, size_t num_digits)
-{
-    return integral_padded_<intptr_t>(0, 16, num_digits);
-}
-/** pad the argument with zeroes on the left */
-template<class T>
-C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(T const* val, size_t num_digits)
-{
-    return integral_padded_<intptr_t>(reinterpret_cast<intptr_t>(val), 16, num_digits);
-}
-template<class T>
-C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(T * val, size_t num_digits)
-{
-    return integral_padded_<intptr_t>(reinterpret_cast<intptr_t>(val), 16, num_digits);
 }
 
 
@@ -210,6 +223,46 @@ inline integral_<T> bin(T v)
     return integral_<T>(v, T(2));
 }
 
+/** @} */ // integer_specifiers
+
+
+/** @defgroup doc_zpad Pad the number with zeroes on the left
+ * @{ */
+
+/** pad the argument with zeroes on the left, with decimal radix */
+template<class T>
+C4_ALWAYS_INLINE integral_padded_<T> zpad(T val, size_t num_digits)
+{
+    return integral_padded_<T>(val, T(10), num_digits);
+}
+/** pad the argument with zeroes on the left */
+template<class T>
+C4_ALWAYS_INLINE integral_padded_<T> zpad(integral_<T> val, size_t num_digits)
+{
+    return integral_padded_<T>(val.val, val.radix, num_digits);
+}
+/** pad the argument with zeroes on the left */
+C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(std::nullptr_t, size_t num_digits)
+{
+    return integral_padded_<intptr_t>(0, 16, num_digits);
+}
+/** pad the argument with zeroes on the left */
+template<class T>
+C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(T const* val, size_t num_digits)
+{
+    return integral_padded_<intptr_t>(reinterpret_cast<intptr_t>(val), 16, num_digits);
+}
+template<class T>
+C4_ALWAYS_INLINE integral_padded_<intptr_t> zpad(T * val, size_t num_digits)
+{
+    return integral_padded_<intptr_t>(reinterpret_cast<intptr_t>(val), 16, num_digits);
+}
+
+/** @} */ // zpad
+
+
+/** @defgroup doc_overflow_checked Check read for overflow
+ * @{ */
 
 template<class T>
 struct overflow_checked_
@@ -224,9 +277,15 @@ C4_ALWAYS_INLINE overflow_checked_<T> overflow_checked(T &val)
    return overflow_checked_<T>(val);
 }
 
+/** @} */ // overflow_checked
+
+/** @} */ // format_specifiers
+
+
 } // namespace fmt
 
-/** format an integral_ signed type */
+/** format an integer signed type
+ * @ingroup doc_to_chars */
 template<typename T>
 C4_ALWAYS_INLINE
 typename std::enable_if<std::is_signed<T>::value, size_t>::type
@@ -234,7 +293,8 @@ to_chars(substr buf, fmt::integral_<T> fmt)
 {
     return itoa(buf, fmt.val, fmt.radix);
 }
-/** format an integral_ signed type, pad with zeroes */
+/** format an integer signed type, pad with zeroes
+ * @ingroup doc_to_chars */
 template<typename T>
 C4_ALWAYS_INLINE
 typename std::enable_if<std::is_signed<T>::value, size_t>::type
@@ -243,7 +303,8 @@ to_chars(substr buf, fmt::integral_padded_<T> fmt)
     return itoa(buf, fmt.val, fmt.radix, fmt.num_digits);
 }
 
-/** format an integral_ unsigned type */
+/** format an integer unsigned type
+ * @ingroup doc_to_chars */
 template<typename T>
 C4_ALWAYS_INLINE
 typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
@@ -251,7 +312,8 @@ to_chars(substr buf, fmt::integral_<T> fmt)
 {
     return utoa(buf, fmt.val, fmt.radix);
 }
-/** format an integral_ unsigned type, pad with zeroes */
+/** format an integer unsigned type, pad with zeroes
+ * @ingroup doc_to_chars */
 template<typename T>
 C4_ALWAYS_INLINE
 typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
@@ -260,6 +322,8 @@ to_chars(substr buf, fmt::integral_padded_<T> fmt)
     return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
 }
 
+/** read an format an integer unsigned type
+ * @ingroup doc_from_chars */
 template<class T>
 C4_ALWAYS_INLINE bool from_chars(csubstr s, fmt::overflow_checked_<T> wrapper)
 {
@@ -276,6 +340,12 @@ C4_ALWAYS_INLINE bool from_chars(csubstr s, fmt::overflow_checked_<T> wrapper)
 
 namespace fmt {
 
+/** @addtogroup doc_format_specifiers
+ * @{ */
+
+/** @defgroup doc_real_specifiers Real specifiers
+ * @{ */
+
 template<class T>
 struct real_
 {
@@ -291,9 +361,15 @@ real_<T> real(T val, int precision, RealFormat_e fmt=FTOA_FLOAT)
     return real_<T>(val, precision, fmt);
 }
 
+/** @} */ // real_specifiers
+
+/** @} */ // format_specifiers
+
 } // namespace fmt
 
+/** @ingroup doc_to_chars */
 inline size_t to_chars(substr buf, fmt::real_< float> fmt) { return ftoa(buf, fmt.val, fmt.precision, fmt.fmt); }
+/** @ingroup doc_to_chars */
 inline size_t to_chars(substr buf, fmt::real_<double> fmt) { return dtoa(buf, fmt.val, fmt.precision, fmt.fmt); }
 
 
@@ -303,6 +379,12 @@ inline size_t to_chars(substr buf, fmt::real_<double> fmt) { return dtoa(buf, fm
 // writing raw binary data
 
 namespace fmt {
+
+/** @addtogroup doc_format_specifiers
+ * @{ */
+
+/** @defgroup doc_raw_binary_specifiers Raw binary data
+ * @{ */
 
 /** @see blob_ */
 template<class T>
@@ -361,26 +443,35 @@ inline raw_wrapper raw(T & C4_RESTRICT data, size_t alignment=alignof(T))
     return raw_wrapper(blob(data), alignment);
 }
 
+/** @} */ // raw_binary_specifiers
+
+/** @} */ // format_specifiers
+
 } // namespace fmt
 
 
-/** write a variable in raw binary format, using memcpy */
+/** write a variable in raw binary format, using memcpy
+ * @ingroup doc_to_chars */
 C4CORE_EXPORT size_t to_chars(substr buf, fmt::const_raw_wrapper r);
 
-/** read a variable in raw binary format, using memcpy */
+/** read a variable in raw binary format, using memcpy
+ * @ingroup doc_from_chars */
 C4CORE_EXPORT bool from_chars(csubstr buf, fmt::raw_wrapper *r);
-/** read a variable in raw binary format, using memcpy */
+/** read a variable in raw binary format, using memcpy
+ * @ingroup doc_from_chars */
 inline bool from_chars(csubstr buf, fmt::raw_wrapper r)
 {
     return from_chars(buf, &r);
 }
 
-/** read a variable in raw binary format, using memcpy */
+/** read a variable in raw binary format, using memcpy
+ * @ingroup doc_from_chars_first */
 inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper *r)
 {
     return from_chars(buf, r);
 }
-/** read a variable in raw binary format, using memcpy */
+/** read a variable in raw binary format, using memcpy
+ * @ingroup doc_from_chars_first */
 inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper r)
 {
     return from_chars(buf, &r);
@@ -393,6 +484,12 @@ inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper r)
 // formatting aligned to left/right
 
 namespace fmt {
+
+/** @addtogroup doc_format_specifiers
+ * @{ */
+
+/** @defgroup doc_alignment_specifiers Alignment specifiers
+ * @{ */
 
 template<class T>
 struct left_
@@ -426,9 +523,14 @@ right_<T> right(T val, size_t width, char padchar=' ')
     return right_<T>(val, width, padchar);
 }
 
+/** @} */ // alignment_specifiers
+
+/** @} */ // format_specifiers
+
 } // namespace fmt
 
 
+/** @ingroup doc_to_chars */
 template<class T>
 size_t to_chars(substr buf, fmt::left_<T> const& C4_RESTRICT align)
 {
@@ -440,6 +542,7 @@ size_t to_chars(substr buf, fmt::left_<T> const& C4_RESTRICT align)
     return align.width;
 }
 
+/** @ingroup doc_to_chars */
 template<class T>
 size_t to_chars(substr buf, fmt::right_<T> const& C4_RESTRICT align)
 {
@@ -457,13 +560,16 @@ size_t to_chars(substr buf, fmt::right_<T> const& C4_RESTRICT align)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/// @cond dev
+/** @defgroup doc_cat cat: concatenate arguments to string
+ * @{ */
+
+/** @cond dev */
 // terminates the variadic recursion
 inline size_t cat(substr /*buf*/)
 {
     return 0;
 }
-/// @endcond
+/** @endcond */
 
 
 /** serialize the arguments, concatenating them to the given fixed-size buffer.
@@ -491,16 +597,22 @@ substr cat_sub(substr buf, Args && ...args)
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 
+/** @} */
+
 
 //-----------------------------------------------------------------------------
 
-/// @cond dev
+
+/** @defgroup doc_uncat uncat: read concatenated arguments from string
+ * @{ */
+
+/** @cond dev */
 // terminates the variadic recursion
 inline size_t uncat(csubstr /*buf*/)
 {
     return 0;
 }
-/// @endcond
+/** @endcond */
 
 
 /** deserialize the arguments from the given buffer.
@@ -521,14 +633,20 @@ size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
     return out + num;
 }
 
+/** @} */
+
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+
+/** @defgroup doc_catsep catsep: cat arguments to string with separator
+ * @{ */
+
+/** @cond dev */
 namespace detail {
-
 template<class Sep>
 C4_ALWAYS_INLINE size_t catsep_more(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
 {
@@ -578,13 +696,13 @@ size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Ar
 
 } // namespace detail
 
-/// @cond dev
 template<class Sep>
 size_t catsep(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
 {
     return 0;
 }
-/// @endcond
+/** @endcond */
+
 
 /** serialize the arguments, concatenating them to the given fixed-size
  * buffer, using a separator between each argument.
@@ -613,6 +731,23 @@ substr catsep_sub(substr buf, Args && ...args)
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 
+/** @} */
+
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** @defgroup doc_uncatsep uncatsep: deserialize the separated arguments from a string
+ * @{ */
+
+/** deserialize the arguments from the given buffer.
+ *
+ * @return the number of characters read from the buffer, or csubstr::npos
+ *   if a conversion was not successful.
+ * @see c4::cat(). c4::uncat() is the inverse of c4::cat(). */
+
 /** deserialize the arguments from the given buffer, using a separator.
  *
  * @return the number of characters read from the buffer, or csubstr::npos
@@ -632,10 +767,15 @@ size_t uncatsep(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & 
     return num;
 }
 
+/** @} */
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
+/** @defgroup doc_format format: formatted string interpolation
+ * @{ */
 
 /// @cond dev
 // terminates the variadic recursion
@@ -689,8 +829,13 @@ substr format_sub(substr buf, csubstr fmt, Args const& C4_RESTRICT ...args)
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
 
+/** @} */
+
 
 //-----------------------------------------------------------------------------
+
+/** @defgroup doc_unformat unformat: formatted read from string
+ * @{ */
 
 /// @cond dev
 // terminates the variadic recursion
@@ -726,15 +871,18 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
     return out;
 }
 
+/** @} */
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** like c4::cat(), but receives a container, and resizes it as needed to contain
- * the result. The container is overwritten. To append to it, use the append
- * overload.
- * @see c4::cat() */
+/** cat+resize: like c4::cat(), but receives a container, and resizes
+ * it as needed to contain the result. The container is
+ * overwritten. To append to it, use the append overload.
+ * @see c4::cat()
+ * @ingroup doc_cat */
 template<class CharOwningContainer, class... Args>
 inline void catrs(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
@@ -746,9 +894,10 @@ retry:
         goto retry;
 }
 
-/** like c4::cat(), but creates and returns a new container sized as needed to contain
- * the result.
- * @see c4::cat() */
+/** cat+resize: like c4::cat(), but creates and returns a new
+ * container sized as needed to contain the result.
+ * @see c4::cat()
+ * @ingroup doc_cat */
 template<class CharOwningContainer, class... Args>
 inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
 {
@@ -757,11 +906,14 @@ inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
     return cont;
 }
 
-/** like c4::cat(), but receives a container, and appends to it instead of
- * overwriting it. The container is resized as needed to contain the result.
+/** cat+resize+append: like c4::cat(), but receives a container, and
+ * appends to it instead of overwriting it. The container is resized
+ * as needed to contain the result.
+ *
  * @return the region newly appended to the original container
  * @see c4::cat()
- * @see c4::catrs() */
+ * @see c4::catrs()
+ * @ingroup doc_cat */
 template<class CharOwningContainer, class... Args>
 inline csubstr catrs_append(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
@@ -778,9 +930,12 @@ retry:
 
 //-----------------------------------------------------------------------------
 
-/** like c4::catsep(), but receives a container, and resizes it as needed to contain the result.
- * The container is overwritten. To append to the container use the append overload.
- * @see c4::catsep() */
+/** catsep+resize: like c4::catsep(), but receives a container, and
+ * resizes it as needed to contain the result.  The container is
+ * overwritten. To append to the container use the append overload.
+ *
+ * @see c4::catsep()
+ * @ingroup doc_catsep */
 template<class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
@@ -792,8 +947,11 @@ retry:
         goto retry;
 }
 
-/** like c4::catsep(), but create a new container with the result.
- * @return the requested container */
+/** catsep+resize: like c4::catsep(), but create a new container with
+ * the result.
+ *
+ * @return the requested container
+ * @ingroup doc_catsep */
 template<class CharOwningContainer, class Sep, class... Args>
 inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
@@ -803,10 +961,13 @@ inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_R
 }
 
 
-/** like catsep(), but receives a container, and appends the arguments, resizing the
- * container as needed to contain the result. The buffer is appended to.
+/** catsep+resize+append: like catsep(), but receives a container, and
+ * appends the arguments, resizing the container as needed to contain
+ * the result. The buffer is appended to.
+ *
  * @return a csubstr of the appended part
- * @ingroup formatting_functions */
+ * @ingroup formatting_functions
+ * @ingroup doc_catsep */
 template<class CharOwningContainer, class Sep, class... Args>
 inline csubstr catseprs_append(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
@@ -823,10 +984,12 @@ retry:
 
 //-----------------------------------------------------------------------------
 
-/** like c4::format(), but receives a container, and resizes it as needed
- * to contain the result.  The container is overwritten. To append to
- * the container use the append overload.
- * @see c4::format() */
+/** format+resize: like c4::format(), but receives a container, and
+ * resizes it as needed to contain the result.  The container is
+ * overwritten. To append to the container use the append overload.
+ *
+ * @see c4::format()
+ * @ingroup doc_format */
 template<class CharOwningContainer, class... Args>
 inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
@@ -838,8 +1001,11 @@ retry:
         goto retry;
 }
 
-/** like c4::format(), but create a new container with the result.
- * @return the requested container */
+/** format+resize: like c4::format(), but create a new container with
+ * the result.
+ *
+ * @return the requested container
+ * @ingroup doc_format */
 template<class CharOwningContainer, class... Args>
 inline CharOwningContainer formatrs(csubstr fmt, Args const& C4_RESTRICT ...args)
 {
@@ -848,11 +1014,12 @@ inline CharOwningContainer formatrs(csubstr fmt, Args const& C4_RESTRICT ...args
     return cont;
 }
 
-/** like format(), but receives a container, and appends the
+/** format+resize+append: like format(), but receives a container, and appends the
  * arguments, resizing the container as needed to contain the
  * result. The buffer is appended to.
  * @return the region newly appended to the original container
- * @ingroup formatting_functions */
+ * @ingroup formatting_functions
+ * @ingroup doc_format */
 template<class CharOwningContainer, class... Args>
 inline csubstr formatrs_append(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
@@ -865,6 +1032,8 @@ retry:
         goto retry;
     return to_csubstr(*cont).range(pos, cont->size());
 }
+
+/** @} */
 
 } // namespace c4
 

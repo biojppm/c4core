@@ -2,6 +2,19 @@
 
 set -o pipefail
 
+# https://stackoverflow.com/questions/44785585/how-can-i-delete-all-local-docker-images
+#
+# To delete all containers including its volumes use,
+#
+#   docker rm -vf $(docker ps -aq)
+#
+# To delete all the images,
+#
+#   docker rmi -f $(docker images -aq)
+#
+# Remember, you should remove all the containers before removing all
+# the images from which those containers were created.
+
 if [ -z "$CR_USR" ] ; then
     echo "error: \$CR_USR is not defined. Set it to a user name."
     exit 1
@@ -10,6 +23,8 @@ if [ -z "$CR_PAT" ] ; then
     echo "error: \$CR_PAT is not defined. Set it to a personal access token."
     exit 1
 fi
+
+# see https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#building-container-images
 echo $CR_PAT | docker login ghcr.io -u $CR_USR --password-stdin
 
 mydir=$(cd $(dirname $0) ; pwd)

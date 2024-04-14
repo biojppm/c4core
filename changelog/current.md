@@ -46,7 +46,7 @@ assert(to_substr((char*)ptr).len == 3); // as before
   - `C4_IF_RTTI(code_with_rtti, code_without_rtti)`: select statements for rtti enabled/disabled
   - `C4_IF_RTTI_(code_with_rtti, code_without_rtti)`: select code tokens for rtti enabled/disabled
 - [PR#109](https://github.com/biojppm/c4core/pull/109): Add partial support for XTENSA processors (missing implementation of `c4::aalloc()`). See [rapidyaml#358](https://github.com/biojppm/rapidyaml/issues/358).
-
+- Add compiler annotation helper macros: `C4_ASSUME`, `C4_NODISCARD`, `C4_DEPRECATED`, `C4_UNREACHABLE_AFTER_ERR`
 
 
 ### Fixes
