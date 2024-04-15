@@ -7,7 +7,7 @@
 #include "c4/language.hpp"
 #endif
 
-#if (C4_CPP >= 17 && defined(__cpp_lib_string_view))
+#if (C4_CPP >= 17 && defined(__cpp_lib_string_view)) || defined(__DOXYGEN__)
 
 #ifndef C4CORE_SINGLE_HEADER
 #include "c4/substr.hpp"
