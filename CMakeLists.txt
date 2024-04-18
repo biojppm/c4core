@@ -9,6 +9,7 @@ include(./compat.cmake)
 c4_project(VERSION 0.1.11
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
+option(C4CORE_INSTALL "create install target" ON)
 option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
 option(C4CORE_NO_DEBUG_BREAK "disable use of debug break even in debug builds" OFF)
 
@@ -104,9 +105,13 @@ endif()
 
 #-------------------------------------------------------
 
-c4_install_target(c4core)
-c4_install_exports()
+if(C4CORE_INSTALL)
+    c4_install_target(c4core)
+    c4_install_exports()
+endif()
 
 c4_add_dev_targets()
 
-c4_pack_project(TYPE LIBRARY)
+if(C4CORE_INSTALL)
+    c4_pack_project(TYPE LIBRARY)
+endif()
