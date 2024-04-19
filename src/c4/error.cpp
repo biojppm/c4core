@@ -114,7 +114,7 @@ void handle_error(srcloc where, const char *fmt, ...)
     if(s_error_flags & ON_ERROR_THROW)
     {
 #if defined(C4_EXCEPTIONS_ENABLED) && defined(C4_ERROR_THROWS_EXCEPTION)
-        throw Exception(buf);
+        throw std::runtime_error(buf);
 #else
         abort();
 #endif

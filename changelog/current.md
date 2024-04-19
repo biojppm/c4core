@@ -52,6 +52,7 @@ assert(to_substr((char*)ptr).len == 3); // as before
 
 ### Fixes
 
+- Fix [#126](https://github.com/biojppm/c4core/issues/126): bad `Exception` being used with `C4_ERROR_THROWS_EXCEPTION`.
 - [PR#132](https://github.com/biojppm/c4core/pull/132):
    - Fix typo `C_4MSVC_VERSION_2019` in `src/compiler.hpp` ([#124](https://github.com/biojppm/c4core/issues/124)).
    - Add check for definition of `__GNUC__` in `gcc-4.8.hpp` ([#125](https://github.com/biojppm/c4core/issues/125)).
@@ -73,3 +74,4 @@ assert(to_substr((char*)ptr).len == 3); // as before
 ### Thanks
 
 - @zangruochen
+- @yrHeTaTeJlb
