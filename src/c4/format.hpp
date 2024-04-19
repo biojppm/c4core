@@ -29,7 +29,7 @@
  * @ref doc_charconv utilities. Like @ref doc_charconv, the formatting
  * facilities are very efficient and many times faster than printf().
  *
- * @see @ref sample::sample_formatting
+ * @see [a formatting sample in rapidyaml's docs](https://rapidyaml.readthedocs.io/latest/doxygen/group__doc__quickstart.html#gac2425b515eb552589708cfff70c52b14)
  * */
 
 /** @defgroup doc_format_specifiers Format specifiers
@@ -37,6 +37,7 @@
  * @brief Format specifiers are tag types and functions that are used
  * together with @ref doc_to_chars and @ref doc_from_chars
  *
+ * @see [a formatting sample in rapidyaml's docs](https://rapidyaml.readthedocs.io/latest/doxygen/group__doc__quickstart.html#gac2425b515eb552589708cfff70c52b14)
  * @ingroup doc_format_utils */
 
 namespace c4 {
