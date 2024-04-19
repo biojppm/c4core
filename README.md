@@ -34,10 +34,11 @@ architectures, and include analysing c4core with:
   * [LGTM.com](https://lgtm.com/projects/g/biojppm/c4core)
 
 c4core also works [in
-bare-metal](https://github.com/biojppm/c4core/issues/63) as well as
-[in RISC-V](https://github.com/biojppm/c4core/pull/69) but at the
+bare-metal](https://github.com/biojppm/c4core/issues/63), as well as
+[in RISC-V](https://github.com/biojppm/c4core/pull/69), and [in
+LoongArch](https://github.com/biojppm/c4core/pull/119), but at the
 moment it's not easy to add automated tests to the CI, so for now
-these are not in the list of official architectures.
+these are not in the list of official architectures. 
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 - [c4core - C++ core utilities](#c4core---c-core-utilities)
@@ -144,13 +145,19 @@ c4core is available through the following package managers:
 All of the utilities in this library are under the namespace `c4`; any
 exposed macros use the prefix `C4_`: eg `C4_ASSERT()`.
 
+See partial documentation in [rapidyaml's doxygen docs](https://rapidyaml.readthedocs.io/latest/doxygen/index.html).
+
 
 ### Writeable string views: c4::substr and c4::csubstr
 
-Here: [`#include <c4/substr.hpp>`](src/c4/substr.hpp)
+Here: [`#include <c4/substr.hpp>`](src/c4/substr.hpp).
+
+There is a [useful quickstart
+sample](https://rapidyaml.readthedocs.io/latest/doxygen/group__doc__quickstart.html#ga43e253da0692c13967019446809c1113)
+in rapidyaml's doxygen docs.
 
 
-### Value <-> character interoperation
+### charconv: Value <-> character interoperation
 
 Here: [`#include <c4/charconv.hpp>`](src/c4/charconv.hpp)
 
@@ -250,6 +257,10 @@ Or here are plots for g++12.1 and VS2019 (from the same computer):
 ### String formatting and parsing
 
 * [`#include <c4/format.hpp>`](src/c4/format.hpp)
+
+* There is a [useful quickstart
+sample](https://rapidyaml.readthedocs.io/latest/doxygen/group__doc__quickstart.html#gac2425b515eb552589708cfff70c52b14)
+in rapidyaml's doxygen docs.
 
 ```c++
 // TODO: elaborate on the topics:

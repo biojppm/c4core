@@ -64,8 +64,12 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
  *
  * @note The pointer is explicitly restricted.
  *
- * @see to_substr()
- * @see to_csubstr()
+ * @see a [quickstart
+ * sample](https://rapidyaml.readthedocs.io/latest/doxygen/group__doc__quickstart.html#ga43e253da0692c13967019446809c1113)
+ * in rapidyaml's documentation.
+ *
+ * @see @ref substr and @ref to_substr()
+ * @see @ref csubstr and @ref to_csubstr()
  */
 template<class C>
 struct C4CORE_EXPORT basic_substring

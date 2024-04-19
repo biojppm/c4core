@@ -102,15 +102,15 @@ ADD c4core-install /usr/bin/c4core-install
 ## actions/checkout@v4 needs a different version of nodejs:
 ## node 18 and 20 failed with this:
 ##    error:node: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.28' not found (required by node)
-RUN cd /tmp \
-  && git clone --recursive https://github.com/nodejs/node --branch v20.12.1 \
-  && cd node \
-  && /usr/bin/c4core-install g++-10 \
-  && env CXX=g++-10 ./configure \
-  && make -j `nproc` \
-  && make install \
-  && cd .. \
-  && rm -rf node
+#RUN cd /tmp \
+#  && git clone --recursive https://github.com/nodejs/node --branch v20.12.1 \
+#  && cd node \
+#  && /usr/bin/c4core-install g++-10 \
+#  && env CXX=g++-10 ./configure \
+#  && make -j `nproc` \
+#  && make install \
+#  && cd .. \
+#  && rm -rf node
 ## actions/checkout@v4 needs a different version of nodejs:
 ## node 18 and 20 failed with this:
 ##    error:node: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.28' not found (required by node)

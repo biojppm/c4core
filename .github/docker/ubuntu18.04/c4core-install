@@ -320,5 +320,7 @@ case $what in
                 qemu
         ;;
     *)
+        echo "unknown package: $what"
+        exit 1
         ;;
 esac
