@@ -34,10 +34,11 @@ architectures, and include analysing c4core with:
   * [LGTM.com](https://lgtm.com/projects/g/biojppm/c4core)
 
 c4core also works [in
-bare-metal](https://github.com/biojppm/c4core/issues/63) as well as
-[in RISC-V](https://github.com/biojppm/c4core/pull/69) but at the
+bare-metal](https://github.com/biojppm/c4core/issues/63), as well as
+[in RISC-V](https://github.com/biojppm/c4core/pull/69), and [in
+LoongArch](https://github.com/biojppm/c4core/pull/119), but at the
 moment it's not easy to add automated tests to the CI, so for now
-these are not in the list of official architectures.
+these are not in the list of official architectures. 
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 - [c4core - C++ core utilities](#c4core---c-core-utilities)

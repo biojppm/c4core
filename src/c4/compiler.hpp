@@ -36,7 +36,7 @@
 #       define C4_MSVC_VERSION C4_MSVC_VERSION_2022  // visual studio 2022
 #       define C4_MSVC_2022
 #   elif _MSC_VER >= 1920
-#       define C4_MSVC_VERSION C_4MSVC_VERSION_2019  // visual studio 2019
+#       define C4_MSVC_VERSION C4_MSVC_VERSION_2019  // visual studio 2019
 #       define C4_MSVC_2019
 #   elif _MSC_VER >= 1910
 #       define C4_MSVC_VERSION C4_MSVC_VERSION_2017  // visual studio 2017
