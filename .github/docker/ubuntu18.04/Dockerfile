@@ -87,7 +87,7 @@ RUN ( \
        set -xe ; \
         cd /tmp ; \
         git clone --recursive https://github.com/biojppm/cmany -b dev ; \
-        pip install cmany \
+        pip install ./cmany \
     ) \
  && echo "cmany done"
 
