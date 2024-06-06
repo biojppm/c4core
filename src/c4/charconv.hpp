@@ -2171,6 +2171,7 @@ inline size_t atof_first(csubstr str, float * C4_RESTRICT v) noexcept
  */
 C4_ALWAYS_INLINE bool atod(csubstr str, double * C4_RESTRICT v) noexcept
 {
+    C4_ASSERT(str.len > 0);
     C4_ASSERT(str.triml(" \r\t\n").len == str.len);
 #if C4CORE_HAVE_FAST_FLOAT
     // fastfloat cannot parse hexadecimal floats
