@@ -323,13 +323,22 @@ to_chars(substr buf, fmt::integral_padded_<T> fmt)
     return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
 }
 
-/** read an format an integer unsigned type
+/** read an integer type, detecting overflow (returns false on overflow)
  * @ingroup doc_from_chars */
 template<class T>
 C4_ALWAYS_INLINE bool from_chars(csubstr s, fmt::overflow_checked_<T> wrapper)
 {
     if(C4_LIKELY(!overflows<T>(s)))
         return atox(s, wrapper.val);
+    return false;
+}
+/** read an integer type, detecting overflow (returns false on overflow)
+ * @ingroup doc_from_chars */
+template<class T>
+C4_ALWAYS_INLINE bool from_chars(csubstr s, fmt::overflow_checked_<T> *wrapper)
+{
+    if(C4_LIKELY(!overflows<T>(s)))
+        return atox(s, wrapper->val);
     return false;
 }
 
