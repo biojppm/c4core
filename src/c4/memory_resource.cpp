@@ -38,37 +38,34 @@ void afree_impl(void *ptr)
 
 void* aalloc_impl(size_t size, size_t alignment)
 {
+    // alignment must be nonzero and a power of 2
+    C4_CHECK(alignment > 0 && (alignment & (alignment - 1u)) == 0);
+    // NOTE: alignment needs to be sized in multiples of sizeof(void*)
+    if(C4_UNLIKELY(alignment < sizeof(void*)))
+        alignment = sizeof(void*);
+    static_assert((sizeof(void*) & (sizeof(void*)-1u)) == 0, "sizeof(void*) must be a power of 2");
+    C4_CHECK(((alignment & (sizeof(void*) - 1u))) == 0u);
     void *mem;
 #if defined(C4_WIN) || defined(C4_XBOX)
     mem = ::_aligned_malloc(size, alignment);
     C4_CHECK(mem != nullptr || size == 0);
-#elif defined(C4_ARM) || defined(C4_ANDROID)
-    // https://stackoverflow.com/questions/53614538/undefined-reference-to-posix-memalign-in-arm-gcc
-    // https://electronics.stackexchange.com/questions/467382/e2-studio-undefined-reference-to-posix-memalign/467753
-    mem = memalign(alignment, size);
-    C4_CHECK(mem != nullptr || size == 0);
 #elif defined(C4_POSIX) || defined(C4_IOS) || defined(C4_MACOS)
-    // NOTE: alignment needs to be sized in multiples of sizeof(void*)
-    size_t amult = alignment;
-    if(C4_UNLIKELY(alignment < sizeof(void*)))
-    {
-        amult = sizeof(void*);
-    }
-    int ret = ::posix_memalign(&mem, amult, size);
+    int ret = ::posix_memalign(&mem, alignment, size);
     if(C4_UNLIKELY(ret))
     {
-        if(ret == EINVAL)
-        {
-            C4_ERROR("The alignment argument %zu was not a power of two, "
-                     "or was not a multiple of sizeof(void*)", alignment);
-        }
-        else if(ret == ENOMEM)
+        C4_ASSERT(ret != EINVAL); // this was already handled above
+        if(ret == ENOMEM)
         {
             C4_ERROR("There was insufficient memory to fulfill the "
                      "allocation request of %zu bytes (alignment=%lu)", size, size);
         }
         return nullptr;
     }
+#elif defined(C4_ARM) || defined(C4_ANDROID)
+    // https://stackoverflow.com/questions/53614538/undefined-reference-to-posix-memalign-in-arm-gcc
+    // https://electronics.stackexchange.com/questions/467382/e2-studio-undefined-reference-to-posix-memalign/467753
+    mem = memalign(alignment, size);
+    C4_CHECK(mem != nullptr || size == 0);
 #else
     (void)size;
     (void)alignment;
