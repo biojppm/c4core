@@ -10,6 +10,7 @@
 #include <csetjmp>
 #endif
 C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(4611) // interaction between '_setjmp' and C++ object destruction is non-portable
+C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(4702) // unreachable code
 
 C4_BEGIN_HIDDEN_NAMESPACE
 bool got_an_error = false;
