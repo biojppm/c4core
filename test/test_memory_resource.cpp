@@ -50,9 +50,10 @@ TEST_CASE("aalloc_impl.error_bad_align")
 {
 #if defined(C4_POSIX)
     #if !defined(C4_ASAN) && !defined(C4_LSAN) && !defined(C4_TSAN) && !defined(C4_UBSAN)
-    C4_EXPECT_ERROR_OCCURS(1);
-    auto *mem = detail::aalloc_impl(64, 9); // allocating with a non-power of two value is invalid
-    CHECK_EQ(mem, nullptr);
+    C4_EXPECT_ERROR_OCCURS([&]{
+        auto *mem = detail::aalloc_impl(64, 9); // allocating with a non-power of two value is invalid
+        (void)mem;
+    });
     #endif
 #endif
 }
@@ -62,10 +63,11 @@ TEST_CASE("aalloc_impl.error_out_of_mem")
 #if defined(C4_POSIX)
     #if !defined(C4_ASAN) && !defined(C4_LSAN) && !defined(C4_TSAN) && !defined(C4_UBSAN)
     if(sizeof(size_t) != 8) return; // valgrind complains that size is -1
-    C4_EXPECT_ERROR_OCCURS(1);
-    size_t sz = std::numeric_limits<size_t>::max() / 2u;
-    void const* mem = detail::aalloc_impl(sz);
-    CHECK_EQ(mem, nullptr);
+    C4_EXPECT_ERROR_OCCURS([&]{
+        size_t sz = std::numeric_limits<size_t>::max() / 2u;
+        void const* mem = detail::aalloc_impl(sz);
+        (void)mem;
+    });
     #endif
 #endif
 }
@@ -158,30 +160,30 @@ TEST_CASE("MemoryResourceLinearArr.reallocate")
 TEST_CASE("MemoryResourceLinear.error_out_of_mem")
 {
     {
-        C4_EXPECT_ERROR_OCCURS(0);
         MemoryResourceLinear mr(8);
         mr.allocate(2);
     }
 
     {
-        C4_EXPECT_ERROR_OCCURS(2);
         MemoryResourceLinear mr(8);
-        mr.allocate(9);
+        C4_EXPECT_ERROR_OCCURS([&]{
+            mr.allocate(9);
+        });
     }
 }
 
 TEST_CASE("MemoryResourceLinearArr.error_out_of_mem")
 {
     {
-        C4_EXPECT_ERROR_OCCURS(0);
         MemoryResourceLinearArr<8> mr;
         mr.allocate(2);
     }
 
     {
-        C4_EXPECT_ERROR_OCCURS(2);
         MemoryResourceLinearArr<8> mr;
-        mr.allocate(9);
+        C4_EXPECT_ERROR_OCCURS([&]{
+            mr.allocate(9);
+        });
     }
 }
 

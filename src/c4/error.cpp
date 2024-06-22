@@ -102,8 +102,15 @@ void handle_error(srcloc where, const char *fmt, ...)
     {
         if(s_error_callback)
         {
-            s_error_callback(buf, msglen/*ss.c_strp(), ss.tellp()*/);
+            s_error_callback(buf, msglen);
         }
+    }
+
+    if(s_error_flags & ON_ERROR_THROW)
+    {
+#if defined(C4_EXCEPTIONS_ENABLED) && defined(C4_ERROR_THROWS_EXCEPTION)
+        throw std::runtime_error(buf);
+#endif
     }
 
     if(s_error_flags & ON_ERROR_ABORT)
@@ -111,14 +118,8 @@ void handle_error(srcloc where, const char *fmt, ...)
         abort();
     }
 
-    if(s_error_flags & ON_ERROR_THROW)
-    {
-#if defined(C4_EXCEPTIONS_ENABLED) && defined(C4_ERROR_THROWS_EXCEPTION)
-        throw std::runtime_error(buf);
-#else
-        abort();
-#endif
-    }
+    abort(); // abort anyway, in case nothing was set
+    C4_UNREACHABLE_AFTER_ERR();
 }
 
 //-----------------------------------------------------------------------------
@@ -126,20 +127,19 @@ void handle_error(srcloc where, const char *fmt, ...)
 void handle_warning(srcloc where, const char *fmt, ...)
 {
     va_list args;
-    char buf[1024]; //sstream<c4::string> ss;
+    char buf[1024];
     va_start(args, fmt);
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
     C4_LOGF_WARN("\n");
 #if defined(C4_ERROR_SHOWS_FILELINE) && defined(C4_ERROR_SHOWS_FUNC)
-    C4_LOGF_WARN("%s:%d: WARNING: %s\n", where.file, where.line, buf/*ss.c_strp()*/);
+    C4_LOGF_WARN("%s:%d: WARNING: %s\n", where.file, where.line, buf);
     C4_LOGF_WARN("%s:%d: WARNING: here: %s\n", where.file, where.line, where.func);
 #elif defined(C4_ERROR_SHOWS_FILELINE)
-    C4_LOGF_WARN("%s:%d: WARNING: %s\n", where.file, where.line, buf/*ss.c_strp()*/);
+    C4_LOGF_WARN("%s:%d: WARNING: %s\n", where.file, where.line, buf);
 #elif ! defined(C4_ERROR_SHOWS_FUNC)
-    C4_LOGF_WARN("WARNING: %s\n", buf/*ss.c_strp()*/);
+    C4_LOGF_WARN("WARNING: %s\n", buf);
 #endif
-    //c4::log.flush();
 }
 
 //-----------------------------------------------------------------------------

@@ -107,13 +107,15 @@ test_szconv()
 #if C4_USE_XASSERT
     if((uint64_t)omax < (uint64_t)imax)
     {
-        C4_EXPECT_ERROR_OCCURS();
-        O out = szconv<O>(imax);
+        C4_EXPECT_ERROR_OCCURS([&]{
+            O out = szconv<O>(imax);
+        });
     }
     else if((uint64_t)omax > (uint64_t)imax)
     {
-        C4_EXPECT_ERROR_OCCURS();
-        I out = szconv<I>(omax);
+        C4_EXPECT_ERROR_OCCURS([&]{
+            I out = szconv<I>(omax);
+        });
     }
 #endif
 }

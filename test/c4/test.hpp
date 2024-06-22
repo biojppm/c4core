@@ -11,6 +11,7 @@
 #endif
 #include <cstdio>
 #include <iostream>
+#include <csetjmp>
 
 // FIXME - these are just dumb placeholders
 #define C4_LOGF_ERR(...) fprintf(stderr, __VA_ARGS__)
@@ -89,36 +90,50 @@ inline std::ostream& operator<< (std::ostream& stream, c4::basic_substring<C> s)
     return stream;
 }
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 /** RAII class that tests whether an error occurs inside a scope. */
 struct TestErrorOccurs
 {
-    TestErrorOccurs(size_t num_expected_errors = 1)
+    static void error_callback(const char* msg, size_t msg_size)
+    {
+        ++num_errors;
+        s_jmp_msg.assign(msg, msg_size);
+        std::longjmp(s_jmp_env_expect_error, 37);
+        C4_UNREACHABLE_AFTER_ERR();
+    }
+
+    template<class Fn>
+    TestErrorOccurs(Fn &&fn, const char *expected_msg=nullptr)
       :
-      expected_errors(num_expected_errors),
       tmp_settings(c4::ON_ERROR_CALLBACK, &TestErrorOccurs::error_callback)
     {
         num_errors = 0;
-    }
-    ~TestErrorOccurs()
-    {
-        CHECK_EQ(num_errors, expected_errors);
-        num_errors = 0;
+        switch(setjmp(s_jmp_env_expect_error))
+        {
+        case 0:
+            fn();
+            break;
+        case 37:
+            // got expected error from call to fn()
+            if(expected_msg)
+                CHECK_EQ(s_jmp_msg, expected_msg);
+            break;
+        }
+        CHECK_EQ(num_errors, 1);
     }
 
-    size_t expected_errors;
     static size_t num_errors;
+    static std::jmp_buf s_jmp_env_expect_error;
+    static std::string s_jmp_msg;
+
     ScopedErrorSettings tmp_settings;
-    static void error_callback(const char* /*msg*/, size_t /*msg_size*/)
-    {
-        ++num_errors;
-    }
 };
 
 #define C4_EXPECT_ERROR_OCCURS(...) \
-  auto _testerroroccurs##__LINE__ = TestErrorOccurs(__VA_ARGS__)
+  auto _testerroroccurs##__LINE__ = c4::TestErrorOccurs(__VA_ARGS__)
 
 #if C4_USE_ASSERT
 #   define C4_EXPECT_ASSERT_TRIGGERS(...) C4_EXPECT_ERROR_OCCURS(__VA_ARGS__)
