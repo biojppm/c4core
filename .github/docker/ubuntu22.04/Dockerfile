@@ -6,7 +6,7 @@ LABEL org.opencontainers.image.source=https://github.com/biojppm/c4core
 LABEL org.opencontainers.image.description="C++ build testing: gcc9-gcc12, clang9-clang16, arm-eabi-none, swig, emscripten"
 LABEL org.opencontainers.image.licenses=MIT
 LABEL maintainer=dev@jpmag.me
-LABEL version=1.0
+LABEL version=1.2
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update \

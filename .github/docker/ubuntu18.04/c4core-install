@@ -21,8 +21,10 @@ case $what in
         $script gcc-11
         #$script gcc-12  #not available in ubuntu 18.04
         $script gcc-13
+        $script gcc-14
         ;;
     clang-all)
+        $script clang-17
         $script clang-16
         $script clang-15
         $script clang-14
@@ -142,6 +144,20 @@ case $what in
         apt-get update
         apt-get install -y \
                 cpp-13 gcc-13 g++-13 g++-13-multilib libstdc++-13-dev lib32stdc++-13-dev
+        ;;
+    g++-14|gcc-14)
+        apt-get update
+        apt-get install -y \
+                wget \
+                software-properties-common
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6AF7F09730B3F0A4
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6AF7F09730B3F0A4
+        apt-add-repository --yes --no-update "deb http://dk.archive.ubuntu.com/ubuntu/ noble main"
+        apt-add-repository --yes --no-update "deb http://dk.archive.ubuntu.com/ubuntu/ noble universe"
+        apt-get update
+        apt-get install -y \
+                cpp-14 gcc-14 g++-14 g++-14-multilib libstdc++-14-dev lib32stdc++-14-dev
         ;;
     clang++-3.9|clang-3.9)
         apt-get update
@@ -273,6 +289,18 @@ case $what in
         apt-get update
         apt-get install -y \
                 clang-16 clang-tidy-16
+        ;;
+    clang++-17|clang-17)
+        apt-get update
+        apt-get install -y \
+                wget \
+                software-properties-common
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | apt-key add -
+        apt-add-repository --yes --no-update ppa:ubuntu-toolchain-r/test
+        apt-add-repository --yes --no-update "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-17 main"
+        apt-get update
+        apt-get install -y \
+                clang-17 clang-tidy-17
         ;;
     arm-none-eabi)
         # taken from: https://askubuntu.com/questions/1243252/how-to-install-arm-none-eabi-gdb-on-ubuntu-20-04-lts-focal-fossa/1371525#1371525
