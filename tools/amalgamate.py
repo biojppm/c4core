@@ -30,15 +30,15 @@ def amalgamate_c4core(filename: str,
 #define C4CORE_EXPORTS
 #endif
 """
-    required_gcc4_8_include = """// these includes are needed to work around conditional
-// includes in the gcc4.8 shim
+    required_gcc4_8_include = """// (amalgamate) these includes are needed to work around
+// conditional includes in the gcc4.8 shim
 #include <cstdint>
 #include <type_traits>
 #include <cstring>
 """
-    required_charconv_include = """// this include is needed to work around conditional
-// includes in charconv.hpp
-#if __cplusplus >= 201703L
+    required_charconv_include = """// (amalgamate) this include is needed to work around
+// conditional includes in charconv.hpp
+#if (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)) || (__cplusplus >= 201703L)
 #include <charconv>
 #endif
 """
