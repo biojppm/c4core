@@ -44,6 +44,7 @@
 #   pragma warning(disable:4127)   // conditional expression is constant
 #   pragma warning(disable:4189)   // local variable is initialized but not referenced
 #   pragma warning(disable:4389)   // '==': signed/unsigned mismatch
+#   pragma warning(disable:4611)   // interaction between '_setjmp' and C++ object destruction is non-portable
 #   pragma warning(disable:4702)   // unreachable code
 #endif
 
