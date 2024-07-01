@@ -191,22 +191,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-12, bt: asan, bitlinks: static64}
-          - {std: 14, cxx: g++-12, bt: asan, bitlinks: static64}
-          - {std: 17, cxx: g++-12, bt: asan, bitlinks: static64}
-          - {std: 20, cxx: g++-12, bt: asan, bitlinks: static64}
-          - {std: 11, cxx: g++-12, bt: lsan, bitlinks: static64}
-          - {std: 14, cxx: g++-12, bt: lsan, bitlinks: static64}
-          - {std: 17, cxx: g++-12, bt: lsan, bitlinks: static64}
-          - {std: 20, cxx: g++-12, bt: lsan, bitlinks: static64}
-          - {std: 11, cxx: g++-12, bt: tsan, bitlinks: static64}
-          - {std: 14, cxx: g++-12, bt: tsan, bitlinks: static64}
-          - {std: 17, cxx: g++-12, bt: tsan, bitlinks: static64}
-          - {std: 20, cxx: g++-12, bt: tsan, bitlinks: static64}
-          - {std: 11, cxx: g++-12, bt: ubsan, bitlinks: static64}
-          - {std: 14, cxx: g++-12, bt: ubsan, bitlinks: static64}
-          - {std: 17, cxx: g++-12, bt: ubsan, bitlinks: static64}
-          - {std: 20, cxx: g++-12, bt: ubsan, bitlinks: static64}
+          - {std: 11, cxx: g++-14, bt: asan, bitlinks: static64}
+          - {std: 14, cxx: g++-14, bt: asan, bitlinks: static64}
+          - {std: 17, cxx: g++-14, bt: asan, bitlinks: static64}
+          - {std: 20, cxx: g++-14, bt: asan, bitlinks: static64}
+          - {std: 11, cxx: g++-14, bt: lsan, bitlinks: static64}
+          - {std: 14, cxx: g++-14, bt: lsan, bitlinks: static64}
+          - {std: 17, cxx: g++-14, bt: lsan, bitlinks: static64}
+          - {std: 20, cxx: g++-14, bt: lsan, bitlinks: static64}
+          - {std: 11, cxx: g++-14, bt: tsan, bitlinks: static64}
+          - {std: 14, cxx: g++-14, bt: tsan, bitlinks: static64}
+          - {std: 17, cxx: g++-14, bt: tsan, bitlinks: static64}
+          - {std: 20, cxx: g++-14, bt: tsan, bitlinks: static64}
+          - {std: 11, cxx: g++-14, bt: ubsan, bitlinks: static64}
+          - {std: 14, cxx: g++-14, bt: ubsan, bitlinks: static64}
+          - {std: 17, cxx: g++-14, bt: ubsan, bitlinks: static64}
+          - {std: 20, cxx: g++-14, bt: ubsan, bitlinks: static64}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}

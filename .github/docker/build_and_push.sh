@@ -2,7 +2,9 @@
 
 set -o pipefail
 
-# https://stackoverflow.com/questions/44785585/how-can-i-delete-all-local-docker-images
+# To run an image:
+#
+#  docker run -it --network host -v ~/proj/rapidyaml:/rapidyaml --name c4core_ubuntu22 ghcr.io/biojppm/c4core/ubuntu22.04:latest /bin/bash
 #
 # To delete all containers including its volumes use,
 #
@@ -13,7 +15,9 @@ set -o pipefail
 #   docker rmi -f $(docker images -aq)
 #
 # Remember, you should remove all the containers before removing all
-# the images from which those containers were created.
+# the images from which those containers were created. See
+# https://stackoverflow.com/questions/44785585/how-can-i-delete-all-local-docker-images
+
 
 if [ -z "$CR_USR" ] ; then
     echo "error: \$CR_USR is not defined. Set it to a user name."
