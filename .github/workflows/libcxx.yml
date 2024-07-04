@@ -32,25 +32,25 @@ jobs:
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ubuntu-latest
-    container: ghcr.io/biojppm/c4core/ubuntu18.04:latest  # use the docker image
+    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest  # use the docker image
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 20, cxx: clang++-10 , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 20, cxx: clang++-10 , bt: Release, bitlinks: shared64 static64}
-          - {std: 17, cxx: clang++-10 , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 17, cxx: clang++-10 , bt: Release, bitlinks: shared64 static64}
-          - {std: 14, cxx: clang++-10 , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 14, cxx: clang++-10 , bt: Release, bitlinks: shared64 static64}
-          - {std: 11, cxx: clang++-10 , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 11, cxx: clang++-10 , bt: Release, bitlinks: shared64 static64}
-          - {std: 17, cxx: clang++-6.0, bt: Debug  , bitlinks: shared64 static64}
-          - {std: 17, cxx: clang++-6.0, bt: Release, bitlinks: shared64 static64}
-          - {std: 14, cxx: clang++-6.0, bt: Debug  , bitlinks: shared64 static64}
-          - {std: 14, cxx: clang++-6.0, bt: Release, bitlinks: shared64 static64}
-          - {std: 11, cxx: clang++-6.0, bt: Debug  , bitlinks: shared64 static64}
-          - {std: 11, cxx: clang++-6.0, bt: Release, bitlinks: shared64 static64}
+          - {std: 20, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static64}
+          - {std: 20, cxx: clang++-17 , bt: Release, bitlinks: shared64 static64}
+          - {std: 17, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static64}
+          - {std: 17, cxx: clang++-17 , bt: Release, bitlinks: shared64 static64}
+          - {std: 14, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static64}
+          - {std: 14, cxx: clang++-17 , bt: Release, bitlinks: shared64 static64}
+          - {std: 11, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static64}
+          - {std: 11, cxx: clang++-17 , bt: Release, bitlinks: shared64 static64}
+          - {std: 17, cxx: clang++-9  , bt: Debug  , bitlinks: shared64 static64}
+          - {std: 17, cxx: clang++-9  , bt: Release, bitlinks: shared64 static64}
+          - {std: 14, cxx: clang++-9  , bt: Debug  , bitlinks: shared64 static64}
+          - {std: 14, cxx: clang++-9  , bt: Release, bitlinks: shared64 static64}
+          - {std: 11, cxx: clang++-9  , bt: Debug  , bitlinks: shared64 static64}
+          - {std: 11, cxx: clang++-9  , bt: Release, bitlinks: shared64 static64}
     env:
       LIBCXX: ON  # <---- enable libc++
       STD: "${{matrix.std}}"
@@ -62,7 +62,7 @@ jobs:
       LINT: "${{matrix.lint}}"
       OS: "${{matrix.os}}"
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}

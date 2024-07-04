@@ -32,22 +32,27 @@ jobs:
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ubuntu-latest
-    container: ghcr.io/biojppm/c4core/ubuntu18.04:latest  # use the docker image
+    container: ghcr.io/biojppm/c4core/${{matrix.img}}:latest  # use the docker image
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-7  , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-7  , bt: Release, bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10 , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10 , bt: Release, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-5  , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-5  , bt: Release, bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-4.8, bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-4.8, bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-14 , bt: Debug  , bitlinks: shared64 static32, img: ubuntu22.04}
+          - {std: 11, cxx: g++-14 , bt: Release, bitlinks: shared64 static32, img: ubuntu22.04}
+          - {std: 20, cxx: g++-14 , bt: Debug  , bitlinks: shared64 static32, img: ubuntu22.04}
+          - {std: 20, cxx: g++-14 , bt: Release, bitlinks: shared64 static32, img: ubuntu22.04}
+          - {std: 11, cxx: g++-5  , bt: Debug  , bitlinks: shared64 static32, img: ubuntu18.04}
+          - {std: 11, cxx: g++-5  , bt: Release, bitlinks: shared64 static32, img: ubuntu18.04}
+          - {std: 11, cxx: g++-4.8, bt: Debug  , bitlinks: shared64 static32, img: ubuntu18.04}
+          - {std: 11, cxx: g++-4.8, bt: Release, bitlinks: shared64 static32, img: ubuntu18.04}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      # cannot use the checkout@v3 or v4 action on ubuntu18.04 because of nodejs version
+      #- {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      #... so we checkout manually:
+      - name: checkout
+        run: |
+          git clone --recursive https://github.com/biojppm/c4core .
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -78,18 +83,23 @@ jobs:
     continue-on-error: true
     if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ubuntu-latest
-    container: ghcr.io/biojppm/c4core/ubuntu18.04:latest  # use the docker image
+    container: ghcr.io/biojppm/c4core/${{matrix.img}}:latest  # use the docker image
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-7      , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: g++-7      , bt: Release, bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10     , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 20, cxx: g++-10     , bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: g++-5, bt: Debug  , bitlinks: shared64 static32, img: ubuntu18.04}
+          - {std: 11, cxx: g++-5, bt: Release, bitlinks: shared64 static32, img: ubuntu18.04}
+          - {std: 20, cxx: g++-14, bt: Debug  , bitlinks: shared64 static32, img: ubuntu22.04}
+          - {std: 20, cxx: g++-14, bt: Release, bitlinks: shared64 static32, img: ubuntu22.04}
     env: {CXXFLAGS: "-fno-exceptions -fno-rtti", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      # cannot use the checkout@v3 or v4 action on ubuntu18.04 because of nodejs version
+      #- {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      #... so we checkout manually:
+      - name: checkout
+        run: |
+          git clone --recursive https://github.com/biojppm/c4core .
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -126,21 +136,25 @@ jobs:
       matrix:
         include:
           #                                     VALGRIND
-          - {std: 11, cxx: g++-12, bt: Debug  , vg: ON, img: ubuntu22.04}
-          - {std: 11, cxx: g++-12, bt: Release, vg: ON, img: ubuntu22.04}
-          - {std: 14, cxx: g++-12, bt: Debug  , vg: ON, img: ubuntu22.04}
-          - {std: 14, cxx: g++-12, bt: Release, vg: ON, img: ubuntu22.04}
-          - {std: 17, cxx: g++-12, bt: Debug  , vg: ON, img: ubuntu22.04}
-          - {std: 17, cxx: g++-12, bt: Release, vg: ON, img: ubuntu22.04}
-          - {std: 20, cxx: g++-12, bt: Debug  , vg: ON, img: ubuntu22.04}
-          - {std: 20, cxx: g++-12, bt: Release, vg: ON, img: ubuntu22.04}
+          - {std: 11, cxx: g++-14, bt: Debug  , vg: ON, img: ubuntu22.04}
+          - {std: 11, cxx: g++-14, bt: Release, vg: ON, img: ubuntu22.04}
+          - {std: 14, cxx: g++-14, bt: Debug  , vg: ON, img: ubuntu22.04}
+          - {std: 14, cxx: g++-14, bt: Release, vg: ON, img: ubuntu22.04}
+          - {std: 17, cxx: g++-14, bt: Debug  , vg: ON, img: ubuntu22.04}
+          - {std: 17, cxx: g++-14, bt: Release, vg: ON, img: ubuntu22.04}
+          - {std: 20, cxx: g++-14, bt: Debug  , vg: ON, img: ubuntu22.04}
+          - {std: 20, cxx: g++-14, bt: Release, vg: ON, img: ubuntu22.04}
           #
-          - {std: 11, cxx: g++-11 , bt: Debug  , img: ubuntu18.04}
-          - {std: 11, cxx: g++-11 , bt: Release, img: ubuntu18.04}
-          - {std: 11, cxx: g++-10 , bt: Debug  , img: ubuntu18.04}
-          - {std: 11, cxx: g++-10 , bt: Release, img: ubuntu18.04}
-          - {std: 11, cxx: g++-9  , bt: Debug  , img: ubuntu18.04}
-          - {std: 11, cxx: g++-9  , bt: Release, img: ubuntu18.04}
+          - {std: 11, cxx: g++-13 , bt: Debug  , img: ubuntu22.04}
+          - {std: 11, cxx: g++-13 , bt: Release, img: ubuntu22.04}
+          - {std: 11, cxx: g++-13 , bt: Debug  , img: ubuntu22.04}
+          - {std: 11, cxx: g++-13 , bt: Release, img: ubuntu22.04}
+          - {std: 11, cxx: g++-11 , bt: Debug  , img: ubuntu22.04}
+          - {std: 11, cxx: g++-11 , bt: Release, img: ubuntu22.04}
+          - {std: 11, cxx: g++-10 , bt: Debug  , img: ubuntu22.04}
+          - {std: 11, cxx: g++-10 , bt: Release, img: ubuntu22.04}
+          - {std: 11, cxx: g++-9  , bt: Debug  , img: ubuntu22.04}
+          - {std: 11, cxx: g++-9  , bt: Release, img: ubuntu22.04}
           - {std: 11, cxx: g++-8  , bt: Debug  , img: ubuntu18.04}
           - {std: 11, cxx: g++-8  , bt: Release, img: ubuntu18.04}
           - {std: 11, cxx: g++-7  , bt: Debug  , img: ubuntu18.04}
@@ -155,7 +169,12 @@ jobs:
           - {std: 11, cxx: g++-4.8, bt: Release, img: ubuntu18.04}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      # cannot use the checkout@v3 or v4 action on ubuntu18.04 because of nodejs version
+      #- {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      #... so we checkout manually:
+      - name: checkout
+        run: |
+          git clone --recursive https://github.com/biojppm/c4core .
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -209,7 +228,7 @@ jobs:
           - {std: 20, cxx: g++-14, bt: ubsan, bitlinks: static64}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -253,7 +272,12 @@ jobs:
           - {std: 17, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc, os: ubuntu-20.04}
     env: {TOOLCHAIN: "${{matrix.toolchain}}", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      # cannot use the checkout@v3 or v4 action on ubuntu18.04 because of nodejs version
+      #- {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
+      #... so we checkout manually:
+      - name: checkout
+        run: |
+          git clone --recursive https://github.com/biojppm/c4core .
       - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
       - name: install gcc-arm-linux-gnueabihf
         run: |

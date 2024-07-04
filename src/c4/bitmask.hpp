@@ -241,7 +241,7 @@ typename std::underlying_type<Enum>::type str2bm_read_one(const char *str, size_
         C4_CHECK_MSG(p != nullptr, "no valid enum pair name for '%.*s'", (int)sz, str);
         return static_cast<I>(p->value);
     }
-    I tmp;
+    I tmp{0};
     size_t len = uncat(csubstr(str, sz), tmp);
     C4_CHECK_MSG(len != csubstr::npos, "could not read string as an integral type: '%.*s'", (int)sz, str);
     return tmp;
