@@ -52,8 +52,13 @@ jobs:
       #... so we checkout manually:
       - name: checkout
         run: |
-          git clone --recursive https://github.com/biojppm/c4core .
-      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+          set -x
+          git init -q .
+          git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+          git remote add origin $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+          git fetch origin $GITHUB_HEAD_REF
+          git reset --hard FETCH_HEAD
+          git submodule update --init --recursive
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
@@ -99,8 +104,13 @@ jobs:
       #... so we checkout manually:
       - name: checkout
         run: |
-          git clone --recursive https://github.com/biojppm/c4core .
-      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+          set -x
+          git init -q .
+          git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+          git remote add origin $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+          git fetch origin $GITHUB_HEAD_REF
+          git reset --hard FETCH_HEAD
+          git submodule update --init --recursive
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
@@ -174,8 +184,13 @@ jobs:
       #... so we checkout manually:
       - name: checkout
         run: |
-          git clone --recursive https://github.com/biojppm/c4core .
-      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+          set -x
+          git init -q .
+          git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+          git remote add origin $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+          git fetch origin $GITHUB_HEAD_REF
+          git reset --hard FETCH_HEAD
+          git submodule update --init --recursive
       - run: c4core-install ${{matrix.cxx}}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: shared64-configure---------------------------------------------------
@@ -256,7 +271,7 @@ jobs:
   #----------------------------------------------------------------------------
   arm:
     continue-on-error: true
-    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct 
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
     runs-on: ubuntu-latest
     container: ghcr.io/biojppm/c4core/ubuntu18.04:latest  # use the docker image
     strategy:
@@ -277,8 +292,13 @@ jobs:
       #... so we checkout manually:
       - name: checkout
         run: |
-          git clone --recursive https://github.com/biojppm/c4core .
-      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+          set -x
+          git init -q .
+          git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
+          git remote add origin $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+          git fetch origin $GITHUB_HEAD_REF
+          git reset --hard FETCH_HEAD
+          git submodule update --init --recursive
       - name: install gcc-arm-linux-gnueabihf
         run: |
           c4core-install arm-linux-gnueabihf

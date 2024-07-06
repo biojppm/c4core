@@ -36,6 +36,7 @@ function c4_show_info()
     echo "ARM=$ARM"
     echo "LIBCXX=$LIBCXX"
     echo "VERBOSE_MAKEFILES=$VERBOSE_MAKEFILES"
+    set -x
     which cmake
     cmake --version
     case "$CXX_" in
@@ -52,7 +53,8 @@ function c4_show_info()
         *)
             ;;
     esac
-    set -x
+    pwd
+    ls
     git branch
     git rev-parse HEAD
     git tag || echo
