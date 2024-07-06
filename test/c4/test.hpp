@@ -12,6 +12,12 @@
 #include <cstdio>
 #include <iostream>
 
+#ifdef C4_EXCEPTIONS
+#include <stdexcept>
+#else
+#include <csetjmp>
+#endif
+
 // FIXME - these are just dumb placeholders
 #define C4_LOGF_ERR(...) fprintf(stderr, __VA_ARGS__)
 #define C4_LOGF_WARN(...) fprintf(stderr, __VA_ARGS__)
@@ -79,7 +85,6 @@
 #define CHECK_STREQ(lhs, rhs) CHECK_EQ(c4::to_csubstr(lhs), c4::to_csubstr(rhs))
 #define CHECK_FLOAT_EQ(lhs, rhs) CHECK((double)(lhs) == doctest::Approx((double)(rhs)))
 
-
 namespace c4 {
 
 template<class C>
@@ -89,36 +94,70 @@ inline std::ostream& operator<< (std::ostream& stream, c4::basic_substring<C> s)
     return stream;
 }
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 /** RAII class that tests whether an error occurs inside a scope. */
 struct TestErrorOccurs
 {
-    TestErrorOccurs(size_t num_expected_errors = 1)
-      :
-      expected_errors(num_expected_errors),
-      tmp_settings(c4::ON_ERROR_CALLBACK, &TestErrorOccurs::error_callback)
-    {
-        num_errors = 0;
-    }
-    ~TestErrorOccurs()
-    {
-        CHECK_EQ(num_errors, expected_errors);
-        num_errors = 0;
-    }
-
-    size_t expected_errors;
-    static size_t num_errors;
-    ScopedErrorSettings tmp_settings;
-    static void error_callback(const char* /*msg*/, size_t /*msg_size*/)
+    static void error_callback(const char* msg, size_t msg_size)
     {
         ++num_errors;
+        #ifdef C4_EXCEPTIONS
+        throw std::runtime_error({msg, msg_size});
+        #else
+        s_jmp_msg.assign(msg, msg_size);
+        std::longjmp(s_jmp_env_expect_error, 37);
+        #endif
     }
+
+    template<class Fn>
+    TestErrorOccurs(Fn &&fn, const char *expected_msg=nullptr)
+        : tmp_settings(c4::ON_ERROR_CALLBACK, &TestErrorOccurs::error_callback)
+    {
+        CHECK_EQ(get_error_callback(), &TestErrorOccurs::error_callback);
+        num_errors = 0;
+        #ifdef C4_EXCEPTIONS
+        try
+        {
+            fn();
+        }
+        catch (std::runtime_error const& exc)
+        {
+            if(expected_msg)
+                CHECK_EQ(exc.what(), expected_msg);
+        }
+        catch (...)
+        {
+            CHECK_EQ(1, 0); // fail
+        }
+        #else
+        switch(setjmp(s_jmp_env_expect_error))
+        {
+        case 0:
+            fn();
+            break;
+        case 37:
+            // got expected error from call to fn()
+            if(expected_msg)
+                CHECK_EQ(s_jmp_msg, expected_msg);
+            break;
+        }
+        #endif
+        CHECK_EQ(num_errors, 1);
+    }
+
+    static size_t num_errors;
+    #ifndef C4_EXCEPTIONS
+    static std::jmp_buf s_jmp_env_expect_error;
+    static std::string s_jmp_msg;
+    #endif
+    ScopedErrorSettings tmp_settings;
 };
 
 #define C4_EXPECT_ERROR_OCCURS(...) \
-  auto _testerroroccurs##__LINE__ = TestErrorOccurs(__VA_ARGS__)
+  auto C4_XCAT(_testerroroccurs, __LINE__) = c4::TestErrorOccurs(__VA_ARGS__)
 
 #if C4_USE_ASSERT
 #   define C4_EXPECT_ASSERT_TRIGGERS(...) C4_EXPECT_ERROR_OCCURS(__VA_ARGS__)

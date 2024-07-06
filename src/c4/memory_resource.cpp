@@ -207,7 +207,6 @@ void* MemoryResourceLinear::do_allocate(size_t sz, size_t alignment, void *hint)
     if(m_pos + sz > m_size)
     {
         C4_ERROR("out of memory");
-        return nullptr;
     }
     void *mem = m_mem + m_pos;
     size_t space = m_size - m_pos;
@@ -222,7 +221,6 @@ void* MemoryResourceLinear::do_allocate(size_t sz, size_t alignment, void *hint)
     else
     {
         C4_ERROR("could not align memory");
-        mem = nullptr;
     }
     return mem;
 }

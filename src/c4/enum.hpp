@@ -139,7 +139,6 @@ size_t eoffs(EnumOffsetType which)
     }
     default:
         C4_ERROR("unknown offset type %d", (int)which);
-        return 0;
     }
 }
 
