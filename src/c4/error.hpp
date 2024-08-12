@@ -177,7 +177,8 @@ struct ScopedErrorSettings
 /** source location */
 struct srcloc;
 
-C4CORE_EXPORT [[noreturn]] void handle_error(srcloc s, const char *fmt, ...);
+// watchout: for VS the [[noreturn]] needs to come before other annotations like C4CORE_EXPORT
+[[noreturn]] C4CORE_EXPORT void handle_error(srcloc s, const char *fmt, ...);
 C4CORE_EXPORT void handle_warning(srcloc s, const char *fmt, ...);
 
 
