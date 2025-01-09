@@ -347,6 +347,22 @@ case $what in
         apt-get install -y \
                 qemu
         ;;
+    mingw)
+        apt-get update
+        apt-get install -y \
+                gcc-mingw-w64-x86-64 \
+                g++-mingw-w64-x86-64 \
+                mingw-w64 \
+                mingw-w64-x86-64-dev \
+                mingw-w64-tools
+        update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+        update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+        ;;
+    wine)
+        apt-get update
+        apt-get install -y wine
+        # run exe with env WINEPATH="/usr/lib/gcc/x86_64-w64-mingw32/7.3-win32;/usr/x86_64-w64-mingw32/lib" wine exe
+        ;;
     *)
         echo "unknown package: $what"
         exit 1
