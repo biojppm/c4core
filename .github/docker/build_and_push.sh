@@ -43,6 +43,13 @@ time ( \
 time ( \
   cd $mydir/ubuntu22.04 ; \
   img=ghcr.io/biojppm/c4core/ubuntu22.04:latest ; \
-  docker build -t $img . ; \
+  time docker build -t $img . ; \
+  time docker push $img \
+  )
+
+time ( \
+  cd $mydir/ubuntu24.04 ; \
+  img=ghcr.io/biojppm/c4core/ubuntu24.04:latest ; \
+  time docker build -t $img . ; \
   time docker push $img \
   )
