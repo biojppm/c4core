@@ -115,3 +115,33 @@ c4_add_dev_targets()
 if(C4CORE_INSTALL)
     c4_pack_project(TYPE LIBRARY)
 endif()
+
+
+#-------------------------------------------------------
+# clang-tidy
+
+function(c4core_setup_clang_tidy rootdir)
+    get_target_property(srcs c4core SOURCES)
+    string(REPLACE "${rootdir}/" "./" srcs "${srcs}")
+    set(exclude ./c4/ext/.* .natvis)
+    foreach(e ${exclude})
+        list(FILTER srcs EXCLUDE REGEX ${e})
+    endforeach()
+    set(cmd ${srcs} -p ${CMAKE_BINARY_DIR}
+            "--config-file=${rootdir}/.clang-tidy"
+            "--header-filter=${rootdir}/src/c4/.*pp|${rootdir}/src/c4/std/.*pp")
+    add_custom_target(c4core-clang-tidy
+        COMMAND ${CMAKE_COMMAND} -E cat ${CMAKE_BINARY_DIR}/compile_commands.json
+        COMMAND ${CLANG_TIDY} --version
+        COMMAND ${CLANG_TIDY} ${cmd} --dump-config
+        COMMAND ${CLANG_TIDY} ${cmd} --list-checks
+        COMMAND ${CLANG_TIDY} ${cmd}
+        WORKING_DIRECTORY ${rootdir}
+        VERBATIM
+    )
+endfunction()
+
+find_program(CLANG_TIDY clang-tidy)
+if(CLANG_TIDY)
+    c4core_setup_clang_tidy(${CMAKE_CURRENT_LIST_DIR})
+endif()

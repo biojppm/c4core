@@ -135,6 +135,7 @@
 #define C4_NO_UBSAN_IOVRFLW
 #endif
 
+// NOLINTBEGIN(hicpp-signed-bitwise)
 
 namespace c4 {
 
@@ -544,24 +545,25 @@ C4_CONSTEXPR14 C4_ALWAYS_INLINE unsigned digits_oct(T v_) noexcept
     // TODO: is there a better way?
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v_ >= 0);
-    using U = typename
-        std::conditional<sizeof(T) <= sizeof(unsigned),
-                         unsigned,
-                         typename std::make_unsigned<T>::type>::type;
-    U v = (U) v_;  // safe because we require v_ >= 0
-    unsigned __n = 1;
-    const unsigned __b2 = 64u;
-    const unsigned __b3 = __b2 * 8u;
-    const unsigned long __b4 = __b3 * 8u;
+    using U = typename std::conditional<sizeof(T) <= sizeof(unsigned),
+                                        unsigned,
+                                        typename std::make_unsigned<T>::type>::type;
+    U v = (U) v_;  // safe because we require v_ >= 0 // NOLINT
+    uint32_t __n = 1;
+    enum : U {
+        __b2 = 64u,
+        __b3 = 64u * 8u,
+        __b4 = 64u * 8u * 8u,
+    };
     while(true)
 	{
         if(v < 8u)
             return __n;
-        if(v < __b2)
+        else if(v < __b2)
             return __n + 1;
-        if(v < __b3)
+        else if(v < __b3)
             return __n + 2;
-        if(v < __b4)
+        else if(v < __b4)
             return __n + 3;
         v /= (U) __b4;
         __n += 4;
@@ -616,7 +618,7 @@ void write_dec_unchecked(substr buf, T v, unsigned digits_v) noexcept
     {
         T quo = v;
         quo /= T(100);
-        const auto num = (v - quo * T(100)) << 1u;
+        const auto num = (v - quo * T(100)) << 1u; // NOLINT
         v = quo;
         buf.str[--digits_v] = detail::digits0099[num + 1];
         buf.str[--digits_v] = detail::digits0099[num];
@@ -787,7 +789,7 @@ size_t write_num_digits(substr buf, T v, size_t num_digits) noexcept
     else if(ret >= buf.len || num_digits > buf.len)
         return num_digits;
     C4_ASSERT(num_digits >= ret);
-    size_t delta = static_cast<size_t>(num_digits - ret);
+    size_t delta = static_cast<size_t>(num_digits - ret); // NOLINT
     memmove(buf.str + delta, buf.str, ret);
     memset(buf.str, '0', delta);
     return num_digits;
@@ -1012,7 +1014,7 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix) noexcept
     size_t pos = 0;
     if(C4_LIKELY(buf.len > 0))
         buf.str[pos++] = '-';
-    switch(radix)
+    switch(radix) // NOLINT(hicpp-multiway-paths-covered)
     {
     case I(10):
         if(C4_UNLIKELY(buf.len < digits_type::maxdigits_dec))
@@ -1051,7 +1053,7 @@ C4_NO_INLINE size_t _itoa2buf(substr buf, I radix, size_t num_digits) noexcept
     size_t needed_digits = 0;
     if(C4_LIKELY(buf.len > 0))
         buf.str[pos++] = '-';
-    switch(radix)
+    switch(radix) // NOLINT(hicpp-multiway-paths-covered)
     {
     case I(10):
         // add 1 to account for -
@@ -1159,7 +1161,7 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix) noexcept
             ++pos;
         }
         unsigned digits = 0;
-        switch(radix)
+        switch(radix) // NOLINT(hicpp-multiway-paths-covered)
         {
         case T(10):
             digits = digits_dec(v);
@@ -1236,7 +1238,7 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v, T radix, size_t num_digits) noexce
             ++pos;
         }
         unsigned total_digits = 0;
-        switch(radix)
+        switch(radix) // NOLINT(hicpp-multiway-paths-covered)
         {
         case T(10):
             total_digits = digits_dec(v);
@@ -1321,7 +1323,7 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix) noexcept
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
     C4_ASSERT(radix == 10 || radix == 16 || radix == 2 || radix == 8);
     unsigned digits = 0;
-    switch(radix)
+    switch(radix) // NOLINT(hicpp-multiway-paths-covered)
     {
     case T(10):
         digits = digits_dec(v);
@@ -1376,7 +1378,7 @@ C4_ALWAYS_INLINE size_t utoa(substr buf, T v, T radix, size_t num_digits) noexce
     C4_STATIC_ASSERT(std::is_unsigned<T>::value);
     C4_ASSERT(radix == 10 || radix == 16 || radix == 2 || radix == 8);
     unsigned total_digits = 0;
-    switch(radix)
+    switch(radix) // NOLINT(hicpp-multiway-paths-covered)
     {
     case T(10):
         total_digits = digits_dec(v);
@@ -1988,7 +1990,7 @@ C4_ALWAYS_INLINE bool scan_rhex(csubstr s, T *C4_RESTRICT val) noexcept
         else if(c == 'p' || c == 'P')
         {
             ++pos;
-            goto power; // no mantissa given, jump to power
+            goto power; // no mantissa given, jump to power // NOLINT
         }
         else
         {
@@ -1998,7 +2000,7 @@ C4_ALWAYS_INLINE bool scan_rhex(csubstr s, T *C4_RESTRICT val) noexcept
     // mantissa
     {
         // 0.0625 == 1/16 == value of first digit after the comma
-        for(T digit = T(0.0625); pos < s.len; ++pos, digit /= T(16))
+        for(T digit = T(0.0625); pos < s.len; ++pos, digit /= T(16)) // NOLINT
         {
             const char c = s.str[pos];
             if(c >= '0' && c <= '9')
@@ -2010,7 +2012,7 @@ C4_ALWAYS_INLINE bool scan_rhex(csubstr s, T *C4_RESTRICT val) noexcept
             else if(c == 'p' || c == 'P')
             {
                 ++pos;
-                goto power; // mantissa finished, jump to power
+                goto power; // mantissa finished, jump to power // NOLINT
             }
             else
             {
@@ -2656,6 +2658,8 @@ inline size_t to_chars(substr buf, const char * C4_RESTRICT v) noexcept
 /** @} */
 
 } // namespace c4
+
+// NOLINTEND(hicpp-signed-bitwise)
 
 #ifdef _MSC_VER
 #   pragma warning(pop)

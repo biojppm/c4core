@@ -99,31 +99,31 @@ bm2stream(Stream &s, Enum value, EnumOffsetType offst=EOFFS_PFX)
  * buffer. This macro simplifies the code for bm2str().
  * @todo improve performance by writing from the end and moving only once. */
 #define _c4prependchars(code, num)                                      \
-    if(str && (pos + num <= sz))                                        \
+    if(str && (pos + (num) <= sz))                                      \
     {                                                                   \
         /* move the current string to the right */                      \
-        memmove(str + num, str, pos);                                   \
+        memmove(str + (num), str, pos);                                 \
         /* now write in the beginning of the string */                  \
         code;                                                           \
     }                                                                   \
     else if(str && sz)                                                  \
     {                                                                   \
         C4_ERROR("cannot write to string pos=%d num=%d sz=%d",          \
-                 (int)pos, (int)num, (int)sz);                          \
+                 (int)pos, (int)(num), (int)sz);                        \
     }                                                                   \
     pos += num
 
 /* Execute `code` if the `num` of characters is available in the str
  * buffer. This macro simplifies the code for bm2str(). */
 #define _c4appendchars(code, num)                                       \
-    if(str && (pos + num <= sz))                                        \
+    if(str && (pos + (num) <= sz))                                      \
     {                                                                   \
         code;                                                           \
     }                                                                   \
     else if(str && sz)                                                  \
     {                                                                   \
         C4_ERROR("cannot write to string pos=%d num=%d sz=%d",          \
-                 (int)pos, (int)num, (int)sz);                          \
+                 (int)pos, (int)(num), (int)sz);                        \
     }                                                                   \
     pos += num
 

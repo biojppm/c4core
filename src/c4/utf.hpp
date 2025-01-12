@@ -9,7 +9,7 @@
 namespace c4 {
 
 substr decode_code_point(substr out, csubstr code_point);
-size_t decode_code_point(uint8_t *C4_RESTRICT buf, size_t buflen, const uint32_t code);
+size_t decode_code_point(uint8_t *C4_RESTRICT buf, size_t buflen, uint32_t code);
 
 } // namespace c4
 

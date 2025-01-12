@@ -60,7 +60,7 @@ inline void construct(U* ptr, Args&&... args)
     new ((void*)ptr) U(std::forward<Args>(args)...);
 }
 template<class U, class I, class ...Args>
-inline void construct_n(U* ptr, I n, Args&&... args)
+inline void construct_n(U* ptr, I n, Args&&... args) // NOLINT
 {
     for(I i = 0; i < n; ++i)
     {
