@@ -114,10 +114,10 @@ arealloc_pfn get_arealloc();
 
 /** C++17-style memory_resource base class. See http://en.cppreference.com/w/cpp/experimental/memory_resource
  * @ingroup memory_resources */
-struct MemoryResource
+struct MemoryResource // NOLINT(*-member-functions)
 {
     const char *name = nullptr;
-    virtual ~MemoryResource() {}
+    virtual ~MemoryResource() = default;
 
     void* allocate(size_t sz, size_t alignment=alignof(max_align_t), void *hint=nullptr)
     {
@@ -170,28 +170,27 @@ C4_ALWAYS_INLINE void set_memory_resource(MemoryResource* mr)
 /** A c4::aalloc-based memory resource. Thread-safe if the implementation
  * called by c4::aalloc() is safe.
  * @ingroup memory_resources */
-struct MemoryResourceMalloc : public MemoryResource
+struct MemoryResourceMalloc : public MemoryResource // NOLINT(*-member-functions)
 {
 
     MemoryResourceMalloc() { name = "malloc"; }
-    virtual ~MemoryResourceMalloc() override {}
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override
+    void* do_allocate(size_t sz, size_t alignment, void *hint) override
     {
         C4_UNUSED(hint);
         return c4::aalloc(sz, alignment);
     }
 
-    virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override
+    void do_deallocate(void* ptr, size_t sz, size_t alignment) override
     {
         C4_UNUSED(sz);
         C4_UNUSED(alignment);
         c4::afree(ptr);
     }
 
-    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override
+    void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override
     {
         return c4::arealloc(ptr, oldsz, newsz, alignment);
     }
@@ -239,19 +238,19 @@ private:
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment, void* hint) override
+    void* do_allocate(size_t sz, size_t alignment, void* hint) override
     {
         return m_local->allocate(sz, alignment, hint);
     }
 
-    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override
+    void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override
     {
         return m_local->reallocate(ptr, oldsz, newsz, alignment);
     }
 
-    virtual void do_deallocate(void* ptr, size_t sz, size_t alignment) override
+    void do_deallocate(void* ptr, size_t sz, size_t alignment) override
     {
-        return m_local->deallocate(ptr, sz, alignment);
+        m_local->deallocate(ptr, sz, alignment);
     }
 };
 
@@ -273,7 +272,7 @@ public:
     /** initialize with borrowed memory */
     _MemoryResourceSingleChunk(void *mem, size_t sz) : _MemoryResourceSingleChunk() { acquire(mem, sz); }
 
-    virtual ~_MemoryResourceSingleChunk() override { release(); }
+    ~_MemoryResourceSingleChunk() override { release(); }
 
 public:
 
@@ -317,7 +316,7 @@ public:
  * malloc/free take place.
  *
  * @ingroup memory_resources */
-struct MemoryResourceLinear : public detail::_MemoryResourceSingleChunk
+struct MemoryResourceLinear : public detail::_MemoryResourceSingleChunk // NOLINT(*-member-functions)
 {
 
     C4_NO_COPY_OR_MOVE(MemoryResourceLinear);
@@ -328,9 +327,9 @@ public:
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override;
-    virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
-    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
+    void* do_allocate(size_t sz, size_t alignment, void *hint) override;
+    void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
+    void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
 };
 
 
@@ -339,7 +338,7 @@ protected:
 //-----------------------------------------------------------------------------
 /** provides a stack-type malloc-based memory resource.
  * @ingroup memory_resources */
-struct MemoryResourceStack : public detail::_MemoryResourceSingleChunk
+struct MemoryResourceStack : public detail::_MemoryResourceSingleChunk // NOLINT(*-member-functions)
 {
 
     C4_NO_COPY_OR_MOVE(MemoryResourceStack);
@@ -350,9 +349,9 @@ public:
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment, void *hint) override;
-    virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
-    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
+    void* do_allocate(size_t sz, size_t alignment, void *hint) override;
+    void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
+    void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
 };
 
 
@@ -365,15 +364,10 @@ protected:
 template<size_t N>
 struct MemoryResourceLinearArr : public MemoryResourceLinear
 {
-    #ifdef _MSC_VER
-    #pragma warning(push)
-    #pragma warning(disable: 4324) // structure was padded due to alignment specifier
-    #endif
+    C4_SUPPRESS_WARNING_MSVC_WITH_PUSH(4324) // structure was padded due to alignment specifier
     alignas(alignof(max_align_t)) char m_arr[N];
-    #ifdef _MSC_VER
-    #pragma warning(pop)
-    #endif
-    MemoryResourceLinearArr() : MemoryResourceLinear(m_arr, N) { name = "linear_arr"; }
+    C4_SUPPRESS_WARNING_MSVC_POP
+    MemoryResourceLinearArr() : MemoryResourceLinear(m_arr, N) { name = "linear_arr"; } // NOLINT
 };
 
 
@@ -493,25 +487,25 @@ public:
 
 protected:
 
-    MemoryResource *m_resource;
-    AllocationCounts m_counts;
+    MemoryResource *m_resource; // NOLINT
+    AllocationCounts m_counts; // NOLINT
 
 protected:
 
-    virtual void* do_allocate(size_t sz, size_t alignment, void * /*hint*/) override
+    void* do_allocate(size_t sz, size_t alignment, void * /*hint*/) override
     {
         void *ptr = m_resource->allocate(sz, alignment);
         m_counts.add_counts(ptr, sz);
         return ptr;
     }
 
-    virtual void  do_deallocate(void* ptr, size_t sz, size_t alignment) override
+    void  do_deallocate(void* ptr, size_t sz, size_t alignment) override
     {
         m_counts.rem_counts(ptr, sz);
         m_resource->deallocate(ptr, sz, alignment);
     }
 
-    virtual void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override
+    void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override
     {
         m_counts.rem_counts(ptr, oldsz);
         void* nptr = m_resource->reallocate(ptr, oldsz, newsz, alignment);
@@ -524,7 +518,7 @@ protected:
 //-----------------------------------------------------------------------------
 /** RAII class which binds a memory resource with a scope duration.
  * @ingroup memory_resources */
-struct ScopedMemoryResource
+struct ScopedMemoryResource // NOLINT(*-member-functions)
 {
     MemoryResource *m_original;
 
@@ -545,7 +539,7 @@ struct ScopedMemoryResource
 /** RAII class which counts allocations and frees inside a scope. Can
  * optionally set also the memory resource to be used.
  * @ingroup memory_resources */
-struct ScopedMemoryResourceCounts
+struct ScopedMemoryResourceCounts // NOLINT(*-member-functions)
 {
     MemoryResourceCounts mr;
 

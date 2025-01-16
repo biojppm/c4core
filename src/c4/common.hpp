@@ -9,7 +9,6 @@
 #include "c4/compiler.hpp"
 #include "c4/language.hpp"
 #include "c4/error.hpp"
-#include "c4/time.hpp"
 #include "c4/types.hpp"
 
 #endif /* _C4_COMMON_HPP_ */

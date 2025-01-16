@@ -77,7 +77,7 @@ public:
 private:
 
     Sym const* m_symbols;
-    size_t const m_num;
+    size_t const m_num; // NOLINT(*avoid-const*)
 
 };
 

@@ -20,6 +20,7 @@
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
+// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast,*avoid-goto*)
 
 /** @defgroup doc_format_utils Format utilities
  *
@@ -1047,6 +1048,7 @@ retry:
 
 } // namespace c4
 
+// NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast,*avoid-goto*)
 #ifdef _MSC_VER
 #   pragma warning(pop)
 #elif defined(__clang__)

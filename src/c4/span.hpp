@@ -12,6 +12,7 @@
 namespace c4 {
 
 C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+// NOLINTBEGIN(misc-confusable-identifiers)
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -200,7 +201,10 @@ public:
 #undef _c4csz
 };
 
+
 //-----------------------------------------------------------------------------
+// NOLINTBEGIN(*-redundant-inline*)
+
 template<class T, class Il, class Ir, class _Impll, class _Implr>
 inline constexpr bool operator==
 (
@@ -268,13 +272,15 @@ inline constexpr bool operator>=
     return ! (l < r);
 }
 
+// NOLINTEND(*-redundant-inline*)
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 /** A non-owning span of elements contiguously stored in memory. */
 template<class T, class I=C4_SIZE_TYPE>
-class span : public span_crtp<T, I, span<T, I>>
+class span : public span_crtp<T, I, span<T, I>> // NOLINT(*-special-member-functions)
 {
     friend class span_crtp<T, I, span<T, I>>;
 
@@ -351,7 +357,7 @@ template<class T, class I=C4_SIZE_TYPE> using cspan = span<const T, I>;
  */
 
 template<class T, class I=C4_SIZE_TYPE>
-class spanrs : public span_crtp<T, I, spanrs<T, I>>
+class spanrs : public span_crtp<T, I, spanrs<T, I>> // NOLINT(*-special-member-functions)
 {
     friend class span_crtp<T, I, spanrs<T, I>>;
 
@@ -434,7 +440,7 @@ template<class T, class I=C4_SIZE_TYPE> using cspanrs = spanrs<const T, I>;
  * can always be recovered by calling original().
  */
 template<class T, class I=C4_SIZE_TYPE>
-class spanrsl : public span_crtp<T, I, spanrsl<T, I>>
+class spanrsl : public span_crtp<T, I, spanrsl<T, I>> // NOLINT(*-special-member-functions)
 {
     friend class span_crtp<T, I, spanrsl<T, I>>;
 
@@ -511,6 +517,8 @@ public:
     }
 };
 template<class T, class I=C4_SIZE_TYPE> using cspanrsl = spanrsl<const T, I>;
+
+// NOLINTEND(misc-confusable-identifiers)
 
 C4_SUPPRESS_WARNING_GCC_CLANG_POP
 

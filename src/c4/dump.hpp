@@ -33,7 +33,7 @@ inline size_t dump(DumperFn &&dumpfn, substr buf, Arg const& a)
 {
     size_t sz = to_chars(buf, a); // need to serialize to the buffer
     if(C4_LIKELY(sz <= buf.len))
-        dumpfn(buf.first(sz));
+        std::forward<DumperFn>(dumpfn)(buf.first(sz));
     return sz;
 }
 
@@ -49,7 +49,7 @@ template<class DumperFn>
 inline size_t dump(DumperFn &&dumpfn, substr buf, csubstr a)
 {
     if(buf.len)
-        dumpfn(a); // dump directly, no need to serialize to the buffer
+        std::forward<DumperFn>(dumpfn)(a); // dump directly, no need to serialize to the buffer
     return 0; // no space was used in the buffer
 }
 
@@ -65,7 +65,7 @@ template<class DumperFn, size_t N>
 inline size_t dump(DumperFn &&dumpfn, substr buf, const char (&a)[N])
 {
     if(buf.len)
-        dumpfn(csubstr(a)); // dump directly, no need to serialize to the buffer
+        std::forward<DumperFn>(dumpfn)(csubstr(a)); // dump directly, no need to serialize to the buffer
     return 0; // no space was used in the buffer
 }
 
@@ -93,14 +93,14 @@ struct DumpResults
 /// @cond dev
 // terminates the variadic recursion
 template<class DumperFn>
-size_t cat_dump(DumperFn &&, substr)
+size_t cat_dump(DumperFn &&, substr) // NOLINT
 {
     return 0;
 }
 
 // terminates the variadic recursion
 template<DumperPfn dumpfn>
-size_t cat_dump(substr)
+size_t cat_dump(substr) // NOLINT
 {
     return 0;
 }
@@ -110,10 +110,10 @@ size_t cat_dump(substr)
 template<class DumperFn, class Arg, class... Args>
 size_t cat_dump(DumperFn &&dumpfn, substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    size_t size_for_a = dump(dumpfn, buf, a);
+    size_t size_for_a = dump(std::forward<DumperFn>(dumpfn), buf, a);
     if(C4_UNLIKELY(size_for_a > buf.len))
         buf = buf.first(0); // ensure no more calls
-    size_t size_for_more = cat_dump(dumpfn, buf, more...);
+    size_t size_for_more = cat_dump(std::forward<DumperFn>(dumpfn), buf, more...);
     return size_for_more > size_for_a ? size_for_more : size_for_a;
 }
 
@@ -156,7 +156,7 @@ DumpResults cat_dump_resume(size_t currarg, DumperFn &&dumpfn, DumpResults resul
 {
     if(C4_LIKELY(results.write_arg(currarg)))
     {
-        size_t sz = dump(dumpfn, buf, a);  // yield to the specialized function
+        size_t sz = dump(std::forward<DumperFn>(dumpfn), buf, a);  // yield to the specialized function
         if(currarg == results.lastok + 1 && sz <= buf.len)
             results.lastok = currarg;
         results.bufsize = sz > results.bufsize ? sz : results.bufsize;
@@ -174,8 +174,8 @@ DumpResults cat_dump_resume(size_t currarg, DumpResults results, substr buf, Arg
 template<class DumperFn, class Arg, class... Args>
 DumpResults cat_dump_resume(size_t currarg, DumperFn &&dumpfn, DumpResults results, substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    results = detail::cat_dump_resume(currarg, dumpfn, results, buf, a);
-    return detail::cat_dump_resume(currarg + 1u, dumpfn, results, buf, more...);
+    results = detail::cat_dump_resume(currarg, std::forward<DumperFn>(dumpfn), results, buf, a);
+    return detail::cat_dump_resume(currarg + 1u, std::forward<DumperFn>(dumpfn), results, buf, more...);
 }
 } // namespace detail
 /// @endcond
@@ -194,7 +194,7 @@ C4_ALWAYS_INLINE DumpResults cat_dump_resume(DumperFn &&dumpfn, DumpResults resu
 {
     if(results.bufsize > buf.len)
         return results;
-    return detail::cat_dump_resume(0u, dumpfn, results, buf, a, more...);
+    return detail::cat_dump_resume(0u, std::forward<DumperFn>(dumpfn), results, buf, a, more...);
 }
 
 template<DumperPfn dumpfn, class Arg, class... Args>
@@ -206,7 +206,7 @@ C4_ALWAYS_INLINE DumpResults cat_dump_resume(substr buf, Arg const& C4_RESTRICT 
 template<class DumperFn, class Arg, class... Args>
 C4_ALWAYS_INLINE DumpResults cat_dump_resume(DumperFn &&dumpfn, substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    return detail::cat_dump_resume(0u, dumpfn, DumpResults{}, buf, a, more...);
+    return detail::cat_dump_resume(0u, std::forward<DumperFn>(dumpfn), DumpResults{}, buf, a, more...);
 }
 
 
@@ -217,14 +217,14 @@ C4_ALWAYS_INLINE DumpResults cat_dump_resume(DumperFn &&dumpfn, substr buf, Arg 
 /// @cond dev
 // terminate the recursion
 template<class DumperFn, class Sep>
-size_t catsep_dump(DumperFn &&, substr, Sep const& C4_RESTRICT)
+size_t catsep_dump(DumperFn &&, substr, Sep const& C4_RESTRICT) // NOLINT
 {
     return 0;
 }
 
 // terminate the recursion
 template<DumperPfn dumpfn, class Sep>
-size_t catsep_dump(substr, Sep const& C4_RESTRICT)
+size_t catsep_dump(substr, Sep const& C4_RESTRICT) // NOLINT
 {
     return 0;
 }
@@ -234,17 +234,17 @@ size_t catsep_dump(substr, Sep const& C4_RESTRICT)
 template<class DumperFn, class Sep, class Arg, class... Args>
 size_t catsep_dump(DumperFn &&dumpfn, substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    size_t sz = dump(dumpfn, buf, a);
+    size_t sz = dump(std::forward<DumperFn>(dumpfn), buf, a);
     if(C4_UNLIKELY(sz > buf.len))
         buf = buf.first(0); // ensure no more calls
     if C4_IF_CONSTEXPR (sizeof...(more) > 0)
     {
-        size_t szsep = dump(dumpfn, buf, sep);
+        size_t szsep = dump(std::forward<DumperFn>(dumpfn), buf, sep);
         if(C4_UNLIKELY(szsep > buf.len))
             buf = buf.first(0); // ensure no more calls
         sz = sz > szsep ? sz : szsep;
     }
-    size_t size_for_more = catsep_dump(dumpfn, buf, sep, more...);
+    size_t size_for_more = catsep_dump(std::forward<DumperFn>(dumpfn), buf, sep, more...);
     return size_for_more > sz ? size_for_more : sz;
 }
 
@@ -292,7 +292,7 @@ void catsep_dump_resume_(size_t currarg, DumperFn &&dumpfn, DumpResults *C4_REST
 {
     if(C4_LIKELY(results->write_arg(currarg)))
     {
-        size_t sz = dump(dumpfn, *buf, a);
+        size_t sz = dump(std::forward<DumperFn>(dumpfn), *buf, a);
         results->bufsize = sz > results->bufsize ? sz : results->bufsize;
         if(C4_LIKELY(sz <= buf->len))
             results->lastok = currarg;
@@ -310,7 +310,7 @@ C4_ALWAYS_INLINE void catsep_dump_resume(size_t currarg, DumpResults *C4_RESTRIC
 template<class DumperFn, class Sep, class Arg>
 C4_ALWAYS_INLINE void catsep_dump_resume(size_t currarg, DumperFn &&dumpfn, DumpResults *C4_RESTRICT results, substr *C4_RESTRICT buf, Sep const& C4_RESTRICT, Arg const& C4_RESTRICT a)
 {
-    detail::catsep_dump_resume_(currarg, dumpfn, results, buf, a);
+    detail::catsep_dump_resume_(currarg, std::forward<DumperFn>(dumpfn), results, buf, a);
 }
 
 template<DumperPfn dumpfn, class Sep, class Arg, class... Args>
@@ -324,9 +324,9 @@ C4_ALWAYS_INLINE void catsep_dump_resume(size_t currarg, DumpResults *C4_RESTRIC
 template<class DumperFn, class Sep, class Arg, class... Args>
 C4_ALWAYS_INLINE void catsep_dump_resume(size_t currarg, DumperFn &&dumpfn, DumpResults *C4_RESTRICT results, substr *C4_RESTRICT buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    detail::catsep_dump_resume_(currarg     , dumpfn, results, buf, a);
-    detail::catsep_dump_resume_(currarg + 1u, dumpfn, results, buf, sep);
-    detail::catsep_dump_resume (currarg + 2u, dumpfn, results, buf, sep, more...);
+    detail::catsep_dump_resume_(currarg     , std::forward<DumperFn>(dumpfn), results, buf, a);
+    detail::catsep_dump_resume_(currarg + 1u, std::forward<DumperFn>(dumpfn), results, buf, sep);
+    detail::catsep_dump_resume (currarg + 2u, std::forward<DumperFn>(dumpfn), results, buf, sep, more...);
 }
 } // namespace detail
 /// @endcond
@@ -342,7 +342,7 @@ C4_ALWAYS_INLINE DumpResults catsep_dump_resume(DumpResults results, substr buf,
 template<class DumperFn, class Sep, class... Args>
 C4_ALWAYS_INLINE DumpResults catsep_dump_resume(DumperFn &&dumpfn, DumpResults results, substr buf, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...more)
 {
-    detail::catsep_dump_resume(0u, dumpfn, &results, &buf, sep, more...);
+    detail::catsep_dump_resume(0u, std::forward<DumperFn>(dumpfn), &results, &buf, sep, more...);
     return results;
 }
 
@@ -358,7 +358,7 @@ template<class DumperFn, class Sep, class... Args>
 C4_ALWAYS_INLINE DumpResults catsep_dump_resume(DumperFn &&dumpfn, substr buf, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...more)
 {
     DumpResults results;
-    detail::catsep_dump_resume(0u, dumpfn, &results, &buf, sep, more...);
+    detail::catsep_dump_resume(0u, std::forward<DumperFn>(dumpfn), &results, &buf, sep, more...);
     return results;
 }
 
@@ -376,7 +376,7 @@ C4_ALWAYS_INLINE size_t format_dump(DumperFn &&dumpfn, substr buf, csubstr fmt)
     // we can dump without using buf
     // but we'll only dump if the buffer is ok
     if(C4_LIKELY(buf.len > 0 && fmt.len))
-        dumpfn(fmt);
+        std::forward<DumperFn>(dumpfn)(fmt);
     return 0u;
 }
 
@@ -404,16 +404,16 @@ C4_NO_INLINE size_t format_dump(DumperFn &&dumpfn, substr buf, csubstr fmt, Arg 
     if(C4_UNLIKELY(pos == csubstr::npos))
     {
         if(C4_LIKELY(buf.len > 0 && fmt.len > 0))
-            dumpfn(fmt);
+            std::forward<DumperFn>(dumpfn)(fmt);
         return 0u;
     }
     if(C4_LIKELY(buf.len > 0 && pos > 0))
-        dumpfn(fmt.first(pos)); // we can dump without using buf
+        std::forward<DumperFn>(dumpfn)(fmt.first(pos)); // we can dump without using buf
     fmt = fmt.sub(pos + 2); // skip {} do this before assigning to pos again
-    pos = dump(dumpfn, buf, a);
+    pos = dump(std::forward<DumperFn>(dumpfn), buf, a);
     if(C4_UNLIKELY(pos > buf.len))
         buf.len = 0; // ensure no more calls to dump
-    size_t size_for_more = format_dump(dumpfn, buf, fmt, more...);
+    size_t size_for_more = format_dump(std::forward<DumperFn>(dumpfn), buf, fmt, more...);
     return size_for_more > pos ? size_for_more : pos;
 }
 
@@ -468,7 +468,7 @@ DumpResults format_dump_resume(size_t currarg, DumperFn &&dumpfn, DumpResults re
     // but we'll only dump if the buffer is ok
     if(C4_LIKELY(buf.len > 0))
     {
-        dumpfn(fmt);
+        std::forward<DumperFn>(dumpfn)(fmt);
         results.lastok = currarg;
     }
     return results;
@@ -529,27 +529,27 @@ DumpResults format_dump_resume(size_t currarg, DumperFn &&dumpfn, DumpResults re
             if(C4_LIKELY(buf.len > 0))
             {
                 results.lastok = currarg;
-                dumpfn(fmt);
+                std::forward<DumperFn>(dumpfn)(fmt);
             }
             return results;
         }
         if(C4_LIKELY(buf.len > 0))
         {
             results.lastok = currarg;
-            dumpfn(fmt.first(pos));
+            std::forward<DumperFn>(dumpfn)(fmt.first(pos));
         }
     }
     fmt = fmt.sub(pos + 2);
     if(C4_LIKELY(results.write_arg(currarg + 1)))
     {
-        pos = dump(dumpfn, buf, a);
+        pos = dump(std::forward<DumperFn>(dumpfn), buf, a);
         results.bufsize = pos > results.bufsize ? pos : results.bufsize;
         if(C4_LIKELY(pos <= buf.len))
             results.lastok = currarg + 1;
         else
             buf.len = 0;
     }
-    return detail::format_dump_resume(currarg + 2u, dumpfn, results, buf, fmt, more...);
+    return detail::format_dump_resume(currarg + 2u, std::forward<DumperFn>(dumpfn), results, buf, fmt, more...);
 }
 } // namespace detail
 
@@ -563,7 +563,7 @@ C4_ALWAYS_INLINE DumpResults format_dump_resume(DumpResults results, substr buf,
 template<class DumperFn, class... Args>
 C4_ALWAYS_INLINE DumpResults format_dump_resume(DumperFn &&dumpfn, DumpResults results, substr buf, csubstr fmt, Args const& C4_RESTRICT ...more)
 {
-    return detail::format_dump_resume(0u, dumpfn, results, buf, fmt, more...);
+    return detail::format_dump_resume(0u, std::forward<DumperFn>(dumpfn), results, buf, fmt, more...);
 }
 
 
@@ -576,7 +576,7 @@ C4_ALWAYS_INLINE DumpResults format_dump_resume(substr buf, csubstr fmt, Args co
 template<class DumperFn, class... Args>
 C4_ALWAYS_INLINE DumpResults format_dump_resume(DumperFn &&dumpfn, substr buf, csubstr fmt, Args const& C4_RESTRICT ...more)
 {
-    return detail::format_dump_resume(0u, dumpfn, DumpResults{}, buf, fmt, more...);
+    return detail::format_dump_resume(0u, std::forward<DumperFn>(dumpfn), DumpResults{}, buf, fmt, more...);
 }
 
 C4_SUPPRESS_WARNING_GCC_CLANG_POP

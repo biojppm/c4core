@@ -45,7 +45,7 @@ public:
     MemRes() : m_resource(get_memory_resource()) {}
     MemRes(MemoryResource* r) noexcept : m_resource(r ? r : get_memory_resource()) {}
 
-    inline MemoryResource* resource() const { return m_resource; }
+    MemoryResource* resource() const { return m_resource; }
 
 private:
 
@@ -60,10 +60,10 @@ class MemResGlobal
 {
 public:
 
-    MemResGlobal() {}
+    MemResGlobal() = default;
     MemResGlobal(MemoryResource* r) noexcept { C4_UNUSED(r); C4_ASSERT(r == get_memory_resource()); }
 
-    inline MemoryResource* resource() const { return get_memory_resource(); }
+    static MemoryResource* resource() { return get_memory_resource(); }
 };
 
 
@@ -173,7 +173,7 @@ struct detail::_AllocatorUtil : public MemRes
  * @param MemResProvider
  * @ingroup allocators */
 template<class T, class MemResProvider=MemResGlobal>
-class Allocator : public detail::_AllocatorUtil<MemResProvider>
+class Allocator : public detail::_AllocatorUtil<MemResProvider> // NOLINT(*-member-functions)
 {
 public:
 
@@ -225,7 +225,7 @@ public:
     Allocator(Allocator const&) = default;
     Allocator(Allocator     &&) = default;
 
-    Allocator& operator= (Allocator const&) = default; // WTF? why? @see http://en.cppreference.com/w/cpp/memory/polymorphic_allocator
+    Allocator& operator= (Allocator const&) = default; // why? @see http://en.cppreference.com/w/cpp/memory/polymorphic_allocator
     Allocator& operator= (Allocator     &&) = default;
 
     /** returns a default-constructed polymorphic allocator object
@@ -265,7 +265,7 @@ public:
 
 /** @ingroup allocators */
 template<class T, size_t N=16, size_t Alignment=alignof(T), class MemResProvider=MemResGlobal>
-class SmallAllocator : public detail::_AllocatorUtil<MemResProvider>
+class SmallAllocator : public detail::_AllocatorUtil<MemResProvider> // NOLINT(*-member-functions)
 {
     static_assert(Alignment >= alignof(T), "invalid alignment");
 

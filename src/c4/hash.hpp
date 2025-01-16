@@ -38,7 +38,7 @@ public:
 
     C4_CONSTEXPR14 void update(const void *const data, const size_t size) noexcept
     {
-        auto cdata = static_cast<const unsigned char *>(data);
+        auto const* cdata = static_cast<const unsigned char *>(data);
         auto acc = this->state_;
         for(size_t i = 0; i < size; ++i)
         {
