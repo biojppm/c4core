@@ -144,11 +144,11 @@ namespace c4 {
  * Lightweight, very fast generic type-safe wrappers for converting
  * individual values to/from strings. These are the main generic
  * functions:
- *   - @ref doc_to_chars and its alias @ref doc_xtoa: implemented by calling @ref itoa()/@ref utoa()/@ref ftoa()/@ref dtoa() (or generically @ref xtoa())
- *   - @ref doc_from_chars and its alias @ref doc_atox: implemented by calling @ref atoi()/@ref atou()/@ref atof()/@ref atod() (or generically @ref atox())
+ *   - @ref doc_to_chars and its alias @ref xtoa(): implemented by calling @ref itoa() / @ref utoa() / @ref ftoa() / @ref dtoa() (or generically @ref xtoa())
+ *   - @ref doc_from_chars and its alias @ref atox(): implemented by calling @ref atoi() / @ref atou() / @ref atof() / @ref atod() (or generically @ref atox())
  *   - @ref to_chars_sub()
  *   - @ref from_chars_first()
- *   - @ref xtoa()/@ref atox() are implemented in terms @ref write_dec()/@ref read_dec() et al (see @ref doc_write/@ref doc_read())
+ *   - @ref xtoa() and @ref atox() are implemented in terms of @ref write_dec() / @ref read_dec() et al (see @ref doc_write / @ref doc_read())
  *
  * And also some modest brag is in order: these functions are really
  * fast: faster even than C++17 `std::to_chars()` and
