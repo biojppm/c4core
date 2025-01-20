@@ -7,8 +7,9 @@ C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
 
 size_t decode_code_point(uint8_t *C4_RESTRICT buf, size_t buflen, const uint32_t code)
 {
-    C4_UNUSED(buflen);
+    C4_ASSERT(buf);
     C4_ASSERT(buflen >= 4);
+    C4_UNUSED(buflen);
     if (code <= UINT32_C(0x7f))
     {
         buf[0] = (uint8_t)code;
