@@ -13,24 +13,28 @@ namespace c4 {
 /** @defgroup doc_utf UTF utilities
  * @{ */
 
+
 /** skip the Byte Order Mark, or get the full string if there is Byte Order Mark.
  * @see Implements the Byte Order Marks as described in https://en.wikipedia.org/wiki/Byte_order_mark#Byte-order_marks_by_encoding */
-substr skip_bom(substr s);
+C4CORE_EXPORT substr skip_bom(substr s);
 /** skip the Byte Order Mark, or get the full string if there is Byte Order Mark
  * @see Implements the Byte Order Marks as described in https://en.wikipedia.org/wiki/Byte_order_mark#Byte-order_marks_by_encoding */
-csubstr skip_bom(csubstr s);
+C4CORE_EXPORT csubstr skip_bom(csubstr s);
+
 
 /** get the Byte Order Mark, or an empty string if there is no Byte Order Mark
  * @see Implements the Byte Order Marks as described in https://en.wikipedia.org/wiki/Byte_order_mark#Byte-order_marks_by_encoding */
-substr get_bom(substr s);
+C4CORE_EXPORT substr get_bom(substr s);
 /** get the Byte Order Mark, or an empty string if there is no Byte Order Mark
  * @see Implements the Byte Order Marks as described in https://en.wikipedia.org/wiki/Byte_order_mark#Byte-order_marks_by_encoding */
-csubstr get_bom(csubstr s);
+C4CORE_EXPORT csubstr get_bom(csubstr s);
+
 
 /** return the position of the first character not belonging to the
  * Byte Order Mark, or 0 if there is no Byte Order Mark.
  * @see Implements the Byte Order Marks as described in https://en.wikipedia.org/wiki/Byte_order_mark#Byte-order_marks_by_encoding */
-size_t first_non_bom(csubstr s);
+C4CORE_EXPORT size_t first_non_bom(csubstr s);
+
 
 /** decode the given @p code_point, writing into the output string in
  * @p out.
@@ -44,7 +48,7 @@ size_t first_non_bom(csubstr s);
  * @return the part of @p out that was written, which will always be
  * at most 4 bytes.
  */
-substr decode_code_point(substr out, csubstr code_point);
+C4CORE_EXPORT substr decode_code_point(substr out, csubstr code_point);
 
 /** decode the given @p code point, writing into the output string @p
  * buf, of size @p buflen
