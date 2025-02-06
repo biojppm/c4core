@@ -145,6 +145,32 @@
 #   endif
 #   define C4_BYTE_ORDER _C4EL
 
+#elif defined(__mips__) || defined(_mips) || defined(mips)
+#   if defined(__mips)
+#       if __mips == 64
+#           define C4_CPU_MIPS64
+#           define C4_WORDSIZE 8
+#       elif __mips == 32
+#           define C4_CPU_MIPS32
+#           define C4_WORDSIZE 4
+#       endif
+#   elif defined(__arch64__) || (defined(__SIZE_WIDTH__) && __SIZE_WIDTH__ == 64) || (defined(__LP64__) && __LP64__)
+#       define C4_CPU_MIPS64
+#       define C4_WORDSIZE 8
+#   elif defined(__arch32__) || (defined(__SIZE_WIDTH__) && __SIZE_WIDTH__ == 32) || (defined(__LP32__) && __LP32__)
+#       define C4_CPU_MIPS32
+#       define C4_WORDSIZE 4
+#   else
+#       error "unknown mips architecture"
+#   endif
+#   if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#       define C4_BYTE_ORDER _C4EB
+#   elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#       define C4_BYTE_ORDER _C4EL
+#   else
+#       error "unknown mips endianness"
+#   endif
+
 #elif defined(SWIG)
 #   error "please define CPU architecture macros when compiling with swig"
 
