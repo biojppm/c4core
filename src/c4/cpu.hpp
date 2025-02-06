@@ -179,6 +179,18 @@
 #       error "unknown mips endianness"
 #   endif
 
+#elif defined(__sparc__) || defined(__sparc) || defined(sparc)
+#   if defined(__arch64__) || (defined(__SIZE_WIDTH__) && __SIZE_WIDTH__ == 64) || (defined(__LP64__) && __LP64__)
+#       define C4_CPU_SPARC64
+#       define C4_WORDSIZE 8
+#   elif defined(__arch32__) || (defined(__SIZE_WIDTH__) && __SIZE_WIDTH__ == 32) || (defined(__LP32__) && __LP32__)
+#       define C4_CPU_SPARC32
+#       define C4_WORDSIZE 4
+#   else
+#       error "unknown sparc architecture"
+#   endif
+#   define C4_BYTE_ORDER _C4EB
+
 #elif defined(SWIG)
 #   error "please define CPU architecture macros when compiling with swig"
 
