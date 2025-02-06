@@ -7,7 +7,7 @@
 // see also https://sourceforge.net/p/predef/wiki/Architectures/
 // see also https://sourceforge.net/p/predef/wiki/Endianness/
 // see also https://github.com/googlesamples/android-ndk/blob/android-mk/hello-jni/jni/hello-jni.c
-// see http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/global/qprocessordetection.h
+// see also http://code.qt.io/cgit/qt/qtbase.git/tree/src/corelib/global/qprocessordetection.h
 
 #ifdef __ORDER_LITTLE_ENDIAN__
 #   define _C4EL __ORDER_LITTLE_ENDIAN__
@@ -23,6 +23,10 @@
 
 // mixed byte order (eg, PowerPC or ia64)
 #define _C4EM 1111 // NOLINT
+
+
+// NOTE: to find defined macros in a platform,
+// g++ <flags> -dM -E - </dev/null | sort
 
 #if defined(__x86_64) || defined(__x86_64__) || defined(__amd64) || defined(_M_X64)
 #    define C4_CPU_X86_64
@@ -60,11 +64,15 @@
         || defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_6KZ__) \
         || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 6)
 #           define C4_CPU_ARMV6
-#       elif defined(__ARM_ARCH_5TEJ__) \
+#       elif (defined(__ARM_ARCH) && __ARM_ARCH == 5) \
+        || defined(__ARM_ARCH_5TEJ__) \
         || defined(__ARM_ARCH_5TE__) \
+        || defined(__ARM_ARCH_5T__) \
         || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 5)
 #           define C4_CPU_ARMV5
-#       elif defined(__ARM_ARCH_4T__) \
+#       elif (defined(__ARM_ARCH) && __ARM_ARCH == 4) \
+        || defined(__ARM_ARCH_4T__) \
+        || defined(__ARM_ARCH_4__) \
         || (defined(__TARGET_ARCH_ARM) && __TARGET_ARCH_ARM >= 4)
 #           define C4_CPU_ARMV4
 #       else
