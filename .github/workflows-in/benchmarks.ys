@@ -1,0 +1,76 @@
+!yamlscript/v0:
+
+:use common: :all
+:: workflow-setup()
+
+jobs:
+
+  gettag:
+    runs-on: ubuntu-latest
+    steps:
+    - :: checkout-action
+    - :: version-discover
+
+  x64:
+    name: bm/x64/${{matrix.comp}}/${{matrix.bt}}
+    needs: gettag
+    :: setup-job('benchmarks' 'x64')
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - {std: 17, comp: gcc14  , os: ubuntu-24.04, cmkflags: -DCMAKE_CXX_COMPILER=g++-14     -DCMAKE_C_COMPILER=gcc-14}
+        - {std: 17, comp: clang18, os: ubuntu-24.04, cmkflags: -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18}
+        - {std: 17, comp: vs2022 , os: windows-2022, cmkflags: -G 'Visual Studio 17 2022' -A x64}
+        - {std: 17, comp: xcode15, os: macos-13, xcver: 15, cmkflags: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64}
+    env:: -{'BM' 'ON'} + load('share/env.yaml')
+    steps:
+    - :: checkout-action
+    - :: version-get-vars
+    - name: install requirements
+      run: source .github/reqs.sh && c4_install_test_requirements $OS
+    - name: show info
+      run: source .github/setenv.sh && c4_show_info
+    - name: Install python 3.10 for plotting
+      uses: actions/setup-python@v5
+      with: { python-version: '3.10' }
+    - name: install benchmark plotting dependencies
+      run: |
+        which python
+        which pip
+        python --version
+        pip --version
+        pip install -v -r cmake/bm-xp/requirements.txt
+        python -c 'import munch ; print("ok!") ; exit(0)'
+        echo $?
+    - name: configure-------------------------------------------------
+      run: |
+        cmake -S . -B build \
+            ${{matrix.cmkflags}} \
+            -DPython_EXECUTABLE="$(which python)" \
+            -DC4_CXX_STANDARD=${{matrix.std}} \
+            -DC4CORE_CXX_STANDARD=${{matrix.std}} \
+            -DC4CORE_BUILD_BENCHMARKS=ON
+    - name: build
+      run: cmake --build build --config Release --parallel --verbose --target c4core-bm-build
+    - name: run
+      run: cmake --build build --config Release --verbose --target c4core-bm-run
+    - name: plot
+      run: cmake --build build --config Release --verbose --target c4core-bm-plot
+    - name: gather benchmark results-------------------------------------------
+      run: |
+        set -x
+        source vars.sh
+        echo SRC_TAG=$SRC_TAG
+        echo SRC_VERSION=$SRC_VERSION
+        desc=$SRC_TAG
+        dst=c4core-benchmark_results/$desc/x64/${{matrix.comp}}-${{matrix.bt}}
+        mkdir -p $dst
+        find build -name bm-results
+        mv -vf build/$bl/bm/bm-results/* $dst/.
+    - name: upload benchmark result artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: c4core-benchmark_results-x64-${{matrix.comp}}-${{matrix.bt}}
+        path: c4core-benchmark_results/

@@ -1,116 +1,185 @@
-name: rarearchs
+# DO NOT EDIT - GENERATED FROM .github/workflows-in/arch.ys
 
+name: arch
 defaults:
-  #if: "!contains(github.event.head_commit.message, 'skip ci')"  # SKIP
   run:
-    # Use a bash shell so we can use the same syntax for environment variable
-    # access regardless of the host operating system
     shell: bash -e -x {0}
-
-on:
-  # https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662
-  workflow_dispatch:
+'on':
+  workflow_dispatch: null
   push:
     branches:
     - master
   pull_request:
     branches:
     - master
-
+env:
+  PROJ_PKG_NAME: c4core-
+  PROJ_PFX_TARGET: c4core-
+  PROJ_PFX_CMAKE: C4CORE_
+  CMAKE_FLAGS: null
+  NUM_JOBS_BUILD: null
 jobs:
-  rarearchs:
-    name: ${{matrix.arch}}/c++${{matrix.std}}/${{matrix.bt}}
-    continue-on-error: true
-    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ubuntu-20.04
+  xcompile:
+    if: always()
+    continue-on-error: false
+    name: ${{matrix.arch}}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, bt: Debug  , arch: aarch64, distro: ubuntu22.04}
-          - {std: 11, bt: Release, arch: aarch64, distro: ubuntu22.04}
-          - {std: 14, bt: Debug  , arch: aarch64, distro: ubuntu22.04}
-          - {std: 14, bt: Release, arch: aarch64, distro: ubuntu22.04}
-          - {std: 17, bt: Debug  , arch: aarch64, distro: ubuntu22.04}
-          - {std: 17, bt: Release, arch: aarch64, distro: ubuntu22.04}
-          #
-          - {std: 11, bt: Debug  , arch: ppc64le, distro: ubuntu22.04}
-          - {std: 11, bt: Release, arch: ppc64le, distro: ubuntu22.04}
-          - {std: 14, bt: Debug  , arch: ppc64le, distro: ubuntu22.04}
-          - {std: 14, bt: Release, arch: ppc64le, distro: ubuntu22.04}
-          - {std: 17, bt: Debug  , arch: ppc64le, distro: ubuntu22.04}
-          - {std: 17, bt: Release, arch: ppc64le, distro: ubuntu22.04}
-          #
-          - {std: 11, bt: Debug  , arch: s390x  , distro: ubuntu22.04}
-          - {std: 11, bt: Release, arch: s390x  , distro: ubuntu22.04}
-          - {std: 14, bt: Debug  , arch: s390x  , distro: ubuntu22.04}
-          - {std: 14, bt: Release, arch: s390x  , distro: ubuntu22.04}
-          - {std: 17, bt: Debug  , arch: s390x  , distro: ubuntu22.04}
-          - {std: 17, bt: Release, arch: s390x  , distro: ubuntu22.04}
-          #
-          #- {std: 11, bt: Debug  , arch: armv6  , distro: bullseye}
-          #- {std: 11, bt: Release, arch: armv6  , distro: bullseye}
-          #- {std: 14, bt: Debug  , arch: armv6  , distro: bullseye}
-          #- {std: 14, bt: Release, arch: armv6  , distro: bullseye}
-          #- {std: 17, bt: Debug  , arch: armv6  , distro: bullseye}
-          #- {std: 17, bt: Release, arch: armv6  , distro: bullseye}
-          #
-          #- {std: 11, bt: Debug  , arch: armv7  , distro: ubuntu22.04}
-          #- {std: 11, bt: Release, arch: armv7  , distro: ubuntu22.04}
-          #- {std: 14, bt: Debug  , arch: armv7  , distro: ubuntu22.04}
-          #- {std: 14, bt: Release, arch: armv7  , distro: ubuntu22.04}
-          #- {std: 17, bt: Debug  , arch: armv7  , distro: ubuntu22.04}
-          #- {std: 17, bt: Release, arch: armv7  , distro: ubuntu22.04}
+        - arch: aarch64
+          tc: aarch64-linux-gnu
+        - arch: armv7
+          tc: arm-linux-gnueabihf
+          flags: -march=armv7+fp
+        - arch: armv6
+          tc: arm-linux-gnueabi
+          flags: -march=armv6+fp
+        - arch: armv5
+          tc: arm-linux-gnueabi
+          flags: -march=armv5te+fp
+        - arch: armv4
+          tc: arm-linux-gnueabi
+          flags: -march=armv4
+        - arch: loongarch64
+          tc: loongarch64-linux-gnu
+          version: -14
+        - arch: mips
+          tc: mips-linux-gnu
+        - arch: mipsel
+          tc: mipsel-linux-gnu
+        - arch: mips64
+          tc: mips64-linux-gnuabi64
+        - arch: mips64el
+          tc: mips64el-linux-gnuabi64
+        - arch: riscv64
+          tc: riscv64-linux-gnu
+        - arch: s390x
+          tc: s390x-linux-gnu
+        - arch: ppc
+          tc: powerpc-linux-gnu
+        - arch: ppc64
+          tc: powerpc64-linux-gnu
+        - arch: ppc64le
+          tc: powerpc64le-linux-gnu
+        - arch: sparc64
+          tc: sparc64-linux-gnu
     steps:
-      - {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
-      - name: test
-        uses: uraimo/run-on-arch-action@v2.8.1
-        with:
-          arch: ${{matrix.arch}}
-          distro: ${{matrix.distro}}
-          install: |
-            set -x
-            apt-get update -y
-            apt-get install -y \
-              git \
-              build-essential
-            # arm platforms need an up-to-date cmake:
-            # https://gitlab.kitware.com/cmake/cmake/-/issues/20568
-            if [ "${{matrix.arch}}" == "armv6" ] || [ "${{matrix.arch}}" == "armv7" ] ; then
-              apt-get install -y \
-                gpg \
-                wget \
-                apt-transport-https
-              wget --no-check-certificate -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-              echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
-              apt-get update -y
-              rm /usr/share/keyrings/kitware-archive-keyring.gpg
-              apt-get install kitware-archive-keyring
-              apt-get update -y
-            fi
-            apt-get install -y cmake cmake-data
-            cmake --version
-          run: |
-            set -x
-            uname -a
-            pwd
-            ls -lFhp .
-            #
-            bdir=build_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}
-            idir=install_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}
-            mkdir -p $bdir
-            #
-            cmake -S . -B $bdir \
-              -DCMAKE_INSTALL_PREFIX=$idir \
-              -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
-              -DC4_CXX_STANDARD=${{matrix.std}} \
-              -DCXX_STANDARD=${{matrix.std}} \
-              -DC4CORE_DEV=ON \
-              -DC4CORE_BUILD_BENCHMARKS=OFF \
-              -DC4CORE_SANITIZE=OFF \
-              -DC4CORE_LINT=OFF \
-              -DC4CORE_VALGRIND=OFF
-            #
-            cmake --build $bdir -j --target c4core-test-build
-            #
-            cmake --build $bdir    --target c4core-test-run
+    - name: checkout (action)
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: install
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+            gcc${{matrix.version}}-${{matrix.tc}} \
+            g++${{matrix.version}}-${{matrix.tc}} \
+            qemu-user-static
+    - name: info
+      run: |
+        ${{matrix.tc}}-g++${{matrix.version}} --version
+        ${{matrix.tc}}-g++${{matrix.version}} -dM -E - </dev/null | sort
+        ${{matrix.tc}}-g++${{matrix.version}} ${{matrix.flags}} -dM -E - </dev/null | sort
+    - name: '-------------------------------------------------'
+      run: echo ${{matrix.arch}}/c++11/Debug
+    - name: configure ${{matrix.arch}}/c++11/Debug
+      run: |
+        touch build
+        rm -rf build
+        export C4_EXTERN_DIR=`pwd`/build/extern
+        cmake -S . -B build \
+            -DCMAKE_TOOLCHAIN_FILE=.github/toolchains/${{matrix.arch}}.cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS=" ${{matrix.flags}}" \
+            -DCMAKE_C_FLAGS=" ${{matrix.flags}}" \
+            -DC4_CXX_STANDARD=11 \
+            -DCXX_STANDARD=11 \
+            -DC4CORE_DEV=ON \
+            -DC4CORE_BUILD_BENCHMARKS=OFF \
+            -DC4CORE_SANITIZE=OFF \
+            -DC4CORE_LINT=OFF \
+            -DC4CORE_VALGRIND=OFF
+    - name: build ${{matrix.arch}}/c++11/Debug
+      run: |
+        cmake --build build --parallel --target c4core-test-build --verbose
+    - name: test ${{matrix.arch}}/c++11/Debug
+      run: |
+        cmake --build build --target c4core-test-run
+    - name: '-------------------------------------------------'
+      run: echo ${{matrix.arch}}/c++11/Release
+    - name: configure ${{matrix.arch}}/c++11/Release
+      run: |
+        touch build
+        rm -rf build
+        export C4_EXTERN_DIR=`pwd`/build/extern
+        cmake -S . -B build \
+            -DCMAKE_TOOLCHAIN_FILE=.github/toolchains/${{matrix.arch}}.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS=" ${{matrix.flags}}" \
+            -DCMAKE_C_FLAGS=" ${{matrix.flags}}" \
+            -DC4_CXX_STANDARD=11 \
+            -DCXX_STANDARD=11 \
+            -DC4CORE_DEV=ON \
+            -DC4CORE_BUILD_BENCHMARKS=OFF \
+            -DC4CORE_SANITIZE=OFF \
+            -DC4CORE_LINT=OFF \
+            -DC4CORE_VALGRIND=OFF
+    - name: build ${{matrix.arch}}/c++11/Release
+      run: |
+        cmake --build build --parallel --target c4core-test-build --verbose
+    - name: test ${{matrix.arch}}/c++11/Release
+      run: |
+        cmake --build build --target c4core-test-run
+    - name: '-------------------------------------------------'
+      run: echo ${{matrix.arch}}/c++20/Debug
+    - name: configure ${{matrix.arch}}/c++20/Debug
+      run: |
+        touch build
+        rm -rf build
+        export C4_EXTERN_DIR=`pwd`/build/extern
+        cmake -S . -B build \
+            -DCMAKE_TOOLCHAIN_FILE=.github/toolchains/${{matrix.arch}}.cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS=" ${{matrix.flags}}" \
+            -DCMAKE_C_FLAGS=" ${{matrix.flags}}" \
+            -DC4_CXX_STANDARD=20 \
+            -DCXX_STANDARD=20 \
+            -DC4CORE_DEV=ON \
+            -DC4CORE_BUILD_BENCHMARKS=OFF \
+            -DC4CORE_SANITIZE=OFF \
+            -DC4CORE_LINT=OFF \
+            -DC4CORE_VALGRIND=OFF
+    - name: build ${{matrix.arch}}/c++20/Debug
+      run: |
+        cmake --build build --parallel --target c4core-test-build --verbose
+    - name: test ${{matrix.arch}}/c++20/Debug
+      run: |
+        cmake --build build --target c4core-test-run
+    - name: '-------------------------------------------------'
+      run: echo ${{matrix.arch}}/c++20/Release
+    - name: configure ${{matrix.arch}}/c++20/Release
+      run: |
+        touch build
+        rm -rf build
+        export C4_EXTERN_DIR=`pwd`/build/extern
+        cmake -S . -B build \
+            -DCMAKE_TOOLCHAIN_FILE=.github/toolchains/${{matrix.arch}}.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS=" ${{matrix.flags}}" \
+            -DCMAKE_C_FLAGS=" ${{matrix.flags}}" \
+            -DC4_CXX_STANDARD=20 \
+            -DCXX_STANDARD=20 \
+            -DC4CORE_DEV=ON \
+            -DC4CORE_BUILD_BENCHMARKS=OFF \
+            -DC4CORE_SANITIZE=OFF \
+            -DC4CORE_LINT=OFF \
+            -DC4CORE_VALGRIND=OFF
+    - name: build ${{matrix.arch}}/c++20/Release
+      run: |
+        cmake --build build --parallel --target c4core-test-build --verbose
+    - name: test ${{matrix.arch}}/c++20/Release
+      run: |
+        cmake --build build --target c4core-test-run

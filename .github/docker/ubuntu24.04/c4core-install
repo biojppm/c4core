@@ -340,11 +340,71 @@ case $what in
         arm-none-eabi-gcc --version
         arm-none-eabi-g++ --version
         ;;
+    armv7)
     arm-linux-gnueabihf)
         apt-get update
         apt-get install -y \
                 gcc-arm-linux-gnueabihf \
                 g++-arm-linux-gnueabihf
+        arm-linux-gnueabihf-gcc --version
+        arm-linux-gnueabihf-g++ --version
+        ;;
+    armv6)
+    arm-linux-gnueabi)
+        apt-get update
+        apt-get install -y \
+                gcc-arm-linux-gnueabi \
+                g++-arm-linux-gnueabi
+        arm-linux-gnueabi-gcc --version
+        arm-linux-gnueabi-g++ --version
+        ;;
+    aarch64)
+    aarch64-linux-gnu)
+        apt-get update
+        apt-get install -y \
+                gcc-aarch64-linux-gnu \
+                g++-aarch64-linux-gnu
+        aarch64-linux-gnu-gcc --version
+        aarch64-linux-gnu-g++ --version
+        ;;
+    s390)
+    s390x)
+    s390x-linux-gnu)
+        apt-get update
+        apt-get install -y \
+                gcc-s390x-linux-gnu \
+                g++-s390x-linux-gnu
+        s390x-linux-gnu-gcc --version
+        s390x-linux-gnu-g++ --version
+        ;;
+    ppc64le)
+    powerpc64le)
+    ppc64le-linux-gnu)
+        apt-get update
+        apt-get install -y \
+                gcc-powerpc64le-linux-gnu \
+                g++-powerpc64le-linux-gnu
+        powerpc64le-linux-gnu-gcc --version
+        powerpc64le-linux-gnu-g++ --version
+        ;;
+    ppc64)
+    powerpc64)
+    ppc64-linux-gnu)
+        apt-get update
+        apt-get install -y \
+                gcc-powerpc64-linux-gnu \
+                g++-powerpc64-linux-gnu
+        powerpc64-linux-gnu-gcc --version
+        powerpc64-linux-gnu-g++ --version
+        ;;
+    riscv64)
+    riscv64-linux-gnu)
+        apt-get update
+        apt-get install -y \
+                gcc-riscv64-linux-gnu \
+                g++-riscv64-linux-gnu
+        riscv64-linux-gnu-gcc --version
+        riscv64-linux-gnu-g++ --version
         ;;
     qemu)
         apt-get update

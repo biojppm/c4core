@@ -3,7 +3,17 @@ import argparse
 import os
 import subprocess
 import shlex
-from ruamel import yaml
+import ruamel
+from ruamel.yaml import YAML
+from io import StringIO
+
+
+def dump_to_string(obj, **kwargs):
+    yaml = YAML(typ='unsafe', pure=True)
+    with StringIO() as stream:
+        yaml.dump(obj, stream, **kwargs)
+        s = stream.getvalue()
+    return s
 
 
 def runcmd(cmd, *cmd_args, **subprocess_args):
@@ -34,14 +44,14 @@ def finish_build(args):
         'compile': f"{duration:.3f}s",
         'file_size': f"{os.path.getsize(args.exe)}B"
     }
-    s = yaml.dump({args.target: results})
+    s = dump_to_string({args.target: results})
     print(s, flush=True, end="")
     ## too much output:
     #if args.unix:
     #    # https://stackoverflow.com/questions/35485
     #    results['size'] = getoutput('size', args.exe)
     #    #results['symbols'] = getoutput('nm -t d -l -S --size-sort', args.exe)
-    s = yaml.dump({args.target: results})
+    #s = dump_to_string({args.target: results})
     with open(args.out, "w") as f:
         f.write(s)
 

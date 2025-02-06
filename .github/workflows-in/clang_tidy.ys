@@ -1,0 +1,35 @@
+!yamlscript/v0:
+
+:use common: :all
+:: workflow-setup()
+
+jobs:
+  clang_tidy:
+    :: setup-job('clang_tidy' 'clang_tidy') + runs-on-docker-c4core('22.04')
+    name: clang_tidy/c++${{matrix.std}}/${{matrix.bt}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - {std: 11, clang: 18, bt: Debug  , bits: 64}
+        - {std: 11, clang: 18, bt: Release, bits: 64}
+    env:: load('share/env.yaml')
+    steps:
+      - :: checkout-action-docker
+      - name: install
+        run: c4core-install clang++-${{matrix.clang}}
+      - name: configure
+        run: |
+          cmake -S . -B build \
+             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+             -DCMAKE_CXX_COMPILER=clang++-${{matrix.clang}} \
+             -DCMAKE_C_COMPILER=clang-${{matrix.clang}} \
+             -DCLANG_TIDY=/usr/bin/clang-tidy-${{matrix.clang}} \
+             -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
+             -DC4CORE_DEV=ON \
+             -DC4CORE_VALGRIND=OFF \
+             -DC4CORE_BUILD_TESTS=OFF \
+             -DC4CORE_BUILD_BENCHMARKS=OFF \
+             -DC4CORE_DBG=OFF
+      - name: clang-tidy
+        run: cmake --build build --target c4core-clang-tidy --verbose

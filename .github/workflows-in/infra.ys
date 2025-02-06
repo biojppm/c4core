@@ -1,0 +1,32 @@
+!yamlscript/v0:
+
+:use common: :all
+:: workflow-setup()
+
+jobs:
+  #log-github-event:
+  #  name: log github event
+  #  runs-on: ubuntu-24.04
+  #  steps:
+  #    - name: log github event
+  #      run: echo "${{toJSON(github.event)}}" || echo >/dev/null
+
+  check_workflows:
+    :: setup-job('infra' 'check_workflows')
+    runs-on: ubuntu-24.04
+    steps:
+      - :: checkout-action
+      - name: install ys
+        run: make -C .github/workflows-in install-ys
+      - name: generate workflows
+        run: make -C .github/workflows-in build
+      - name: test workflows
+        run: |
+          wc --version
+          wc --help
+          make -C .github/workflows-in test
+          status=$?
+          if [ $status != 0 ] ; then
+            echo "ERROR: generated workflows are out of date"
+          fi
+          exit $status
