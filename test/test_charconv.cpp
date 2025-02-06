@@ -725,6 +725,107 @@ TEST_CASE_TEMPLATE("write_bin_digits", T, int8_t, uint8_t, int16_t, uint16_t, in
 
 //-----------------------------------------------------------------------------
 
+// functions to suppress ubsan's warnings of signed integer overflow
+template<class T> C4_NO_UBSAN_IOVRFLW T add1(number_case<T> const& n)
+{
+    T result = n.val + T(1);
+    if(n.val == std::numeric_limits<T>::max())
+    {
+        CHECK_EQ(result, std::numeric_limits<T>::min());
+    }
+    if(n.has_valp1)
+    {
+        CHECK_EQ(result, n.valp1);
+    }
+    return result;
+}
+template<class T> C4_NO_UBSAN_IOVRFLW T add1(overflow64case<T> const& n)
+{
+    return n.wrapped + T(1);
+}
+template<class T> C4_NO_UBSAN_IOVRFLW T add1(T val)
+{
+    T result = val + T(1);
+    if(val == std::numeric_limits<T>::max())
+    {
+        CHECK_EQ(result, std::numeric_limits<T>::min());
+    }
+    return result;
+}
+template<class T> C4_NO_UBSAN_IOVRFLW T rem1(T val)
+{
+    T result = val - T(1);
+    if(val == std::numeric_limits<T>::min())
+    {
+        CHECK_EQ(result, std::numeric_limits<T>::max());
+    }
+    return result;
+}
+
+template<class T> C4_NO_UBSAN_IOVRFLW constexpr T add1_(T val)
+{
+    return val + T(1);
+}
+template<class T> C4_NO_UBSAN_IOVRFLW constexpr T rem1_(T val)
+{
+    return val - T(1);
+}
+
+template<class T> C4_NO_UBSAN_IOVRFLW constexpr T add_(T val, int n)
+{
+    return val + (T)n;
+}
+template<class T> C4_NO_UBSAN_IOVRFLW constexpr T rem_(T val, int n)
+{
+    return val - (T)n;
+}
+
+// testing that signed overflow behaviors as expected (despite it
+// being undefined behavior)
+TEST_CASE("overflow.assumptions")
+{
+    CHECK_EQ(rem1_(std::numeric_limits<int8_t>::min()), std::numeric_limits<int8_t>::max());
+    CHECK_EQ(add1_(std::numeric_limits<int8_t>::max()), std::numeric_limits<int8_t>::min());
+    CHECK_EQ(rem1_(std::numeric_limits<int16_t>::min()), std::numeric_limits<int16_t>::max());
+    CHECK_EQ(add1_(std::numeric_limits<int16_t>::max()), std::numeric_limits<int16_t>::min());
+    CHECK_EQ(rem1_(std::numeric_limits<int32_t>::min()), std::numeric_limits<int32_t>::max());
+    CHECK_EQ(add1_(std::numeric_limits<int32_t>::max()), std::numeric_limits<int32_t>::min());
+    CHECK_EQ(rem1_(std::numeric_limits<int64_t>::min()), std::numeric_limits<int64_t>::max());
+    CHECK_EQ(add1_(std::numeric_limits<int64_t>::max()), std::numeric_limits<int64_t>::min());
+    CHECK_EQ(rem1_(std::numeric_limits<uint8_t>::min()), std::numeric_limits<uint8_t>::max());
+    CHECK_EQ(add1_(std::numeric_limits<uint8_t>::max()), std::numeric_limits<uint8_t>::min());
+    CHECK_EQ(rem1_(std::numeric_limits<uint16_t>::min()), std::numeric_limits<uint16_t>::max());
+    CHECK_EQ(add1_(std::numeric_limits<uint16_t>::max()), std::numeric_limits<uint16_t>::min());
+    CHECK_EQ(rem1_(std::numeric_limits<uint32_t>::min()), std::numeric_limits<uint32_t>::max());
+    CHECK_EQ(add1_(std::numeric_limits<uint32_t>::max()), std::numeric_limits<uint32_t>::min());
+    CHECK_EQ(rem1_(std::numeric_limits<uint64_t>::min()), std::numeric_limits<uint64_t>::max());
+    CHECK_EQ(add1_(std::numeric_limits<uint64_t>::max()), std::numeric_limits<uint64_t>::min());
+
+    for(int i : {1, 2, 3, 4, 5, 10})
+    {
+        INFO("i=" << i);
+        CHECK_EQ(rem_(std::numeric_limits<int8_t>::min(), i), rem_(std::numeric_limits<int8_t>::max(), i-1));
+        CHECK_EQ(add_(std::numeric_limits<int8_t>::max(), i), add_(std::numeric_limits<int8_t>::min(), i-1));
+        CHECK_EQ(rem_(std::numeric_limits<int16_t>::min(), i), rem_(std::numeric_limits<int16_t>::max(), i-1));
+        CHECK_EQ(add_(std::numeric_limits<int16_t>::max(), i), add_(std::numeric_limits<int16_t>::min(), i-1));
+        CHECK_EQ(rem_(std::numeric_limits<int32_t>::min(), i), rem_(std::numeric_limits<int32_t>::max(), i-1));
+        CHECK_EQ(add_(std::numeric_limits<int32_t>::max(), i), add_(std::numeric_limits<int32_t>::min(), i-1));
+        CHECK_EQ(rem_(std::numeric_limits<int64_t>::min(), i), rem_(std::numeric_limits<int64_t>::max(), i-1));
+        CHECK_EQ(add_(std::numeric_limits<int64_t>::max(), i), add_(std::numeric_limits<int64_t>::min(), i-1));
+        CHECK_EQ(rem_(std::numeric_limits<uint8_t>::min(), i), rem_(std::numeric_limits<uint8_t>::max(), i-1));
+        CHECK_EQ(add_(std::numeric_limits<uint8_t>::max(), i), add_(std::numeric_limits<uint8_t>::min(), i-1));
+        CHECK_EQ(rem_(std::numeric_limits<uint16_t>::min(), i), rem_(std::numeric_limits<uint16_t>::max(), i-1));
+        CHECK_EQ(add_(std::numeric_limits<uint16_t>::max(), i), add_(std::numeric_limits<uint16_t>::min(), i-1));
+        CHECK_EQ(rem_(std::numeric_limits<uint32_t>::min(), i), rem_(std::numeric_limits<uint32_t>::max(), i-1));
+        CHECK_EQ(add_(std::numeric_limits<uint32_t>::max(), i), add_(std::numeric_limits<uint32_t>::min(), i-1));
+        CHECK_EQ(rem_(std::numeric_limits<uint64_t>::min(), i), rem_(std::numeric_limits<uint64_t>::max(), i-1));
+        CHECK_EQ(add_(std::numeric_limits<uint64_t>::max(), i), add_(std::numeric_limits<uint64_t>::min(), i-1));
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+
 TEST_CASE_TEMPLATE("xtoa", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
 {
     char buf_[128] = {};
@@ -741,11 +842,9 @@ TEST_CASE_TEMPLATE("xtoa", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.dec);
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
     }
 }
@@ -769,11 +868,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.dec);
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
         const size_t adj = size_t(number.val < 0);
         REQUIRE_LT(adj, number.dec.len);
@@ -790,11 +887,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.dec.sub(number.val < 0)));
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
         for(size_t less_digits = 0; less_digits < dec_digits; ++less_digits)
         {
@@ -808,11 +903,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.dec.sub(number.val < 0)));
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
     }
 }
@@ -833,11 +926,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.hex);
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
         const size_t adj = size_t(number.val < 0) + size_t(2); // 2 for 0x
         REQUIRE_LT(adj, number.hex.len);
@@ -859,11 +950,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             if(number.val < 0)
                 CHECK(buf.first(retb).begins_with('-'));
             CHECK(result.ends_with(ref));
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
         for(size_t less_digits = 0; less_digits < hex_digits; ++less_digits)
         {
@@ -877,11 +966,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.hex.sub(number.val < 0)));
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
     }
 }
@@ -902,11 +989,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.oct);
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
         const size_t adj = size_t(number.val < 0) + size_t(2); // 2 for 0o
         REQUIRE_LT(adj, number.oct.len);
@@ -928,11 +1013,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             if(number.val < 0)
                 CHECK(buf.first(retb).begins_with('-'));
             CHECK(result.ends_with(ref));
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
         for(size_t less_digits = 0; less_digits < oct_digits; ++less_digits)
         {
@@ -946,11 +1029,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.oct.sub(number.val < 0)));
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
     }
 }
@@ -971,11 +1052,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK_EQ(buf.first(retb), number.bin);
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
         const size_t adj = size_t(number.val < 0) + size_t(2); // 2 for 0b
         REQUIRE_LT(adj, number.bin.len);
@@ -996,11 +1075,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("result=" << result << "  ref=" << ref);
             if(number.val < 0)
                 CHECK(buf.first(retb).begins_with('-'));
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
         for(size_t less_digits = 0; less_digits < bin_digits; ++less_digits)
         {
@@ -1014,11 +1091,9 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
             CHECK(buf.first(retb).ends_with(number.bin.sub(number.val < 0)));
-            #ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
-            T after_roundtrip = number.val + T(1);
+            T after_roundtrip = add1(number);
             CHECK(atox(buf.first(retb), &after_roundtrip));
             CHECK_EQ(after_roundtrip, number.val);
-            #endif
         }
     }
 }
@@ -1103,7 +1178,6 @@ TEST_CASE_TEMPLATE("overflows.in_range_does_not_overflow", T, int8_t, uint8_t, i
 TEST_CASE_TEMPLATE("read_dec", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
 {
     (void)invalid_cases;
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     char buf_[128] = {};
     substr buf = buf_;
     SUBCASE("numbers")
@@ -1114,13 +1188,13 @@ TEST_CASE_TEMPLATE("read_dec", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
                 continue;
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(read_dec(number.dec, &val));
                 CHECK_EQ(val, number.val);
             }
             // capitalize
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 csubstr cbuf = capitalize(buf, number.dec);
                 CHECK(read_dec(cbuf, &val));
                 CHECK_EQ(val, number.val);
@@ -1128,7 +1202,7 @@ TEST_CASE_TEMPLATE("read_dec", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 substr buf2 = zpad(buf, number.dec, numz);
                 INFO("zprefix=" << buf2);
                 CHECK(read_dec(buf2, &val));
@@ -1150,12 +1224,10 @@ TEST_CASE_TEMPLATE("read_dec", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             CHECK(!read_dec(ic.dec, &val));
         }
     }
-#endif
 }
 
 TEST_CASE_TEMPLATE("read_hex", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     char buf_[128] = {};
     substr buf = buf_;
     SUBCASE("numbers")
@@ -1167,14 +1239,14 @@ TEST_CASE_TEMPLATE("read_hex", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             INFO(number);
             // must not accept 0x prefix
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(!read_hex(number.hex, &val));
             }
             // must accept without prefix
             csubstr hex = nopfx(number.hex);
             INFO("nopfx(hex)=" << hex);
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(read_hex(hex, &val));
                 CHECK_EQ(val, number.val);
             }
@@ -1183,14 +1255,14 @@ TEST_CASE_TEMPLATE("read_hex", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
                 csubstr cbuf = capitalize(buf, hex);
                 INFO("capitalized=" << buf);
                 REQUIRE_EQ(cbuf.len, hex.len);
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(read_hex(cbuf, &val));
                 CHECK_EQ(val, number.val);
             }
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 substr zprefix = zpad(buf, hex, numz);
                 INFO("zprefix='" << zprefix << "'");
                 CHECK(read_hex(zprefix, &val));
@@ -1233,12 +1305,10 @@ TEST_CASE_TEMPLATE("read_hex", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             ++icase;
         }
     }
-#endif
 }
 
 TEST_CASE_TEMPLATE("read_oct", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     char buf_[128] = {};
     substr buf = buf_;
     SUBCASE("numbers")
@@ -1250,14 +1320,14 @@ TEST_CASE_TEMPLATE("read_oct", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             INFO(number);
             // must not accept 0x prefix
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(!read_oct(number.oct, &val));
             }
             // must accept without prefix
             csubstr oct = nopfx(number.oct);
             INFO("nopfx(oct)=" << oct);
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(read_oct(oct, &val));
                 CHECK_EQ(val, number.val);
             }
@@ -1266,14 +1336,14 @@ TEST_CASE_TEMPLATE("read_oct", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
                 csubstr cbuf = capitalize(buf, oct);
                 INFO("capitalized=" << buf);
                 REQUIRE_EQ(cbuf.len, oct.len);
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(read_oct(cbuf, &val));
                 CHECK_EQ(val, number.val);
             }
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 substr zprefix = zpad(buf, oct, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(read_oct(zprefix, &val));
@@ -1316,12 +1386,10 @@ TEST_CASE_TEMPLATE("read_oct", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             ++icase;
         }
     }
-#endif
 }
 
 TEST_CASE_TEMPLATE("read_bin", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     char buf_[128] = {};
     substr buf = buf_;
     SUBCASE("numbers")
@@ -1333,14 +1401,14 @@ TEST_CASE_TEMPLATE("read_bin", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             INFO(number);
             // must not accept 0x prefix
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(!read_bin(number.bin, &val));
             }
             // must accept without prefix
             csubstr bin = nopfx(number.bin);
             INFO("nopfx(bin)=" << bin);
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(read_bin(bin, &val));
                 CHECK_EQ(val, number.val);
             }
@@ -1349,14 +1417,14 @@ TEST_CASE_TEMPLATE("read_bin", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
                 csubstr cbuf = capitalize(buf, bin);
                 INFO("capitalized=" << buf);
                 REQUIRE_EQ(cbuf.len, bin.len);
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(read_bin(cbuf, &val));
                 CHECK_EQ(val, number.val);
             }
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 substr zprefix = zpad(buf, bin, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(read_bin(zprefix, &val));
@@ -1399,7 +1467,6 @@ TEST_CASE_TEMPLATE("read_bin", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
             ++icase;
         }
     }
-#endif
 }
 
 
@@ -1407,7 +1474,6 @@ TEST_CASE_TEMPLATE("read_bin", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, u
 
 TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     char buf_[128] = {};
     substr buf = buf_;
     SUBCASE("dec")
@@ -1416,14 +1482,14 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
         {
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(atox(number.dec, &val));
                 CHECK_EQ(val, number.val);
             }
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 substr zprefix = zpad(buf, number.dec, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(atox(zprefix, &val));
@@ -1437,13 +1503,13 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
         {
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(atox(number.hex, &val));
                 CHECK_EQ(val, number.val);
             }
             // capitalize
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 csubstr cbuf = capitalize(buf, number.hex);
                 CHECK(atox(cbuf, &val));
                 CHECK_EQ(val, number.val);
@@ -1451,7 +1517,7 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 substr zprefix = zpad(buf, number.hex, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(atox(zprefix, &val));
@@ -1468,13 +1534,13 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
         {
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(atox(number.oct, &val));
                 CHECK_EQ(val, number.val);
             }
             // capitalize
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 csubstr cbuf = capitalize(buf, number.oct);
                 CHECK(atox(cbuf, &val));
                 CHECK_EQ(val, number.val);
@@ -1482,7 +1548,7 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 substr zprefix = zpad(buf, number.oct, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(atox(zprefix, &val));
@@ -1499,13 +1565,13 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
         {
             INFO(number);
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 CHECK(atox(number.bin, &val));
                 CHECK_EQ(val, number.val);
             }
             // capitalize
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 csubstr cbuf = capitalize(buf, number.bin);
                 CHECK(atox(cbuf, &val));
                 CHECK_EQ(val, number.val);
@@ -1513,7 +1579,7 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             // zero-prefix
             for(size_t numz : {1u, 4u, 6u})
             {
-                T val = number.val + T(1);
+                T val = add1(number);
                 substr zprefix = zpad(buf, number.oct, numz);
                 INFO("zprefix=" << zprefix);
                 CHECK(atox(zprefix, &val));
@@ -1524,12 +1590,10 @@ TEST_CASE_TEMPLATE("atox", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             }
         }
     }
-#endif
 }
 
 TEST_CASE_TEMPLATE("atox.fail", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     char buf_[128] = {};
     substr buf = buf_;
     SUBCASE("dec")
@@ -1608,12 +1672,14 @@ TEST_CASE_TEMPLATE("atox.fail", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, 
             ++icase;
         }
     }
-#endif
 }
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+
 //-----------------------------------------------------------------------------
 
 template<class T>
@@ -1649,7 +1715,6 @@ auto test_no_overflow_zeroes()
 // test overflow in sizes smaller than 64 bit by upcasting
 TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t)
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     char buf_[128];
     substr buf = buf_;
     auto do_test = [](bool is_overflow, number_case<T> const& num, csubstr exceeded, number_case<T> const& wrapped){
@@ -1664,7 +1729,7 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
         else
             CHECK_EQ(&num, &wrapped);
         {
-            T val = num.val + T(1);
+            T val = add1(num);
             CHECK(atox(exceeded, &val));
             CHECK_EQ(val, wrapped.val);
         }
@@ -1673,7 +1738,7 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
         INFO(buf2);
         CHECK_EQ(is_overflow, overflows<T>(buf2));
         {
-            T val = num.val + T(1);
+            T val = add1(num);
             CHECK(atox(buf2, &val));
             CHECK_EQ(val, wrapped.val);
         }
@@ -1683,14 +1748,14 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
             buf2 = zpad(buf2_, exceeded, numz);
             CHECK_EQ(is_overflow, overflows<T>(buf2));
             {
-                T val = num.val + T(1);
+                T val = add1(num);
                 CHECK(atox(buf2, &val));
                 CHECK_EQ(val, wrapped.val);
             }
             buf2.toupper();
             CHECK_EQ(is_overflow, overflows<T>(buf2));
             {
-                T val = num.val + T(1);
+                T val = add1(num);
                 CHECK(atox(buf2, &val));
                 CHECK_EQ(val, wrapped.val);
             }
@@ -1776,17 +1841,15 @@ TEST_CASE_TEMPLATE("atox.overflow", T, int8_t, uint8_t, int16_t, uint16_t, int32
         do_test_overflow(T(4), T(2));
         do_test_overflow(T(5), T(2));
     }
-#endif
 }
 
 TEST_CASE_TEMPLATE("atox.overflow64", T, int64_t, uint64_t)
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     char buf_[128] = {};
     substr buf = buf_;
     auto test_atox = [](csubstr s, overflow64case<T> const& c){
         INFO("s=" << s);
-        T val = c.wrapped + T(1);
+        T val = add1(c);
         if(std::is_signed<T>::value || !s.begins_with('-'))
         {
             CHECK(atox(s, &val));
@@ -1885,7 +1948,6 @@ TEST_CASE_TEMPLATE("atox.overflow64", T, int64_t, uint64_t)
             }
         }
     }
-#endif
 }
 
 
@@ -1984,25 +2046,42 @@ void test_overflows_bin()
 // TODO: test_overflows_oct
 
 template<class T>
+void expect_overflows_unsigned(int radix, uint64_t val, bool expected)
+{
+    char bufc[100] = {0};
+    substr s(bufc, sizeof(bufc));
+    size_t sz = utoa<uint64_t>(s, val, (uint64_t)radix);
+    INFO("radix=" << radix << " val=" << val);
+    REQUIRE_LE(sz, s.size());
+    s = s.first(sz);
+    INFO("s=" << s);
+    CHECK_EQ(overflows<T>(s), expected);
+};
+
+template<class T>
+void expect_overflows_signed(int radix, int64_t val, bool expected)
+{
+    char bufc[100] = {0};
+    substr s(bufc, sizeof(bufc));
+    size_t sz = itoa<int64_t>(s, val, (int64_t)radix);
+    INFO("radix=" << radix << " val=" << val);
+    REQUIRE_LE(sz, s.size());
+    s = s.first(sz);
+    INFO("s=" << s);
+    CHECK_EQ(overflows<T>(s), expected);
+};
+
+template<class T>
 typename std::enable_if<std::is_unsigned<T>::value, void>::type
 test_overflows()
 {
+    const uint64_t max = (uint64_t) std::numeric_limits<T>::max();
+    const uint64_t min = (uint64_t) std::numeric_limits<T>::min();
     for(int radix : { 2, 8, 10, 16 })
     {
-        char bufc[100] = {0};
-        substr s(bufc);
-        INFO("radix=" << radix << " num=" << s);
-
-        uint64_t max = (uint64_t) std::numeric_limits<T>::max();
-        size_t sz = utoa<uint64_t>(s, max, (uint64_t)radix);
-        REQUIRE_LE(sz, s.size());
-        CHECK(!overflows<T>(s.first(sz)));
-        memset(s.str, 0, s.len);
-        sz = utoa<uint64_t>(s, max + 1, (uint64_t)radix);
-        REQUIRE_LE(sz, s.size());
-        CHECK(overflows<T>(s.first(sz)));
+        expect_overflows_unsigned<T>(radix, max, false);
+        expect_overflows_unsigned<T>(radix, add1(max), true);
     }
-
     test_overflows_hex<T>();
     test_overflows_bin<T>();
     // TODO: octal
@@ -2012,31 +2091,15 @@ template<class T>
 typename std::enable_if<std::is_signed<T>::value, void>::type
 test_overflows()
 {
+    const int64_t max = (int64_t) std::numeric_limits<T>::max();
+    const int64_t min = (int64_t) std::numeric_limits<T>::min();
     for(int radix : { 2, 8, 10, 16 })
     {
-        char bufc[100] = {0};
-        substr s(bufc);
-        INFO("radix=" << radix << " num=" << s);
-
-        int64_t max = (int64_t) std::numeric_limits<T>::max();
-        size_t sz = itoa<int64_t>(s, max, (int64_t)radix);
-        REQUIRE_LE(sz, s.size());
-        CHECK(!overflows<T>(s.first(sz)));
-        memset(s.str, 0, s.len);
-        sz = itoa<int64_t>(s, max + 1, (int64_t)radix);
-        REQUIRE_LE(sz, s.size());
-        CHECK(overflows<T>(s.first(sz)));
-
-        int64_t min = (int64_t) std::numeric_limits<T>::min();
-        sz = itoa<int64_t>(s, min, (int64_t)radix);
-        REQUIRE_LE(sz, s.size());
-        CHECK(!overflows<T>(s.first(sz)));
-        memset(s.str, 0, s.len);
-        sz = itoa<int64_t>(s, min - 1, (int64_t)radix);
-        REQUIRE_LE(sz, s.size());
-        CHECK(overflows<T>(s.first(sz)));
+        expect_overflows_signed<T>(radix, max, false);
+        expect_overflows_signed<T>(radix, add1(max), true);
+        expect_overflows_signed<T>(radix, min, false);
+        expect_overflows_signed<T>(radix, rem1(min), true);
     }
-
     test_overflows_hex<T>();
     test_overflows_bin<T>();
     // TODO: octal
@@ -2044,14 +2107,11 @@ test_overflows()
 
 TEST_CASE_TEMPLATE("overflows.8bit_32bit", T, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t)
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     test_overflows<T>();
-#endif
 }
 
 TEST_CASE("overflows.u64")
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     CHECK(!overflows<uint64_t>("18446744073709551614"));
     CHECK(!overflows<uint64_t>("18446744073709551615"));
     CHECK(overflows<uint64_t>("18446744073709551616"));
@@ -2073,12 +2133,10 @@ TEST_CASE("overflows.u64")
     test_overflows_hex<uint64_t>();
     test_overflows_bin<uint64_t>();
     // TODO: octal
-#endif
 }
 
 TEST_CASE("overflows.i64")
 {
-#ifndef C4_UBSAN // the tests succeed, so UBSAN can take a hike.
     CHECK(!overflows<int64_t>("9223372036854775806"));
     CHECK(!overflows<int64_t>("9223372036854775807"));
     CHECK(overflows<int64_t>("9223372036854775808"));
@@ -2102,7 +2160,6 @@ TEST_CASE("overflows.i64")
 
     test_overflows_hex<int64_t>();
     test_overflows_bin<int64_t>();
-#endif
 }
 
 
