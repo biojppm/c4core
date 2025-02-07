@@ -4,7 +4,16 @@ set -o pipefail
 
 # To run an image:
 #
-#  docker run -it --network host -v ~/proj/rapidyaml:/rapidyaml --name c4core_ubuntu22 ghcr.io/biojppm/c4core/ubuntu22.04:latest /bin/bash
+#   docker run -it --network host -v ~/proj/rapidyaml:/rapidyaml --name c4core_ubuntu22 ghcr.io/biojppm/c4core/ubuntu22.04:latest /bin/bash
+#
+# To resume a running image
+#
+#   docker start <id>
+#   docker attach <id>
+#
+# To see existing images, or find an id:
+#
+#   docker ps -a
 #
 # To delete all containers including its volumes use,
 #

@@ -1,37 +1,30 @@
+# DO NOT EDIT - GENERATED FROM .github/workflows-in/clang_tidy.ys
+
 name: clang_tidy
-
 defaults:
-  #if: "!contains(github.event.head_commit.message, 'skip ci')"  # SKIP
   run:
-    # Use a bash shell so we can use the same syntax for environment variable
-    # access regardless of the host operating system
     shell: bash -e -x {0}
-
-on:
-  # https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662
-  workflow_dispatch:
+'on':
+  workflow_dispatch: null
   push:
     branches:
     - master
   pull_request:
     branches:
     - master
-
 env:
+  PROJ_PKG_NAME: c4core-
   PROJ_PFX_TARGET: c4core-
   PROJ_PFX_CMAKE: C4CORE_
-  CMAKE_FLAGS:
-  NUM_JOBS_BUILD: # 4
-
-
+  CMAKE_FLAGS: null
+  NUM_JOBS_BUILD: null
 jobs:
-
-  #----------------------------------------------------------------------------
   clang_tidy:
     if: always()
     continue-on-error: false
     runs-on: ubuntu-24.04
     container: ghcr.io/biojppm/c4core/ubuntu22.04:latest
+    name: clang_tidy/c++${{matrix.std}}/${{matrix.bt}}
     strategy:
       fail-fast: false
       matrix:
@@ -39,6 +32,10 @@ jobs:
         - std: 11
           clang: 18
           bt: Debug
+          bits: 64
+        - std: 11
+          clang: 18
+          bt: Release
           bits: 64
     env:
       STD: ${{matrix.std}}

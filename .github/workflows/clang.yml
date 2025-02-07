@@ -1,281 +1,552 @@
+# DO NOT EDIT - GENERATED FROM .github/workflows-in/clang.ys
+
 name: clang
-
 defaults:
-  #if: "!contains(github.event.head_commit.message, 'skip ci')"  # SKIP
   run:
-    # Use a bash shell so we can use the same syntax for environment variable
-    # access regardless of the host operating system
     shell: bash -e -x {0}
-
-on:
-  # https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662
-  workflow_dispatch:
+'on':
+  workflow_dispatch: null
   push:
     branches:
     - master
   pull_request:
     branches:
     - master
-
 env:
+  PROJ_PKG_NAME: c4core-
   PROJ_PFX_TARGET: c4core-
   PROJ_PFX_CMAKE: C4CORE_
-  CMAKE_FLAGS:
-  NUM_JOBS_BUILD: # 4
-
-
+  CMAKE_FLAGS: null
+  NUM_JOBS_BUILD: null
 jobs:
-
-  #----------------------------------------------------------------------------
-  clang_canary:
-    name: clang_canary/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
-    continue-on-error: true
-    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ubuntu-latest
-    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest  # use the docker image
+  canary:
+    if: always()
+    continue-on-error: false
+    name: canary/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    runs-on: ubuntu-24.04
+    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 20, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 20, cxx: clang++-17 , bt: Release, bitlinks: shared64 static32}
-          - {std: 11, cxx: clang++-9, bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: clang++-9, bt: Release, bitlinks: shared64 static32}
-    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+        - std: 20
+          cxx: clang++-18
+          bt: Debug
+          bitlinks: shared64 static32
+        - std: 20
+          cxx: clang++-18
+          bt: Release
+          bitlinks: shared64 static32
+        - std: 11
+          cxx: clang++-18
+          bt: Debug
+          bitlinks: shared64 static32
+        - std: 11
+          cxx: clang++-18
+          bt: Release
+          bitlinks: shared64 static32
+    env:
+      STD: ${{matrix.std}}
+      CXX_: ${{matrix.cxx}}
+      BT: ${{matrix.bt}}
+      BITLINKS: ${{matrix.bitlinks}}
+      VG: ${{matrix.vg}}
+      SAN: ${{matrix.san}}
+      LINT: ${{matrix.lint}}
+      OS: ${{matrix.os}}
     steps:
-      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
-      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
-      - run: c4core-install ${{matrix.cxx}}
-      - {name: show info, run: source .github/setenv.sh && c4_show_info}
-      - name: shared64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared64
-      - {name: shared64-build, run: source .github/setenv.sh && c4_build_test shared64}
-      - {name: shared64-run, run: source .github/setenv.sh && c4_run_test shared64}
-      - {name: shared64-pack, run: source .github/setenv.sh && c4_package shared64}
-      - name: static64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static64
-      - {name: static64-build, run: source .github/setenv.sh && c4_build_test static64}
-      - {name: static64-run, run: source .github/setenv.sh && c4_run_test static64}
-      - {name: static64-pack, run: source .github/setenv.sh && c4_package static64}
-      - name: static32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static32
-      - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
-      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
-      - {name: static32-pack, run: source .github/setenv.sh && c4_package static32}
-      - name: shared32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared32
-      - {name: shared32-build, run: source .github/setenv.sh && c4_build_test shared32}
-      - {name: shared32-run, run: source .github/setenv.sh && c4_run_test shared32}
-      - {name: shared32-pack, run: source .github/setenv.sh && c4_package shared32}
-
-  #----------------------------------------------------------------------------
-  clang_noexceptions:
-    name: clang_noexceptions/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
-    continue-on-error: true
-    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ubuntu-latest
-    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest  # use the docker image
+    - name: checkout (action + docker)
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - run: git config --system --add safe.directory '*'
+    - run: c4core-install ${{matrix.cxx}}
+    - name: show info
+      run: source .github/setenv.sh && c4_show_info
+    - name: shared64-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test shared64
+    - name: shared64-build
+      run: source .github/setenv.sh && c4_build_test shared64
+    - name: shared64-run
+      run: source .github/setenv.sh && c4_run_test shared64
+    - name: shared64-pack
+      run: source .github/setenv.sh && c4_package shared64
+    - name: static64-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test static64
+    - name: static64-build
+      run: source .github/setenv.sh && c4_build_test static64
+    - name: static64-run
+      run: source .github/setenv.sh && c4_run_test static64
+    - name: static64-pack
+      run: source .github/setenv.sh && c4_package static64
+    - name: static32-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test static32
+    - name: static32-build
+      run: source .github/setenv.sh && c4_build_test static32
+    - name: static32-run
+      run: source .github/setenv.sh && c4_run_test static32
+    - name: static32-pack
+      run: source .github/setenv.sh && c4_package static32
+    - name: shared32-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test shared32
+    - name: shared32-build
+      run: source .github/setenv.sh && c4_build_test shared32
+    - name: shared32-run
+      run: source .github/setenv.sh && c4_run_test shared32
+    - name: shared32-pack
+      run: source .github/setenv.sh && c4_package shared32
+  noexceptions:
+    if: always()
+    continue-on-error: false
+    name: noexc/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    runs-on: ubuntu-24.04
+    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 20, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 20, cxx: clang++-17 , bt: Release, bitlinks: shared64 static32}
-          - {std: 11, cxx: clang++-9  , bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: clang++-9  , bt: Release, bitlinks: shared64 static32}
-    env: {CXXFLAGS: "-fno-exceptions -fno-rtti", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+        - std: 20
+          cxx: clang++-18
+          bt: Debug
+          bitlinks: shared64 static32
+        - std: 20
+          cxx: clang++-18
+          bt: Release
+          bitlinks: shared64 static32
+        - std: 11
+          cxx: clang++-18
+          bt: Debug
+          bitlinks: shared64 static32
+        - std: 11
+          cxx: clang++-18
+          bt: Release
+          bitlinks: shared64 static32
+    env:
+      CXXFLAGS: -fno-exceptions -fno-rtti
+      STD: ${{matrix.std}}
+      CXX_: ${{matrix.cxx}}
+      BT: ${{matrix.bt}}
+      BITLINKS: ${{matrix.bitlinks}}
+      VG: ${{matrix.vg}}
+      SAN: ${{matrix.san}}
+      LINT: ${{matrix.lint}}
+      OS: ${{matrix.os}}
     steps:
-      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
-      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
-      - run: c4core-install ${{matrix.cxx}}
-      - {name: show info, run: source .github/setenv.sh && c4_show_info}
-      - name: shared64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared64
-      - {name: shared64-build, run: source .github/setenv.sh && c4_build_test shared64}
-      - {name: shared64-run, run: source .github/setenv.sh && c4_run_test shared64}
-      - {name: shared64-pack, run: source .github/setenv.sh && c4_package shared64}
-      - name: static64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static64
-      - {name: static64-build, run: source .github/setenv.sh && c4_build_test static64}
-      - {name: static64-run, run: source .github/setenv.sh && c4_run_test static64}
-      - {name: static64-pack, run: source .github/setenv.sh && c4_package static64}
-      - name: static32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static32
-      - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
-      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
-      - {name: static32-pack, run: source .github/setenv.sh && c4_package static32}
-      - name: shared32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared32
-      - {name: shared32-build, run: source .github/setenv.sh && c4_build_test shared32}
-      - {name: shared32-run, run: source .github/setenv.sh && c4_run_test shared32}
-      - {name: shared32-pack, run: source .github/setenv.sh && c4_package shared32}
-
-  #----------------------------------------------------------------------------
-  clang_extended:
-    name: clang_extended/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}/vg${{matrix.vg}}
-    continue-on-error: true
-    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ubuntu-latest
-    container: ghcr.io/biojppm/c4core/${{matrix.img}}:latest  # use the docker image
+    - name: checkout (action + docker)
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - run: git config --system --add safe.directory '*'
+    - run: c4core-install ${{matrix.cxx}}
+    - name: show info
+      run: source .github/setenv.sh && c4_show_info
+    - name: shared64-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test shared64
+    - name: shared64-build
+      run: source .github/setenv.sh && c4_build_test shared64
+    - name: shared64-run
+      run: source .github/setenv.sh && c4_run_test shared64
+    - name: shared64-pack
+      run: source .github/setenv.sh && c4_package shared64
+    - name: static64-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test static64
+    - name: static64-build
+      run: source .github/setenv.sh && c4_build_test static64
+    - name: static64-run
+      run: source .github/setenv.sh && c4_run_test static64
+    - name: static64-pack
+      run: source .github/setenv.sh && c4_package static64
+    - name: static32-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test static32
+    - name: static32-build
+      run: source .github/setenv.sh && c4_build_test static32
+    - name: static32-run
+      run: source .github/setenv.sh && c4_run_test static32
+    - name: static32-pack
+      run: source .github/setenv.sh && c4_package static32
+    - name: shared32-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test shared32
+    - name: shared32-build
+      run: source .github/setenv.sh && c4_build_test shared32
+    - name: shared32-run
+      run: source .github/setenv.sh && c4_run_test shared32
+    - name: shared32-pack
+      run: source .github/setenv.sh && c4_package shared32
+  extended:
+    if: always()
+    continue-on-error: false
+    name: extended/${{matrix.cxx}}/c++${{matrix.std}}/vg${{matrix.vg}}
+    runs-on: ubuntu-24.04
+    container: ghcr.io/biojppm/c4core/ubuntu${{matrix.img}}:latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: clang++-17 , bt: Debug  , vg: on, img: ubuntu22.04}
-          - {std: 11, cxx: clang++-17 , bt: Release, vg: on, img: ubuntu22.04}
-          - {std: 11, cxx: clang++-16 , bt: Debug  , vg: on, img: ubuntu22.04}
-          - {std: 11, cxx: clang++-16 , bt: Release, vg: on, img: ubuntu22.04}
-          - {std: 11, cxx: clang++-15 , bt: Debug  , vg: on, img: ubuntu22.04} # install of clang15 fails on ubuntu18.04
-          - {std: 11, cxx: clang++-15 , bt: Release, vg: on, img: ubuntu22.04} # install of clang15 fails on ubuntu18.04
-          - {std: 11, cxx: clang++-14 , bt: Debug  , vg: on, img: ubuntu22.04} # install of clang14 fails on ubuntu18.04
-          - {std: 11, cxx: clang++-14 , bt: Release, vg: on, img: ubuntu22.04} # install of clang14 fails on ubuntu18.04
-          - {std: 11, cxx: clang++-13 , bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-13 , bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-12 , bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-12 , bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-11 , bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-11 , bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-10 , bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-10 , bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-9  , bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-9  , bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-8  , bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-8  , bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-7  , bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-7  , bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-6.0, bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-6.0, bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-5.0, bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-5.0, bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-4.0, bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-4.0, bt: Release, vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-3.9, bt: Debug  , vg: on, img: ubuntu18.04}
-          - {std: 11, cxx: clang++-3.9, bt: Release, vg: on, img: ubuntu18.04}
-    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+        - std: 20
+          cxx: 18
+          bits: 64
+          vg: 'ON'
+          img: 22.04
+        - std: 20
+          cxx: 18
+          bits: 32
+          vg: 'ON'
+          img: 22.04
+        - std: 17
+          cxx: 18
+          bits: 64
+          vg: 'ON'
+          img: 22.04
+        - std: 17
+          cxx: 18
+          bits: 32
+          vg: 'ON'
+          img: 22.04
+        - std: 14
+          cxx: 18
+          bits: 64
+          vg: 'ON'
+          img: 22.04
+        - std: 14
+          cxx: 18
+          bits: 32
+          vg: 'ON'
+          img: 22.04
+        - std: 11
+          cxx: 18
+          bits: 64
+          vg: 'ON'
+          img: 22.04
+        - std: 11
+          cxx: 18
+          bits: 32
+          vg: 'ON'
+          img: 22.04
+        - std: 11
+          cxx: 17
+          bits: 64
+          vg: 'OFF'
+          img: 22.04
+        - std: 11
+          cxx: 17
+          bits: 32
+          vg: 'OFF'
+          img: 22.04
+        - std: 11
+          cxx: 16
+          bits: 64
+          vg: 'OFF'
+          img: 22.04
+        - std: 11
+          cxx: 16
+          bits: 32
+          vg: 'OFF'
+          img: 22.04
+        - std: 11
+          cxx: 15
+          bits: 64
+          vg: 'OFF'
+          img: 22.04
+        - std: 11
+          cxx: 15
+          bits: 32
+          vg: 'OFF'
+          img: 22.04
+        - std: 11
+          cxx: 14
+          bits: 64
+          vg: 'OFF'
+          img: 22.04
+        - std: 11
+          cxx: 14
+          bits: 32
+          vg: 'OFF'
+          img: 22.04
+        - std: 11
+          cxx: 13
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 13
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 12
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 12
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 11
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 11
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 10
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 10
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 9
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 9
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 8
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 8
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 7
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: 7
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: '6.0'
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: '6.0'
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: '5.0'
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: '5.0'
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: '4.0'
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: '4.0'
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: '3.9'
+          bits: 64
+          vg: 'OFF'
+          img: 18.04
+        - std: 11
+          cxx: '3.9'
+          bits: 32
+          vg: 'OFF'
+          img: 18.04
+    env:
+      STD: ${{matrix.std}}
+      CXX_: ${{matrix.cxx}}
+      BT: ${{matrix.bt}}
+      BITLINKS: ${{matrix.bitlinks}}
+      VG: ${{matrix.vg}}
+      SAN: ${{matrix.san}}
+      LINT: ${{matrix.lint}}
+      OS: ${{matrix.os}}
     steps:
-      # cannot use the checkout@v3 or v4 action on ubuntu18.04 because of nodejs version
-      #- {name: checkout, uses: actions/checkout@v3, with: {submodules: recursive}}
-      #... so we checkout manually:
-      - name: checkout
-        run: |
-          set -x
-          echo GITHUB_REF=$GITHUB_REF
-          echo GITHUB_HEAD_REF=$GITHUB_HEAD_REF
-          branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}  # https://stackoverflow.com/questions/58033366
-          echo branch=$branch
-          git init -q .
-          git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
-          git remote add origin $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
-          git fetch origin $branch
-          git reset --hard FETCH_HEAD
-          git submodule update --init --recursive
-      - run: c4core-install ${{matrix.cxx}}
-      - {name: show info, run: source .github/setenv.sh && c4_show_info}
-      - name: shared64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared64
-      - {name: shared64-build, run: source .github/setenv.sh && c4_build_test shared64}
-      - {name: shared64-run, run: source .github/setenv.sh && c4_run_test shared64}
-      - {name: shared64-pack, run: source .github/setenv.sh && c4_package shared64}
-      - name: static64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static64
-      - {name: static64-build, run: source .github/setenv.sh && c4_build_test static64}
-      - {name: static64-run, run: source .github/setenv.sh && c4_run_test static64}
-      - {name: static64-pack, run: source .github/setenv.sh && c4_package static64}
-      - name: static32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static32
-      - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
-      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
-      - {name: static32-pack, run: source .github/setenv.sh && c4_package static32}
-      - name: shared32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared32
-      - {name: shared32-build, run: source .github/setenv.sh && c4_build_test shared32}
-      - {name: shared32-run, run: source .github/setenv.sh && c4_run_test shared32}
-      - {name: shared32-pack, run: source .github/setenv.sh && c4_package shared32}
-
-  #----------------------------------------------------------------------------
+    - name: checkout (manually)
+      run: |
+        set -xeo pipefail
+        env | sort
+        echo GITHUB_SERVER_URL=$GITHUB_SERVER_URL
+        echo GITHUB_REPOSITORY=$GITHUB_REPOSITORY
+        echo GITHUB_REF=$GITHUB_REF
+        echo GITHUB_REF_NAME=$GITHUB_REF_NAME
+        echo GITHUB_HEAD_REF=$GITHUB_HEAD_REF
+        repo=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+        # check the branch
+        # https://stackoverflow.com/questions/58033366
+        branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+        echo branch=$branch
+        # does the branch exist in the repo?
+        if [ -z "$(git ls-remote $repo | grep $branch)" ] ; then
+            echo "branch $branch does not exist on $repo"
+            # refs/pull/485/merge -> pull/485/head
+            branch=`echo ${GITHUB_REF#refs/} | sed -e 's:merge:head:g'`
+            echo "... falling back to $branch"
+            # does the fallback exist?
+            if [ -z "(git ls-remote $repo | grep $branch)" ] ; then
+                echo "branch $branch does not exist on $repo"
+                exit 1
+            else
+                echo "branch $branch exists on $repo"
+                localbranch=$(echo $branch | sed -e 's@[/:]@_@g')
+                branch=$branch:$localbranch
+                echo "naming locally as $branch"
+            fi
+        fi
+        # finally, create the local repo
+        git init -q .
+        # needed for running in the docker image.
+        # see https://github.com/actions/checkout/issues/1169
+        git config --system --add safe.directory '*'
+        # finally, do it!
+        git remote add origin $repo
+        git fetch origin $branch
+        git reset --hard FETCH_HEAD
+        git submodule update --init --recursive
+        # show the log
+        git log --graph --date=relative --date-order --color=always \
+                --pretty='%C(yellow)%h %C(cyan)%cd %Cblue%aN%C(auto)%d %Creset%s' \
+            | head -30 \
+            || echo -n
+        # show the last commit
+        git log --name-status HEAD^..HEAD
+    - run: c4core-install clang++-${{matrix.cxx}}
+    - name: '---------------------------------------------------------'
+      run: |
+        echo "Debug ::: -m${{matrix.bits}}"
+    - name: 'configure Debug ::: -m${{matrix.bits}}'
+      run: "rm -rf build/Debug\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Debug \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Debug \\\n  -DCMAKE_CXX_FLAGS_DEBUG=\"-m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_DEBUG=\"-m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Debug ::: -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Debug --target c4core-test-build --parallel --verbose
+    - name: 'run Debug ::: -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Debug --target c4core-test-run
+    - name: '---------------------------------------------------------'
+      run: |
+        echo "Release ::: -O1 -DNDEBUG -m${{matrix.bits}}"
+    - name: 'configure Release ::: -O1 -DNDEBUG -m${{matrix.bits}}'
+      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O1 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O1 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Release ::: -O1 -DNDEBUG -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Release --target c4core-test-build --parallel --verbose
+    - name: 'run Release ::: -O1 -DNDEBUG -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Release --target c4core-test-run
+    - name: '---------------------------------------------------------'
+      run: |
+        echo "Release ::: -O2 -DNDEBUG -m${{matrix.bits}}"
+    - name: 'configure Release ::: -O2 -DNDEBUG -m${{matrix.bits}}'
+      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O2 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O2 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Release ::: -O2 -DNDEBUG -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Release --target c4core-test-build --parallel --verbose
+    - name: 'run Release ::: -O2 -DNDEBUG -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Release --target c4core-test-run
+    - name: '---------------------------------------------------------'
+      run: |
+        echo "Release ::: -O3 -DNDEBUG -m${{matrix.bits}}"
+    - name: 'configure Release ::: -O3 -DNDEBUG -m${{matrix.bits}}'
+      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O3 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O3 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Release ::: -O3 -DNDEBUG -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Release --target c4core-test-build --parallel --verbose
+    - name: 'run Release ::: -O3 -DNDEBUG -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Release --target c4core-test-run
+    - name: '---------------------------------------------------------'
+      run: |
+        echo "Release ::: -Os -DNDEBUG -m${{matrix.bits}}"
+    - name: 'configure Release ::: -Os -DNDEBUG -m${{matrix.bits}}'
+      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-Os -DNDEBUG -m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-Os -DNDEBUG -m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Release ::: -Os -DNDEBUG -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Release --target c4core-test-build --parallel --verbose
+    - name: 'run Release ::: -Os -DNDEBUG -m${{matrix.bits}}'
+      run: |
+        cmake --build build/Release --target c4core-test-run
   clangsan:
-    name: clang/${{matrix.bt}}/c++${{matrix.std}}
-    continue-on-error: true
-    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ubuntu-latest
-    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest  # use the docker image
+    if: always()
+    continue-on-error: false
+    name: ${{matrix.bt}}/c++${{matrix.std}}
+    runs-on: ubuntu-24.04
+    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: clang++-17 , bt: asan, bitlinks: static64}
-          - {std: 14, cxx: clang++-17 , bt: asan, bitlinks: static64}
-          - {std: 17, cxx: clang++-17 , bt: asan, bitlinks: static64}
-          - {std: 20, cxx: clang++-17 , bt: asan, bitlinks: static64}
-          - {std: 11, cxx: clang++-17 , bt: lsan, bitlinks: static64}
-          - {std: 14, cxx: clang++-17 , bt: lsan, bitlinks: static64}
-          - {std: 17, cxx: clang++-17 , bt: lsan, bitlinks: static64}
-          - {std: 20, cxx: clang++-17 , bt: lsan, bitlinks: static64}
-          - {std: 11, cxx: clang++-17 , bt: tsan, bitlinks: static64}
-          - {std: 14, cxx: clang++-17 , bt: tsan, bitlinks: static64}
-          - {std: 17, cxx: clang++-17 , bt: tsan, bitlinks: static64}
-          - {std: 20, cxx: clang++-17 , bt: tsan, bitlinks: static64}
-          - {std: 11, cxx: clang++-17 , bt: ubsan, bitlinks: static64}
-          - {std: 14, cxx: clang++-17 , bt: ubsan, bitlinks: static64}
-          - {std: 17, cxx: clang++-17 , bt: ubsan, bitlinks: static64}
-          - {std: 20, cxx: clang++-17 , bt: ubsan, bitlinks: static64}
-    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+        - std: 11
+          cxx: 18
+          bt: asan
+        - std: 20
+          cxx: 18
+          bt: asan
+        - std: 11
+          cxx: 18
+          bt: lsan
+        - std: 20
+          cxx: 18
+          bt: lsan
+        - std: 11
+          cxx: 18
+          bt: tsan
+        - std: 20
+          cxx: 18
+          bt: tsan
+        - std: 11
+          cxx: 18
+          bt: ubsan
+        - std: 20
+          cxx: 18
+          bt: ubsan
+    env:
+      STD: ${{matrix.std}}
+      CXX_: ${{matrix.cxx}}
+      BT: ${{matrix.bt}}
+      BITLINKS: ${{matrix.bitlinks}}
+      VG: ${{matrix.vg}}
+      SAN: ${{matrix.san}}
+      LINT: ${{matrix.lint}}
+      OS: ${{matrix.os}}
     steps:
-      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
-      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
-      - run: c4core-install ${{matrix.cxx}}
-      - {name: show info, run: source .github/setenv.sh && c4_show_info}
-      - name: shared64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared64
-      - {name: shared64-build, run: source .github/setenv.sh && c4_build_test shared64}
-      - {name: shared64-run, run: source .github/setenv.sh && c4_run_test shared64}
-      - {name: shared64-pack, run: source .github/setenv.sh && c4_package shared64}
-      - name: static64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static64
-      - {name: static64-build, run: source .github/setenv.sh && c4_build_test static64}
-      - {name: static64-run, run: source .github/setenv.sh && c4_run_test static64}
-      - {name: static64-pack, run: source .github/setenv.sh && c4_package static64}
-      - name: static32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static32
-      - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
-      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
-      - {name: static32-pack, run: source .github/setenv.sh && c4_package static32}
-      - name: shared32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared32
-      - {name: shared32-build, run: source .github/setenv.sh && c4_build_test shared32}
-      - {name: shared32-run, run: source .github/setenv.sh && c4_run_test shared32}
-      - {name: shared32-pack, run: source .github/setenv.sh && c4_package shared32}
-
-  #----------------------------------------------------------------------------
-#  # https://blog.kitware.com/static-checks-with-cmake-cdash-iwyu-clang-tidy-lwyu-cpplint-and-cppcheck/
-#  static_analysis:
-#    continue-on-error: true
-#    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-#    runs-on: ${{matrix.os}}
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          # these jobs take much longer, so run only one bitlink pair per job to profit from parallelism
-#          - {std: 11, cxx: clang++-10, bt: Debug  , bitlinks: shared64, os: ubuntu-20.04}
-#          - {std: 11, cxx: clang++-10, bt: Release, bitlinks: shared64, os: ubuntu-20.04}
-#          - {std: 14, cxx: clang++-10, bt: Debug  , bitlinks: shared64, os: ubuntu-20.04}
-#          - {std: 14, cxx: clang++-10, bt: Release, bitlinks: shared64, os: ubuntu-20.04}
-#          - {std: 17, cxx: clang++-10, bt: Debug  , bitlinks: shared64, os: ubuntu-20.04}
-#          - {std: 17, cxx: clang++-10, bt: Release, bitlinks: shared64, os: ubuntu-20.04}
-#          - {std: 20, cxx: clang++-10, bt: Debug  , bitlinks: shared64, os: ubuntu-20.04}
-#          - {std: 20, cxx: clang++-10, bt: Release, bitlinks: shared64, os: ubuntu-20.04}
-#    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
-#    steps:
-#      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
-#      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
-#      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
-#      - {name: show info, run: source .github/setenv.sh && c4_show_info}
-#      - name: shared64-configure---------------------------------------------------
-#        run: source .github/setenv.sh && c4_cfg_test shared64
-#      - {name: shared64-build, run: source .github/setenv.sh && c4_build_test shared64}
-#      - {name: clang-tidy, run: cmake "-DCMAKE_CXX_CLANG_TIDY=/usr/bin/clang-tidy-3.9;-checks=*" ../path/to/source}
-#      - {name: cppcheck, run: cmake "-DCMAKE_CXX_CPPCHECK=/usr/bin/cppcheck;--std=c++11" ../path/to/source}
-#      - {name: cpplint, run: cmake "-DCMAKE_CXX_CPPLINT=/usr/local/bin/cpplint;--linelength=179" ..}
-#      - {name: include-what-you-use, run: cmake "-DCMAKE_CXX_INCLUDE_WHAT_YOU_USE=/usr/bin/iwyu;--transitive_includes_only" ..}
-#      - {name: link-what-you-use, run: cmake -DCMAKE_LINK_WHAT_YOU_USE=TRUE ..}
+    - name: checkout (action + docker)
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - run: git config --system --add safe.directory '*'
+    - run: c4core-install clang++-${{matrix.cxx}}
+    - name: '---------------------------------------------------------'
+      run: |
+        echo "${{matrix.bt}} ::: -m64"
+    - name: 'configure ${{matrix.bt}} ::: -m64'
+      run: "rm -rf build/${{matrix.bt}}\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/${{matrix.bt}} \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=${{matrix.bt}} \\\n  -DCMAKE_CXX_FLAGS_${{MATRIX.BT}}=\"-m64\" \\\n  -DCMAKE_C_FLAGS_${{MATRIX.BT}}=\"-m64\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build ${{matrix.bt}} ::: -m64'
+      run: |
+        cmake --build build/${{matrix.bt}} --target c4core-test-build --parallel --verbose
+    - name: 'run ${{matrix.bt}} ::: -m64'
+      run: |
+        cmake --build build/${{matrix.bt}} --target c4core-test-run

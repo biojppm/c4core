@@ -1,88 +1,139 @@
+# DO NOT EDIT - GENERATED FROM .github/workflows-in/libcxx.ys
+
 name: libcxx
-
 defaults:
-  #if: "!contains(github.event.head_commit.message, 'skip ci')"  # SKIP
   run:
-    # Use a bash shell so we can use the same syntax for environment variable
-    # access regardless of the host operating system
     shell: bash -e -x {0}
-
-on:
-  # https://github.community/t/how-to-trigger-an-action-on-push-or-pull-request-but-not-both/16662
-  workflow_dispatch:
+'on':
+  workflow_dispatch: null
   push:
     branches:
     - master
   pull_request:
     branches:
     - master
-
 env:
+  PROJ_PKG_NAME: c4core-
   PROJ_PFX_TARGET: c4core-
   PROJ_PFX_CMAKE: C4CORE_
-  CMAKE_FLAGS:
-  NUM_JOBS_BUILD: # 4
-
-
+  CMAKE_FLAGS: null
+  NUM_JOBS_BUILD: null
 jobs:
-
-  #----------------------------------------------------------------------------
   libcxx:
+    if: always()
+    continue-on-error: false
     name: libc++/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
-    continue-on-error: true
-    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
-    runs-on: ubuntu-latest
-    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest  # use the docker image
+    runs-on: ubuntu-24.04
+    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 20, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 20, cxx: clang++-17 , bt: Release, bitlinks: shared64 static64}
-          - {std: 17, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 17, cxx: clang++-17 , bt: Release, bitlinks: shared64 static64}
-          - {std: 14, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 14, cxx: clang++-17 , bt: Release, bitlinks: shared64 static64}
-          - {std: 11, cxx: clang++-17 , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 11, cxx: clang++-17 , bt: Release, bitlinks: shared64 static64}
-          - {std: 17, cxx: clang++-9  , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 17, cxx: clang++-9  , bt: Release, bitlinks: shared64 static64}
-          - {std: 14, cxx: clang++-9  , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 14, cxx: clang++-9  , bt: Release, bitlinks: shared64 static64}
-          - {std: 11, cxx: clang++-9  , bt: Debug  , bitlinks: shared64 static64}
-          - {std: 11, cxx: clang++-9  , bt: Release, bitlinks: shared64 static64}
+        - std: 20
+          cxx: clang++-17
+          bt: Debug
+          bitlinks: shared64 static64
+        - std: 20
+          cxx: clang++-17
+          bt: Release
+          bitlinks: shared64 static64
+        - std: 17
+          cxx: clang++-17
+          bt: Debug
+          bitlinks: shared64 static64
+        - std: 17
+          cxx: clang++-17
+          bt: Release
+          bitlinks: shared64 static64
+        - std: 14
+          cxx: clang++-17
+          bt: Debug
+          bitlinks: shared64 static64
+        - std: 14
+          cxx: clang++-17
+          bt: Release
+          bitlinks: shared64 static64
+        - std: 11
+          cxx: clang++-17
+          bt: Debug
+          bitlinks: shared64 static64
+        - std: 11
+          cxx: clang++-17
+          bt: Release
+          bitlinks: shared64 static64
+        - std: 17
+          cxx: clang++-9
+          bt: Debug
+          bitlinks: shared64 static64
+        - std: 17
+          cxx: clang++-9
+          bt: Release
+          bitlinks: shared64 static64
+        - std: 14
+          cxx: clang++-9
+          bt: Debug
+          bitlinks: shared64 static64
+        - std: 14
+          cxx: clang++-9
+          bt: Release
+          bitlinks: shared64 static64
+        - std: 11
+          cxx: clang++-9
+          bt: Debug
+          bitlinks: shared64 static64
+        - std: 11
+          cxx: clang++-9
+          bt: Release
+          bitlinks: shared64 static64
     env:
-      LIBCXX: ON  # <---- enable libc++
-      STD: "${{matrix.std}}"
-      CXX_: "${{matrix.cxx}}"
-      BT: "${{matrix.bt}}"
-      BITLINKS: "${{matrix.bitlinks}}"
-      VG: "${{matrix.vg}}"
-      SAN: "${{matrix.san}}"
-      LINT: "${{matrix.lint}}"
-      OS: "${{matrix.os}}"
+      LIBCXX: 'ON'
+      STD: ${{matrix.std}}
+      CXX_: ${{matrix.cxx}}
+      BT: ${{matrix.bt}}
+      BITLINKS: ${{matrix.bitlinks}}
+      VG: ${{matrix.vg}}
+      SAN: ${{matrix.san}}
+      LINT: ${{matrix.lint}}
+      OS: ${{matrix.os}}
     steps:
-      - {name: checkout, uses: actions/checkout@v4, with: {submodules: recursive}}
-      - run: git config --system --add safe.directory '*'  # needed for running in the docker image. see https://github.com/actions/checkout/issues/1169
-      - run: c4core-install ${{matrix.cxx}}
-      - {name: show info, run: source .github/setenv.sh && c4_show_info}
-      - name: shared64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared64
-      - {name: shared64-build, run: source .github/setenv.sh && c4_build_test shared64}
-      - {name: shared64-run, run: source .github/setenv.sh && c4_run_test shared64}
-      - {name: shared64-pack, run: source .github/setenv.sh && c4_package shared64}
-      - name: static64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static64
-      - {name: static64-build, run: source .github/setenv.sh && c4_build_test static64}
-      - {name: static64-run, run: source .github/setenv.sh && c4_run_test static64}
-      - {name: static64-pack, run: source .github/setenv.sh && c4_package static64}
-      - name: static32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test static32
-      - {name: static32-build, run: source .github/setenv.sh && c4_build_test static32}
-      - {name: static32-run, run: source .github/setenv.sh && c4_run_test static32}
-      - {name: static32-pack, run: source .github/setenv.sh && c4_package static32}
-      - name: shared32-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared32
-      - {name: shared32-build, run: source .github/setenv.sh && c4_build_test shared32}
-      - {name: shared32-run, run: source .github/setenv.sh && c4_run_test shared32}
-      - {name: shared32-pack, run: source .github/setenv.sh && c4_package shared32}
+    - name: checkout (action + docker)
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - run: git config --system --add safe.directory '*'
+    - run: c4core-install ${{matrix.cxx}}
+    - name: show info
+      run: source .github/setenv.sh && c4_show_info
+    - name: shared64-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test shared64
+    - name: shared64-build
+      run: source .github/setenv.sh && c4_build_test shared64
+    - name: shared64-run
+      run: source .github/setenv.sh && c4_run_test shared64
+    - name: shared64-pack
+      run: source .github/setenv.sh && c4_package shared64
+    - name: static64-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test static64
+    - name: static64-build
+      run: source .github/setenv.sh && c4_build_test static64
+    - name: static64-run
+      run: source .github/setenv.sh && c4_run_test static64
+    - name: static64-pack
+      run: source .github/setenv.sh && c4_package static64
+    - name: static32-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test static32
+    - name: static32-build
+      run: source .github/setenv.sh && c4_build_test static32
+    - name: static32-run
+      run: source .github/setenv.sh && c4_run_test static32
+    - name: static32-pack
+      run: source .github/setenv.sh && c4_package static32
+    - name: shared32-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test shared32
+    - name: shared32-build
+      run: source .github/setenv.sh && c4_build_test shared32
+    - name: shared32-run
+      run: source .github/setenv.sh && c4_run_test shared32
+    - name: shared32-pack
+      run: source .github/setenv.sh && c4_package shared32

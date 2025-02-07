@@ -1,62 +1,33 @@
-# DO NOT EDIT - GENERATED FROM .github/workflows-in/coverage.ys
+!yamlscript/v0:
 
-name: coverage
-defaults:
-  run:
-    shell: bash -e -x {0}
-'on':
-  workflow_dispatch: null
-  push:
-    branches:
-    - master
-  pull_request:
-    branches:
-    - master
-env:
-  PROJ_PKG_NAME: c4core-
-  PROJ_PFX_TARGET: c4core-
-  PROJ_PFX_CMAKE: C4CORE_
-  CMAKE_FLAGS: null
-  NUM_JOBS_BUILD: null
+:use common: :all
+:: workflow-setup()
+
 jobs:
+
+  #----------------------------------------------------------------------------
   coverage:
-    if: always()
-    continue-on-error: false
+    :: setup-job('coverage' 'coverage')
     name: cov/c++${{matrix.std}}/${{matrix.namesfx}}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
-        - std: 11
-          namesfx: 32bit
-          cmk: -DCMAKE_CXX_FLAGS=-m32
-        - std: 11
-          namesfx: 64bit
-          cmk: -DCMAKE_CXX_FLAGS=-m64
-        - std: 11
-          namesfx: 64bit_no_ff
-          cmk: -DCMAKE_CXX_FLAGS=-m64 -DC4CORE_WITH_FASTFLOAT=OFF
-        - std: 17
-          namesfx: 32bit
-          cmk: -DCMAKE_CXX_FLAGS=-m32
-        - std: 17
-          namesfx: 64bit
-          cmk: -DCMAKE_CXX_FLAGS=-m64
-        - std: 17
-          namesfx: 64bit_no_ff
-          cmk: -DCMAKE_CXX_FLAGS=-m64 -DC4CORE_WITH_FASTFLOAT=OFF
+        # test also with the debug code enabled
+        - {std: 11, namesfx: 32bit      , cmk: "-DCMAKE_CXX_FLAGS=-m32"}
+        - {std: 11, namesfx: 64bit      , cmk: "-DCMAKE_CXX_FLAGS=-m64"}
+        - {std: 11, namesfx: 64bit_no_ff, cmk: "-DCMAKE_CXX_FLAGS=-m64 -DC4CORE_WITH_FASTFLOAT=OFF"}
+        - {std: 17, namesfx: 32bit      , cmk: "-DCMAKE_CXX_FLAGS=-m32"}
+        - {std: 17, namesfx: 64bit      , cmk: "-DCMAKE_CXX_FLAGS=-m64"}
+        - {std: 17, namesfx: 64bit_no_ff, cmk: "-DCMAKE_CXX_FLAGS=-m64 -DC4CORE_WITH_FASTFLOAT=OFF"}
     env:
-      GCC_VERSION: 13
+      GCC_VERSION: 13 # the default compiler
       LCOV_ARGS: -v --ignore-errors mismatch,mismatch --ignore-errors unused,unused
       BUILD_ID: cpp${{matrix.std}}_${{matrix.namesfx}}
       CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
     steps:
-    - name: checkout (action)
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-depth: 0
+    - :: checkout-action
     - name: install compiler
       run: |
         sudo dpkg --add-architecture i386
@@ -98,12 +69,14 @@ jobs:
     - name: upload codecov
       run: |
         cmake --build build/$BUILD_ID --target c4core-coverage-submit-codecov --verbose
+    # https://docs.coveralls.io/parallel-builds
     - name: upload coveralls
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{secrets.COVERALLS_REPO_TOKEN}}
         parallel: true
         files: build/${{env.BUILD_ID}}/coverage3-final_filtered.lcov
+
   coveralls_finish:
     needs: coverage
     if: ${{always()}}

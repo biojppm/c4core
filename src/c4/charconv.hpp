@@ -377,7 +377,7 @@ template<> struct charconv_digits_<4u, false> // uint32_t
     static constexpr csubstr max_value_dec() noexcept { return csubstr("4294967295"); }
     static constexpr bool is_oct_overflow(csubstr str) noexcept { return !((str.len < 11) || (str.len == 11 && str[0] <= '3')); }
 };
-template<> struct charconv_digits_<8u, true> // int32_t
+template<> struct charconv_digits_<8u, true> // int64_t
 {
     enum : size_t {
         maxdigits_bin       = 1 + 2 + 64, // len=67: -9223372036854775808 -0b1000000000000000000000000000000000000000000000000000000000000000
@@ -396,7 +396,7 @@ template<> struct charconv_digits_<8u, true> // int32_t
     static constexpr csubstr max_value_dec() noexcept { return csubstr("9223372036854775807"); }
     static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 22)); }
 };
-template<> struct charconv_digits_<8u, false>
+template<> struct charconv_digits_<8u, false> // uint64_t
 {
     enum : size_t {
         maxdigits_bin       = 2 + 64, // len=66: 18446744073709551615 0b1111111111111111111111111111111111111111111111111111111111111111
@@ -783,15 +783,18 @@ template<class T, NumberWriter<T> writer>
 size_t write_num_digits(substr buf, T v, size_t num_digits) noexcept
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
-    size_t ret = writer(buf, v);
+    const size_t ret = writer(buf, v);
     if(ret >= num_digits)
         return ret;
     else if(ret >= buf.len || num_digits > buf.len)
         return num_digits;
     C4_ASSERT(num_digits >= ret);
-    size_t delta = static_cast<size_t>(num_digits - ret); // NOLINT
-    memmove(buf.str + delta, buf.str, ret);
-    memset(buf.str, '0', delta);
+    const size_t delta = static_cast<size_t>(num_digits - ret); // NOLINT
+    C4_ASSERT(ret + delta <= buf.len);
+    if(ret)
+        memmove(buf.str + delta, buf.str, ret);
+    if(delta)
+        memset(buf.str, '0', delta);
     return num_digits;
 }
 } // namespace detail
@@ -986,7 +989,9 @@ C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wswitch-default")
 namespace detail {
 inline size_t _itoa2buf(substr buf, size_t pos, csubstr val) noexcept
 {
+    C4_ASSERT(pos < buf.len);
     C4_ASSERT(pos + val.len <= buf.len);
+    C4_ASSERT(val.len > 0);
     memcpy(buf.str + pos, val.str, val.len);
     return pos + val.len;
 }
@@ -1118,7 +1123,7 @@ C4_ALWAYS_INLINE size_t itoa(substr buf, T v) noexcept
     }
     // when T is the min value (eg i8: -128), negating it
     // will overflow, so treat the min as a special case
-    else if(C4_LIKELY(v != std::numeric_limits<T>::min()))
+    if(C4_LIKELY(v != std::numeric_limits<T>::min()))
     {
         v = -v;
         unsigned digits = digits_dec(v);
@@ -1619,19 +1624,16 @@ C4_ALWAYS_INLINE size_t atou_first(csubstr str, T *v)
 namespace detail {
 inline bool check_overflow(csubstr str, csubstr limit) noexcept
 {
-    if(str.len == limit.len)
-    {
-        for(size_t i = 0; i < limit.len; ++i)
-        {
-            if(str[i] < limit[i])
-                return false;
-            else if(str[i] > limit[i])
-                return true;
-        }
-        return false;
-    }
-    else
+    if(str.len != limit.len)
         return str.len > limit.len;
+    for(size_t i = 0; i < limit.len; ++i)
+    {
+        if(str[i] < limit[i])
+            return false;
+        else if(str[i] > limit[i])
+            return true;
+    }
+    return false;
 }
 } // namespace detail
 /** @endcond */
@@ -1715,7 +1717,7 @@ auto overflows(csubstr str) noexcept
  * @see doc_overflow_checked for format specifiers to enforce no-overflow reads
  */
 template<class T>
-auto overflows(csubstr str)
+auto overflows(csubstr str) noexcept
     -> typename std::enable_if<std::is_signed<T>::value, bool>::type
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
@@ -1763,7 +1765,9 @@ auto overflows(csubstr str)
             }
         }
         else
+        {
             return detail::check_overflow(str.sub(1), detail::charconv_digits<T>::min_value_dec());
+        }
     }
     else if(str.str[0] == '0')
     {
@@ -1806,7 +1810,9 @@ auto overflows(csubstr str)
         }
     }
     else
+    {
         return detail::check_overflow(str, detail::charconv_digits<T>::max_value_dec());
+    }
 }
 
 /** @} */

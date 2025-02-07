@@ -1,0 +1,132 @@
+!yamlscript/v0:
+
+:use common: :all
+:: workflow-setup()
+
+jobs:
+
+  #----------------------------------------------------------------------------
+  windows:
+    :: setup-job('windows' 'windows')
+    name: ${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    continue-on-error: true
+    if: always()  # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # github retired windows-2016
+          #- {std: 11, cxx: vs2017, bt: Debug  , os: windows-2016, bitlinks: shared64 static32}
+          #- {std: 11, cxx: vs2017, bt: Release, os: windows-2016, bitlinks: shared64 static32}
+          #- {std: 14, cxx: vs2017, bt: Debug  , os: windows-2016, bitlinks: shared64 static32}
+          #- {std: 14, cxx: vs2017, bt: Release, os: windows-2016, bitlinks: shared64 static32}
+          #
+          - {std: 11, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
+          - {std: 11, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
+          - {std: 14, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
+          - {std: 14, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
+          - {std: 17, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
+          - {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
+          #
+          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          - {std: 14, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 14, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          - {std: 17, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 17, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+    steps:
+      - :: checkout-action
+      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - :: run-steps
+
+  #----------------------------------------------------------------------------
+  noexc:
+    :: setup-job('windows' 'noexc')
+    name: noexc/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+    # https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model?view=msvc-170
+    # https://learn.microsoft.com/en-us/cpp/build/reference/gr-enable-run-time-type-information?view=msvc-170
+    env: {CXXFLAGS: "/EHa- /EHs- /EHc /EHr- /GR- /wd4530", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+    steps:
+      - :: checkout-action
+      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - :: run-steps
+
+  #----------------------------------------------------------------------------
+  clang:
+    :: setup-job('windows' 'clang')
+    name: clang/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
+          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}",
+          BDIR: "build_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}",
+          IDIR: "install_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}"
+    }
+    steps:
+      - :: checkout-action
+      - {name: show info, run: source .github/setenv.sh && c4_show_info}
+      - name: configure
+        run: |
+          set -x
+          echo BDIR=$BDIR
+          echo IDIR=$IDIR
+          cmake -S . -B $BDIR \
+            -G "Unix Makefiles" \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_INSTALL_PREFIX=$IDIR \
+            -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
+            -DC4_CXX_STANDARD=${{matrix.std}} \
+            -DCXX_STANDARD=${{matrix.std}} \
+            -DC4CORE_DEV=ON \
+            -DC4CORE_BUILD_BENCHMARKS=OFF \
+            -DC4CORE_SANITIZE=OFF \
+            -DC4CORE_LINT=OFF \
+            -DC4CORE_VALGRIND=OFF
+      - name: build
+        run: cmake --build $BDIR -j --target c4core-test-build
+      - name: run
+        run: cmake --build $BDIR -j --target c4core-test-run
+
+  #----------------------------------------------------------------------------
+  # TODO how to run?
+  arm:
+    name: arm/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
+    :: setup-job('windows' 'arm')
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {std: 11, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64arm static32arm}
+          - {std: 11, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64arm static32arm}
+          - {std: 17, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64arm static32arm}
+          - {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64arm static32arm}
+          #
+          # vs2022 has an internal compiler error on iarm32 Release builds:
+          # https://github.com/biojppm/c4core/runs/5593534734?check_suite_focus=true#step:15:126
+          #- {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64arm static32arm}
+          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64arm }
+          #- {std: 20, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64arm static32arm}
+          - {std: 20, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64arm }
+    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
+    steps:
+      - :: checkout-action
+      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - :: run-steps-arm
