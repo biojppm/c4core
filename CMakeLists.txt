@@ -65,6 +65,8 @@ set(C4CORE_SRC_FILES
     c4/utf.hpp
     c4/utf.cpp
     c4/windows.hpp
+    c4/version.hpp
+    c4/version.cpp
     c4/windows_pop.hpp
     c4/windows_push.hpp
     c4/c4core.natvis

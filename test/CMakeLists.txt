@@ -30,6 +30,7 @@ function(c4core_test name)
     c4_add_test(c4core-test-${name} ARGS --duration=on --no-version=on)
 endfunction()
 
+c4core_test(version          test_version.cpp)
 c4core_test(preprocessor     test_preprocessor.cpp)
 c4core_test(type_name        test_type_name.cpp)
 c4core_test(types            test_types.cpp)

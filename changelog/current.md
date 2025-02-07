@@ -1,0 +1,5 @@
+- Add header `c4/version.hpp`:
+  - `c4::version()`
+  - `c4::version_major()`
+  - `c4::version_minor()`
+  - `c4::version_patch()`

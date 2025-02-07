@@ -32,6 +32,21 @@ search = "c4_project\\(VERSION {current_version}"
 [[file]]
 src = "test/test_singleheader/CMakeLists.txt"
 search = "c4_project\\(VERSION {current_version}"
+[[file]]
+src = "src/c4/version.hpp"
+search = "#define C4CORE_VERSION ['\"]{current_version}['\"]"
+[[file]]
+src = "src/c4/version.hpp"
+version_template = "{major}"
+search = "#define C4CORE_VERSION_MAJOR {current_version}"
+[[file]]
+src = "src/c4/version.hpp"
+version_template = "{minor}"
+search = "#define C4CORE_VERSION_MINOR {current_version}"
+[[file]]
+src = "src/c4/version.hpp"
+version_template = "{patch}"
+search = "#define C4CORE_VERSION_PATCH {current_version}"
 
 # You can specify a list of commands to
 # run after the files have been patched

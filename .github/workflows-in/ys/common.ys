@@ -143,6 +143,7 @@ version-env =::
 - name: Env (from tag)
   if: contains(github.ref, 'tags/v')
   run: |
+    source vars.sh
     echo "SRC_VERSION_BODY=$SRC_VERSION_BODY" >> $GITHUB_ENV
 - name: Variables (from commit, no tag)
   if: ${{ !contains(github.ref, 'tags/v') }}
