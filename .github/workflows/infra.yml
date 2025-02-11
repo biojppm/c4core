@@ -33,7 +33,7 @@ jobs:
       run: make -C .github/workflows-in install-ys
     - name: generate workflows
       run: make -C .github/workflows-in build
-    - name: test workflows
+    - name: test status of workflows
       run: |
         wc --version
         wc --help
@@ -43,3 +43,17 @@ jobs:
           echo "ERROR: generated workflows are out of date"
         fi
         exit $status
+  check_fast_float:
+    if: always()
+    continue-on-error: false
+    runs-on: ubuntu-24.04
+    steps:
+    - name: checkout (action)
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: check status of fast_float_all.h
+      run: |
+        python tools/amalgamate.py > /dev/null
+        git diff --exit-code src/c4/ext/fast_float_all.h

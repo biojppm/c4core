@@ -3,3 +3,4 @@
   - `c4::version_major()`
   - `c4::version_minor()`
   - `c4::version_patch()`
+- Update fast_float to 8.0.0
