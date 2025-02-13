@@ -16,8 +16,13 @@
 #   pragma GCC diagnostic push
 #   pragma GCC diagnostic ignored "-Wnarrowing"
 #   pragma GCC diagnostic ignored "-Wconversion"
+#   pragma GCC diagnostic ignored "-Wsign-conversion"
 #   pragma GCC diagnostic ignored "-Wuseless-cast"
 #   pragma GCC diagnostic ignored "-Wold-style-cast"
+#   pragma GCC diagnostic ignored "-Warray-bounds"
+#   if __GNUC__ >= 5
+#       pragma GCC diagnostic ignored "-Wshift-count-overflow"
+#   endif
 #endif
 
 #include "c4/ext/fast_float_all.h"

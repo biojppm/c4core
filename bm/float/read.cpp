@@ -17,35 +17,35 @@
 #endif
 
 
-#if C4FLOAT_STD_ATOF
+#if defined(C4FLOAT_STD_ATOF)
 #include <cstdlib>
 double doit(const char *s) { return atof(s); }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_SSCANF_F
+#elif defined(C4FLOAT_SSCANF_F)
 float doit(const char *s) { float val; sscanf(s, "%f", &val); return val; }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_SSCANF_D
+#elif defined(C4FLOAT_SSCANF_D)
 double doit(const char *s) { double val; sscanf(s, "%lf", &val); return val; }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_IOSTREAM_F
+#elif defined(C4FLOAT_IOSTREAM_F)
 #include <sstream>
 float doit(const char *s) { std::stringstream ss; ss << s; float val; ss >> val; return val; }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_IOSTREAM_D
+#elif defined(C4FLOAT_IOSTREAM_D)
 #include <sstream>
 double doit(const char *s) { std::stringstream ss; ss << s; double val; ss >> val; return val; }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_IOSTREAM_D
+#elif defined(C4FLOAT_IOSTREAM_D)
 #include <sstream>
 double doit(const char *s) { std::stringstream ss; ss << s; double val; ss >> val; return val; }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_FP_F_LIMITED
+#elif defined(C4FLOAT_FP_F_LIMITED)
 #include <jkj/fp/from_chars/from_chars.h>
 float doit(const char *s)
 {
@@ -54,7 +54,7 @@ float doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_FP_D_LIMITED
+#elif defined(C4FLOAT_FP_D_LIMITED)
 #include <jkj/fp/from_chars/from_chars.h>
 double doit(const char *s)
 {
@@ -63,7 +63,7 @@ double doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_FP_F_UNLIMITED
+#elif defined(C4FLOAT_FP_F_UNLIMITED)
 #include <jkj/fp/from_chars/from_chars.h>
 float doit(const char *s)
 {
@@ -72,7 +72,7 @@ float doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_FP_D_UNLIMITED
+#elif defined(C4FLOAT_FP_D_UNLIMITED)
 #include <jkj/fp/from_chars/from_chars.h>
 double doit(const char *s)
 {
@@ -81,7 +81,7 @@ double doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_FASTFLOAT_F
+#elif defined(C4FLOAT_FASTFLOAT_F)
 #include <c4/ext/fast_float.hpp>
 #include <cstring>
 float doit(const char *s)
@@ -92,7 +92,7 @@ float doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_FASTFLOAT_D
+#elif defined(C4FLOAT_FASTFLOAT_D)
 #include <c4/ext/fast_float.hpp>
 #include <cstring>
 double doit(const char *s)
@@ -103,7 +103,7 @@ double doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_STD_FROM_CHARS_F
+#elif defined(C4FLOAT_STD_FROM_CHARS_F)
 #include <charconv>
 #include <cstring>
 float doit(const char *s)
@@ -114,7 +114,7 @@ float doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_STD_FROM_CHARS_D
+#elif defined(C4FLOAT_STD_FROM_CHARS_D)
 #include <charconv>
 #include <cstring>
 double doit(const char *s)
@@ -125,7 +125,7 @@ double doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_RYU_F
+#elif defined(C4FLOAT_RYU_F)
 #include <ryu/ryu_parse.h>
 float doit(const char *s)
 {
@@ -135,7 +135,7 @@ float doit(const char *s)
 }
 #define C4_TO_REAL(s) doit(s)
 
-#elif C4FLOAT_RYU_D
+#elif defined(C4FLOAT_RYU_D)
 #include <ryu/ryu_parse.h>
 double doit(const char *s)
 {

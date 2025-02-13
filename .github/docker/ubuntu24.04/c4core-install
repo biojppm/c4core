@@ -46,7 +46,7 @@ case $what in
         $script arm-linux-gnueabihf
         $script qemu
         ;;
-    g++-4.8|gcc-4.8)
+    g++-4.8|gcc-4.8|gcc4.8)
         apt-get update
         apt-get install -y \
                 software-properties-common
@@ -59,7 +59,7 @@ case $what in
         gcc-4.8 --version
         g++-4.8 --version
         ;;
-    g++-4.9|gcc-4.9)
+    g++-4.9|gcc-4.9|gcc4.9)
         apt-get update
         apt-get install -y \
                 wget \
@@ -74,7 +74,7 @@ case $what in
         gcc-4.9 --version
         g++-4.9 --version
         ;;
-    g++-5|gcc-5)
+    g++-5|gcc-5|gcc5)
         apt-get update
         apt-get install -y \
                 wget \
@@ -340,8 +340,7 @@ case $what in
         arm-none-eabi-gcc --version
         arm-none-eabi-g++ --version
         ;;
-    armv7)
-    arm-linux-gnueabihf)
+    armv7|arm-linux-gnueabihf)
         apt-get update
         apt-get install -y \
                 gcc-arm-linux-gnueabihf \
@@ -349,8 +348,7 @@ case $what in
         arm-linux-gnueabihf-gcc --version
         arm-linux-gnueabihf-g++ --version
         ;;
-    armv6)
-    arm-linux-gnueabi)
+    armv6|arm-linux-gnueabi)
         apt-get update
         apt-get install -y \
                 gcc-arm-linux-gnueabi \
@@ -358,8 +356,7 @@ case $what in
         arm-linux-gnueabi-gcc --version
         arm-linux-gnueabi-g++ --version
         ;;
-    aarch64)
-    aarch64-linux-gnu)
+    aarch64|aarch64-linux-gnu)
         apt-get update
         apt-get install -y \
                 gcc-aarch64-linux-gnu \
@@ -367,9 +364,7 @@ case $what in
         aarch64-linux-gnu-gcc --version
         aarch64-linux-gnu-g++ --version
         ;;
-    s390)
-    s390x)
-    s390x-linux-gnu)
+    s390|s390x|s390x-linux-gnu)
         apt-get update
         apt-get install -y \
                 gcc-s390x-linux-gnu \
@@ -377,9 +372,7 @@ case $what in
         s390x-linux-gnu-gcc --version
         s390x-linux-gnu-g++ --version
         ;;
-    ppc64le)
-    powerpc64le)
-    ppc64le-linux-gnu)
+    ppc64le|powerpc64le|ppc64le-linux-gnu)
         apt-get update
         apt-get install -y \
                 gcc-powerpc64le-linux-gnu \
@@ -387,9 +380,7 @@ case $what in
         powerpc64le-linux-gnu-gcc --version
         powerpc64le-linux-gnu-g++ --version
         ;;
-    ppc64)
-    powerpc64)
-    ppc64-linux-gnu)
+    ppc64|powerpc64|ppc64-linux-gnu)
         apt-get update
         apt-get install -y \
                 gcc-powerpc64-linux-gnu \
@@ -397,8 +388,7 @@ case $what in
         powerpc64-linux-gnu-gcc --version
         powerpc64-linux-gnu-g++ --version
         ;;
-    riscv64)
-    riscv64-linux-gnu)
+    riscv64|riscv64-linux-gnu)
         apt-get update
         apt-get install -y \
                 gcc-riscv64-linux-gnu \
