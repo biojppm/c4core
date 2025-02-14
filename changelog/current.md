@@ -1,0 +1,1 @@
+- [PR#149](https://github.com/biojppm/c4core/pull/149): Fix warnings from `-Wundef`
