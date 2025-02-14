@@ -33,7 +33,8 @@ function c4_release_bump()
     ( \
       set -euxo pipefail ; \
       ver=$(_c4_validate_ver $1) ; \
-      tbump --non-interactive --only-patch $ver \
+      tbump --non-interactive --only-patch $ver ; \
+      sed 's/C[0-9]CORE_/C4CORE_/g' -i src/c4/version.hpp \
       )
 }
 
