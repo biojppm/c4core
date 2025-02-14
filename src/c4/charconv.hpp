@@ -55,13 +55,7 @@
 #       define C4CORE_HAVE_FAST_FLOAT 1
 #   endif
 #   if C4CORE_HAVE_FAST_FLOAT
-        C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wsign-conversion")
-        C4_SUPPRESS_WARNING_GCC("-Warray-bounds")
-#       if defined(__GNUC__) && __GNUC__ >= 5
-            C4_SUPPRESS_WARNING_GCC("-Wshift-count-overflow")
-#       endif
 #       include "c4/ext/fast_float.hpp"
-        C4_SUPPRESS_WARNING_GCC_POP
 #   endif
 #elif (C4_CPP >= 17)
 #   define C4CORE_HAVE_FAST_FLOAT 0
@@ -101,15 +95,13 @@
 #endif
 
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 #   pragma warning(push)
 #   pragma warning(disable: 4996) // snprintf/scanf: this function or variable may be unsafe
 #   if C4_MSVC_VERSION != C4_MSVC_VERSION_2017
 #       pragma warning(disable: 4800) //'int': forcing value to bool 'true' or 'false' (performance warning)
 #   endif
-#endif
-
-#if defined(__clang__)
+#elif defined(__clang__)
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
 #   pragma clang diagnostic ignored "-Wformat-nonliteral"
@@ -241,7 +233,7 @@ struct is_fixed_length
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #   pragma warning(push)
 #elif defined(__clang__)
 #   pragma clang diagnostic push
@@ -1607,7 +1599,7 @@ C4_ALWAYS_INLINE size_t atou_first(csubstr str, T *v)
 
 /** @} */
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #   pragma warning(pop)
 #elif defined(__clang__)
 #   pragma clang diagnostic pop
@@ -2236,8 +2228,8 @@ inline size_t atod_first(csubstr str, double * C4_RESTRICT v) noexcept
 /** @cond dev */
 // on some platforms, (unsigned) int and (unsigned) long
 // are not any of the fixed length types above
-#define _C4_IF_NOT_FIXED_LENGTH_I(T, ty) C4_ALWAYS_INLINE typename std::enable_if<std::  is_signed<T>::value && !is_fixed_length<T>::value_i, ty>
-#define _C4_IF_NOT_FIXED_LENGTH_U(T, ty) C4_ALWAYS_INLINE typename std::enable_if<std::is_unsigned<T>::value && !is_fixed_length<T>::value_u, ty>
+#define _C4_IF_NOT_FIXED_LENGTH_I(T, ty) typename std::enable_if<std::  is_signed<T>::value && !is_fixed_length<T>::value_i, ty>
+#define _C4_IF_NOT_FIXED_LENGTH_U(T, ty) typename std::enable_if<std::is_unsigned<T>::value && !is_fixed_length<T>::value_u, ty>
 /** @endcond*/
 
 
@@ -2279,8 +2271,8 @@ C4_ALWAYS_INLINE size_t xtoa(substr s,  int64_t v,  int64_t radix, size_t num_di
 C4_ALWAYS_INLINE size_t xtoa(substr s,  float v, int precision, RealFormat_e formatting=FTOA_FLEX) noexcept { return ftoa(s, v, precision, formatting); }
 C4_ALWAYS_INLINE size_t xtoa(substr s, double v, int precision, RealFormat_e formatting=FTOA_FLEX) noexcept { return dtoa(s, v, precision, formatting); }
 
-template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type xtoa(substr buf, T v) noexcept { return itoa(buf, v); }
-template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type xtoa(substr buf, T v) noexcept { return write_dec(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto xtoa(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type { return itoa(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto xtoa(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type { return write_dec(buf, v); }
 template <class T>
 C4_ALWAYS_INLINE size_t xtoa(substr s, T *v) noexcept { return itoa(s, (intptr_t)v, (intptr_t)16); }
 
@@ -2304,8 +2296,8 @@ C4_ALWAYS_INLINE bool atox(csubstr s,  int64_t *C4_RESTRICT v) noexcept { return
 C4_ALWAYS_INLINE bool atox(csubstr s,    float *C4_RESTRICT v) noexcept { return atof(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s,   double *C4_RESTRICT v) noexcept { return atod(s, v); }
 
-template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, bool  )::type atox(csubstr buf, T *C4_RESTRICT v) noexcept { return atoi(buf, v); }
-template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, bool  )::type atox(csubstr buf, T *C4_RESTRICT v) noexcept { return atou(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto atox(csubstr buf, T *C4_RESTRICT v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, bool)::type { return atoi(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto atox(csubstr buf, T *C4_RESTRICT v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, bool)::type { return atou(buf, v); }
 template <class T>
 C4_ALWAYS_INLINE bool atox(csubstr s, T **v) noexcept { intptr_t tmp; bool ret = atox(s, &tmp); if(ret) { *v = (T*)tmp; } return ret; }
 
@@ -2344,8 +2336,8 @@ C4_ALWAYS_INLINE size_t to_chars(substr buf,  int64_t v) noexcept { return itoa(
 C4_ALWAYS_INLINE size_t to_chars(substr buf,    float v) noexcept { return ftoa(buf, v); }
 C4_ALWAYS_INLINE size_t to_chars(substr buf,   double v) noexcept { return dtoa(buf, v); }
 
-template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type to_chars(substr buf, T v) noexcept { return itoa(buf, v); }
-template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type to_chars(substr buf, T v) noexcept { return write_dec(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto to_chars(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type { return itoa(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto to_chars(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type { return write_dec(buf, v); }
 template <class T>
 C4_ALWAYS_INLINE size_t to_chars(substr s, T *v) noexcept { return itoa(s, (intptr_t)v, (intptr_t)16); }
 
@@ -2379,8 +2371,8 @@ C4_ALWAYS_INLINE bool from_chars(csubstr buf,  int64_t *C4_RESTRICT v) noexcept 
 C4_ALWAYS_INLINE bool from_chars(csubstr buf,    float *C4_RESTRICT v) noexcept { return atof(buf, v); }
 C4_ALWAYS_INLINE bool from_chars(csubstr buf,   double *C4_RESTRICT v) noexcept { return atod(buf, v); }
 
-template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, bool  )::type from_chars(csubstr buf, T *C4_RESTRICT v) noexcept { return atoi(buf, v); }
-template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, bool  )::type from_chars(csubstr buf, T *C4_RESTRICT v) noexcept { return atou(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto from_chars(csubstr buf, T *C4_RESTRICT v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, bool)::type { return atoi(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto from_chars(csubstr buf, T *C4_RESTRICT v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, bool)::type { return atou(buf, v); }
 template <class T>
 C4_ALWAYS_INLINE bool from_chars(csubstr buf, T **v) noexcept { intptr_t tmp; bool ret = from_chars(buf, &tmp); if(ret) { *v = (T*)tmp; } return ret; }
 
@@ -2407,8 +2399,8 @@ C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,  int64_t *C4_RESTRICT v) n
 C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,    float *C4_RESTRICT v) noexcept { return atof_first(buf, v); }
 C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf,   double *C4_RESTRICT v) noexcept { return atod_first(buf, v); }
 
-template <class T> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type from_chars_first(csubstr buf, T *C4_RESTRICT v) noexcept { return atoi_first(buf, v); }
-template <class T> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type from_chars_first(csubstr buf, T *C4_RESTRICT v) noexcept { return atou_first(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto from_chars_first(csubstr buf, T *C4_RESTRICT v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type { return atoi_first(buf, v); }
+template <class T> C4_ALWAYS_INLINE auto from_chars_first(csubstr buf, T *C4_RESTRICT v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type { return atou_first(buf, v); }
 template <class T>
 C4_ALWAYS_INLINE size_t from_chars_first(csubstr buf, T **v) noexcept { intptr_t tmp; bool ret = from_chars_first(buf, &tmp); if(ret) { *v = (T*)tmp; } return ret; }
 
@@ -2667,11 +2659,9 @@ inline size_t to_chars(substr buf, const char * C4_RESTRICT v) noexcept
 
 // NOLINTEND(hicpp-signed-bitwise)
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #   pragma warning(pop)
-#endif
-
-#if defined(__clang__)
+#elif defined(__clang__)
 #   pragma clang diagnostic pop
 #elif defined(__GNUC__)
 #   pragma GCC diagnostic pop

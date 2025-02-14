@@ -63,6 +63,7 @@ struct fail_type__ {};
 #else
 #   ifdef __clang__
 #       pragma clang diagnostic push
+#       pragma clang diagnostic ignored "-Wundef"
 #       if !defined(__APPLE_CC__)
 #           if __clang_major__ >= 10
 #               pragma clang diagnostic ignored "-Wgnu-inline-cpp-without-extern" // debugbreak/debugbreak.h:50:16: error: 'gnu_inline' attribute without 'extern' in C++ treated as externally available, this changed in Clang 10 [-Werror,-Wgnu-inline-cpp-without-extern]
@@ -73,12 +74,15 @@ struct fail_type__ {};
 #           endif
 #       endif
 #   elif defined(__GNUC__)
+#       pragma GCC diagnostic push
+#       pragma GCC diagnostic ignored "-Wundef"
 #   endif
 #   include <c4/ext/debugbreak/debugbreak.h>
 #   define C4_DEBUG_BREAK() if(c4::is_debugger_attached()) { ::debug_break(); }
 #   ifdef __clang__
 #       pragma clang diagnostic pop
 #   elif defined(__GNUC__)
+#       pragma GCC diagnostic pop
 #   endif
 #endif
 

@@ -8,7 +8,7 @@
 #include "c4/blob.hpp"
 
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #   pragma warning(push)
 #   if C4_MSVC_VERSION != C4_MSVC_VERSION_2017
 #       pragma warning(disable: 4800) // forcing value to bool 'true' or 'false' (performance warning)

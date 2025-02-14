@@ -190,12 +190,12 @@ csubstr underflow_by(substr buf, T val, T how_much, T radix)
 
 TEST_CASE("charconv.to_chars_format")
 {
-#if C4CORE_HAVE_STD_TO_CHARS
+#if defined(C4CORE_HAVE_STD_TO_CHARS)
     CHECK(FTOA_FLOAT == static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::fixed));
     CHECK(FTOA_SCIENT == static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::scientific));
     CHECK(FTOA_FLEX == static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::general));
     CHECK(FTOA_HEXA == static_cast<std::underlying_type<std::chars_format>::type>(std::chars_format::hex));
-#elif !C4CORE_HAVE_FAST_FLOAT
+#elif !defined(C4CORE_HAVE_FAST_FLOAT)
     CHECK(FTOA_FLOAT == 'f');
     CHECK(FTOA_SCIENT == 'e');
     CHECK(FTOA_FLEX == 'g');
@@ -2254,7 +2254,7 @@ TEST_CASE("ftoa.basic")
     // precision values when printing in hexadecimal format.
     //
     // @see https://github.com/biojppm/c4core/pull/52
-    #if defined(__EMSCRIPTEN__) && __EMSCRIPTEN_major__ < 3
+    #if defined(__EMSCRIPTEN__) && __EMSCRIPTEN__ < 3
     #define _c4emscripten_alt(alt) , alt
     #define _c4emscripten_alt2(alt1, alt2) , alt2
     #else
@@ -2369,7 +2369,7 @@ TEST_CASE_TEMPLATE("atof.hexa", T, float, double)
         INFO("str=" << str);
         CHECK_EQ(atox(str, &rval), isok);
     };
-    #if C4CORE_NO_FAST_FLOAT
+    #if defined(C4CORE_NO_FAST_FLOAT)
     #define _scanf_accepts(expected) !expected
     #else
     #define _scanf_accepts(expected) expected

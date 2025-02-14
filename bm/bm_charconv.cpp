@@ -1141,7 +1141,7 @@ xtoa_std_to_chars(bm::State& st)
 }
 #endif
 
-#if C4CORE_BM_HAVE_TOCHARS
+#if defined(C4CORE_BM_HAVE_TOCHARS)
 C4FOR(T, isreal)
 xtoa_std_to_chars(bm::State& st)
 {
@@ -1177,7 +1177,7 @@ atox_std_from_chars(bm::State& st)
 }
 #endif
 
-#if C4CORE_BM_HAVE_TOCHARS
+#if defined(C4CORE_BM_HAVE_TOCHARS)
 C4FOR(T, isreal)
 atox_std_from_chars(bm::State& st)
 {
