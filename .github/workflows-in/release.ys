@@ -12,6 +12,7 @@
 jobs:
 
   gettag:
+    :: setup-job('release' 'gettag')
     runs-on: ubuntu-latest
     steps:
     - :: checkout-action
@@ -20,35 +21,35 @@ jobs:
   #----------------------------------------------------------------------------
   # create source packages
   src:
-    :: setup-job('benchmarks' 'src')
+    :: setup-job('release' 'src')
     needs: gettag
     runs-on: ubuntu-latest
     steps:
-      - :: checkout-action
-      - :: version-get-vars
-      - name: Install python 3.9
-        uses: actions/setup-python@v4
-        with: { python-version: 3.9 }
-      - name: Install requirements
-        run: |
-          sudo -E pip install git-archive-all
-      - name: Create source packages
-        run: |
-          pwd
-          ls -lFhp
-          source vars.sh
-          echo SRC_TAG=$SRC_TAG
-          echo SRC_VERSION=$SRC_VERSION
-          id=${PROJ_PKG_NAME}${SRC_VERSION}
-          name=${id}-src
-          mkdir -p assets
-          git-archive-all --prefix $name assets/$name.tgz
-          git-archive-all --prefix $name assets/$name.zip
-          python --version
-          python tools/amalgamate.py assets/$id.hpp
-      - name: Save source artifacts
-        uses: actions/upload-artifact@v4
-        with: {name: assets-src, path: assets}
+    - :: checkout-action
+    - :: version-get-vars
+    - name: Install python 3.9
+      uses: actions/setup-python@v5
+      with: { python-version: 3.9 }
+    - name: Install requirements
+      run: |
+        sudo -E pip install git-archive-all
+    - name: Create source packages
+      run: |
+        pwd
+        ls -lFhp
+        source vars.sh
+        echo SRC_TAG=$SRC_TAG
+        echo SRC_VERSION=$SRC_VERSION
+        id=${PROJ_PKG_NAME}${SRC_VERSION}
+        name=${id}-src
+        mkdir -p assets
+        git-archive-all --prefix $name assets/$name.tgz
+        git-archive-all --prefix $name assets/$name.zip
+        python --version
+        python tools/amalgamate.py assets/$id.hpp
+    - name: Save source artifacts
+      uses: actions/upload-artifact@v4
+      with: {name: assets-src, path: assets}
 
   #----------------------------------------------------------------------------
   # create c++ packages
@@ -69,30 +70,30 @@ jobs:
           - {name: Windows VS2019 zip, sfxg: win64-shared-Release.zip , sfxp: windows-vs2019.zip , gen: ZIP  , mime: zip                      , os: windows-2019, cxx: vs2019}
           - {name: MacOSX sh         , sfxg: apple64-shared-Release.sh, sfxp: macosx-xcode.sh    , gen: STGZ , mime: x-sh                     , os: macos-13    , cxx: xcode }
     steps:
-      - :: checkout-action
-      - :: version-get-vars
-      - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
-      - {name: show info, run: source .github/setenv.sh && c4_show_info }
-      - name: shared64-configure---------------------------------------------------
-        run: source .github/setenv.sh && c4_cfg_test shared64
-      - {name: shared64-build, run: source .github/setenv.sh && c4_build_target shared64}
-      - name: shared64-pack
-        run: source .github/setenv.sh && c4_package shared64 $GEN
-      - name: shared64-normalize
-        run: |
-          set -x
-          source vars.sh
-          ls -lFhp .
-          ls -lFhp ./build
-          ls -lFhp ./build/shared64
-          mkdir -p assets
-          asset_src=`ls -1 ./build/shared64/${PROJ_PFX_TARGET}*-${{matrix.sfxg}}`
-          asset_dst=./assets/${PROJ_PKG_NAME}${SRC_VERSION}-${{matrix.sfxp}}
-          [ ! -f $asset_src ] && exit 1
-          cp -fav $asset_src $asset_dst
-      - name: Save artifacts
-        uses: actions/upload-artifact@v4
-        with: {name: "assets-cpp-${{matrix.os}}-${{matrix.cxx}}", path: assets}
+    - :: checkout-action
+    - :: version-get-vars
+    - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+    - {name: show info, run: source .github/setenv.sh && c4_show_info }
+    - name: shared64-configure---------------------------------------------------
+      run: source .github/setenv.sh && c4_cfg_test shared64
+    - {name: shared64-build, run: source .github/setenv.sh && c4_build_target shared64}
+    - name: shared64-pack
+      run: source .github/setenv.sh && c4_package shared64 $GEN
+    - name: shared64-normalize
+      run: |
+        set -x
+        source vars.sh
+        ls -lFhp .
+        ls -lFhp ./build
+        ls -lFhp ./build/shared64
+        mkdir -p assets
+        asset_src=`ls -1 ./build/shared64/${PROJ_PFX_TARGET}*-${{matrix.sfxg}}`
+        asset_dst=./assets/${PROJ_PKG_NAME}${SRC_VERSION}-${{matrix.sfxp}}
+        [ ! -f $asset_src ] && exit 1
+        cp -fav $asset_src $asset_dst
+    - name: Save artifacts
+      uses: actions/upload-artifact@v4
+      with: {name: "assets-cpp-${{matrix.os}}-${{matrix.cxx}}", path: assets}
 
   #----------------------------------------------------------------------------
   merge_artifacts:
@@ -100,56 +101,56 @@ jobs:
     runs-on: ubuntu-latest
     needs: [src, cpp]
     steps:
-      - name: Merge assets artifacts
-        uses: actions/upload-artifact/merge@v4
-        with:
-          name: assets
-          pattern: assets-*
-          separate-directories: true
-          delete-merged: true
+    - name: Merge assets artifacts
+      uses: actions/upload-artifact/merge@v4
+      with:
+        name: assets
+        pattern: assets-*
+        separate-directories: true
+        delete-merged: true
 
   #----------------------------------------------------------------------------
   release:
     runs-on: ubuntu-latest
     needs:
-      - merge_artifacts
+    - merge_artifacts
     steps:
-      - :: checkout-action
-      - name: Gather artifacts - ./assets
-        uses: actions/download-artifact@v4
-        with: {name: assets, pattern: assets}
-      - name: Verify existing artifacts
-        run: |
-          ls -lFhp .
-          ls -lFhp assets*/ || echo 'none found'
-          ( \
-            mkdir -p assets
-            cd assets ; \
-            for asset in ../assets-*/ ; do \
-              ls -lFhpA $asset/ ; \
-              mv -v $asset/* . ; \
-              rmdir $asset ; \
-            done ;
-          )
-          ls -lFhp assets*/ || echo 'none found'
-      #
-      # Github
-      - :: version-get-vars
-      - name: Create Github Release
-        if: contains(github.ref, 'tags/v')
-        id: create_release
-        uses: actions/create-release@v1
-        env: { GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}" }
-        with:
-          tag_name: ${{github.ref}}
-          release_name: Release ${{env.SRC_VERSION}}
-          body_path: ${{env.SRC_VERSION_BODY}}
-          draft: true
-          prerelease: ${{contains(github.ref, 'rc')}}
-      - name: Upload assets to Github Release
-        if: contains(github.ref, 'tags/v')
-        uses: dwenegar/upload-release-assets@v1
-        env: { GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}" }
-        with:
-          release_id: ${{steps.create_release.outputs.id}}
-          assets_path: ./assets/
+    - :: checkout-action
+    - name: Gather artifacts - ./assets
+      uses: actions/download-artifact@v4
+      with: {name: assets, pattern: assets}
+    - name: Verify existing artifacts
+      run: |
+        ls -lFhp .
+        ls -lFhp assets*/ || echo 'none found'
+        ( \
+          mkdir -p assets
+          cd assets ; \
+          for asset in ../assets-*/ ; do \
+            ls -lFhpA $asset/ ; \
+            mv -v $asset/* . ; \
+            rmdir $asset ; \
+          done ;
+        )
+        ls -lFhp assets*/ || echo 'none found'
+    #
+    # Github
+    - :: version-get-vars
+    - name: Create Github Release
+      if: contains(github.ref, 'tags/v')
+      id: create_release
+      uses: actions/create-release@v1
+      env: { GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}" }
+      with:
+        tag_name: ${{github.ref}}
+        release_name: Release ${{env.SRC_VERSION}}
+        body_path: ${{env.SRC_VERSION_BODY}}
+        draft: true
+        prerelease: ${{contains(github.ref, 'rc')}}
+    - name: Upload assets to Github Release
+      if: contains(github.ref, 'tags/v')
+      uses: dwenegar/upload-release-assets@v1
+      env: { GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}" }
+      with:
+        release_id: ${{steps.create_release.outputs.id}}
+        assets_path: ./assets/
