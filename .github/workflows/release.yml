@@ -177,12 +177,6 @@ jobs:
           gen: DEB
           mime: vnd.debian.binary-package
           os: ubuntu-22.04
-        - name: Ubuntu 20.04 deb
-          sfxg: unix64-shared-Release.deb
-          sfxp: ubuntu-20.04.deb
-          gen: DEB
-          mime: vnd.debian.binary-package
-          os: ubuntu-20.04
         - name: Windows VS2022 zip
           sfxg: win64-shared-Release.zip
           sfxp: windows-vs2022.zip
