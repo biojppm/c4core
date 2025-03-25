@@ -1,3 +1,7 @@
+if(NOT (CMAKE_VERSION VERSION_LESS "4.0.0"))
+    c4_log(STATUS "setting CMAKE_POLICY_VERSION_MINIMUM=3.5 to build doctest")
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+endif()
 c4_setup_testing(DOCTEST)
 
 c4_add_library(c4core-_libtest LIBRARY_TYPE STATIC

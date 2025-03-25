@@ -24,6 +24,7 @@ case $what in
         $script gcc-14
         ;;
     clang-all)
+        $script clang-19
         $script clang-18
         $script clang-17
         $script clang-16
@@ -273,6 +274,18 @@ case $what in
         apt-get update
         apt-get install -y \
                 clang-18 clang-tidy-18
+        ;;
+    clang++-19|clang-19)
+        apt-get update
+        apt-get install -y \
+                wget \
+                software-properties-common
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | apt-key add -
+        apt-add-repository --yes --no-update ppa:ubuntu-toolchain-r/test
+        apt-add-repository --yes --no-update "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main"
+        apt-get update
+        apt-get install -y \
+                clang-19 clang-tidy-19
         ;;
     arm-none-eabi)
         # taken from: https://askubuntu.com/questions/1243252/how-to-install-arm-none-eabi-gdb-on-ubuntu-20-04-lts-focal-fossa/1371525#1371525

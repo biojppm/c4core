@@ -24,6 +24,7 @@ case $what in
         $script gcc-4.8
         ;;
     clang-all)
+        $script clang-19
         $script clang-18
         $script clang-17
         $script clang-16
@@ -332,6 +333,11 @@ case $what in
         apt-get update
         apt-get install -y \
                 clang-18 clang-tidy-18
+        ;;
+    clang++-19|clang-19)
+        apt-get update
+        apt-get install -y \
+                clang-19 clang-tidy-19
         ;;
     arm-none-eabi)
         apt-get update

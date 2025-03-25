@@ -30,72 +30,72 @@ jobs:
         include:
         - name: find_package/linux/Release
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13
           tgt: all
           bt: Release
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: null
         - name: find_package/linux/Debug
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13
           tgt: all
           bt: Debug
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: null
         - name: find_package/linux/RelNoExc
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Release
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: null
         - name: find_package/linux/DbgNoExc
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Debug
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: null
         - name: find_package/linux/libcxx/Release
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14
           tgt: all
           bt: Release
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: find_package/linux/libcxx/Debug
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14
           tgt: all
           bt: Debug
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: find_package/linux/libcxx/RelNoExc
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Release
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: find_package/linux/libcxx/DbgNoExc
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Debug
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/lib/cmake/c4core -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
@@ -174,72 +174,72 @@ jobs:
           commonvars: null
         - name: find_library/linux/Release
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13
           tgt: all
           bt: Release
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: null
         - name: find_library/linux/Debug
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13
           tgt: all
           bt: Debug
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: null
         - name: find_library/linux/RelNoExc
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Release
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: null
         - name: find_library/linux/DbgNoExc
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Debug
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: null
         - name: find_library/linux/libcxx/Release
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14
           tgt: all
           bt: Release
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: find_library/linux/libcxx/Debug
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14
           tgt: all
           bt: Debug
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: find_library/linux/libcxx/RelNoExc
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Release
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: find_library/linux/libcxx/DbgNoExc
           sdir: test/test_install
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Debug
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
@@ -318,72 +318,72 @@ jobs:
           commonvars: null
         - name: singleheader/linux/Release
           sdir: test/test_singleheader
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13
           tgt: all
           bt: Release
           vars: null
           commonvars: null
         - name: singleheader/linux/Debug
           sdir: test/test_singleheader
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13
           tgt: all
           bt: Debug
           vars: null
           commonvars: null
         - name: singleheader/linux/RelNoExc
           sdir: test/test_singleheader
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Release
           vars: null
           commonvars: null
         - name: singleheader/linux/DbgNoExc
           sdir: test/test_singleheader
-          os: ubuntu-20.04
-          cxx: g++-10
-          gen: -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: g++-13
+          gen: -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Debug
           vars: null
           commonvars: null
         - name: singleheader/linux/libcxx/Release
           sdir: test/test_singleheader
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14
           tgt: all
           bt: Release
           vars: null
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: singleheader/linux/libcxx/Debug
           sdir: test/test_singleheader
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14
           tgt: all
           bt: Debug
           vars: null
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: singleheader/linux/libcxx/RelNoExc
           sdir: test/test_singleheader
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Release
           vars: null
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: singleheader/linux/libcxx/DbgNoExc
           sdir: test/test_singleheader
-          os: ubuntu-20.04
-          cxx: clang++-9
-          gen: -DCMAKE_CXX_COMPILER=clang++-9 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
+          os: ubuntu-24.04
+          cxx: clang++-14
+          gen: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: all
           bt: Debug
           vars: null

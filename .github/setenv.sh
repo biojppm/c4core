@@ -107,12 +107,12 @@ function _c4skipbitlink()
 
 function c4_build_test()
 {
-    c4_build_target $* test-build
+    c4_build_target $* c4core-test-build
 }
 
 function c4_run_test()
 {
-    c4_run_target $* test
+    c4_run_target $* c4core-test-run
 }
 
 function c4_build_target()  # runs in parallel

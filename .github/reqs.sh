@@ -237,6 +237,7 @@ function _c4_gather_compilers()
 {
     cxx=$1
     case $cxx in
+        g++-14     ) _c4_addgcc 14 ;;
         g++-13     ) _c4_addgcc 13 ;;
         g++-12     ) _c4_addgcc 12 ;;
         g++-11     ) _c4_addgcc 11 ;;
@@ -248,6 +249,10 @@ function _c4_gather_compilers()
         g++-5      ) _c4_addgcc 5  ;;
         g++-4.9    ) _c4_addgcc 4.9 ;;  # https://askubuntu.com/questions/1036108/install-gcc-4-9-at-ubuntu-18-04
         g++-4.8    ) _c4_addgcc 4.8 ;;
+        clang++-19 ) _c4_addclang 19  ;;
+        clang++-18 ) _c4_addclang 18  ;;
+        clang++-17 ) _c4_addclang 17  ;;
+        clang++-16 ) _c4_addclang 16  ;;
         clang++-15 ) _c4_addclang 15  ;;
         clang++-14 ) _c4_addclang 14  ;;
         clang++-13 ) _c4_addclang 13  ;;
@@ -342,10 +347,11 @@ function _c4_addgcc()
 # add a clang compiler
 function _c4_addclang()
 {
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
     clversion=$1
     case $clversion in
         # in 18.04, clang9 and later require PPAs
-        9 | 10 | 11 | 12 | 13 | 14 | 15)
+        9 | 10 | 11 | 12 | 13)
             _add_apt clang-$clversion "deb http://apt.llvm.org/$UBUNTU_RELEASE_NAME/ llvm-toolchain-$UBUNTU_RELEASE_NAME-$clversion main"
             # libstdc++ is required
             _c4_addgcc 11
