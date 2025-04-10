@@ -166,7 +166,7 @@ function c4_install_test_requirements_ubuntu_impl()
         sudo pip3 install --force-reinstall importlib_metadata
         sudo pip3 install --force-reinstall setuptools
         sudo pip3 install setuptools-rust
-        sudo pip3 install --upgrade pip
+        sudo pip3 install --upgrade pip || echo "could not upgrade pip"
         sudo pip3 install $PIP_PKG
     fi
 }

@@ -6,7 +6,7 @@ project(c4core
 include(./cmake/c4Project.cmake)
 include(./compat.cmake)
 
-c4_project(VERSION 0.2.5
+c4_project(VERSION 0.2.6
     AUTHOR "Joao Paulo Magalhaes <dev@jpmag.me>")
 
 option(C4CORE_INSTALL "create install target" ON)
