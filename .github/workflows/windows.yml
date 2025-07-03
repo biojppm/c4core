@@ -213,23 +213,10 @@ jobs:
           cxx: vs2022
           bt: Debug
           os: windows-2022
-          bitlinks: shared64 static32
         - std: 11
           cxx: vs2022
           bt: Release
           os: windows-2022
-          bitlinks: shared64 static32
-    env:
-      STD: ${{matrix.std}}
-      CXX_: ${{matrix.cxx}}
-      BT: ${{matrix.bt}}
-      BITLINKS: ${{matrix.bitlinks}}
-      VG: ${{matrix.vg}}
-      SAN: ${{matrix.san}}
-      LINT: ${{matrix.lint}}
-      OS: ${{matrix.os}}
-      BDIR: build_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}
-      IDIR: install_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}
     steps:
     - name: checkout (action)
       uses: actions/checkout@v4
@@ -241,12 +228,10 @@ jobs:
     - name: configure
       run: |
         set -x
-        echo BDIR=$BDIR
-        echo IDIR=$IDIR
-        cmake -S . -B $BDIR \
+        cmake -S . -B build \
           -G "Unix Makefiles" \
           -DCMAKE_CXX_COMPILER=clang++ \
-          -DCMAKE_INSTALL_PREFIX=$IDIR \
+          -DCMAKE_INSTALL_PREFIX=install \
           -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
           -DC4_CXX_STANDARD=${{matrix.std}} \
           -DCXX_STANDARD=${{matrix.std}} \
@@ -256,12 +241,12 @@ jobs:
           -DC4CORE_LINT=OFF \
           -DC4CORE_VALGRIND=OFF
     - name: build
-      run: cmake --build $BDIR -j --target c4core-test-build
+      run: cmake --build build -j --target c4core-test-build
     - name: run
       run: |
         source .github/setenv.sh
         export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
-        cmake --build $BDIR -j --target c4core-test-run
+        cmake --build build -j --target c4core-test-run
   vsclang:
     if: always()
     continue-on-error: false
@@ -274,25 +259,21 @@ jobs:
         - std: 11
           name: vs2022/debug/static
           os: 2022
-          gen: Visual Studio 17 2022
           bt: Debug
           shared: 'OFF'
         - std: 11
           name: vs2022/release/shared
           os: 2022
-          gen: Visual Studio 17 2022
           bt: Release
           shared: 'ON'
         - std: 20
           name: vs2022/debug/shared
           os: 2022
-          gen: Visual Studio 17 2022
           bt: Debug
           shared: 'OFF'
         - std: 20
           name: vs2022/release/shared
           os: 2022
-          gen: Visual Studio 17 2022
           bt: Release
           shared: 'ON'
     steps:
@@ -301,10 +282,12 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-    - name: config
+    - name: '----------------(-T ClangCL)'
+      run: echo "-T ClangCL"
+    - name: config (-T ClangCL)
       run: |
-        cmake -B build/ \
-              -G "${{matrix.gen}}" -T ClangCL \
+        cmake -B build/ts \
+              -G "Visual Studio 17 2022" -T ClangCL -A x64 \
               -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
               -DCMAKE_CXX_STANDARD=${{matrix.std}} \
               -DCMAKE_CXX_FLAGS=' /DWIN32 /D_WINDOWS /W3 /GR /EHsc /D_CRT_SECURE_NO_WARNINGS ' \
@@ -312,14 +295,33 @@ jobs:
               -DBUILD_SHARED_LIBS=${{matrix.shared}} \
               -DC4CORE_DEV=ON \
               -DC4CORE_BUILD_BENCHMARKS=OFF
-    - name: build
+    - name: build (-T ClangCL)
       run: |
-        cmake --build build --target c4core-test-build --config ${{matrix.bt}} --parallel --verbose
-    - name: test
+        cmake --build build/ts --target c4core-test-build --config ${{matrix.bt}} --parallel --verbose
+    - name: test (-T ClangCL)
       run: |
         source .github/setenv.sh
         export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
-        cmake --build build --target c4core-test-run --config ${{matrix.bt}}
+        cmake --build build/ts --target c4core-test-run --config ${{matrix.bt}}
+    - name: '----------------(CXX_COMPILER=clang-cl)'
+      run: echo "CXX_COMPILER=clang-cl"
+    - name: config (CXX_COMPILER=clang-cl)
+      run: |
+        cmake -B build/comp \
+              -G Ninja -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl \
+              -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
+              -DCMAKE_CXX_STANDARD=${{matrix.std}} \
+              -DBUILD_SHARED_LIBS=${{matrix.shared}} \
+              -DC4CORE_DEV=ON \
+              -DC4CORE_BUILD_BENCHMARKS=OFF
+    - name: build (CXX_COMPILER=clang-cl)
+      run: |
+        cmake --build build/comp --target c4core-test-build --config ${{matrix.bt}} --parallel --verbose
+    - name: test (CXX_COMPILER=clang-cl)
+      run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
+        cmake --build build/comp --target c4core-test-run --config ${{matrix.bt}}
   arm:
     name: arm/${{matrix.cxx}}/c++${{matrix.std}}/${{matrix.bt}}
     if: always()
