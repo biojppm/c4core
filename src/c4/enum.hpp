@@ -58,6 +58,7 @@ public:
 
     template<size_t N>
     EnumSymbols(Sym const (&p)[N]) : m_symbols(p), m_num(N) {}
+    EnumSymbols(Sym const *p, size_t N) : m_symbols(p), m_num(N) {}
 
     size_t size() const { return m_num; }
     bool empty() const { return m_num == 0; }
