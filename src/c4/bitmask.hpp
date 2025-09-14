@@ -23,6 +23,7 @@
 #   if __GNUC__ >= 8
 #       pragma GCC diagnostic ignored "-Wstringop-truncation"
 #       pragma GCC diagnostic ignored "-Wstringop-overflow"
+#       pragma GCC diagnostic ignored "-Warray-bounds"
 #   endif
 #endif
 
