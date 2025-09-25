@@ -73,24 +73,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
-          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
-    env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}",
-          BDIR: "build_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}",
-          IDIR: "install_${{matrix.arch}}_${{matrix.bt}}_${{matrix.std}}"
-    }
+          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022}
+          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022}
     steps:
       - :: checkout-action
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: configure
         run: |
           set -x
-          echo BDIR=$BDIR
-          echo IDIR=$IDIR
-          cmake -S . -B $BDIR \
+          cmake -S . -B build \
             -G "Unix Makefiles" \
             -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_INSTALL_PREFIX=$IDIR \
+            -DCMAKE_INSTALL_PREFIX=install \
             -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
             -DC4_CXX_STANDARD=${{matrix.std}} \
             -DCXX_STANDARD=${{matrix.std}} \
@@ -100,9 +94,43 @@ jobs:
             -DC4CORE_LINT=OFF \
             -DC4CORE_VALGRIND=OFF
       - name: build
-        run: cmake --build $BDIR -j --target c4core-test-build
+        run: cmake --build build -j --target c4core-test-build
       - name: run
-        run: cmake --build $BDIR -j --target c4core-test-run
+        run: cmake --build build -j --target c4core-test-run
+
+  #----------------------------------------------------------------------------
+  # https://stackoverflow.com/questions/38171878/how-do-i-tell-cmake-to-use-clang-on-windows
+  vs-clang-cl:
+    :: setup-job('windows' 'clang-cl')
+    name: vs-clang-cl/vs${{matrix.vs}}/c++${{matrix.std}}/${{matrix.bt}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {std: 11, bt: Debug  , vs: 17 2022, toolch: -T ClangCL -A x64, os: windows-2022}
+          - {std: 11, bt: Release, vs: 17 2022, toolch: -T ClangCL -A x64, os: windows-2022}
+    steps:
+      - :: checkout-action
+      - {name: show info, run: source .github/setenv.sh && c4_show_info}
+      - name: configure
+        run: |
+          set -x
+          cmake -S . -B build \
+            -G "Visual Studio ${{matrix.vs}}" ${{matrix.toolch}} \
+            -DCMAKE_INSTALL_PREFIX=`pwd`/install \
+            -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
+            -DC4_CXX_STANDARD=${{matrix.std}} \
+            -DCXX_STANDARD=${{matrix.std}} \
+            -DC4CORE_DEV=ON \
+            -DC4CORE_BUILD_BENCHMARKS=OFF \
+            -DC4CORE_SANITIZE=OFF \
+            -DC4CORE_LINT=OFF \
+            -DC4CORE_VALGRIND=OFF
+      - name: build
+        run: cmake --build build -j --target c4core-test-build
+      - name: run
+        run: cmake --build build -j --target c4core-test-run
 
   #----------------------------------------------------------------------------
   # TODO how to run?
