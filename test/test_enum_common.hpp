@@ -13,7 +13,7 @@ typedef enum {
 
 namespace c4 {
 template<>
-inline const EnumSymbols<MyEnum> esyms<MyEnum>()
+inline EnumSymbols<MyEnum> esyms<MyEnum>()
 {
     static const EnumSymbols<MyEnum>::Sym rs[] =
     {
@@ -40,7 +40,7 @@ enum class MyEnumClass {
 
 namespace c4 {
 template<>
-inline const EnumSymbols<MyEnumClass> esyms<MyEnumClass>()
+inline EnumSymbols<MyEnumClass> esyms<MyEnumClass>()
 {
     static const EnumSymbols<MyEnumClass>::Sym rs[] =
     {
@@ -76,7 +76,7 @@ typedef enum {
 
 namespace c4 {
 template<>
-inline const EnumSymbols<MyBitmask> esyms<MyBitmask>()
+inline EnumSymbols<MyBitmask> esyms<MyBitmask>()
 {
     static const EnumSymbols<MyBitmask>::Sym rs[] =
     {
@@ -111,7 +111,7 @@ typedef enum {
 
 namespace c4 {
 template<>
-inline const c4::EnumSymbols<BmWithoutNull> esyms<BmWithoutNull>()
+inline c4::EnumSymbols<BmWithoutNull> esyms<BmWithoutNull>()
 {
     static const EnumSymbols<BmWithoutNull>::Sym rs[] =
     {
@@ -148,7 +148,7 @@ enum class MyBitmaskClass {
 namespace c4 {
 
 template<>
-inline const EnumSymbols<MyBitmaskClass> esyms<MyBitmaskClass>()
+inline EnumSymbols<MyBitmaskClass> esyms<MyBitmaskClass>()
 {
     static const EnumSymbols<MyBitmaskClass>::Sym rs[] =
     {
@@ -186,7 +186,7 @@ enum class BmClassWithoutNull {
 
 namespace c4 {
 template<>
-inline const c4::EnumSymbols<BmClassWithoutNull> esyms<BmClassWithoutNull>()
+inline c4::EnumSymbols<BmClassWithoutNull> esyms<BmClassWithoutNull>()
 {
     static const EnumSymbols<BmClassWithoutNull>::Sym rs[] =
     {

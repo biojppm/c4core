@@ -90,7 +90,7 @@ private:
  * type. Failure to provide a specialization will cause a linker
  * error. */
 template<class Enum>
-EnumSymbols<Enum> const esyms();
+EnumSymbols<Enum> esyms();
 
 
 /** return the offset for an enum symbol class. For example,
