@@ -21,13 +21,13 @@ jobs:
           #- {std: 11, cxx: vs2017, bt: Release, os: windows-2016, bitlinks: shared64 static32}
           #- {std: 14, cxx: vs2017, bt: Debug  , os: windows-2016, bitlinks: shared64 static32}
           #- {std: 14, cxx: vs2017, bt: Release, os: windows-2016, bitlinks: shared64 static32}
-          #
-          - {std: 11, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
-          - {std: 11, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
-          - {std: 14, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
-          - {std: 14, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
-          - {std: 17, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
-          - {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
+          # github retired windows-2019
+          #- {std: 11, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
+          #- {std: 11, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
+          #- {std: 14, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
+          #- {std: 14, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
+          #- {std: 17, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64 static32}
+          #- {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64 static32}
           #
           - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
           - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
@@ -114,10 +114,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64arm static32arm}
-          - {std: 11, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64arm static32arm}
-          - {std: 17, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64arm static32arm}
-          - {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64arm static32arm}
+          # 2019 has been retired
+          #- {std: 11, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64arm static32arm}
+          #- {std: 11, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64arm static32arm}
+          #- {std: 17, cxx: vs2019, bt: Debug  , os: windows-2019, bitlinks: shared64arm static32arm}
+          #- {std: 17, cxx: vs2019, bt: Release, os: windows-2019, bitlinks: shared64arm static32arm}
           #
           # vs2022 has an internal compiler error on iarm32 Release builds:
           # https://github.com/biojppm/c4core/runs/5593534734?check_suite_focus=true#step:15:126

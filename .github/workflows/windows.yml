@@ -29,36 +29,6 @@ jobs:
       matrix:
         include:
         - std: 11
-          cxx: vs2019
-          bt: Debug
-          os: windows-2019
-          bitlinks: shared64 static32
-        - std: 11
-          cxx: vs2019
-          bt: Release
-          os: windows-2019
-          bitlinks: shared64 static32
-        - std: 14
-          cxx: vs2019
-          bt: Debug
-          os: windows-2019
-          bitlinks: shared64 static32
-        - std: 14
-          cxx: vs2019
-          bt: Release
-          os: windows-2019
-          bitlinks: shared64 static32
-        - std: 17
-          cxx: vs2019
-          bt: Debug
-          os: windows-2019
-          bitlinks: shared64 static32
-        - std: 17
-          cxx: vs2019
-          bt: Release
-          os: windows-2019
-          bitlinks: shared64 static32
-        - std: 11
           cxx: vs2022
           bt: Debug
           os: windows-2022
@@ -298,26 +268,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - std: 11
-          cxx: vs2019
-          bt: Debug
-          os: windows-2019
-          bitlinks: shared64arm static32arm
-        - std: 11
-          cxx: vs2019
-          bt: Release
-          os: windows-2019
-          bitlinks: shared64arm static32arm
-        - std: 17
-          cxx: vs2019
-          bt: Debug
-          os: windows-2019
-          bitlinks: shared64arm static32arm
-        - std: 17
-          cxx: vs2019
-          bt: Release
-          os: windows-2019
-          bitlinks: shared64arm static32arm
         - std: 11
           cxx: vs2022
           bt: Release

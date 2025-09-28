@@ -184,13 +184,6 @@ jobs:
           mime: zip
           os: windows-2022
           cxx: vs2022
-        - name: Windows VS2019 zip
-          sfxg: win64-shared-Release.zip
-          sfxp: windows-vs2019.zip
-          gen: ZIP
-          mime: zip
-          os: windows-2019
-          cxx: vs2019
         - name: MacOSX sh
           sfxg: apple64-shared-Release.sh
           sfxp: macosx-xcode.sh

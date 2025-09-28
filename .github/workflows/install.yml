@@ -138,36 +138,36 @@ jobs:
           commonvars: null
         - name: find_package/win/Release
           sdir: test/test_install
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64
           tgt: ALL_BUILD
           bt: Release
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: null
         - name: find_package/win/Debug
           sdir: test/test_install
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64
           tgt: ALL_BUILD
           bt: Debug
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: null
         - name: find_package/win/RelNoExc
           sdir: test/test_install
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
           tgt: ALL_BUILD
           bt: Release
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
           commonvars: null
         - name: find_package/win/DbgNoExc
           sdir: test/test_install
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
           tgt: ALL_BUILD
           bt: Debug
           vars: -Dc4core_DIR=$GITHUB_WORKSPACE/$PDIR/cmake            -DC4CORE_TEST_INSTALL_PACKAGE_MODE=ON
@@ -282,36 +282,36 @@ jobs:
           commonvars: null
         - name: find_library/win/Release
           sdir: test/test_install
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64
           tgt: ALL_BUILD
           bt: Release
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: null
         - name: find_library/win/Debug
           sdir: test/test_install
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64
           tgt: ALL_BUILD
           bt: Debug
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: null
         - name: find_library/win/RelNoExc
           sdir: test/test_install
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
           tgt: ALL_BUILD
           bt: Release
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
           commonvars: null
         - name: find_library/win/DbgNoExc
           sdir: test/test_install
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
           tgt: ALL_BUILD
           bt: Debug
           vars: -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/$PDIR           -DC4CORE_TEST_INSTALL_PACKAGE_MODE=OFF
@@ -426,36 +426,36 @@ jobs:
           commonvars: null
         - name: singleheader/win/Release
           sdir: test/test_singleheader
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64
           tgt: ALL_BUILD
           bt: Release
           vars: null
           commonvars: null
         - name: singleheader/win/Debug
           sdir: test/test_singleheader
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64
           tgt: ALL_BUILD
           bt: Debug
           vars: null
           commonvars: null
         - name: singleheader/win/RelNoExc
           sdir: test/test_singleheader
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
           tgt: ALL_BUILD
           bt: Release
           vars: null
           commonvars: null
         - name: singleheader/win/DbgNoExc
           sdir: test/test_singleheader
-          os: windows-2019
-          cxx: vs2019
-          gen: -G 'Visual Studio 16 2019' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
+          os: windows-2022
+          cxx: vs2022
+          gen: -G 'Visual Studio 17 2022' -A x64 -DCMAKE_CXX_FLAGS=' /EHa- /EHs- /EHc /EHr- /GR- /wd4530'
           tgt: ALL_BUILD
           bt: Debug
           vars: null
