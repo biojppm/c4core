@@ -1,1 +1,0 @@
-- `c4/enum.hpp`: remove useless `const` in return value of `c4::esyms()`.

@@ -3,10 +3,10 @@
 
 /** @file version.hpp */
 
-#define C4CORE_VERSION "0.2.6"
+#define C4CORE_VERSION "0.2.7"
 #define C4CORE_VERSION_MAJOR 0
 #define C4CORE_VERSION_MINOR 2
-#define C4CORE_VERSION_PATCH 6
+#define C4CORE_VERSION_PATCH 7
 
 #include <c4/export.hpp>
 
