@@ -1,4 +1,4 @@
-# DO NOT EDIT - GENERATED FROM .github/workflows-in/install.ys
+# DO NOT EDIT - GENERATED FROM .github/workflows/install.ys
 
 name: install
 defaults:
@@ -102,7 +102,7 @@ jobs:
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: find_package/macos/Release
           sdir: test/test_install
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64
           tgt: ALL_BUILD
@@ -111,7 +111,7 @@ jobs:
           commonvars: null
         - name: find_package/macos/Debug
           sdir: test/test_install
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64
           tgt: ALL_BUILD
@@ -120,7 +120,7 @@ jobs:
           commonvars: null
         - name: find_package/macos/RelNoExc
           sdir: test/test_install
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: ALL_BUILD
@@ -129,7 +129,7 @@ jobs:
           commonvars: null
         - name: find_package/macos/DbgNoExc
           sdir: test/test_install
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: ALL_BUILD
@@ -246,7 +246,7 @@ jobs:
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: find_library/macos/Release
           sdir: test/test_install
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64
           tgt: ALL_BUILD
@@ -255,7 +255,7 @@ jobs:
           commonvars: null
         - name: find_library/macos/Debug
           sdir: test/test_install
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64
           tgt: ALL_BUILD
@@ -264,7 +264,7 @@ jobs:
           commonvars: null
         - name: find_library/macos/RelNoExc
           sdir: test/test_install
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: ALL_BUILD
@@ -273,7 +273,7 @@ jobs:
           commonvars: null
         - name: find_library/macos/DbgNoExc
           sdir: test/test_install
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: ALL_BUILD
@@ -390,7 +390,7 @@ jobs:
           commonvars: -DC4CORE_USE_LIBCXX=ON
         - name: singleheader/macos/Release
           sdir: test/test_singleheader
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64
           tgt: ALL_BUILD
@@ -399,7 +399,7 @@ jobs:
           commonvars: null
         - name: singleheader/macos/Debug
           sdir: test/test_singleheader
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64
           tgt: ALL_BUILD
@@ -408,7 +408,7 @@ jobs:
           commonvars: null
         - name: singleheader/macos/RelNoExc
           sdir: test/test_singleheader
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: ALL_BUILD
@@ -417,7 +417,7 @@ jobs:
           commonvars: null
         - name: singleheader/macos/DbgNoExc
           sdir: test/test_singleheader
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
           gen: -G Xcode -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_CXX_FLAGS='-fno-exceptions -fno-rtti'
           tgt: ALL_BUILD

@@ -1,4 +1,4 @@
-# DO NOT EDIT - GENERATED FROM .github/workflows-in/release.ys
+# DO NOT EDIT - GENERATED FROM .github/workflows/release.ys
 
 name: release
 defaults:
@@ -189,7 +189,7 @@ jobs:
           sfxp: macosx-xcode.sh
           gen: STGZ
           mime: x-sh
-          os: macos-13
+          os: macos-15-intel
           cxx: xcode
     steps:
     - name: checkout (action)
