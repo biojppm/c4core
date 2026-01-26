@@ -1,4 +1,4 @@
-# DO NOT EDIT - GENERATED FROM .github/workflows-in/libcxx.ys
+# DO NOT EDIT - GENERATED FROM .github/workflows/libcxx.ys
 
 name: libcxx
 defaults:

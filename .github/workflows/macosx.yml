@@ -1,4 +1,4 @@
-# DO NOT EDIT - GENERATED FROM .github/workflows-in/macosx.ys
+# DO NOT EDIT - GENERATED FROM .github/workflows/macosx.ys
 
 name: macosx
 defaults:
@@ -30,51 +30,27 @@ jobs:
         include:
         - std: 11
           cxx: xcode
-          xcver: 15
+          xcver: 16
           bt: Debug
-          os: macos-13
+          os: macos-15-intel
           bitlinks: shared64 static64
         - std: 11
           cxx: xcode
-          xcver: 15
+          xcver: 16
           bt: Release
-          os: macos-13
+          os: macos-15-intel
           bitlinks: shared64 static64
         - std: 17
           cxx: xcode
-          xcver: 15
+          xcver: 16
           bt: Debug
-          os: macos-13
+          os: macos-15-intel
           bitlinks: shared64 static64
         - std: 17
           cxx: xcode
-          xcver: 15
+          xcver: 16
           bt: Release
-          os: macos-13
-          bitlinks: shared64 static64
-        - std: 11
-          cxx: xcode
-          xcver: 14
-          bt: Debug
-          os: macos-13
-          bitlinks: shared64 static64
-        - std: 11
-          cxx: xcode
-          xcver: 14
-          bt: Release
-          os: macos-13
-          bitlinks: shared64 static64
-        - std: 17
-          cxx: xcode
-          xcver: 14
-          bt: Debug
-          os: macos-13
-          bitlinks: shared64 static64
-        - std: 17
-          cxx: xcode
-          xcver: 14
-          bt: Release
-          os: macos-13
+          os: macos-15-intel
           bitlinks: shared64 static64
     env:
       STD: ${{matrix.std}}
