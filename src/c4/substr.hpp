@@ -7,7 +7,8 @@
 #include <ctype.h>
 #include <type_traits>
 
-#include "c4/config.hpp"
+#include "c4/export.hpp"
+#include "c4/language.hpp"
 #include "c4/error.hpp"
 #include "c4/substr_fwd.hpp"
 
@@ -233,6 +234,9 @@ public:
 
     C4_PURE int compare(const char *C4_RESTRICT that, size_t sz) const noexcept
     {
+        #if defined(__GNUC__) && (__GNUC__ >= 6)
+        C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wnull-dereference")
+        #endif
         C4_XASSERT(that || sz  == 0);
         C4_XASSERT(str  || len == 0);
         if(C4_LIKELY(str && that))
@@ -256,6 +260,9 @@ public:
             return 0;
         }
         return len < sz ? -1 : 1;
+        #if defined(__GNUC__) && (__GNUC__ >= 6)
+        C4_SUPPRESS_WARNING_GCC_POP
+        #endif
     }
 
     C4_ALWAYS_INLINE C4_PURE int compare(ro_substr const that) const noexcept { return this->compare(that.str, that.len); }
@@ -666,7 +673,13 @@ public:
     /** true if the first character of the string is @p c */
     bool begins_with(const C c) const
     {
+        #if defined(__GNUC__) && (__GNUC__ >= 6)
+        C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wnull-dereference")
+        #endif
         return len > 0 ? str[0] == c : false;
+        #if defined(__GNUC__) && (__GNUC__ >= 6)
+        C4_SUPPRESS_WARNING_GCC_POP
+        #endif
     }
 
     /** true if the first @p num characters of the string are @p c */
@@ -2016,7 +2029,7 @@ public:
         // and will wreak havoc in calling code's branches.
         // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
         if(num)
-            memcpy(str + sizeof(C) * ifirst, that.str, sizeof(C) * num);
+            memcpy(str + (sizeof(C) * ifirst), that.str, sizeof(C) * num);
     }
 
 public:
@@ -2209,6 +2222,19 @@ template<class U>
 C4_ALWAYS_INLINE typename std::enable_if<std::is_same<U, const char*>::value || std::is_same<U, char*>::value, csubstr>::type
 to_csubstr(U s) noexcept { csubstr ss(s); return ss; }
 
+
+/** a traits class to use in SFINAE to mark a type as a string type
+ * (meaning @ref c4::to_csubstr() can be used directly). Otherwise, the
+ * type is treated as a value, which is serialized to a buffer
+ * using @ref c4::to_chars(). */
+template<class T> struct is_string : public std::false_type {};
+template<typename C> struct is_string<basic_substring<C>> : public std::true_type {};
+template<> struct is_string<const char*> : public std::true_type {};
+template<> struct is_string<      char*> : public std::true_type {};
+template<size_t N> struct is_string<const char (&)[N]> : public std::true_type {};
+template<size_t N> struct is_string<      char (&)[N]> : public std::true_type {};
+template<size_t N> struct is_string<const char[N]> : public std::true_type {};
+template<size_t N> struct is_string<      char[N]> : public std::true_type {};
 
 /** @} */
 

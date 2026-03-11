@@ -5,6 +5,7 @@
 #include "c4/error.hpp"
 #include "c4/compiler.hpp"
 #include "c4/cpu.hpp"
+#include <type_traits>
 #ifdef C4_MSVC
 #include <intrin.h>
 #endif

@@ -1,8 +1,9 @@
 #ifndef _C4_BLOB_HPP_
 #define _C4_BLOB_HPP_
 
-#include "c4/types.hpp"
 #include "c4/error.hpp"
+#include "c4/types.hpp"
+#include "c4/memory_util.hpp"
 
 /** @file blob.hpp Mutable and immutable binary data blobs.
 */

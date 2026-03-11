@@ -1,4 +1,5 @@
 #include "c4/error.hpp"
+#include "c4/language.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -97,6 +98,7 @@ void handle_error(srcloc where, const char *fmt, ...)
 #elif defined(C4_ERROR_SHOWS_FILELINE)
         C4_LOGF_ERR("%s:%d: ERROR: %s\n", where.file, where.line, buf);
 #elif ! defined(C4_ERROR_SHOWS_FUNC)
+        (void)where;
         C4_LOGF_ERR("ERROR: %s\n", buf);
 #endif
     }
@@ -145,6 +147,7 @@ void handle_warning(srcloc where, const char *fmt, ...)
 #elif defined(C4_ERROR_SHOWS_FILELINE)
     C4_LOGF_WARN("%s:%d: WARNING: %s\n", where.file, where.line, buf);
 #elif ! defined(C4_ERROR_SHOWS_FUNC)
+    (void)where;
     C4_LOGF_WARN("WARNING: %s\n", buf);
 #endif
 }

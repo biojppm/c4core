@@ -10,9 +10,19 @@
 #include "c4/substr.hpp"
 #endif
 
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wnull-dereference")
+#endif
 #include <vector>
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+C4_SUPPRESS_WARNING_GCC_POP
+#endif
 
 namespace c4 {
+
+/** mark std::vector<char> as a string type */
+template<class Alloc> struct is_string<std::vector<char, Alloc>> : public std::true_type {};
+
 
 //-----------------------------------------------------------------------------
 
@@ -32,6 +42,7 @@ c4::csubstr to_csubstr(std::vector<char, Alloc> const& vec)
     return c4::csubstr(data, vec.size());
 }
 
+
 //-----------------------------------------------------------------------------
 // comparisons between substrings and std::vector<char>
 
@@ -49,9 +60,10 @@ template<class Alloc> C4_ALWAYS_INLINE bool operator>  (std::vector<char, Alloc>
 template<class Alloc> C4_ALWAYS_INLINE bool operator<= (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss >= to_csubstr(s); }
 template<class Alloc> C4_ALWAYS_INLINE bool operator<  (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss >  to_csubstr(s); }
 
+
 //-----------------------------------------------------------------------------
 
-/** copy a std::vector<char> to a writeable string view */
+/** copy a std::vector<char> to a substr */
 template<class Alloc>
 inline size_t to_chars(c4::substr buf, std::vector<char, Alloc> const& s)
 {
@@ -67,7 +79,7 @@ inline size_t to_chars(c4::substr buf, std::vector<char, Alloc> const& s)
     return s.size(); // return the number of needed chars
 }
 
-/** copy a string view to an existing std::vector<char> */
+/** copy a csubstr to an existing std::vector<char> */
 template<class Alloc>
 inline bool from_chars(c4::csubstr buf, std::vector<char, Alloc> * s)
 {

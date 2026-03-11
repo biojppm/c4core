@@ -30,6 +30,7 @@ Checks:
   - -cppcoreguidelines-pro-type-member-init # constructor does not initialize these fields: len
   - -cppcoreguidelines-pro-type-vararg # do not call c-style vararg functions
   - -cppcoreguidelines-use-default-member-init # use default member initializer for 'm_pos'
+  - -cppcoreguidelines-use-enum-class # enum is unscoped, use 'enum class'
   - -fuchsia-default-arguments-calls # calling a function that uses a default argument is disallowed
   - -fuchsia-default-arguments-declarations # declaring a parameter with a default argument is disallowed
   - -fuchsia-overloaded-operator # overloading 'operator[]' is disallowed
@@ -92,6 +93,7 @@ Checks:
   - -readability-inconsistent-declaration-parameter-name # definition with different parameter names
   - -readability-isolate-declaration # multiple declarations in a single statement reduces readability
   - -readability-magic-numbers # 16 is a magic number; consider replacing it with a named constant
+  - -readability-math-missing-parentheses # 
   - -readability-named-parameter # all parameters should be named in a function
   - -readability-redundant-access-specifiers # redundant access specifier has the same accessibility as the previous access specifier
   - -readability-redundant-member-init # initializer for member 'm_arena' is redundant
@@ -100,6 +102,7 @@ Checks:
   - -readability-suspicious-call-argument # 1st argument 'after' (passed to 'node') looks like it might be swapped with the 2nd, 'node' (passed to 'sib')
   - -readability-uppercase-literal-suffix # integer literal has suffix 'u', which is not uppercase
   - -readability-use-anyofallof # replace loop by 'std::all_of()'
+  - -readability-use-concise-preprocessor-directives # preprocessor condition can be written more concisely using '#ifdef'
 
 # Turn all the warnings from the checks above into errors.
 WarningsAsErrors: '*'

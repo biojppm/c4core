@@ -169,11 +169,13 @@ void fputi(int val, FILE *f);
 
 void _errmsg(locref loc)
 {
+    #if defined(C4_ERROR_SHOWS_FILELINE)
     fputs(loc.file, stderr);
     fputc(':', stderr);
     fputi(loc.line, stderr);
     fputs(": ", stderr);
     fflush(stderr);
+    #endif
 }
 
 void _errmsg(const char *part, size_t part_size)
@@ -233,12 +235,14 @@ struct ErrorBehaviorRuntimeError : public ErrorCallbacksBridgeFull<ErrorBehavior
 
     void msg_begin(locref loc)
     {
+        #if defined(C4_ERROR_SHOWS_FILELINE)
         exc_msg.reserve(strlen(loc.file) + 16);
         exc_msg = '\n';
         exc_msg += loc.file;
         exc_msg += ':';
         _append(&exc_msg, loc.line);
         exc_msg += ": ";
+        #endif
     }
     void msg_part(const char *part, size_t part_size)
     {

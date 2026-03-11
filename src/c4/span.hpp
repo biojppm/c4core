@@ -4,6 +4,7 @@
 /** @file span.hpp Provides span classes. */
 
 #include "c4/config.hpp"
+#include "c4/types.hpp"
 #include "c4/error.hpp"
 #include "c4/szconv.hpp"
 
@@ -42,7 +43,7 @@ C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
  * @see cspanrsl
  */
 template<class T, class I, class SpanImpl>
-class span_crtp
+class span_crtp // NOLINT(*crtp-constructor-accessibility)
 {
 // some utility defines, undefined at the end of this class
 #define _c4this  ((SpanImpl      *)this)

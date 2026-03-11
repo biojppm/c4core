@@ -338,7 +338,7 @@ public:
         void *vmem;
         if(m_num + num_objs <= N)
         {
-            vmem = (m_arr + m_num * sizeof(T));
+            vmem = (m_arr + (m_num * sizeof(T)));
         }
         else
         {
