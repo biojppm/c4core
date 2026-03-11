@@ -2,7 +2,8 @@
 #define _C4_ENUM_HPP_
 
 #include "c4/error.hpp"
-#include <cstddef>
+
+#include <stddef.h>
 #include <string.h>
 
 /** @file enum.hpp utilities for enums: convert to/from string

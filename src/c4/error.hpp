@@ -5,7 +5,13 @@
 
 /** @defgroup error_checking Error checking */
 
+#include <stdint.h>
+#include <stddef.h>
+
 #include "c4/config.hpp"
+#include "c4/export.hpp"
+#include "c4/compiler.hpp"
+#include "c4/language.hpp"
 
 #ifdef _DOXYGEN_
     /** if this is defined and exceptions are enabled, then calls to C4_ERROR()

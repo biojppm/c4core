@@ -1,4 +1,5 @@
 #include "c4/error.hpp"
+#include "c4/language.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>

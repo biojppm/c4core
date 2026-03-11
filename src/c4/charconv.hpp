@@ -16,7 +16,6 @@
 #include "c4/substr.hpp"
 #include "c4/std/std_fwd.hpp"
 #include "c4/memory_util.hpp"
-#include "c4/szconv.hpp"
 
 #ifndef C4CORE_NO_FAST_FLOAT
 #   if (C4_CPP >= 17)

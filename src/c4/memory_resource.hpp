@@ -14,8 +14,8 @@
  * @ingroup memory
  */
 
-#include "c4/config.hpp"
 #include "c4/error.hpp"
+#include "c4/types.hpp"
 
 namespace c4 {
 

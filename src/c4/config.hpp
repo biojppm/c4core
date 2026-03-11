@@ -34,6 +34,5 @@
 #include "c4/cpu.hpp"
 #include "c4/compiler.hpp"
 #include "c4/language.hpp"
-#include "c4/types.hpp"
 
 #endif // _C4_CONFIG_HPP_
