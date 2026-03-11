@@ -3,6 +3,9 @@
 
 #include "c4/config.hpp"
 #include <climits>
+#include <type_traits>
+#include <stddef.h>
+#include <stdint.h>
 
 /** @file hash.hpp */
 

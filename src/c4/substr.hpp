@@ -2029,7 +2029,7 @@ public:
         // and will wreak havoc in calling code's branches.
         // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
         if(num)
-            memcpy(str + sizeof(C) * ifirst, that.str, sizeof(C) * num);
+            memcpy(str + (sizeof(C) * ifirst), that.str, sizeof(C) * num);
     }
 
 public:

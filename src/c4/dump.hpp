@@ -2,6 +2,8 @@
 #define C4_DUMP_HPP_
 
 #include <c4/substr.hpp>
+#include <utility> // for std::forward
+
 
 /** @file dump.hpp This file provides functions to dump several
  * arguments as strings to a user-provided function sink, for example

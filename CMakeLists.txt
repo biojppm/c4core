@@ -130,8 +130,9 @@ function(c4core_setup_clang_tidy rootdir)
         list(FILTER srcs EXCLUDE REGEX ${e})
     endforeach()
     set(cmd ${srcs} -p ${CMAKE_BINARY_DIR}
-            "--config-file=${rootdir}/.clang-tidy"
-            "--header-filter=${rootdir}/src/c4/.*pp|${rootdir}/src/c4/std/.*pp")
+        "--extra-arg=-DCLANG_TIDY"  # https://stackoverflow.com/questions/62838193/clang-tidy-10-is-ignoring-my-nolint-commands
+        "--config-file=${rootdir}/.clang-tidy"
+        "--header-filter=${rootdir}/src/c4/.*pp|${rootdir}/src/c4/std/.*pp")
     add_custom_target(c4core-clang-tidy
         COMMAND ${CMAKE_COMMAND} -E cat ${CMAKE_BINARY_DIR}/compile_commands.json
         COMMAND ${CLANG_TIDY} --version
