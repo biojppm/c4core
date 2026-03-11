@@ -14,6 +14,10 @@
 
 namespace c4 {
 
+/** mark std::vector<char> as a string type */
+template<class Alloc> struct is_string<std::vector<char, Alloc>> : public std::true_type {};
+
+
 //-----------------------------------------------------------------------------
 
 /** get a substr (writeable string view) of an existing std::vector<char> */
@@ -49,9 +53,10 @@ template<class Alloc> C4_ALWAYS_INLINE bool operator>  (std::vector<char, Alloc>
 template<class Alloc> C4_ALWAYS_INLINE bool operator<= (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss >= to_csubstr(s); }
 template<class Alloc> C4_ALWAYS_INLINE bool operator<  (std::vector<char, Alloc> const& s, c4::csubstr ss) { return ss >  to_csubstr(s); }
 
+
 //-----------------------------------------------------------------------------
 
-/** copy a std::vector<char> to a writeable string view */
+/** copy a std::vector<char> to a substr */
 template<class Alloc>
 inline size_t to_chars(c4::substr buf, std::vector<char, Alloc> const& s)
 {
@@ -67,7 +72,7 @@ inline size_t to_chars(c4::substr buf, std::vector<char, Alloc> const& s)
     return s.size(); // return the number of needed chars
 }
 
-/** copy a string view to an existing std::vector<char> */
+/** copy a csubstr to an existing std::vector<char> */
 template<class Alloc>
 inline bool from_chars(c4::csubstr buf, std::vector<char, Alloc> * s)
 {

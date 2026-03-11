@@ -11,6 +11,9 @@
 
 namespace c4 {
 
+/** mark std::string as a string type */
+template<> struct is_string<std::string> : public std::true_type {};
+
 //-----------------------------------------------------------------------------
 
 /** get a writeable view to an existing std::string.
@@ -59,7 +62,7 @@ C4_ALWAYS_INLINE bool operator<  (std::string const& s, c4::csubstr ss) { return
 
 //-----------------------------------------------------------------------------
 
-/** copy an std::string to a writeable string view */
+/** copy a std::string to a writeable substr */
 inline size_t to_chars(c4::substr buf, std::string const& s)
 {
     C4_ASSERT(!buf.overlaps(to_csubstr(s)));
@@ -76,7 +79,7 @@ inline size_t to_chars(c4::substr buf, std::string const& s)
     return s.size(); // return the number of needed chars
 }
 
-/** copy a string view to an existing std::string */
+/** copy a csubstr to an existing std::string */
 inline bool from_chars(c4::csubstr buf, std::string * s)
 {
     s->resize(buf.len);

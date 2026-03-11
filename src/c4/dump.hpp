@@ -10,7 +10,7 @@
  * passed either by dynamic dispatching or by static dispatching (as a
  * template argument). There are analogs to @ref c4::cat() (@ref
  * c4::cat_dump() and @ref c4::cat_dump_resume()), @ref c4::catsep()
- * (@ref catsetp_dump() and @ref catsep_dump_resume()) and @ref
+ * (@ref c4::catsep_dump() and @ref c4::catsep_dump_resume()) and @ref
  * c4::format() (@ref c4::format_dump() and @ref
  * c4::format_dump_resume()). The analogs have two types: immediate
  * and resuming. An analog of immediate type cannot be retried when
@@ -18,7 +18,7 @@
  * the first (successful) arguments will be dumped again in the
  * subsequent attempt to call. An analog of resuming type will only
  * ever dump as-yet-undumped arguments, through the use of @ref
- * DumpResults return type. */
+ * c4::DumpResults return type. */
 
 namespace c4 {
 
@@ -52,99 +52,150 @@ C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
 using SinkPfn = void (*)(csubstr str);
 
 
-/** a traits class to use in SFINAE with @ref c4::dump() to select if
- * a type is treated as string type (which is dumped directly to the
- * sink, using to_csubstr()), or if the type is treated as a value,
- * which is first serialized to a buffer using to_chars(), and then
- * the serialization serialized as */
-template<class T> struct dump_directly : public std::false_type {};
-template<> struct dump_directly<csubstr> : public std::true_type {};
-template<> struct dump_directly< substr> : public std::true_type {};
-template<> struct dump_directly<const char*> : public std::true_type {};
-template<> struct dump_directly<      char*> : public std::true_type {};
-template<size_t N> struct dump_directly<const char (&)[N]> : public std::true_type {};
-template<size_t N> struct dump_directly<      char (&)[N]> : public std::true_type {};
-template<size_t N> struct dump_directly<const char[N]> : public std::true_type {};
-template<size_t N> struct dump_directly<      char[N]> : public std::true_type {};
+/** a traits class used by @ref c4::dump() to decide whether a type is
+ * treated as a string type (which is dumped directly to the sink via
+ * to_csubstr()), or if the type is treated as a value, which is first
+ * serialized to the dump buffer using to_chars() prior to dumping it
+ * to the sink. This type is defaults to @ref c4::is_string, but can
+ * be overriden independently. */
+template<class T> struct dump_directly : public c4::is_string<T> {};
 
 
-/** Dump a string-type object to the (statically dispatched) sink. The
- * string is dumped directly, without any intermediate serialization.
+#if (C4_CPP >= 17) || defined(__DOXYGEN__)
+/** Dump a serializable object to the (statically dispatched)
+ * sink. Before dumping, the object may be serialized to a string if
+ * @ref c4::dump_directly<Arg> is a false type (the default if
+ * dump_directly does not have a specialization). Otherwise the object
+ * is considered a string object and is therefore dumped directly,
+ * without any intermediate serialization.
  *
  * @return the number of bytes needed to serialize the string-type
- * object, which is always 0 because there is no serialization
+ * object, which may be 0 when there is no serialization
  *
  * @note the argument is considered a value when @ref
- * dump_directly<Arg> is a false type, which is the default. To enable
+ * c4::dump_directly<Arg> is a false type, which is the default. To enable
  * the argument to be treated as a string type, which is dumped
  * directly to the sink without intermediate serialization, define
- * dump_directly<T> to a true type.
+ * @ref c4::dump_directly<T> to a true type.
  *
  * @warning the string passed to the sink may have zero length. If the
  * user sink uses memcpy(), the call to memcpy() should be defended
  * with a check for zero length (calling memcpy with zero length is
  * undefined behavior).
  *
- * @see dump_directly<T>
+ * @see @ref c4::dump_directly<T>
  */
+template<SinkPfn sinkfn, class Arg>
+size_t dump(substr buf, Arg const& a)
+{
+    if constexpr (dump_directly<Arg>::value)
+    {
+        C4_UNUSED(buf);
+        csubstr sa = to_csubstr(a);
+        C4_ASSERT(!buf.overlaps(sa));
+        // dump directly, no need to serialize to the buffer
+        sinkfn(sa);
+        return 0; // no space was used in the buffer
+    }
+    else
+    {
+        // serialize to the buffer
+        const size_t sz = to_chars(buf, a);
+        // dump the buffer to the sink
+        if(C4_LIKELY(sz <= buf.len))
+        {
+            // NOTE: don't do this:
+            //sinkfn(buf.first(sz));
+            // ... but do this instead:
+            sinkfn({buf.str, sz});
+            // ... this is needed because Release builds for armv5 and
+            // armv6 were failing for the first call, with the wrong
+            // buffer being passed into the function (!)
+        }
+        return sz;
+    }
+}
+
+/** Dump a serializable object to the (dynamically dispatched)
+ * sink. Before dumping, the object may be serialized to a string if
+ * @ref c4::dump_directly<Arg> is a false type (the default if
+ * dump_directly does not have a specialization). Otherwise the object
+ * is considered a string object is dumped directly, without any
+ * intermediate serialization.
+ *
+ * @return the number of bytes needed to serialize the string-type
+ * object, which may be 0 when there is no serialization
+ *
+ * @note the argument is considered a value when @ref
+ * c4::dump_directly<Arg> is a false type, which is the default. To enable
+ * the argument to be treated as a string type, which is dumped
+ * directly to the sink without intermediate serialization, define
+ * @ref c4::dump_directly<T> to a true type.
+ *
+ * @warning the string passed to the sink may have zero length. If the
+ * user sink uses memcpy(), the call to memcpy() should be defended
+ * with a check for zero length (calling memcpy with zero length is
+ * undefined behavior).
+ *
+ * @see @ref c4::dump_directly<T>
+ */
+template<class SinkFn, class Arg>
+size_t dump(SinkFn &&sinkfn, substr buf, Arg const& a)
+{
+    if constexpr (dump_directly<Arg>::value)
+    {
+        C4_UNUSED(buf);
+        csubstr sa = to_csubstr(a);
+        C4_ASSERT(!buf.overlaps(sa));
+        // dump directly, no need to serialize to the buffer
+        std::forward<SinkFn>(sinkfn)(sa);
+        return 0; // no space was used in the buffer
+    }
+    else
+    {
+        // serialize to the buffer
+        const size_t sz = to_chars(buf, a);
+        // dump the buffer to the sink
+        if(C4_LIKELY(sz <= buf.len))
+        {
+            // NOTE: don't do this:
+            //std::forward<SinkFn>(sinkfn)(buf.first(sz));
+            // ... but do this instead:
+            std::forward<SinkFn>(sinkfn)({buf.str, sz});
+            // ... this is needed because Release builds for armv5 and
+            // armv6 were failing for the first call, with the wrong
+            // buffer being passed into the function (!)
+        }
+        return sz;
+    }
+}
+
+#else // C4_CPP < 17
+
 template<SinkPfn sinkfn, class Arg>
 inline auto dump(substr buf, Arg const& a)
     -> typename std::enable_if<dump_directly<Arg>::value, size_t>::type
 {
-    C4_ASSERT(!buf.overlaps(a));
     C4_UNUSED(buf);
+    csubstr sa = to_csubstr(a);
+    C4_ASSERT(!buf.overlaps(sa));
     // dump directly, no need to serialize to the buffer
-    sinkfn(to_csubstr(a));
+    sinkfn(sa);
     return 0; // no space was used in the buffer
 }
-/** Dump a string-type object to the (dynamically dispatched)
- * sink. The string is dumped directly, without any intermediate
- * serialization to the buffer.
- *
- * @return the number of bytes needed to serialize the string-type
- * object, which is always 0 because there is no serialization
- *
- * @note the argument is considered a value when @ref
- * dump_directly<Arg> is a false type, which is the default. To enable
- * the argument to be treated as a string type, which is dumped
- * directly to the sink without intermediate serialization, define
- * dump_directly<T> to a true type.
- *
- * @warning the string passed to the sink may have zero length. If the
- * user sink uses memcpy(), the call to memcpy() should be defended
- * with a check for zero length (calling memcpy with zero length is
- * undefined behavior).
- *
- * @see dump_directly<T>
- * */
 template<class SinkFn, class Arg>
 inline auto dump(SinkFn &&sinkfn, substr buf, Arg const& a)
     -> typename std::enable_if<dump_directly<Arg>::value, size_t>::type
 {
     C4_UNUSED(buf);
-    C4_ASSERT(!buf.overlaps(a));
+    csubstr sa = to_csubstr(a);
+    C4_ASSERT(!buf.overlaps(sa));
     // dump directly, no need to serialize to the buffer
-    std::forward<SinkFn>(sinkfn)(to_csubstr(a));
+    std::forward<SinkFn>(sinkfn)(sa);
     return 0; // no space was used in the buffer
 }
 
 
-/** Dump a value to the sink. Given an argument @p a and a buffer @p
- * buf, serialize the argument to the buffer using @ref to_chars(),
- * and then dump the buffer to the (statically dispatched) sink
- * function passed as the template argument. If the buffer is too
- * small to serialize the argument, the sink function is not called.
- *
- * @note the argument is considered a value when @ref
- * dump_directly<Arg> is a false type, which is the default. To enable
- * the argument to be treated as a string type, which is dumped
- * directly to the sink without intermediate serialization, define
- * dump_directly<T> to a true type.
- *
- * @see dump_directly<T>
- *
- * @return the number of characters required to serialize the
- * argument. */
 template<SinkPfn sinkfn, class Arg>
 inline auto dump(substr buf, Arg const& a)
     -> typename std::enable_if<!dump_directly<Arg>::value, size_t>::type
@@ -164,22 +215,6 @@ inline auto dump(substr buf, Arg const& a)
     }
     return sz;
 }
-/** Dump a value to the sink. Given an argument @p a and a buffer @p
- * buf, serialize the argument to the buffer using @ref
- * c4::to_chars(), and then dump the buffer to the (dynamically
- * dispatched) sink function, passed as @p sinkfn. If the buffer is too
- * small to serialize the argument, the sink function is not called.
- *
- * @note the argument is considered a value when @ref
- * dump_directly<Arg> is a false type, which is the default. To enable
- * the argument to be treated as a string type, which is dumped
- * directly to the sink without intermediate serialization, define
- * dump_directly<T> to a true type.
- *
- * @see @ref dump_directly<T>
- *
- * @return the number of characters required to serialize the
- * argument. */
 template<class SinkFn, class Arg>
 inline auto dump(SinkFn &&sinkfn, substr buf, Arg const& a)
     -> typename std::enable_if<!dump_directly<Arg>::value, size_t>::type
@@ -199,11 +234,12 @@ inline auto dump(SinkFn &&sinkfn, substr buf, Arg const& a)
     }
     return sz;
 }
+#endif // C4_CPP < 17
 
 
 /** An opaque type used by resumeable dump functions like @ref
- * cat_dump_resume(), @ref catsep_dump_resume() or @ref
- * format_dump_resume(). */
+ * c4::cat_dump_resume(), @ref c4::catsep_dump_resume() or @ref
+ * c4::format_dump_resume(). */
 struct DumpResults
 {
     enum : size_t { noarg = (size_t)-1 };

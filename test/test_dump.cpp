@@ -202,10 +202,36 @@ char s1[] = "1";
 char s2[] = "22";
 char s3[] = "333";
 char s4[] = "4444";
+char *ps1 = s1;
+char *ps2 = s2;
+char *ps3 = s3;
+char *ps4 = s4;
+auto &rs1 = s1;
+auto &rs2 = s2;
+auto &rs3 = s3;
+auto &rs4 = s4;
 const char cs1[] = "1";
 const char cs2[] = "22";
 const char cs3[] = "333";
 const char cs4[] = "4444";
+const char *pcs1 = cs1;
+const char *pcs2 = cs2;
+const char *pcs3 = cs3;
+const char *pcs4 = cs4;
+auto &rcs1 = cs1;
+auto &rcs2 = cs2;
+auto &rcs3 = cs3;
+auto &rcs4 = cs4;
+std::string stds1 = "1";
+std::string stds2 = "22";
+std::string stds3 = "333";
+std::string stds4 = "4444";
+#if C4_CPP >= 17
+std::string_view stdv1 = "1";
+std::string_view stdv2 = "22";
+std::string_view stdv3 = "333";
+std::string_view stdv4 = "4444";
+#endif
 int sep = 90009;
 size_t seplen = 5;
 }
@@ -246,30 +272,30 @@ TEST_CASE_TEMPLATE("dump", T, SinkArgTpl, SinkArgPfn)
     SUBCASE("const char*")
     {
         DumpChecker::s_reset();
-        CHECK_EQ(0, T::call_dump(buf.first(0), (const char*)cs1));
+        CHECK_EQ(0, T::call_dump(buf.first(0), pcs1));
         CHECK_EQ(accum(), "1");
-        CHECK_EQ(0, T::call_dump(buf.first(0), (const char*)cs2));
+        CHECK_EQ(0, T::call_dump(buf.first(0), pcs2));
         CHECK_EQ(accum(), "122");
-        CHECK_EQ(0, T::call_dump(buf.first(0), (const char*)cs3));
+        CHECK_EQ(0, T::call_dump(buf.first(0), pcs3));
         CHECK_EQ(accum(), "122333");
-        CHECK_EQ(0, T::call_dump(buf.first(0), (const char*)cs4));
+        CHECK_EQ(0, T::call_dump(buf.first(0), pcs4));
         CHECK_EQ(accum(), "1223334444");
     }
     SUBCASE("char*")
     {
         DumpChecker::s_reset();
-        CHECK_EQ(0, T::call_dump(buf.first(0), (char*)s1));
+        CHECK_EQ(0, T::call_dump(buf.first(0), ps1));
         CHECK_EQ(accum(), "1");
-        CHECK_EQ(0, T::call_dump(buf.first(0), (char*)s2));
+        CHECK_EQ(0, T::call_dump(buf.first(0), ps2));
         CHECK_EQ(accum(), "122");
-        CHECK_EQ(0, T::call_dump(buf.first(0), (char*)s3));
+        CHECK_EQ(0, T::call_dump(buf.first(0), ps3));
         CHECK_EQ(accum(), "122333");
-        CHECK_EQ(0, T::call_dump(buf.first(0), (char*)s4));
+        CHECK_EQ(0, T::call_dump(buf.first(0), ps4));
         CHECK_EQ(accum(), "1223334444");
     }
     SUBCASE("const char[]")
     {
-        static_assert(std::is_array<decltype(cs1)>::value, "a");
+        C4_STATIC_ASSERT(std::is_array<decltype(cs1)>::value);
         DumpChecker::s_reset();
         CHECK_EQ(0, T::call_dump(buf.first(0), cs1));
         CHECK_EQ(accum(), "1");
@@ -290,6 +316,30 @@ TEST_CASE_TEMPLATE("dump", T, SinkArgTpl, SinkArgPfn)
         CHECK_EQ(0, T::call_dump(buf.first(0), s3));
         CHECK_EQ(accum(), "122333");
         CHECK_EQ(0, T::call_dump(buf.first(0), s4));
+        CHECK_EQ(accum(), "1223334444");
+    }
+    SUBCASE("const char[] &")
+    {
+        DumpChecker::s_reset();
+        CHECK_EQ(0, T::call_dump(buf.first(0), rcs1));
+        CHECK_EQ(accum(), "1");
+        CHECK_EQ(0, T::call_dump(buf.first(0), rcs2));
+        CHECK_EQ(accum(), "122");
+        CHECK_EQ(0, T::call_dump(buf.first(0), rcs3));
+        CHECK_EQ(accum(), "122333");
+        CHECK_EQ(0, T::call_dump(buf.first(0), rcs4));
+        CHECK_EQ(accum(), "1223334444");
+    }
+    SUBCASE("char[] &")
+    {
+        DumpChecker::s_reset();
+        CHECK_EQ(0, T::call_dump(buf.first(0), rs1));
+        CHECK_EQ(accum(), "1");
+        CHECK_EQ(0, T::call_dump(buf.first(0), rs2));
+        CHECK_EQ(accum(), "122");
+        CHECK_EQ(0, T::call_dump(buf.first(0), rs3));
+        CHECK_EQ(accum(), "122333");
+        CHECK_EQ(0, T::call_dump(buf.first(0), rs4));
         CHECK_EQ(accum(), "1223334444");
     }
 }
@@ -383,29 +433,29 @@ TEST_CASE_TEMPLATE("cat_dump", T, SinkArgTpl, SinkArgPfn)
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("11221223331223334444"));
         DumpChecker::s_reset();
-        needed_size = T::call_cat_dump(buf.first(1), (const char*)cs1);
+        needed_size = T::call_cat_dump(buf.first(1), pcs1);
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("1"));
-        needed_size = T::call_cat_dump(buf.first(1), (const char*)cs1, (const char*)cs2);
+        needed_size = T::call_cat_dump(buf.first(1), pcs1, pcs2);
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("1122"));
-        needed_size = T::call_cat_dump(buf.first(1), (const char*)cs1, (const char*)cs2, (const char*)cs3);
+        needed_size = T::call_cat_dump(buf.first(1), pcs1, pcs2, pcs3);
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("1122122333"));
-        needed_size = T::call_cat_dump(buf.first(1), (const char*)cs1, (const char*)cs2, (const char*)cs3, (const char*)cs4);
+        needed_size = T::call_cat_dump(buf.first(1), pcs1, pcs2, pcs3, pcs4);
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("11221223331223334444"));
         DumpChecker::s_reset();
-        needed_size = T::call_cat_dump(buf.first(1), (char*)s1);
+        needed_size = T::call_cat_dump(buf.first(1), ps1);
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("1"));
-        needed_size = T::call_cat_dump(buf.first(1), (char*)s1, (char*)s2);
+        needed_size = T::call_cat_dump(buf.first(1), ps1, ps2);
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("1122"));
-        needed_size = T::call_cat_dump(buf.first(1), (char*)s1, (char*)s2, (char*)s3);
+        needed_size = T::call_cat_dump(buf.first(1), ps1, ps2, ps3);
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("1122122333"));
-        needed_size = T::call_cat_dump(buf.first(1), (char*)s1, (char*)s2, (char*)s3, (char*)s4);
+        needed_size = T::call_cat_dump(buf.first(1), ps1, ps2, ps3, ps4);
         CHECK_EQ(needed_size, 0);
         CHECK_EQ(accum(), csubstr("11221223331223334444"));
         DumpChecker::s_reset();
@@ -1254,13 +1304,21 @@ TEST_CASE_TEMPLATE("format_dump", T, SinkArgTpl, SinkArgPfn)
     {
         test_no_buffer_needed_for_strings<T>(s1, s2, s3, s4);
     }
+    SUBCASE("no buffer is needed for strings: const char[] &")
+    {
+        test_no_buffer_needed_for_strings<T>(rcs1, rcs2, rcs3, rcs4);
+    }
+    SUBCASE("no buffer is needed for strings: char[] &")
+    {
+        test_no_buffer_needed_for_strings<T>(rs1, rs2, rs3, rs4);
+    }
     SUBCASE("no buffer is needed for strings: const char*")
     {
-        test_no_buffer_needed_for_strings<T>((const char*)cs1, (const char*)cs2, (const char*)cs3, (const char*)cs4);
+        test_no_buffer_needed_for_strings<T>(pcs1, pcs2, pcs3, pcs4);
     }
     SUBCASE("no buffer is needed for strings: char*")
     {
-        test_no_buffer_needed_for_strings<T>((char*)s1, (char*)s2, (char*)s3, (char*)s4);
+        test_no_buffer_needed_for_strings<T>(ps1, ps2, ps3, ps4);
     }
     SUBCASE("no buffer is needed for strings: csubstr")
     {
@@ -1270,6 +1328,16 @@ TEST_CASE_TEMPLATE("format_dump", T, SinkArgTpl, SinkArgPfn)
     {
         test_no_buffer_needed_for_strings<T>(substr(s1), substr(s2), substr(s3), substr(s4));
     }
+    SUBCASE("no buffer is needed for strings: std::string")
+    {
+        test_no_buffer_needed_for_strings<T>(stds1, stds2, stds3, stds4);
+    }
+    #if C4_CPP >= 17
+    SUBCASE("no buffer is needed for strings: std::string_view")
+    {
+        test_no_buffer_needed_for_strings<T>(stdv1, stdv2, stdv3, stdv4);
+    }
+    #endif
     SUBCASE("0")
     {
         csubstr fmt = "0123456789";
