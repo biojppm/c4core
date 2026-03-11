@@ -10,7 +10,13 @@
 #include "c4/substr.hpp"
 #endif
 
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wnull-dereference")
+#endif
 #include <vector>
+#if defined(__GNUC__) && (__GNUC__ >= 6)
+C4_SUPPRESS_WARNING_GCC_POP
+#endif
 
 namespace c4 {
 
@@ -35,6 +41,7 @@ c4::csubstr to_csubstr(std::vector<char, Alloc> const& vec)
     const char *data = vec.empty() ? nullptr : vec.data(); // data() may or may not return a null pointer.
     return c4::csubstr(data, vec.size());
 }
+
 
 //-----------------------------------------------------------------------------
 // comparisons between substrings and std::vector<char>
