@@ -159,7 +159,7 @@ void test_to_chars_real(T f, int precision, const char* flt, T fltv, const char 
     char bufc[64];
     substr buf(bufc);
     substr r;
-    T copy;
+    T copy = {};
 
     INFO("num=" << f);
 

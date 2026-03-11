@@ -1974,11 +1974,11 @@ C4_ALWAYS_INLINE bool scan_rhex(csubstr s, T *C4_RESTRICT val) noexcept
     {
         const char c = s.str[pos];
         if(c >= '0' && c <= '9')
-            *val = *val * T(16) + T(c - '0');
+            *val = (*val * T(16)) + T(c - '0');
         else if(c >= 'a' && c <= 'f')
-            *val = *val * T(16) + T(c - 'a');
+            *val = (*val * T(16)) + T(c - 'a');
         else if(c >= 'A' && c <= 'F')
-            *val = *val * T(16) + T(c - 'A');
+            *val = (*val * T(16)) + T(c - 'A');
         else if(c == '.')
         {
             ++pos;
