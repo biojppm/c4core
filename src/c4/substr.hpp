@@ -2015,9 +2015,22 @@ public:
 
 public:
 
-    /** set the current substring to a copy of the given csubstr
+    /** copy a string to this substr, starting at 0
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
-    C4_REQUIRE_RW(void) copy_from(ro_substr that, size_t ifirst=0, size_t num=npos)
+    C4_REQUIRE_RW(void) copy_from(ro_substr that)
+    {
+        C4_ASSERT(!overlaps(that));
+        size_t num = that.len <= len ? that.len : len;
+        // calling memcpy with zero len is undefined behavior
+        // and will wreak havoc in calling code's branches.
+        // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
+        if(num)
+            memcpy(str, that.str, sizeof(C) * num);
+    }
+
+    /** copy a string to this substr, starting at a specified given position
+     * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
+    C4_REQUIRE_RW(void) copy_from(ro_substr that, size_t ifirst, size_t num=npos)
     {
         C4_ASSERT(ifirst >= 0 && ifirst <= len);
         num = num != npos ? num : len - ifirst;

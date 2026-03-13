@@ -72,16 +72,10 @@ template<class Alloc> C4_ALWAYS_INLINE bool operator<  (std::vector<char, Alloc>
 template<class Alloc>
 inline size_t to_chars(c4::substr buf, std::vector<char, Alloc> const& s)
 {
-    C4_ASSERT(!buf.overlaps(to_csubstr(s)));
-    size_t len = buf.len < s.size() ? buf.len : s.size();
-    // calling memcpy with null strings is undefined behavior
-    // and will wreak havoc in calling code's branches.
-    // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
-    if(len > 0)
-    {
-        memcpy(buf.str, s.data(), len);
-    }
-    return s.size(); // return the number of needed chars
+    size_t sz = s.size();
+    size_t len = buf.len < sz ? buf.len : sz;
+    buf.copy_from(csubstr(s.data(), len)); // copy only available chars
+    return sz; // return the number of needed chars
 }
 
 /** copy a csubstr to an existing std::vector<char> */
@@ -89,14 +83,7 @@ template<class Alloc>
 inline bool from_chars(c4::csubstr buf, std::vector<char, Alloc> * s)
 {
     s->resize(buf.len);
-    C4_ASSERT(!buf.overlaps(to_csubstr(*s)));
-    // calling memcpy with null strings is undefined behavior
-    // and will wreak havoc in calling code's branches.
-    // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
-    if(buf.len > 0)
-    {
-        memcpy(&(*s)[0], buf.str, buf.len); // NOLINT(readability-container-data-pointer)
-    }
+    substr(s->data(), buf.len).copy_from(buf);
     return true;
 }
 
