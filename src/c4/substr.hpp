@@ -232,7 +232,7 @@ public:
             return -1;
     }
 
-    C4_PURE int compare(const char *C4_RESTRICT that, size_t sz) const noexcept
+    C4_PURE int compare(C const* C4_RESTRICT that, size_t sz) const noexcept
     {
         #if defined(__GNUC__) && (__GNUC__ >= 6)
         C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wnull-dereference")
@@ -2010,9 +2010,7 @@ public:
     C4_REQUIRE_RW(void) fill(C val)
     {
         for(size_t i = 0; i < len; ++i)
-        {
             str[i] = val;
-        }
     }
 
 public:
@@ -2025,7 +2023,7 @@ public:
         num = num != npos ? num : len - ifirst;
         num = num < that.len ? num : that.len;
         C4_ASSERT(ifirst + num >= 0 && ifirst + num <= len);
-        // calling memcpy with null strings is undefined behavior
+        // calling memcpy with zero len is undefined behavior
         // and will wreak havoc in calling code's branches.
         // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
         if(num)
@@ -2196,31 +2194,37 @@ public:
 /** neutral version for use in generic code */
 C4_ALWAYS_INLINE substr to_substr(substr s) noexcept { return s; }
 /** neutral version for use in generic code */
-C4_ALWAYS_INLINE csubstr to_csubstr(substr s) noexcept { return s; }
+C4_ALWAYS_INLINE csubstr to_csubstr(substr s) noexcept { return csubstr{s.str, s.len}; }
 /** neutral version for use in generic code */
 C4_ALWAYS_INLINE csubstr to_csubstr(csubstr s) noexcept { return s; }
 
 
-template<size_t N>
-C4_ALWAYS_INLINE substr
-to_substr(char (&s)[N]) noexcept { substr ss(s, N-1); return ss; }
-template<size_t N>
-C4_ALWAYS_INLINE csubstr
-to_csubstr(const char (&s)[N]) noexcept { csubstr ss(s, N-1); return ss; }
+template<size_t N> C4_ALWAYS_INLINE substr to_substr(char (&s)[N]) noexcept
+{
+    return substr(s, N-1);
+}
+template<size_t N> C4_ALWAYS_INLINE csubstr to_csubstr(const char (&s)[N]) noexcept
+{
+    return csubstr(s, N-1);
+}
 
 
 /** @note this overload uses SFINAE to prevent it from overriding the array overload
  * @see For a more detailed explanation on why the plain overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
-template<class U>
-C4_ALWAYS_INLINE typename std::enable_if<std::is_same<U, char*>::value, substr>::type
-to_substr(U s) noexcept { substr ss(s); return ss; }
+template<class U> C4_ALWAYS_INLINE auto to_substr(U s) noexcept
+    -> typename std::enable_if<std::is_same<U, char*>::value, substr>::type
+{
+    return substr(s);
+}
 /** @note this overload uses SFINAE to prevent it from overriding the array overload
  * @see For a more detailed explanation on why the plain overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
-template<class U>
-C4_ALWAYS_INLINE typename std::enable_if<std::is_same<U, const char*>::value || std::is_same<U, char*>::value, csubstr>::type
-to_csubstr(U s) noexcept { csubstr ss(s); return ss; }
+template<class U> C4_ALWAYS_INLINE auto to_csubstr(U s) noexcept
+    -> typename std::enable_if<std::is_same<U, const char*>::value || std::is_same<U, char*>::value, csubstr>::type
+{
+    return csubstr(s);
+}
 
 
 /** a traits class to mark a type as a string type
