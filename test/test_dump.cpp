@@ -232,6 +232,16 @@ std::string_view stdv2 = "22";
 std::string_view stdv3 = "333";
 std::string_view stdv4 = "4444";
 #endif
+#if C4_CPP >= 20
+std::span<char> stdsp1 = {substr(s1).str, substr(s1).len};
+std::span<char> stdsp2 = {substr(s2).str, substr(s2).len};
+std::span<char> stdsp3 = {substr(s3).str, substr(s3).len};
+std::span<char> stdsp4 = {substr(s4).str, substr(s4).len};
+std::span<const char> stdcsp1 = {csubstr(cs1).str, csubstr(cs1).len};
+std::span<const char> stdcsp2 = {csubstr(cs2).str, csubstr(cs2).len};
+std::span<const char> stdcsp3 = {csubstr(cs3).str, csubstr(cs3).len};
+std::span<const char> stdcsp4 = {csubstr(cs4).str, csubstr(cs4).len};
+#endif
 int sep = 90009;
 size_t seplen = 5;
 }
@@ -1336,6 +1346,16 @@ TEST_CASE_TEMPLATE("format_dump", T, SinkArgTpl, SinkArgPfn)
     SUBCASE("no buffer is needed for strings: std::string_view")
     {
         test_no_buffer_needed_for_strings<T>(stdv1, stdv2, stdv3, stdv4);
+    }
+    #endif
+    #if C4_CPP >= 20
+    SUBCASE("no buffer is needed for strings: std::span<char>")
+    {
+        test_no_buffer_needed_for_strings<T>(stdsp1, stdsp2, stdsp3, stdsp4);
+    }
+    SUBCASE("no buffer is needed for strings: std::span<const char>")
+    {
+        test_no_buffer_needed_for_strings<T>(stdcsp1, stdcsp2, stdcsp3, stdcsp4);
     }
     #endif
     SUBCASE("0")
