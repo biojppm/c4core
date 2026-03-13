@@ -54,13 +54,15 @@ C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
 using SinkPfn = void (*)(csubstr str);
 
 
+template<class T> struct is_string; // fwd-decl
+
 /** a traits class used by @ref c4::dump() to decide whether a type is
  * treated as a string type (which is dumped directly to the sink via
  * to_csubstr()), or if the type is treated as a value, which is first
  * serialized to the dump buffer using to_chars() prior to dumping it
- * to the sink. This type is defaults to @ref c4::is_string, but can
- * be overriden independently. */
-template<class T> struct dump_directly : public c4::is_string<T> {};
+ * to the sink. This type defaults to @ref c4::is_string, but can be
+ * overriden independently. */
+template<class T> struct dump_directly : public is_string<T> {};
 
 
 #if (C4_CPP >= 17) || defined(__DOXYGEN__)

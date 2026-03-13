@@ -89,6 +89,7 @@ INSTRUCTIONS:
         am.onlyif(with_fastfloat, am.injfile("src/c4/ext/fast_float_all.h", "c4/ext/fast_float_all.h")),
         am.onlyif(with_fastfloat, "src/c4/ext/fast_float.hpp"),
         "src/c4/std/vector_fwd.hpp",
+        "src/c4/std/span_fwd.hpp",
         "src/c4/std/string_fwd.hpp",
         "src/c4/std/std_fwd.hpp",
         am.injcode(required_charconv_include),
@@ -102,6 +103,7 @@ INSTRUCTIONS:
         "src/c4/type_name.hpp",
         "src/c4/base64.hpp",
         am.onlyif(with_stl, am.ignfile("src/c4/std/std.hpp")), # this is an umbrella include
+        am.onlyif(with_stl, "src/c4/std/span.hpp"),
         am.onlyif(with_stl, "src/c4/std/string.hpp"),
         am.onlyif(with_stl, "src/c4/std/string_view.hpp"),
         am.onlyif(with_stl, "src/c4/std/vector.hpp"),

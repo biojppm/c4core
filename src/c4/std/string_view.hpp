@@ -18,7 +18,8 @@
 
 namespace c4 {
 
-/** mark std::string_view as a string type */
+// mark std::string_view as a string type
+template<class T> struct is_string;
 template<> struct is_string<std::string_view> : public std::true_type {};
 
 
@@ -53,18 +54,9 @@ C4_ALWAYS_INLINE bool operator>  (std::string_view s, c4::csubstr ss) { return s
 /** copy an std::string_view to a writeable substr */
 inline size_t to_chars(c4::substr buf, std::string_view s)
 {
-    C4_ASSERT(!buf.overlaps(to_csubstr(s)));
     size_t sz = s.size();
     size_t len = buf.len < sz ? buf.len : sz;
-    // calling memcpy with null strings is undefined behavior
-    // and will wreak havoc in calling code's branches.
-    // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
-    if(len)
-    {
-        C4_ASSERT(s.data() != nullptr);
-        C4_ASSERT(buf.str != nullptr);
-        memcpy(buf.str, s.data(), len);
-    }
+    buf.copy_from(csubstr(s.data(), len)); // copy only available chars
     return sz; // return the number of needed chars
 }
 

@@ -48,6 +48,8 @@ set(C4CORE_SRC_FILES
     c4/preprocessor.hpp
     c4/restrict.hpp
     c4/span.hpp
+    c4/std/span.hpp
+    c4/std/span_fwd.hpp
     c4/std/std.hpp
     c4/std/std_fwd.hpp
     c4/std/string.hpp
