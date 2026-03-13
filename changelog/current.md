@@ -1,0 +1,1 @@
+- `c4/std/*.hpp` adapters: add missing forward declarations of `c4::is_string<>`

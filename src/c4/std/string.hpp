@@ -11,7 +11,8 @@
 
 namespace c4 {
 
-/** mark std::string as a string type */
+// mark std::string as a string type
+template<class T> struct is_string;
 template<> struct is_string<std::string> : public std::true_type {};
 
 //-----------------------------------------------------------------------------

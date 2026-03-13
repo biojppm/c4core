@@ -20,8 +20,9 @@ C4_SUPPRESS_WARNING_GCC_POP
 
 namespace c4 {
 
-/** mark std::vector<char> as a string type */
-template<class Alloc> struct is_string<std::vector<char, Alloc>> : public std::true_type {};
+// mark std::string as a string type
+template<class T> struct is_string;
+template<class Alloc> struct is_string<std::vector<char,Alloc>> : public std::true_type {};
 
 
 //-----------------------------------------------------------------------------
