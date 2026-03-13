@@ -2223,18 +2223,34 @@ C4_ALWAYS_INLINE typename std::enable_if<std::is_same<U, const char*>::value || 
 to_csubstr(U s) noexcept { csubstr ss(s); return ss; }
 
 
-/** a traits class to use in SFINAE to mark a type as a string type
- * (meaning @ref c4::to_csubstr() can be used directly). Otherwise, the
- * type is treated as a value, which is serialized to a buffer
- * using @ref c4::to_chars(). */
+/** a traits class to mark a type as a string type
+ * (meaning @ref c4::to_csubstr() can be used directly). */
 template<class T> struct is_string : public std::false_type {};
+/** a traits class to mark a type as a writeable string type
+ * (meaning @ref c4::to_substr() can be used directly). */
+template<class T> struct is_writeable_string : public std::false_type {};
+
 template<typename C> struct is_string<basic_substring<C>> : public std::true_type {};
+template<> struct is_writeable_string<basic_substring<char>> : public std::true_type {};
+template<> struct is_writeable_string<basic_substring<const char>> : public std::false_type {};
+
 template<> struct is_string<const char*> : public std::true_type {};
-template<> struct is_string<      char*> : public std::true_type {};
+template<> struct is_writeable_string<const char*> : public std::false_type {};
+
+template<> struct is_string<char*> : public std::true_type {};
+template<> struct is_writeable_string<char*> : public std::true_type {};
+
 template<size_t N> struct is_string<const char (&)[N]> : public std::true_type {};
-template<size_t N> struct is_string<      char (&)[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<const char (&)[N]> : public std::false_type {};
+
+template<size_t N> struct is_string<char (&)[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<char (&)[N]> : public std::true_type {};
+
 template<size_t N> struct is_string<const char[N]> : public std::true_type {};
-template<size_t N> struct is_string<      char[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<const char[N]> : public std::false_type {};
+
+template<size_t N> struct is_string<char[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<char[N]> : public std::true_type {};
 
 /** @} */
 

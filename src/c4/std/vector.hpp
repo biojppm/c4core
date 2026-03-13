@@ -24,6 +24,10 @@ namespace c4 {
 template<class T> struct is_string;
 template<class Alloc> struct is_string<std::vector<char,Alloc>> : public std::true_type {};
 
+// mark std::string as a writeable string type
+template<class T> struct is_writeable_string;
+template<class Alloc> struct is_writeable_string<std::vector<char,Alloc>> : public std::true_type {};
+
 
 //-----------------------------------------------------------------------------
 

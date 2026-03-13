@@ -15,6 +15,11 @@ namespace c4 {
 template<class T> struct is_string;
 template<> struct is_string<std::string> : public std::true_type {};
 
+// mark std::string as a writeable string type
+template<class T> struct is_writeable_string;
+template<> struct is_writeable_string<std::string> : public std::true_type {};
+
+
 //-----------------------------------------------------------------------------
 
 /** get a writeable view to an existing std::string.
