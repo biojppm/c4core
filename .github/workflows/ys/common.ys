@@ -306,6 +306,8 @@ defn run-manual-with-flags(cxx cc buildtype flags="" cmkflags="")::
     cmake --build build/$buildtype --target c4core-test-build --parallel --verbose
 - name:: "run $buildtype ::: $flags"
   run:: |
+    source .github/setenv.sh
+    export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
     cmake --build build/$buildtype --target c4core-test-run
 
 
@@ -338,6 +340,8 @@ defn run-vs-manual-with-flags(gen arch buildtype shared flags="" cmkflags="")::
     cmake --build build/$buildtype --target c4core-test-build --parallel --verbose
 - name:: "run $buildtype ::: $flags shared=$shared"
   run:: |
+    source .github/setenv.sh
+    export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
     cmake --build build/$buildtype --target c4core-test-run
 
 
@@ -368,4 +372,6 @@ defn xcompile-steps(arch buildtype std flags="")::
     cmake --build build --parallel --target c4core-test-build --verbose
 - name:: "test $arch/c++$std/$buildtype"
   run: |
+    source .github/setenv.sh
+    export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
     cmake --build build --target c4core-test-run
