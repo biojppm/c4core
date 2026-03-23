@@ -107,6 +107,8 @@ jobs:
         cmake --build build --parallel --target c4core-test-build --verbose
     - name: test ${{matrix.arch}}/c++11/Debug
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build --target c4core-test-run
     - name: '-------------------------------------------------'
       run: echo ${{matrix.arch}}/c++11/Release
@@ -132,6 +134,8 @@ jobs:
         cmake --build build --parallel --target c4core-test-build --verbose
     - name: test ${{matrix.arch}}/c++11/Release
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build --target c4core-test-run
     - name: '-------------------------------------------------'
       run: echo ${{matrix.arch}}/c++20/Debug
@@ -157,6 +161,8 @@ jobs:
         cmake --build build --parallel --target c4core-test-build --verbose
     - name: test ${{matrix.arch}}/c++20/Debug
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build --target c4core-test-run
     - name: '-------------------------------------------------'
       run: echo ${{matrix.arch}}/c++20/Release
@@ -182,4 +188,6 @@ jobs:
         cmake --build build --parallel --target c4core-test-build --verbose
     - name: test ${{matrix.arch}}/c++20/Release
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build --target c4core-test-run

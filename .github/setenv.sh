@@ -36,6 +36,7 @@ function c4_show_info()
     echo "ARM=$ARM"
     echo "LIBCXX=$LIBCXX"
     echo "VERBOSE_MAKEFILES=$VERBOSE_MAKEFILES"
+    echo "RUNNER_OS=$RUNNER_OS"
     set -x
     which cmake
     cmake --version
@@ -54,7 +55,7 @@ function c4_show_info()
             ;;
     esac
     pwd
-    ls
+    ls -l
     git branch
     git rev-parse HEAD
     git tag || echo
@@ -105,6 +106,19 @@ function _c4skipbitlink()
     return 0  # return nonzero as success, meaning DO SKIP
 }
 
+function _c4getnumcores()
+{
+    if [ "$RUNNER_OS" == "macOS" ] || [ "$CXX_" == "xcode" ] ; then
+        # https://gist.github.com/nlutsenko/ee245fbd239087d22137
+        sysctl -n hw.ncpu
+    elif [ "$RUNNER_OS" == "Linux" ] || [ "$CXX_" == gcc* ] || [ "$CXX_" == g++* ] || [ "$CXX_" == *clang* ] ; then
+        nproc
+    else
+        # https://gist.github.com/nlutsenko/ee245fbd239087d22137
+        echo $NUMBER_OF_PROCESSORS
+    fi
+}
+
 function c4_build_test()
 {
     c4_build_target $* c4core-test-build
@@ -138,6 +152,7 @@ function c4_run_target()  # does not run in parallel
     target=$2
     build_dir=`pwd`/build/$id
     export CTEST_OUTPUT_ON_FAILURE=1
+    export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
     cmake --build $build_dir --config $BT --target $target -- $(_c4_generator_build_flags)
 }
 
@@ -323,7 +338,7 @@ function c4_cfg_test()
             esac
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   $(_c4_add_ehsc_to_vs_arm32 $id) \
-                  -DCMAKE_BUILD_TYPE=$BT -G "$g" \
+                  -DCMAKE_BUILD_TYPE=$BT -G "$g" $CMFLAGS \
                   -DCMAKE_C_FLAGS=" $CFLAGS" -DCMAKE_CXX_FLAGS=" $CXXFLAGS"
             ;;
         xcode)
@@ -338,6 +353,12 @@ function c4_cfg_test()
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -DCMAKE_BUILD_TYPE=$BT -G "$g" \
                   -DCMAKE_OSX_ARCHITECTURES=$a $CMFLAGS \
+                  -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
+            ;;
+        *mingw*)
+            export CC_=$(echo "$CXX_" | sed 's:clang++:clang:g' | sed 's:g++:gcc:g')
+            cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
+                  -G "MinGW Makefiles" $CMFLAGS \
                   -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
             ;;
         arm*|"") # make sure arm* comes before *g++ or *gcc*

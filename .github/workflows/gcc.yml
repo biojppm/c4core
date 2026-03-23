@@ -518,6 +518,8 @@ jobs:
         cmake --build build/Debug --target c4core-test-build --parallel --verbose
     - name: 'run Debug ::: -m${{matrix.bits}} ${{matrix.extra_flags}}'
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Debug --target c4core-test-run
     - name: '---------------------------------------------------------'
       run: |
@@ -529,6 +531,8 @@ jobs:
         cmake --build build/Release --target c4core-test-build --parallel --verbose
     - name: 'run Release ::: -O1 -DNDEBUG -m${{matrix.bits}} ${{matrix.extra_flags}}'
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Release --target c4core-test-run
     - name: '---------------------------------------------------------'
       run: |
@@ -540,6 +544,8 @@ jobs:
         cmake --build build/Release --target c4core-test-build --parallel --verbose
     - name: 'run Release ::: -O2 -DNDEBUG -m${{matrix.bits}} ${{matrix.extra_flags}}'
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Release --target c4core-test-run
     - name: '---------------------------------------------------------'
       run: |
@@ -551,6 +557,8 @@ jobs:
         cmake --build build/Release --target c4core-test-build --parallel --verbose
     - name: 'run Release ::: -O3 -DNDEBUG -m${{matrix.bits}} ${{matrix.extra_flags}}'
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Release --target c4core-test-run
     - name: '---------------------------------------------------------'
       run: |
@@ -562,6 +570,8 @@ jobs:
         cmake --build build/Release --target c4core-test-build --parallel --verbose
     - name: 'run Release ::: -Os -DNDEBUG -m${{matrix.bits}} ${{matrix.extra_flags}}'
       run: |
+        source .github/setenv.sh
+        export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Release --target c4core-test-run
   gccsan:
     if: always()
