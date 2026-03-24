@@ -22,8 +22,7 @@ template<class T>
 C4_CONSTEXPR14 C4_ALWAYS_INLINE
 _c4t _c4tn()
 {
-    auto p = _c4t(C4_PRETTY_FUNC);
-    return p;
+    return _c4t(C4_PRETTY_FUNC);
 }
 /// @endcond
 
@@ -48,17 +47,17 @@ C4_CONSTEXPR14 cspan<char> type_name()
 
 #if defined(_MSC_VER)
 #   if defined(__clang__) // Visual Studio has the clang toolset
-#   if (_MSC_VER >= 1930) // do not use this: defined(C4_MSVC_2022)
+#       if (_MSC_VER >= 1930) // do not use this: defined(C4_MSVC_2022)
     // ..............................xxx.
     // _c4t __cdecl _c4tn(void) [T = int]
     enum : size_t { tstart = 30, tend = 1};
-#   else
+#       else
     // example:
     // ..........................xxx.
     // _c4t __cdecl _c4tn() [T = int]
     enum : size_t { tstart = 26, tend = 1};
-#   endif
-#   elif defined(C4_MSVC_2015) || defined(C4_MSVC_2017) || defined(C4_MSVC_2019) || defined(C4_MSVC_2022)
+#       endif
+#   elif (_MSC_VER >= 1900)
     // Note: subtract 7 at the end because the function terminates with ">(void)" in VS2015+
     cspan<char>::size_type tstart = 26, tend = 7;
 
@@ -78,7 +77,7 @@ C4_CONSTEXPR14 cspan<char> type_name()
     }
 
 #   else
-    C4_NOT_IMPLEMENTED();
+    #error unknown visual studio
 #   endif
 
 #elif defined(__ICC)

@@ -1,0 +1,1 @@
+- Fix [#141](https://github.com/biojppm/c4core/issues/141): incorrect detection of clang-cl ([PR#152](https://github.com/biojppm/c4core/pull/152)). Also adds support for Visual Studio 2026.
