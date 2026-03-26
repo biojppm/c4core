@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+cmake_policy(SET CMP0048 NEW) # pass VERSION to project()
 project(c4core
+    VERSION 0.2.10
     DESCRIPTION "Multiplatform low-level C++ utilities"
     HOMEPAGE_URL "https://github.com/biojppm/c4core"
     LANGUAGES CXX)
