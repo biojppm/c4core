@@ -18,6 +18,43 @@
 namespace c4 {
 
 
+template<class T>
+constexpr bool check_remove_cvref()
+{
+    static_assert(std::is_same<T, typename detail::_remove_cvref<T>::type>::value, "remove cvref");
+    static_assert(std::is_same<T, typename detail::_remove_cvref<T&>::type>::value, "remove cvref");
+    static_assert(std::is_same<T, typename detail::_remove_cvref<T&&>::type>::value, "remove cvref");
+    static_assert(std::is_same<T, typename detail::_remove_cvref<const T>::type>::value, "remove cvref");
+    static_assert(std::is_same<T, typename detail::_remove_cvref<const T&>::type>::value, "remove cvref");
+    static_assert(std::is_same<T, typename detail::_remove_cvref<const T&&>::type>::value, "remove cvref");
+    return true;
+}
+static_assert(check_remove_cvref<substr>(), "remove cvref");
+static_assert(check_remove_cvref<csubstr>(), "remove cvref");
+static_assert(check_remove_cvref<char *>(), "remove cvref");
+static_assert(check_remove_cvref<const char *>(), "remove cvref");
+
+template<class T>
+constexpr bool check_dump_directly()
+{
+    static_assert(dump_directly<T>::value, "dump directly");
+    static_assert(dump_directly<T&>::value, "dump directly");
+    static_assert(dump_directly<T&&>::value, "dump directly");
+    static_assert(dump_directly<T const>::value, "dump directly");
+    static_assert(dump_directly<T const&>::value, "dump directly");
+    static_assert(dump_directly<T const&&>::value, "dump directly");
+    return true;
+}
+static_assert(check_dump_directly<substr>(), "dump directly");
+static_assert(check_dump_directly<csubstr>(), "dump directly");
+static_assert(check_dump_directly<char*>(), "dump directly");
+static_assert(check_dump_directly<const char*>(), "dump directly");
+static_assert(check_dump_directly<char[2]>(), "dump directly");
+static_assert(check_dump_directly<char(&)[2]>(), "dump directly");
+static_assert(check_dump_directly<char(&&)[2]>(), "dump directly");
+static_assert(check_dump_directly<std::string>(), "dump directly");
+
+
 namespace example {
 
 std::string test_dumper_target = {};

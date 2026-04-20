@@ -10,6 +10,16 @@
 
 namespace c4 {
 
+static_assert(c4::is_string<char[2]>::value, "dump directly");
+static_assert(c4::is_string<char(&)[2]>::value, "dump directly");
+static_assert(c4::is_string<char(&&)[2]>::value, "dump directly");
+static_assert(c4::is_string<const char[2]>::value, "dump directly");
+static_assert(c4::is_string<const char(&&)[2]>::value, "dump directly");
+static_assert(c4::is_string<substr>::value, "dump directly");
+static_assert(c4::is_string<csubstr>::value, "dump directly");
+static_assert(c4::is_string<std::string>::value, "dump directly");
+
+
 TEST_CASE("substr.empty_ctor")
 {
     {
