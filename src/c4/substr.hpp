@@ -2257,17 +2257,23 @@ template<> struct is_writeable_string<const char*> : public std::false_type {};
 template<> struct is_string<char*> : public std::true_type {};
 template<> struct is_writeable_string<char*> : public std::true_type {};
 
+template<size_t N> struct is_string<const char[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<const char[N]> : public std::false_type {};
+
+template<size_t N> struct is_string<char[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<char[N]> : public std::true_type {};
+
 template<size_t N> struct is_string<const char (&)[N]> : public std::true_type {};
 template<size_t N> struct is_writeable_string<const char (&)[N]> : public std::false_type {};
 
 template<size_t N> struct is_string<char (&)[N]> : public std::true_type {};
 template<size_t N> struct is_writeable_string<char (&)[N]> : public std::true_type {};
 
-template<size_t N> struct is_string<const char[N]> : public std::true_type {};
-template<size_t N> struct is_writeable_string<const char[N]> : public std::false_type {};
+template<size_t N> struct is_string<const char (&&)[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<const char (&&)[N]> : public std::false_type {};
 
-template<size_t N> struct is_string<char[N]> : public std::true_type {};
-template<size_t N> struct is_writeable_string<char[N]> : public std::true_type {};
+template<size_t N> struct is_string<char (&&)[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<char (&&)[N]> : public std::true_type {};
 
 /** @} */
 

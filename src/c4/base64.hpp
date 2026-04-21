@@ -135,6 +135,12 @@ inline size_t from_chars(csubstr buf, fmt::base64_wrapper *b)
 {
     return base64_decode(buf, b->data);
 }
+/** read a variable in base64 format
+ * @ingroup doc_from_chars */
+inline size_t from_chars(csubstr buf, fmt::base64_wrapper const& b)
+{
+    return base64_decode(buf, b.data);
+}
 
 } // namespace c4
 

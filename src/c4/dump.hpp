@@ -54,6 +54,17 @@ C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
 using SinkPfn = void (*)(csubstr str);
 
 
+/** @cond dev */
+namespace detail {
+// std::remove_cvref appeared in c++20
+template<class T>
+struct _remove_cvref
+{
+    using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+};
+} // namespace detail
+/** @endcond */
+
 template<class T> struct is_string; // fwd-decl
 
 /** a traits class used by @ref c4::dump() to decide whether a type is
@@ -62,7 +73,7 @@ template<class T> struct is_string; // fwd-decl
  * serialized to the dump buffer using to_chars() prior to dumping it
  * to the sink. This type defaults to @ref c4::is_string, but can be
  * overriden independently. */
-template<class T> struct dump_directly : public is_string<T> {};
+template<class T> struct dump_directly : public is_string<typename detail::_remove_cvref<T>::type> {};
 
 
 #if (C4_CPP >= 17) || defined(__DOXYGEN__)
