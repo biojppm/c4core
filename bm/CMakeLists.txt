@@ -4,6 +4,17 @@ add_custom_target(c4core-bm-plot)
 c4_set_folder_remote_project_targets(bm/plot c4core-bm-plot)
 find_package(Python REQUIRED COMPONENTS Interpreter)
 
+
+option(C4CORE_BM_FMTLIB "whether to enable comparison with fmtlib" OFF)
+if(C4CORE_BM_FMTLIB)
+    c4_require_subproject(fmtlib REMOTE
+        GIT_REPOSITORY https://github.com/fmtlib/fmt
+        GIT_TAG 12.1.0
+        GIT_SHALLOW ON)
+    c4_set_folder_remote_project_targets(ext fmt)
+endif()
+
+
 #----------------------------------------------
 
 c4_add_executable(c4core-bm-format
@@ -18,6 +29,10 @@ c4_add_target_benchmark(c4core-bm-format format FILTER "^format_.*")
 c4_add_target_benchmark(c4core-bm-format catfile FILTER "^catfile_.*")
 c4_add_target_benchmark(c4core-bm-format catsepfile FILTER "^catsepfile_.*")
 c4_add_target_benchmark(c4core-bm-format formatfile FILTER "^formatfile_.*")
+
+if(C4CORE_BM_FMTLIB)
+    target_compile_definitions(c4core-bm-format PUBLIC -DC4CORE_BM_USE_FMTLIB)
+endif()
 
 
 #----------------------------------------------
@@ -136,17 +151,15 @@ if(C4CORE_BM_ITOA_THREADS)
     c4_download_remote_proj(stb stbdir REMOTE
         GIT_REPOSITORY https://github.com/nothings/stb GIT_SHALLOW ON)
 
-    c4_require_subproject(fmtlib REMOTE
-        GIT_REPOSITORY https://github.com/fmtlib/fmt
-        GIT_TAG 8.1.1
-        GIT_SHALLOW ON)
-    c4_set_folder_remote_project_targets(ext fmt)
-
     c4_add_executable(c4core-bm-itoa_threads
         SOURCES bm_itoa_threads.cpp bm_charconv.hpp
         LIBS fmt c4core benchmark
         INC_DIRS ${stbdir}
         FOLDER bm)
+    target_compile_features(c4core-bm-itoa_threads PRIVATE cxx_std_20)
+    if(C4CORE_BM_FMTLIB)
+        target_compile_definitions(c4core-bm-itoa_threads PUBLIC -DC4CORE_BM_USE_FMTLIB)
+    endif()
 
     unset(_c4core_itoa_thread_result_files)
     add_custom_target(c4core-bm-itoa_threads-all)
@@ -166,11 +179,11 @@ if(C4CORE_BM_ITOA_THREADS)
     c4core_itoa_threads_benchmark(c4_to_chars "^c4_to_chars/.*")
     c4core_itoa_threads_benchmark(std_to_chars "^std_to_chars/.*")
     c4core_itoa_threads_benchmark(fmtlib_format_to "^fmtlib_format_to/.*")
-    c4core_itoa_threads_benchmark(snprintf "^snprintf/.*")
+    c4core_itoa_threads_benchmark(snprintf "^std_snprintf/.*")
     c4core_itoa_threads_benchmark(stb_snprintf "^stb_snprintf/.*")
     if(WIN32)
     c4core_itoa_threads_benchmark(snprintf_l "^snprintf_l/.*")
-    c4core_itoa_threads_benchmark(itoa "^itoa/.*")
+    c4core_itoa_threads_benchmark(itoa "^std_itoa/.*")
     #get_property(known_features GLOBAL PROPERTY CMAKE_CXX_KNOWN_FEATURES)
     #if(cxx_std_20 IN_LIST known_features)
     #c4core_itoa_threads_benchmark(std_format_to "^std_format_to/.*")
@@ -180,7 +193,7 @@ if(C4CORE_BM_ITOA_THREADS)
     c4core_itoa_threads_benchmark(sstream_naive_reuse "^sstream_naive_reuse/.*")
     c4core_itoa_threads_benchmark(sstream_naive "^sstream_naive/.*")
     add_custom_target(c4core-bm-itoa_threads-plot
-        #DEPENDS ${_c4core_itoa_thread_result_files}
+        DEPENDS ${_c4core_itoa_thread_result_files}
         COMMAND cmake -E echo "${Python_EXECUTABLE}"
         COMMAND ${Python_EXECUTABLE} --version
         COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/bm_plot_c4core.py itoa_threads ${_c4core_itoa_thread_result_files}

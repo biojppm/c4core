@@ -19,16 +19,23 @@
 C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wcast-align")
 C4_SUPPRESS_WARNING_GCC("-Wuseless-cast")
+
+#ifdef C4CORE_BM_USE_FMTLIB
+C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wfloat-equal")
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
+#endif
 
 #define STB_SPRINTF_IMPLEMENTATION
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wcast-qual")
 #include <stb_sprintf.h>
 C4_SUPPRESS_WARNING_GCC_POP
 
-#if C4_CXX >= 20
+#if C4_CPP >= 20
 #include <version>
-#define C4_HAS_STD_FORMAT (__has_cpp_attribute(__cpp_lib_format))
+#define C4_HAS_STD_FORMAT (__cpp_lib_format)
 #else
 #define C4_HAS_STD_FORMAT (0)
 #endif
@@ -37,22 +44,13 @@ C4_SUPPRESS_WARNING_GCC_POP
 #endif
 
 
-#define BMTHREADS(func) \
-    BENCHMARK(func)     \
-    ->Threads(1)        \
-    ->Threads(2)        \
-    ->Threads(3)        \
-    ->Threads(4)        \
-    ->Threads(5)        \
-    ->Threads(6)        \
-    ->Threads(7)        \
-    ->Threads(8)        \
-    ->Threads(9)        \
-    ->Threads(10)       \
-    ->UseRealTime()     \
+#define BMTHREADS(func)  \
+    BENCHMARK(func)      \
+    ->ThreadRange(1, 10) \
+    ->UseRealTime()
 
 
-void snprintf(bm::State &st)
+void std_snprintf(bm::State &st)
 {
     size_t sum = {};
     char buf[100];
@@ -61,18 +59,18 @@ void snprintf(bm::State &st)
     {
         C4DOALL(kNumValues)
         {
-            int ret = snprintf(buf, sizeof(buf), "%i", i++);
+            int ret = std::snprintf(buf, sizeof(buf), "%i", i++);
             sum += (size_t)ret + buf[0];
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
-BMTHREADS(snprintf);
+BMTHREADS(std_snprintf);
 
 
 #ifndef __linux__
-void snprintf_l(bm::State &st)
+void std_snprintf_l(bm::State &st)
 {
     size_t sum = {};
     char buf[100];
@@ -90,9 +88,9 @@ void snprintf_l(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
-BMTHREADS(snprintf_l);
+BMTHREADS(std_snprintf_l);
 #endif
 
 
@@ -110,7 +108,7 @@ void stb_snprintf(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(stb_snprintf);
 
@@ -134,7 +132,7 @@ void sstream(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(sstream);
 
@@ -154,7 +152,7 @@ void sstream_naive(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(sstream_naive);
 
@@ -176,13 +174,13 @@ void sstream_naive_reuse(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(sstream_naive_reuse);
 
 
 #ifdef _MSC_VER
-void itoa(bm::State &st)
+void std_itoa(bm::State &st)
 {
  	char buf[100];
     size_t sum = {};
@@ -196,9 +194,9 @@ void itoa(bm::State &st)
         }
 	}
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
-BMTHREADS(itoa);
+BMTHREADS(std_itoa);
 #endif
 
 
@@ -217,12 +215,14 @@ static void std_format_to(bm::State &st)
         }
 	}
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(std_format_to);
 #endif
 
 
+
+#ifdef C4CORE_BM_USE_FMTLIB
 void fmtlib_format_to(bm::State &st)
 {
     size_t sum = {};
@@ -238,9 +238,10 @@ void fmtlib_format_to(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(fmtlib_format_to);
+#endif
 
 
 #if C4_HAS_STDTOCHARS
@@ -258,7 +259,7 @@ void std_to_chars(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(std_to_chars);
 #endif
@@ -279,7 +280,7 @@ void c4_write_dec(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(c4_write_dec);
 
@@ -299,7 +300,7 @@ void c4_itoa(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(c4_itoa);
 
@@ -319,7 +320,7 @@ void c4_xtoa(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(c4_xtoa);
 
@@ -339,7 +340,7 @@ void c4_to_chars(bm::State &st)
         }
     }
     bm::DoNotOptimize(sum);
-    report_threadavg<int>(st, kNumValues);
+    report<int>(st, kNumValues);
 }
 BMTHREADS(c4_to_chars);
 

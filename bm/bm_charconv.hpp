@@ -56,8 +56,19 @@ C4_SUPPRESS_WARNING_GCC_CLANG("-Wdeprecated")
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wsign-conversion")
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wconversion")
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wold-style-cast")
+C4_SUPPRESS_WARNING_CLANG("-Wc++17-attribute-extensions")
 #if defined(__GNUC__) && (__GNUC__ >= 6)
 C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wunused-const-variable")
+#endif
+#if (C4_CPP < 14)
+#include <memory>
+namespace std {
+template<class T, class... Args>
+std::unique_ptr<T> make_unique(Args&&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+} // namespace std
 #endif
 #include <benchmark/benchmark.h>
 #if defined(__GNUC__) && (__GNUC__ >= 6)
