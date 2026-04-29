@@ -9,15 +9,34 @@
 #include <cstdlib>
 #include <vector>
 
+#ifdef C4CORE_BM_USE_FMTLIB
+C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wfloat-equal")
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
+#endif
+
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
+C4_SUPPRESS_WARNING_CLANG("-Wc++17-attribute-extensions")
 #if defined(__GNUC__) && (__GNUC__ >= 6)
 C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wunused-const-variable")
+#endif
+#if (C4_CPP < 14)
+#include <memory>
+namespace std {
+template<class T, class... Args>
+std::unique_ptr<T> make_unique(Args&& ...args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+} // namespace std
 #endif
 #include <benchmark/benchmark.h>
 #if defined(__GNUC__) && (__GNUC__ >= 6)
 C4_SUPPRESS_WARNING_GCC_POP
 #endif
 
-C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wold-style-cast")
 
 namespace bm = benchmark;
 
@@ -70,30 +89,28 @@ const c4::csubstr sep = " --- ";
     "\" \"=\"%s\"%s\"haha\"=\"%s\"%sstd::string(\"hehe\")=\"%s\"%s"\
     "str=\"%s\""
 
+static const std::string s1_("hehe");
+static const std::string s2_("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkjadsasdkjhasdkjhasdkjhasdkjhasdkjhsdfkjhsdfkjhsdfkjh");
+
 #define _c4argbundle \
     1, 2, 3, 4, 5, 6, 7, 8, 9, size_t(283482349),\
-    " ", "haha", std::string("hehe"),\
-    std::string("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkj")
+    " ", "haha", s1_, s2_
 
 #define _c4argbundle_printf \
     1, 2, 3, 4, 5, 6, 7, 8, 9, size_t(283482349),\
-    " ", "haha", std::string("hehe").c_str(),\
-    std::string("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkj").c_str()
+    " ", "haha", s1_.c_str(), s2_.c_str()
 
 #define _c4argbundle_printf_sep \
     1, sep.str, 2, sep.str, 3, sep.str, 4, sep.str, 5, sep.str, 6, sep.str, 7, sep.str, 8, sep.str, 9, sep.str, size_t(283482349), sep.str,\
-    " ", sep.str, "haha", sep.str, std::string("hehe").c_str(), sep.str,\
-    std::string("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkj").c_str()
+    " ", sep.str, "haha", sep.str, s1_.c_str(), sep.str, s2_.c_str()
 
 #define _c4argbundle_lshift \
     1 << 2 << 3 << 4 << 5 << 6 << 7 << 8 << 9 << size_t(283482349)\
-      << " " << "haha" << std::string("hehe")\
-      << std::string("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkj")
+      << " " << "haha" << s1_ << s2_
 
 #define _c4argbundle_lshift_sep \
     1 << sep << 2 << sep << 3 << sep << 4 << sep << 5 << sep << 6 << sep << 7 << sep << 8 << sep << 9 << sep << size_t(283482349)\
-      << sep << " " << sep << "haha" << sep << std::string("hehe")\
-      << sep << std::string("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkj")
+      << sep << " " << sep << "haha" << sep << s1_ << sep << s2_
 
 
 //-----------------------------------------------------------------------------
@@ -246,7 +263,7 @@ void cat_c4catrs_no_reuse(bm::State &st)
     size_t sz = 0;
     for(auto _ : st)
     {
-        auto buf = c4::catrs<std::string>(_c4argbundle);
+        std::string buf = c4::catrs<std::string>(_c4argbundle);
         sz = buf.size();
     }
     report(st, sz);
@@ -408,7 +425,7 @@ void catfile_c4catdump_lambda_style(bm::State &st)
     c4::substr buf(buf_);
     size_t sz = c4::cat(buf, _c4argbundle);
     dump2file::lambda_style dumper;
-    auto lambda = [&dumper](c4::csubstr s) { fwrite(s.str, 1, s.len, dumper.subject); };
+    auto lambda = [&dumper](c4::csubstr s) { if(s.len) fwrite(s.str, 1, s.len, dumper.subject); };
     for(auto _ : st)
     {
         sz = c4::cat_dump(lambda, buf, _c4argbundle);
@@ -708,6 +725,24 @@ void format_c4formatrs_no_reuse(bm::State &st)
     report(st, sz);
 }
 
+#ifdef C4CORE_BM_USE_FMTLIB
+void format_fmtlib_format_to(bm::State &st)
+{
+    size_t sum = {};
+	fmt::memory_buffer buf;
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        buf.clear();
+        fmt::format_to(fmt::appender(buf), _c4argbundle_fmt, _c4argbundle);
+        sz = buf.size();
+        sum += sz + (size_t)buf[0];
+    }
+    bm::DoNotOptimize(sum);
+    report(st, sz);
+}
+#endif
+
 void format_c4formatdump_c_style_static_dispatch(bm::State &st)
 {
     dump2str::reset_c_style();
@@ -893,6 +928,9 @@ C4BM(catsepfile_ofstream);
 C4BM(format_c4format);
 C4BM(format_c4formatrs_reuse);
 C4BM(format_c4formatrs_no_reuse);
+#ifdef C4CORE_BM_USE_FMTLIB
+C4BM(format_fmtlib_format_to);
+#endif
 C4BM(format_c4formatdump_c_style_static_dispatch);
 C4BM(format_c4formatdump_c_style_dynamic_dispatch);
 C4BM(format_c4formatdump_cpp_style);
