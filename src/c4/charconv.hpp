@@ -2342,7 +2342,13 @@ C4_ALWAYS_INLINE size_t to_chars(substr buf,   double v) noexcept { return dtoa(
 template <class T> C4_ALWAYS_INLINE auto to_chars(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type { return itoa(buf, v); }
 template <class T> C4_ALWAYS_INLINE auto to_chars(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type { return write_dec(buf, v); }
 template <class T>
-C4_ALWAYS_INLINE size_t to_chars(substr s, T *v) noexcept { return itoa(s, (intptr_t)v, (intptr_t)16); }
+C4_ALWAYS_INLINE auto to_chars(substr s, T *v) noexcept
+    -> typename std::enable_if<!std::is_same<T, char>::value &&
+                               !std::is_same<T, const char>::value,
+                               size_t>::type
+{
+    return itoa(s, (intptr_t)v, (intptr_t)16);
+}
 
 /** @} */
 
@@ -2645,16 +2651,24 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v) noexcept
 /** @ingroup doc_to_chars
  * (1) overload for `char(&)[N]` and `const char(&)[N]` */
 template<size_t N>
-inline size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N]) noexcept
+size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N]) noexcept
 {
-    csubstr sp(v);
-    return to_chars(buf, sp);
+    return to_chars(buf, csubstr{v, N-1});
 }
 
-/** @ingroup doc_to_chars */
-inline size_t to_chars(substr buf, const char * C4_RESTRICT v) noexcept
+/** @ingroup doc_to_chars
+ * (2) overload for `char*` and `const char*`. Must be zero-terminated!
+ * @warning will call strlen()
+ * @note this overload uses SFINAE to prevent it from overriding the array overload
+ * @see For a more detailed explanation on why the plain pointer overloads cannot
+ * coexist with the array overloads, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+template<class CharPtr>
+auto to_chars(substr buf, CharPtr v) noexcept
+    -> typename std::enable_if<std::is_same<CharPtr, char*>::value
+                               ||
+                               std::is_same<CharPtr, const char*>::value, size_t>::type
 {
-    return to_chars(buf, to_csubstr(v));
+    return to_chars(buf, csubstr{v, strlen(v)});
 }
 
 /** @} */
