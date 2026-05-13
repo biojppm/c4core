@@ -8,8 +8,11 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
+#if C4_CPP >= 20
+#include <format>
+#endif
 
-#ifdef C4CORE_BM_USE_FMTLIB
+#ifdef C4CORE_BM_FMTLIB
 C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wfloat-equal")
 #define FMT_HEADER_ONLY
@@ -76,18 +79,18 @@ const c4::csubstr sep = " --- ";
 
 #define _c4argbundle_fmt "hello here you have some numbers: "\
     "1={}, 2={}, 3={}, 4={}, 5={}, 6={}, 7={}, 8={}, 9={}, size_t(283482349)={}, "\
-    "\" \"=\"{}\", \"haha\"=\"{}\", std::string(\"hehe\")=\"{}\", "\
-    "str=\"{}\""
+    "\" \"=\"{}\", \"haha\"=\"{}\", now std::string: "\
+    "s1=\"{}\", s2=\"{}\""
 
 #define _c4argbundle_fmt_printf "hello here you have some numbers: "\
     "1=%d, 2=%d, 3=%d, 4=%d, 5=%d, 6=%d, 7=%d, 8=%d, 9=%d, size_t(283482349)=%zu, "\
-    "\" \"=\"%s\", \"haha\"=\"%s\", std::string(\"hehe\")=\"%s\", "\
-    "str=\"%s\""
+    "\" \"=\"%s\", \"haha\"=\"%s\", now std::string: "\
+    "s1=\"%s\", s2=\"%s\""
 
 #define _c4argbundle_fmt_printf_sep "hello here you have some numbers: "\
     "1=%d%s2=%d%s3=%d%s4=%d%s5=%d%s6=%d%s7=%d%s8=%d%s9=%d%ssize_t(283482349)=%zu%s"\
-    "\" \"=\"%s\"%s\"haha\"=\"%s\"%sstd::string(\"hehe\")=\"%s\"%s"\
-    "str=\"%s\""
+    "\" \"=\"%s\"%s\"haha\"=\"%s\"%snow std::string: "\
+    "s1=\"%s\"%ss2=\"%s\""
 
 static const std::string s1_("hehe");
 static const std::string s2_("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasldkjadsasdkjhasdkjhasdkjhasdkjhasdkjhsdfkjhsdfkjhsdfkjh");
@@ -111,6 +114,12 @@ static const std::string s2_("asdlklkasdlkjasd asdlkjasdlkjasdlkjasdoiasdlkjasld
 #define _c4argbundle_lshift_sep \
     1 << sep << 2 << sep << 3 << sep << 4 << sep << 5 << sep << 6 << sep << 7 << sep << 8 << sep << 9 << sep << size_t(283482349)\
       << sep << " " << sep << "haha" << sep << s1_ << sep << s2_
+
+#define _c4argbundle_lshift_fmt "hello here you have some numbers: "\
+    "1=" << 1 << ", 2=" << 2 << ", 3=" << 3 << ", 4=" << 4 << ", 5=" << 5 \
+    << ", 6=" << 6 << ", 7=" << 7 << ", 8=" << 8 << ", 9=" << 9 << ", size_t(283482349)=" << size_t(283482349) << ", " \
+    "\" \"=\"" << " " << "\", \"haha\"=\"" << "haha" << "\", now std::string: " \
+    "s1=\"" << s1_ << "\" s2=\"" << s2_ << "\""
 
 
 //-----------------------------------------------------------------------------
@@ -690,6 +699,20 @@ void catsepfile_ofstream(bm::State &st)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+#if C4_CPP >= 20
+void format_std_format_to_n(bm::State &st)
+{
+    char buf[512];
+    size_t sz = {};
+    for(auto _ : st)
+    {
+        auto ret = std::format_to_n(buf, sizeof(buf), _c4argbundle_fmt, _c4argbundle);
+        sz = (size_t)ret.size;
+    }
+    report(st, sz);
+}
+#endif
+
 void format_c4format(bm::State &st)
 {
     char buf_[512];
@@ -725,10 +748,9 @@ void format_c4formatrs_no_reuse(bm::State &st)
     report(st, sz);
 }
 
-#ifdef C4CORE_BM_USE_FMTLIB
+#ifdef C4CORE_BM_FMTLIB
 void format_fmtlib_format_to(bm::State &st)
 {
-    size_t sum = {};
 	fmt::memory_buffer buf;
     size_t sz = 0;
     for(auto _ : st)
@@ -736,9 +758,7 @@ void format_fmtlib_format_to(bm::State &st)
         buf.clear();
         fmt::format_to(fmt::appender(buf), _c4argbundle_fmt, _c4argbundle);
         sz = buf.size();
-        sum += sz + (size_t)buf[0];
     }
-    bm::DoNotOptimize(sum);
     report(st, sz);
 }
 #endif
@@ -804,6 +824,32 @@ void format_snprintf(bm::State &st)
     for(auto _ : st)
     {
         sz = (size_t) snprintf(buf.str, buf.len, _c4argbundle_fmt_printf, _c4argbundle_printf);
+    }
+    report(st, sz);
+}
+
+void format_stdsstream_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    std::stringstream ss;
+    for(auto _ : st)
+    {
+        ss.clear();
+        ss.str("");
+        ss << _c4argbundle_lshift_fmt;
+        sz = ss.str().size();
+    }
+    report(st, sz);
+}
+
+void format_stdsstream_no_reuse(bm::State &st)
+{
+    size_t sz = 0;
+    for(auto _ : st)
+    {
+        std::stringstream ss;
+        ss << _c4argbundle_lshift_fmt;
+        sz = ss.str().size();
     }
     report(st, sz);
 }
@@ -924,11 +970,13 @@ C4BM(catsepfile_c4catsepdump_lambda_style);
 C4BM(catsepfile_fprintf);
 C4BM(catsepfile_ofstream);
 
-
+#if C4_CPP >= 20
+C4BM(format_std_format_to_n);
+#endif
 C4BM(format_c4format);
 C4BM(format_c4formatrs_reuse);
 C4BM(format_c4formatrs_no_reuse);
-#ifdef C4CORE_BM_USE_FMTLIB
+#ifdef C4CORE_BM_FMTLIB
 C4BM(format_fmtlib_format_to);
 #endif
 C4BM(format_c4formatdump_c_style_static_dispatch);
@@ -936,6 +984,8 @@ C4BM(format_c4formatdump_c_style_dynamic_dispatch);
 C4BM(format_c4formatdump_cpp_style);
 C4BM(format_c4formatdump_lambda_style);
 C4BM(format_snprintf);
+C4BM(format_stdsstream_reuse);
+C4BM(format_stdsstream_no_reuse);
 
 C4BM(formatfile_c4formatdump_c_style_static_dispatch);
 C4BM(formatfile_c4formatdump_c_style_dynamic_dispatch);
@@ -950,6 +1000,7 @@ C4BM(formatfile_fprintf);
 
 int main(int argc, char *argv[])
 {
+    bm::MaybeReenterWithoutASLR(argc, argv);
     bm::Initialize(&argc, argv);
     bm::RunSpecifiedBenchmarks();
     return 0;

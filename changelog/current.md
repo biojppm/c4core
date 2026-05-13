@@ -1,0 +1,12 @@
+[#162](https://github.com/biojppm/c4core/pull/162)
+  - charconv.hpp:
+    - minor simplification of `atoi_first()` and `atou_first()`
+    - add implementation of `to_chars()` for raw char pointers
+    - improve `from_chars()` for bool
+  - format.hpp:
+    - simplify `boolalpha()` implementation
+    - `catrs()`/`catseprs()`/`formatrs()`: resize to capacity before trying
+    - fix `uncatsep()`: force sep as a csubstr, and enforce it
+    - `cat()`/`catsep()`/`format(): add tests to ensure repeated args
+    - improve implementation of `fmt::left()`/`fmt::right()`. add `fmt::center()`
+  - Improve doxygen comments

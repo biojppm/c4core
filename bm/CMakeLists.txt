@@ -31,7 +31,7 @@ c4_add_target_benchmark(c4core-bm-format catsepfile FILTER "^catsepfile_.*")
 c4_add_target_benchmark(c4core-bm-format formatfile FILTER "^formatfile_.*")
 
 if(C4CORE_BM_FMTLIB)
-    target_compile_definitions(c4core-bm-format PUBLIC -DC4CORE_BM_USE_FMTLIB)
+    target_compile_definitions(c4core-bm-format PUBLIC -DC4CORE_BM_FMTLIB)
 endif()
 
 
@@ -158,7 +158,7 @@ if(C4CORE_BM_ITOA_THREADS)
         FOLDER bm)
     target_compile_features(c4core-bm-itoa_threads PRIVATE cxx_std_20)
     if(C4CORE_BM_FMTLIB)
-        target_compile_definitions(c4core-bm-itoa_threads PUBLIC -DC4CORE_BM_USE_FMTLIB)
+        target_compile_definitions(c4core-bm-itoa_threads PUBLIC -DC4CORE_BM_FMTLIB)
     endif()
 
     unset(_c4core_itoa_thread_result_files)
