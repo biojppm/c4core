@@ -1043,6 +1043,7 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
 template<class CharOwningContainer, class... Args>
 inline void catrs(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
+    cont->resize(cont->capacity()); // improve the odds of fitting in the original buffer
 retry:
     substr buf = to_substr(*cont);
     size_t ret = cat(buf, args...);
@@ -1112,6 +1113,7 @@ template<class CharOwningContainer, class... Args>
 inline csubstr catrs_append(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
+    cont->resize(cont->capacity()); // improve the odds of fitting in the original buffer
 retry:
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = cat(buf, args...);
@@ -1153,6 +1155,7 @@ retry:
 template<class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
+    cont->resize(cont->capacity()); // improve the odds of fitting in the original buffer
 retry:
     substr buf = to_substr(*cont);
     size_t ret = catsep(buf, sep, args...);
@@ -1221,6 +1224,7 @@ template<class CharOwningContainer, class Sep, class... Args>
 inline csubstr catseprs_append(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
+    cont->resize(cont->capacity()); // improve the odds of fitting in the original buffer
 retry:
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = catsep(buf, sep, args...);
@@ -1262,6 +1266,7 @@ retry:
 template<class CharOwningContainer, class... Args>
 inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
+    cont->resize(cont->capacity()); // improve the odds of fitting in the original buffer
 retry:
     substr buf = to_substr(*cont);
     size_t ret = format(buf, fmt, args...);
@@ -1329,6 +1334,7 @@ template<class CharOwningContainer, class... Args>
 inline csubstr formatrs_append(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
+    cont->resize(cont->capacity()); // improve the odds of fitting in the original buffer
 retry:
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = format(buf, fmt, args...);
