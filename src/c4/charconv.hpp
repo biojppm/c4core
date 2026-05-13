@@ -1507,9 +1507,7 @@ template<class T>
 C4_ALWAYS_INLINE size_t atoi_first(csubstr str, T * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_int_span();
-    if(trimmed.len == 0)
-        return csubstr::npos;
-    if(atoi(trimmed, v))
+    if(trimmed.len && atoi(trimmed, v))
         return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
@@ -1588,9 +1586,7 @@ template<class T>
 C4_ALWAYS_INLINE size_t atou_first(csubstr str, T *v)
 {
     csubstr trimmed = str.first_uint_span();
-    if(trimmed.len == 0)
-        return csubstr::npos;
-    if(atou(trimmed, v))
+    if(trimmed.len && atou(trimmed, v))
         return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
