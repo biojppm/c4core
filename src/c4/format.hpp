@@ -59,20 +59,17 @@ namespace fmt {
 /** @defgroup doc_boolean_specifiers boolean specifiers
  * @{ */
 
-/** write a variable as an alphabetic boolean, ie as either true or false
- * @param strict_read */
-template<class T>
 struct boolalpha_
 {
-    boolalpha_(T val_, bool strict_read_=false) : val(val_ ? true : false), strict_read(strict_read_) {}
     bool val;
-    bool strict_read;
 };
 
+/** tag function to mark a variable to be written as an alphabetic
+ * boolean, ie as either true or false */
 template<class T>
-boolalpha_<T> boolalpha(T const& val, bool strict_read=false)
+boolalpha_ boolalpha(T const& val=false)
 {
-    return boolalpha_<T>(val, strict_read);
+    return boolalpha_{val ? true : false};
 }
 
 /** @} */
@@ -84,8 +81,7 @@ boolalpha_<T> boolalpha(T const& val, bool strict_read=false)
 /** write a variable as an alphabetic boolean, ie as either true or
  * false
  * @ingroup doc_to_chars */
-template<class T>
-inline size_t to_chars(substr buf, fmt::boolalpha_<T> fmt)
+inline size_t to_chars(substr buf, fmt::boolalpha_ fmt)
 {
     return to_chars(buf, fmt.val ? "true" : "false");
 }
