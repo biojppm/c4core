@@ -2454,37 +2454,36 @@ C4_ALWAYS_INLINE size_t to_chars(substr buf, bool v) noexcept
 /** @ingroup doc_from_chars */
 inline bool from_chars(csubstr buf, bool * C4_RESTRICT v) noexcept
 {
-    if(buf == '0')
+    if(buf.len == 1)
     {
-        *v = false; return true;
+        if(buf.str[0] == '0')
+        {
+            *v = false; return true;
+        }
+        else if(buf.str[0] == '1')
+        {
+            *v = true; return true;
+        }
     }
-    else if(buf == '1')
+    else if(buf.len == 4)
     {
-        *v = true; return true;
+        if(((buf.str[0] == 't') && (0 == memcmp(buf.str + 1, "rue", 3)))
+           ||
+           ((buf.str[0] == 'T') && ((0 == memcmp(buf.str + 1, "rue", 3) ||
+                                     0 == memcmp(buf.str + 1, "RUE", 3)))))
+        {
+            *v = true; return true;
+        }
     }
-    else if(buf == "false")
+    else if(buf.len == 5)
     {
-        *v = false; return true;
-    }
-    else if(buf == "true")
-    {
-        *v = true; return true;
-    }
-    else if(buf == "False")
-    {
-        *v = false; return true;
-    }
-    else if(buf == "True")
-    {
-        *v = true; return true;
-    }
-    else if(buf == "FALSE")
-    {
-        *v = false; return true;
-    }
-    else if(buf == "TRUE")
-    {
-        *v = true; return true;
+        if(((buf.str[0] == 'f') && (0 == memcmp(buf.str + 1, "alse", 4)))
+           ||
+           ((buf.str[0] == 'F') && ((0 == memcmp(buf.str + 1, "alse", 4) ||
+                                     0 == memcmp(buf.str + 1, "ALSE", 4)))))
+        {
+            *v = false; return true;
+        }
     }
     // fallback to c-style int bools
     int val = 0;
