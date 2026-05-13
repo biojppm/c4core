@@ -930,16 +930,94 @@ TEST_CASE("catsep.samevar_str.const_char_arr")
 
 TEST_CASE("uncatsep.vars")
 {
-    size_t sz;
-    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
-    char sep;
+    csubstr seps[] = {
+        csubstr(" "),
+        csubstr("-"),
+        csubstr("--"),
+        csubstr("@"),
+        csubstr(" --- "),
+        csubstr("\t"),
+    };
+    std::string buf_;
+    for(csubstr sep : seps)
+    {
+        CAPTURE(sep);
+        catseprs(&buf_, sep, 1, 2, 3, 4);
+        csubstr buf = to_csubstr(buf_);
+        int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
+        size_t sz = uncatsep(buf, sep, v1, v2, v3, v4);
+        CHECK_EQ(sz, buf.len);
+        CHECK_EQ(v1, 1);
+        CHECK_EQ(v2, 2);
+        CHECK_EQ(v3, 3);
+        CHECK_EQ(v4, 4);
+    }
+    for(csubstr sep : seps)
+    {
+        CAPTURE(sep);
+        catseprs(&buf_, sep, "1", "2", "3", "4");
+        csubstr buf = to_csubstr(buf_);
+        std::string v1, v2, v3, v4;
+        size_t sz = uncatsep(buf, sep, v1, v2, v3, v4);
+        CHECK_EQ(sz, buf.len);
+        CHECK_EQ(v1, "1");
+        CHECK_EQ(v2, "2");
+        CHECK_EQ(v3, "3");
+        CHECK_EQ(v4, "4");
+    }
+}
 
-    sz = uncatsep("1 2 3 4", sep, v1, v2, v3, v4);
-    CHECK_EQ(sz, 7);
-    CHECK_EQ(v1, 1);
-    CHECK_EQ(v2, 2);
-    CHECK_EQ(v3, 3);
-    CHECK_EQ(v4, 4);
+TEST_CASE("uncatsep.fail")
+{
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
+    {
+        csubstr sep = " ";
+        CHECK_EQ(csubstr::npos, uncatsep("", sep, v1));
+        CHECK_EQ(csubstr::npos, uncatsep("1", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1 ", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 ", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1-", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1-", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 ", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 ", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2-", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2-", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 3", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 3", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 3 ", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 3 ", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 3-", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 3-", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("- 2 3 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" - 2 3 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 - 3 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 - 3 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 - 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 - 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 3 -", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 3 -", sep, v1, v2, v3, v4));
+    }
+    {
+        csubstr sep = "@";
+        CHECK_EQ(csubstr::npos, uncatsep("", sep, v1));
+        CHECK_EQ(csubstr::npos, uncatsep("1", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1@", sep, v1, v2));
+        CHECK_EQ(3            , uncatsep("1@2", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1-2", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2-", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@3", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@3@", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@3-", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("-@2@3@4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@-@3@4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@-@4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@3@-", sep, v1, v2, v3, v4));
+    }
 }
 
 #ifdef C4_TUPLE_TO_STR

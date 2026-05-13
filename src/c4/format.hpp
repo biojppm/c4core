@@ -736,34 +736,6 @@ size_t catsep_more(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRIC
     num += ret;
     return num;
 }
-
-
-template<class Sep>
-inline size_t uncatsep_more(csubstr /*buf*/, Sep & /*sep*/)
-{
-    return 0;
-}
-
-template<class Sep, class Arg, class... Args>
-size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
-{
-    size_t ret = from_chars_first(buf, &sep);
-    size_t num = ret;
-    if(C4_UNLIKELY(ret == csubstr::npos))
-        return csubstr::npos;
-    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
-    ret  = from_chars_first(buf, &a);
-    if(C4_UNLIKELY(ret == csubstr::npos))
-        return csubstr::npos;
-    num += ret;
-    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
-    ret  = uncatsep_more(buf, sep, more...);
-    if(C4_UNLIKELY(ret == csubstr::npos))
-        return csubstr::npos;
-    num += ret;
-    return num;
-}
-
 } // namespace detail
 
 // terminates the variadic recursion
@@ -833,29 +805,38 @@ substr catsep_sub(substr buf, Args && ...args)
 /** @defgroup doc_uncatsep uncatsep: deserialize the separated arguments from a string
  * @{ */
 
-/** deserialize the arguments from the given buffer.
- *
- * @return the number of characters read from the buffer, or csubstr::npos
- *   if a conversion was not successful.
- * @see c4::cat(). c4::uncat() is the inverse of c4::cat(). */
+/** @cond dev */
+template<class Arg>
+inline size_t uncatsep(csubstr buf, csubstr /*sep*/, Arg &C4_RESTRICT a)
+{
+    return from_chars(buf, &a) ? buf.len : csubstr::npos;
+}
+/** @endcond */
 
 /** deserialize the arguments from the given buffer, using a separator.
  *
  * @return the number of characters read from the buffer, or csubstr::npos
  *   if a conversion was not successful
- * @see c4::catsep(). c4::uncatsep() is the inverse of c4::catsep(). */
-template<class Sep, class Arg, class... Args>
-size_t uncatsep(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
+ *
+ * @see c4::catsep(). @ref c4::uncatsep() is the inverse of @ref c4::catsep(). */
+template<class Arg, class... Args>
+size_t uncatsep(csubstr buf, csubstr sep, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
-    size_t ret = from_chars_first(buf, &a), num = ret;
-    if(C4_UNLIKELY(ret == csubstr::npos))
-        return csubstr::npos;
-    buf  = buf.len >= ret ? buf.sub(ret) : substr{};
-    ret  = detail::uncatsep_more(buf, sep, more...);
-    if(C4_UNLIKELY(ret == csubstr::npos))
-        return csubstr::npos;
-    num += ret;
-    return num;
+    if(C4_LIKELY(sep.len > 0))
+    {
+        size_t pos = buf.find(sep);
+        if(C4_LIKELY(pos != csubstr::npos))
+        {
+            if(C4_LIKELY(from_chars(buf.first(pos), &a)))
+            {
+                pos += sep.len;
+                size_t num = uncatsep(buf.sub(pos), sep, more...);
+                if(C4_LIKELY(num != csubstr::npos))
+                    return pos + num;
+            }
+        }
+    }
+    return csubstr::npos;
 }
 
 /** @} */
