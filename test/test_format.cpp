@@ -629,6 +629,85 @@ TEST_CASE("cat.tuple")
 }
 #endif // C4_TUPLE_TO_STR
 
+
+//-----------------------------------------------------------------------------
+
+template<class T>
+void test_cat_samevar5(T & v, csubstr expected)
+{
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if defined(__GNUC__) && __GNUC__ > 6
+    C4_SUPPRESS_WARNING_GCC("-Wrestrict")
+    #endif
+    CAPTURE(v);
+    char buf_[256];
+    substr buf = buf_;
+    buf.fill(0);
+    CAPTURE(buf);
+    REQUIRE_EQ(expected.len,  cat(buf, v, v, v, v, v));
+    CHECK_EQ(expected, substr(buf).first(expected.len));
+    buf.fill(0);
+    CHECK_EQ(expected,  cat_sub(buf, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  catrs<std::string>(v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  catrs<std::vector<char>>(v, v, v, v, v));
+    C4_SUPPRESS_WARNING_GCC_POP
+}
+TEST_CASE_TEMPLATE("cat.samevar_integral", T,
+                   int8_t, uint8_t,
+                   int16_t, uint16_t,
+                   int32_t, uint32_t,
+                   int64_t, uint64_t,
+                   int, uintptr_t,
+                   float, double)
+{
+    T val0 = 1;
+    T val1 = 12;
+    test_cat_samevar5<T>(val0, "11111");
+    test_cat_samevar5<T>(val1, "1212121212");
+}
+TEST_CASE_TEMPLATE("cat.samevar_char", T, char)
+{
+    T val0 = '1';
+    T val1 = '2';
+    test_cat_samevar5<T>(val0, "11111");
+    test_cat_samevar5<T>(val1, "22222");
+}
+TEST_CASE_TEMPLATE("cat.samevar_str", T, std::string)
+{
+    T val0 = "ab";
+    T val1 = "cd";
+    test_cat_samevar5<T>(val0, "ababababab");
+    test_cat_samevar5<T>(val1, "cdcdcdcdcd");
+}
+TEST_CASE_TEMPLATE("cats.samevar_str", T, char, const char)
+{
+    T val0_[] = "ab";
+    T val1_[] = "cd";
+    T *val0 = val0_;
+    T *val1 = val1_;
+    test_cat_samevar5<T*>(val0, "ababababab");
+    test_cat_samevar5<T*>(val1, "cdcdcdcdcd");
+}
+TEST_CASE("cat.samevar_str.char_arr")
+{
+    char val0[] = "ab";
+    char val1[] = "cd";
+    test_cat_samevar5<char [3]>(val0, "ababababab");
+    test_cat_samevar5<char [3]>(val1, "cdcdcdcdcd");
+}
+TEST_CASE("cat.samevar_str.const_char_arr")
+{
+    const char val0[] = "ab";
+    const char val1[] = "cd";
+    test_cat_samevar5<const char [3]>(val0, "ababababab");
+    test_cat_samevar5<const char [3]>(val1, "cdcdcdcdcd");
+}
+
+
+//-----------------------------------------------------------------------------
+
 TEST_CASE("uncat.vars")
 {
     size_t sz;
@@ -661,6 +740,8 @@ TEST_CASE("uncat.tuple")
 }
 #endif // C4_TUPLE_TO_STR
 
+
+//-----------------------------------------------------------------------------
 
 TEST_CASE("catsep.vars")
 {
@@ -766,6 +847,86 @@ TEST_CASE("catsep.tuple")
     CHECK_EQ(result, "1/2/3/4");
 }
 #endif // C4_TUPLE_TO_STR
+
+
+//-----------------------------------------------------------------------------
+
+template<class T>
+void test_catsep_samevar5(T & v, csubstr expected)
+{
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if defined(__GNUC__) && __GNUC__ > 6
+    C4_SUPPRESS_WARNING_GCC("-Wrestrict")
+    #endif
+    CAPTURE(v);
+    csubstr sep = "--";
+    char buf_[256];
+    substr buf = buf_;
+    buf.fill(0);
+    CAPTURE(buf);
+    REQUIRE_EQ(expected.len,  catsep(buf, sep, v, v, v, v, v));
+    CHECK_EQ(expected, substr(buf).first(expected.len));
+    buf.fill(0);
+    CHECK_EQ(expected,  catsep_sub(buf, sep, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  catseprs<std::string>(sep, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  catseprs<std::vector<char>>(sep, v, v, v, v, v));
+    C4_SUPPRESS_WARNING_GCC_POP
+}
+TEST_CASE_TEMPLATE("catsep.samevar_integral", T,
+                   int8_t, uint8_t,
+                   int16_t, uint16_t,
+                   int32_t, uint32_t,
+                   int64_t, uint64_t,
+                   int, uintptr_t,
+                   float, double)
+{
+    T val0 = 1;
+    T val1 = 12;
+    test_catsep_samevar5<T>(val0, "1--1--1--1--1");
+    test_catsep_samevar5<T>(val1, "12--12--12--12--12");
+}
+TEST_CASE_TEMPLATE("catsep.samevar_char", T, char)
+{
+    T val0 = '1';
+    T val1 = '2';
+    test_catsep_samevar5<T>(val0, "1--1--1--1--1");
+    test_catsep_samevar5<T>(val1, "2--2--2--2--2");
+}
+TEST_CASE_TEMPLATE("catsep.samevar_str", T, std::string)
+{
+    T val0 = "ab";
+    T val1 = "cd";
+    test_catsep_samevar5<T>(val0, "ab--ab--ab--ab--ab");
+    test_catsep_samevar5<T>(val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE_TEMPLATE("catsep.samevar_str", T, char, const char)
+{
+    T val0_[] = "ab";
+    T val1_[] = "cd";
+    T *val0 = val0_;
+    T *val1 = val1_;
+    test_catsep_samevar5<T*>(val0, "ab--ab--ab--ab--ab");
+    test_catsep_samevar5<T*>(val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE("catsep.samevar_str.char_arr")
+{
+    char val0[] = "ab";
+    char val1[] = "cd";
+    test_catsep_samevar5<char [3]>(val0, "ab--ab--ab--ab--ab");
+    test_catsep_samevar5<char [3]>(val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE("catsep.samevar_str.const_char_arr")
+{
+    const char val0[] = "ab";
+    const char val1[] = "cd";
+    test_catsep_samevar5<const char [3]>(val0, "ab--ab--ab--ab--ab");
+    test_catsep_samevar5<const char [3]>(val1, "cd--cd--cd--cd--cd");
+}
+
+
+//-----------------------------------------------------------------------------
 
 TEST_CASE("uncatsep.vars")
 {
@@ -1011,6 +1172,86 @@ TEST_CASE("format.tuple")
     CHECK_EQ(result, "{} and {} and {} and {}");
 }
 #endif // C4_TUPLE_TO_STR
+
+
+
+//-----------------------------------------------------------------------------
+
+template<class T>
+void test_format_samevar5(csubstr fmt, T & v, csubstr expected)
+{
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if defined(__GNUC__) && __GNUC__ > 6
+    C4_SUPPRESS_WARNING_GCC("-Wrestrict")
+    #endif
+    CAPTURE(v);
+    char buf_[256];
+    substr buf = buf_;
+    buf.fill(0);
+    CAPTURE(buf);
+    REQUIRE_EQ(expected.len,  format(buf, fmt, v, v, v, v, v));
+    CHECK_EQ(expected, substr(buf).first(expected.len));
+    buf.fill(0);
+    CHECK_EQ(expected,  format_sub(buf, fmt, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  formatrs<std::string>(fmt, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  formatrs<std::vector<char>>(fmt, v, v, v, v, v));
+    C4_SUPPRESS_WARNING_GCC_POP
+}
+TEST_CASE_TEMPLATE("format.samevar_integral", T,
+                   int8_t, uint8_t,
+                   int16_t, uint16_t,
+                   int32_t, uint32_t,
+                   int64_t, uint64_t,
+                   int, uintptr_t,
+                   float, double)
+{
+    T val0 = 1;
+    T val1 = 12;
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val0, "1--1--1--1--1");
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val1, "12--12--12--12--12");
+}
+TEST_CASE_TEMPLATE("format.samevar_char", T, char)
+{
+    T val0 = '1';
+    T val1 = '2';
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val0, "1--1--1--1--1");
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val1, "2--2--2--2--2");
+}
+TEST_CASE_TEMPLATE("format.samevar_str", T, char, const char)
+{
+    T val0_[] = "ab";
+    T val1_[] = "cd";
+    T *val0 = val0_;
+    T *val1 = val1_;
+    test_format_samevar5<T*>("{}--{}--{}--{}--{}", val0, "ab--ab--ab--ab--ab");
+    test_format_samevar5<T*>("{}--{}--{}--{}--{}", val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE_TEMPLATE("format.samevar_str", T, std::string)
+{
+    T val0 = "ab";
+    T val1 = "cd";
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val0, "ab--ab--ab--ab--ab");
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE("format.samevar_str.char_arr")
+{
+    char val0[] = "ab";
+    char val1[] = "cd";
+    test_format_samevar5<char [3]>("{}--{}--{}--{}--{}", val0, "ab--ab--ab--ab--ab");
+    test_format_samevar5<char [3]>("{}--{}--{}--{}--{}", val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE("format.samevar_str.const_char_arr")
+{
+    const char val0[] = "ab";
+    const char val1[] = "cd";
+    test_format_samevar5<const char [3]>("{}--{}--{}--{}--{}", val0, "ab--ab--ab--ab--ab");
+    test_format_samevar5<const char [3]>("{}--{}--{}--{}--{}", val1, "cd--cd--cd--cd--cd");
+}
+
+
+//-----------------------------------------------------------------------------
 
 TEST_CASE("unformat.vars")
 {

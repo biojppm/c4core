@@ -660,9 +660,9 @@ size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more
 
 /** like @ref c4::cat() but return a substr instead of a size */
 template<class... Args>
-substr cat_sub(substr buf, Args && ...args)
+substr cat_sub(substr buf, Args const& C4_RESTRICT ...args)
 {
-    size_t sz = cat(buf, std::forward<Args>(args)...);
+    size_t sz = cat(buf, args...);
     C4_CHECK(sz <= buf.len);
     return {buf.str, sz <= buf.len ? sz : buf.len};
 }
@@ -958,10 +958,10 @@ inline size_t format(substr buf, csubstr fmt)
 template<class Arg, class... Args>
 size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
-    size_t pos = fmt.find("{}"); // @todo use _find_fmt()
+    size_t pos = fmt.find("{}");
     if(C4_UNLIKELY(pos == csubstr::npos))
         return to_chars(buf, fmt);
-    size_t num = to_chars(buf, fmt.sub(0, pos));
+    size_t num = to_chars(buf, fmt.first(pos));
     size_t out = num;
     buf  = buf.len >= num ? buf.sub(num) : substr{};
     num  = to_chars(buf, a);
