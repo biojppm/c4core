@@ -488,7 +488,7 @@ inline size_t from_chars_first(csubstr buf, fmt::raw_wrapper r)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// formatting aligned to left/right
+// formatting aligned to left/right/center
 
 namespace fmt {
 
@@ -498,32 +498,61 @@ namespace fmt {
 /** @defgroup doc_alignment_specifiers Alignment specifiers
  * @{ */
 
-template<class T>
-struct left_
-{
-    T val;
-    size_t width;
-    char pad;
-    left_(T v, size_t w, char p) : val(v), width(w), pad(p) {}
-};
+template<class T> struct left_   { T val; size_t width; char padchar; C4_ALWAYS_INLINE left_  (T v, size_t w, char c) noexcept : val(v), width(w), padchar(c) {} };
+template<class T> struct center_ { T val; size_t width; char padchar; C4_ALWAYS_INLINE center_(T v, size_t w, char c) noexcept : val(v), width(w), padchar(c) {} };
+template<class T> struct right_  { T val; size_t width; char padchar; C4_ALWAYS_INLINE right_ (T v, size_t w, char c) noexcept : val(v), width(w), padchar(c) {} };
 
-template<class T>
-struct right_
-{
-    T val;
-    size_t width;
-    char pad;
-    right_(T v, size_t w, char p) : val(v), width(w), pad(p) {}
-};
-
-/** mark an argument to be aligned left */
+/** tag type to mark an argument to be aligned left.
+ * @param val the argument to be aligned left
+ * @param width the length of the field
+ * @param padchar the padding character, defaults to ' '
+ *
+ * @note This function (and the return structure) uses value semantics. To
+ * avoid copies on larger types, you can use std::cref(). For example:
+ * @code{.cpp}
+ * char buf[512];
+ * std::string large_string = .....;
+ * size_t len = cat(buf, fmt::left(std::cref(large_string), 100));
+ * @endcode
+ */
 template<class T>
 left_<T> left(T val, size_t width, char padchar=' ')
 {
     return left_<T>(val, width, padchar);
 }
 
-/** mark an argument to be aligned right */
+/** tag function to mark an argument to be aligned center
+ * @param val the argument to be aligned center
+ * @param width the length of the field
+ * @param padchar the padding character, defaults to ' '
+ *
+ * @note This function (and the return value) uses value semantics. To
+ * avoid copies on larger types, you can use std::cref(). For example:
+ * @code{.cpp}
+ * char buf[512];
+ * std::string large_string = .....;
+ * size_t len = cat(buf, fmt::center(std::cref(large_string), 100));
+ * @endcode
+ */
+template<class T>
+center_<T> center(T val, size_t width, char padchar=' ')
+{
+    return center_<T>(val, width, padchar);
+}
+
+/** tag function to mark an argument to be aligned right
+ * @param val the argument to be aligned right
+ * @param width the length of the field
+ * @param padchar the padding character, defaults to ' '
+ *
+ * @note This function (and the return value) uses value semantics. To
+ * avoid copies on larger types, you can use std::cref(). For example:
+ * @code{.cpp}
+ * char buf[512];
+ * std::string large_string = .....;
+ * size_t len = cat(buf, fmt::right(std::cref(large_string), 100));
+ * @endcode
+ */
 template<class T>
 right_<T> right(T val, size_t width, char padchar=' ')
 {
@@ -544,8 +573,7 @@ size_t to_chars(substr buf, fmt::left_<T> const& C4_RESTRICT align)
     size_t ret = to_chars(buf, align.val);
     if(ret >= buf.len || ret >= align.width)
         return ret > align.width ? ret : align.width;
-    buf.first(align.width).sub(ret).fill(align.pad);
-    to_chars(buf, align.val);
+    buf.first(align.width).sub(ret).fill(align.padchar);
     return align.width;
 }
 
@@ -556,9 +584,25 @@ size_t to_chars(substr buf, fmt::right_<T> const& C4_RESTRICT align)
     size_t ret = to_chars(buf, align.val);
     if(ret >= buf.len || ret >= align.width)
         return ret > align.width ? ret : align.width;
-    size_t rem = static_cast<size_t>(align.width - ret);
-    buf.first(rem).fill(align.pad);
-    to_chars(buf.sub(rem), align.val);
+    size_t rem = align.width - ret;
+    if(ret)
+        memmove(buf.str + rem, buf.str, ret);
+    buf.first(rem).fill(align.padchar);
+    return align.width;
+}
+
+/** @ingroup doc_to_chars */
+template<class T>
+size_t to_chars(substr buf, fmt::center_<T> const& C4_RESTRICT align)
+{
+    size_t ret = to_chars(buf, align.val);
+    if(ret >= buf.len || ret >= align.width)
+        return ret > align.width ? ret : align.width;
+    size_t first = (align.width - ret) / 2u;
+    if(ret)
+        memmove(buf.str + first, buf.str, ret);
+    buf.first(first).fill(align.padchar);
+    buf.sub(first + ret).fill(align.padchar);
     return align.width;
 }
 
