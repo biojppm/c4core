@@ -792,36 +792,36 @@ size_t write_num_digits(substr buf, T v, size_t num_digits) noexcept
 /** @endcond */
 
 
-/** same as c4::write_dec(), but pad with zeroes on the left
- * such that the resulting string is @p num_digits wide.
- * If the given number is requires more than num_digits, then the number prevails. */
+/** same as c4::write_dec(), but pad with zeroes on the left such that
+ * the resulting string is @p num_digits wide.  If the given number
+ * requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_dec(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_dec<T>>(buf, val, num_digits);
 }
 
-/** same as c4::write_hex(), but pad with zeroes on the left
- * such that the resulting string is @p num_digits wide.
- * If the given number is requires more than num_digits, then the number prevails. */
+/** same as c4::write_hex(), but pad with zeroes on the left such that
+ * the resulting string is @p num_digits wide.  If the given number
+ * requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_hex(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_hex<T>>(buf, val, num_digits);
 }
 
-/** same as c4::write_bin(), but pad with zeroes on the left
- * such that the resulting string is @p num_digits wide.
- * If the given number is requires more than num_digits, then the number prevails. */
+/** same as c4::write_bin(), but pad with zeroes on the left such that
+ * the resulting string is @p num_digits wide.  If the given number
+ * requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_bin(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_bin<T>>(buf, val, num_digits);
 }
 
-/** same as c4::write_oct(), but pad with zeroes on the left
- * such that the resulting string is @p num_digits wide.
- * If the given number is requires more than num_digits, then the number prevails. */
+/** same as c4::write_oct(), but pad with zeroes on the left such that
+ * the resulting string is @p num_digits wide.  If the given number
+ * requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits) noexcept
 {
@@ -2583,7 +2583,7 @@ inline size_t to_chars(substr buf, substr v) noexcept
 {
     C4_ASSERT(!buf.overlaps(v));
     size_t len = buf.len < v.len ? buf.len : v.len;
-    // calling memcpy with null strings is undefined behavior
+    // calling memcpy zero len is undefined behavior
     // and will wreak havoc in calling code's branches.
     // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
     if(len)
@@ -2602,7 +2602,7 @@ inline bool from_chars(csubstr buf, substr * C4_RESTRICT v) noexcept
     // is the destination buffer wide enough?
     if(v->len >= buf.len)
     {
-        // calling memcpy with null strings is undefined behavior
+        // calling memcpy with zero len is undefined behavior
         // and will wreak havoc in calling code's branches.
         // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
         if(buf.len)
@@ -2625,7 +2625,7 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v) noexcept
     if(C4_UNLIKELY(trimmed.len == 0))
         return csubstr::npos;
     size_t len = trimmed.len > v->len ? v->len : trimmed.len;
-    // calling memcpy with null strings is undefined behavior
+    // calling memcpy with zero len is undefined behavior
     // and will wreak havoc in calling code's branches.
     // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
     if(len)
@@ -2642,7 +2642,8 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v) noexcept
 
 //-----------------------------------------------------------------------------
 
-/** @ingroup doc_to_chars */
+/** @ingroup doc_to_chars
+ * (1) overload for `char(&)[N]` and `const char(&)[N]` */
 template<size_t N>
 inline size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N]) noexcept
 {

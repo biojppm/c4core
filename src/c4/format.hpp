@@ -574,6 +574,7 @@ size_t to_chars(substr buf, fmt::right_<T> const& C4_RESTRICT align)
 /** @defgroup doc_cat cat: concatenate arguments to string
  * @{ */
 
+
 /** @cond dev */
 // terminates the variadic recursion
 inline size_t cat(substr /*buf*/)
@@ -586,10 +587,28 @@ inline size_t cat(substr /*buf*/)
 /** serialize the arguments, concatenating them to the given fixed-size buffer.
  * The buffer size is strictly respected: no writes will occur beyond its end.
  * @return the number of characters needed to write all the arguments into the buffer.
- * @see c4::catrs() if instead of a fixed-size buffer, a resizeable container is desired
- * @see c4::uncat() for the inverse function
- * @see c4::catsep() if a separator between each argument is to be used
- * @see c4::format() if a format string is desired */
+ * @see @ref c4::catrs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see @ref c4::uncat() for the inverse function
+ * @see @ref c4::catsep() if a separator between each argument is to be used
+ * @see @ref c4::format() if a format string is desired
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class Arg, class... Args>
 size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
@@ -599,7 +618,7 @@ size_t cat(substr buf, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more
     return num;
 }
 
-/** like c4::cat() but return a substr instead of a size */
+/** like @ref c4::cat() but return a substr instead of a size */
 template<class... Args>
 substr cat_sub(substr buf, Args && ...args)
 {
@@ -630,7 +649,7 @@ inline size_t uncat(csubstr /*buf*/)
  *
  * @return the number of characters read from the buffer, or csubstr::npos
  *   if a conversion was not successful.
- * @see c4::cat(). c4::uncat() is the inverse of c4::cat(). */
+ * @see @ref c4::cat(). @ref c4::uncat() is the inverse of @ref c4::cat(). */
 template<class Arg, class... Args>
 size_t uncat(csubstr buf, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
@@ -707,6 +726,7 @@ size_t uncatsep_more(csubstr buf, Sep & C4_RESTRICT sep, Arg & C4_RESTRICT a, Ar
 
 } // namespace detail
 
+// terminates the variadic recursion
 template<class Sep>
 size_t catsep(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
 {
@@ -719,10 +739,29 @@ size_t catsep(substr /*buf*/, Sep const& C4_RESTRICT /*sep*/)
  * buffer, using a separator between each argument.
  * The buffer size is strictly respected: no writes will occur beyond its end.
  * @return the number of characters needed to write all the arguments into the buffer.
- * @see c4::catseprs() if instead of a fixed-size buffer, a resizeable container is desired
- * @see c4::uncatsep() for the inverse function (ie, reading instead of writing)
- * @see c4::cat() if no separator is needed
- * @see c4::format() if a format string is desired */
+ * @see @ref c4::catseprs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see @ref c4::uncatsep() for the inverse function (ie, reading instead of writing)
+ * @see @ref c4::cat() if no separator is needed
+ * @see @ref c4::format() if a format string is desired
+ *
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class Sep, class Arg, class... Args>
 size_t catsep(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
@@ -732,8 +771,9 @@ size_t catsep(substr buf, Sep const& C4_RESTRICT sep, Arg const& C4_RESTRICT a, 
     return num;
 }
 
-/** like c4::catsep() but return a substr instead of a size
- * @see c4::catsep(). c4::uncatsep() is the inverse of c4::catsep(). */
+/** like @ref c4::catsep() but return a substr instead of a size @see
+ * @ref c4::catsep(). @ref c4::uncatsep() is the inverse of @ref
+ * c4::catsep(). */
 template<class... Args>
 substr catsep_sub(substr buf, Args && ...args)
 {
@@ -797,21 +837,84 @@ inline size_t format(substr buf, csubstr fmt)
 /// @endcond
 
 
-/** using a format string, serialize the arguments into the given
- * fixed-size buffer.
- * The buffer size is strictly respected: no writes will occur beyond its end.
- * In the format string, each argument is marked with a compact
- * curly-bracket pair: {}. Arguments beyond the last curly bracket pair
- * are silently ignored. For example:
+/** Using a format string, serialize the arguments into the given
+ * fixed-size buffer. The buffer size is strictly respected: no writes
+ * will occur beyond its end. In the format string, each argument is
+ * marked with a compact curly-bracket pair "{}". This pair does not
+ * take any interior sequence numbers or extra formatting arguments
+ * inside it (contrary to eg the C++20 std::format implementation or
+ * the Python formatting facilities). To enable argument
+ * customization, use the formatting facilities in @ref
+ * doc_format_specifiers wrapping the arguments passed to this
+ * function.
+ *
+ * @return the number of bytes needed to write into the buffer.
+ *
+ * @see @ref c4::formatrs() if instead of a fixed-size buffer, a resizeable container is desired
+ * @see @ref c4::unformat() for the inverse function
+ * @see @ref c4::cat() if no format or separator is needed
+ * @see @ref c4::catsep() if no format is needed, but a separator must be used
+ *
+ * For example:
  * @code{.cpp}
  * c4::format(buf, "the {} drank {} {}", "partier", 5, "beers"); // the partier drank 5 beers
  * c4::format(buf, "the {} drank {} {}", "programmer", 6, "coffees"); // the programmer drank 6 coffees
  * @endcode
- * @return the number of characters needed to write into the buffer.
- * @see c4::formatrs() if instead of a fixed-size buffer, a resizeable container is desired
- * @see c4::unformat() for the inverse function
- * @see c4::cat() if no format or separator is needed
- * @see c4::catsep() if no format is needed, but a separator must be used */
+ *
+ * Using @ref
+ * doc_format_specifiers enables control of the result. For example:
+ * @code{.cpp}
+ * c4::format(buf, "the {} drank {} {}", "partier", c4::fmt::real(5, 3), "beers"); // the partier drank 5.000 beers
+ * c4::format(buf, "the {} drank {} {}", "partier", c4::fmt::zpad(5, 3), "beers"); // the partier drank 005 beers
+ * c4::format(buf, "the {} drank {} {}", "partier", c4::fmt::bin(5), "beers"); // the partier drank 0b101 beers
+ * c4::format(buf, "the {} drank {} {}", "partier", c4::fmt::oct(5), "beers"); // the partier drank 0o6 beers
+ * c4::format(buf, "the {} drank {} {}", "partier", c4::fmt::hex(5), "beers"); // the partier drank 0x6 beers
+ * c4::format(buf, "the {} drank {} {}", "programmer", c4::fmt::real(6, 3), "coffees"); // the programmer drank 6.000 coffees
+ * c4::format(buf, "the {} drank {} {}", "programmer", c4::fmt::zpad(6, 3), "coffees"); // the programmer drank 006 coffees
+ * c4::format(buf, "the {} drank {} {}", "programmer", c4::fmt::bin(6), "coffees"); // the programmer drank 0b110 coffees
+ * c4::format(buf, "the {} drank {} {}", "programmer", c4::fmt::oct(6), "coffees"); // the programmer drank 0o6 coffees
+ * c4::format(buf, "the {} drank {} {}", "programmer", c4::fmt::hex(6), "coffees"); // the programmer drank 0x6 coffees
+ * @endcode
+ *
+ * @note Arguments beyond the last curly bracket pair are silently
+ * ignored. Curly bracket pairs without a corresponding argument are
+ * printed as part of the result.
+ * @code{.cpp}
+ * // note "and nothing else" being ignored
+ * c4::format(buf, "the {} drank {} {}", "partier", 5, "beers", "and nothing else"); // the partier drank 5 beers
+ *
+ * // note "this is ignored {}" being part of the result
+ * c4::format(buf, "the {} drank {} {} this is ignored: {}", "programmer", 6, "coffees"); // the programmer drank 6 coffees this is ignored: {}
+ * @endcode
+ *
+ * @note The curly bracket pair cannot be escaped, but can of course
+ * be placed into the result by passing an "{}" argument in its place,
+ * or if it is provided beyond the last argument passed to the
+ * function (see prior note).
+ * @code{.cpp}
+ * // as above: no argument given, so no substitution made:
+ * c4::format(buf, "let's show {} on the result"); // let's show {} on the result
+ * // or just pass "{}" as an argument to force the substitution:
+ * c4::format(buf, "let's show {} on the result and then {}", "{}", "this"); // let's show {} on the result and then this
+ * @endcode
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class Arg, class... Args>
 size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_RESTRICT ...more)
 {
@@ -829,9 +932,9 @@ size_t format(substr buf, csubstr fmt, Arg const& C4_RESTRICT a, Args const& C4_
     return out;
 }
 
-/** like c4::format() but return a substr instead of a size
+/** like @ref c4::format() but return a substr instead of a size
  * @see c4::format()
- * @see c4::catsep(). uncatsep() is the inverse of catsep(). */
+ * @see c4::catsep(). @ref c4::uncatsep() is the inverse of @ref c4::catsep(). */
 template<class... Args>
 substr format_sub(substr buf, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
@@ -858,9 +961,11 @@ inline size_t unformat(csubstr /*buf*/, csubstr fmt)
 
 
 /** using a format string, deserialize the arguments from the given
- * buffer.
+ * buffer. This is the inverse function to @ref c4::format().
+ *
  * @return the number of characters read from the buffer, or npos if a conversion failed.
- * @see c4::format(). c4::unformat() is the inverse function to format(). */
+ *
+ * @see @ref c4::format(). */
 template<class Arg, class... Args>
 size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRICT ...more)
 {
@@ -889,11 +994,31 @@ size_t unformat(csubstr buf, csubstr fmt, Arg & C4_RESTRICT a, Args & C4_RESTRIC
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** cat+resize: like c4::cat(), but receives a container, and resizes
- * it as needed to contain the result. The container is
- * overwritten. To append to it, use the append overload.
- * @see c4::cat()
- * @ingroup doc_cat */
+/** cat+resize: like @ref c4::cat(), but receives a container, and
+ * resizes it as needed to contain the result. The container is
+ * overwritten. To append to it, use @ref c4::catrs_append().
+ *
+ * @see @ref c4::cat()
+ * @see @ref c4::catrs_append()
+ * @ingroup doc_cat
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class... Args>
 inline void catrs(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
@@ -905,10 +1030,29 @@ retry:
         goto retry;
 }
 
-/** cat+resize: like c4::cat(), but creates and returns a new
+/** cat+resize: like @ref c4::cat(), but creates and returns a new
  * container sized as needed to contain the result.
- * @see c4::cat()
- * @ingroup doc_cat */
+ *
+ * @see @ref c4::cat()
+ * @ingroup doc_cat
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class... Args>
 inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
 {
@@ -917,14 +1061,32 @@ inline CharOwningContainer catrs(Args const& C4_RESTRICT ...args)
     return cont;
 }
 
-/** cat+resize+append: like c4::cat(), but receives a container, and
- * appends to it instead of overwriting it. The container is resized
- * as needed to contain the result.
+/** cat+resize+append: like @ref c4::cat(), but receives a container,
+ * and appends to it instead of overwriting it. The container is
+ * resized as needed to contain the result.
  *
  * @return the region newly appended to the original container
- * @see c4::cat()
- * @see c4::catrs()
- * @ingroup doc_cat */
+ * @see @ref c4::cat()
+ * @see @ref c4::catrs()
+ * @ingroup doc_cat
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class... Args>
 inline csubstr catrs_append(CharOwningContainer * C4_RESTRICT cont, Args const& C4_RESTRICT ...args)
 {
@@ -941,12 +1103,32 @@ retry:
 
 //-----------------------------------------------------------------------------
 
-/** catsep+resize: like c4::catsep(), but receives a container, and
- * resizes it as needed to contain the result.  The container is
- * overwritten. To append to the container use the append overload.
+/** catsep+resize: like @ref c4::catsep(), but receives a container,
+ * and resizes it as needed to contain the result.  The container is
+ * overwritten. To append to the container use @ref
+ * c4::catseprs_append().
  *
- * @see c4::catsep()
- * @ingroup doc_catsep */
+ * @see @ref c4::catsep()
+ * @see @ref c4::catseprs_append()
+ * @ingroup doc_catsep
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class Sep, class... Args>
 inline void catseprs(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
@@ -958,11 +1140,29 @@ retry:
         goto retry;
 }
 
-/** catsep+resize: like c4::catsep(), but create a new container with
- * the result.
+/** catsep+resize: like @ref c4::catsep(), but create a new container
+ * with the result.
  *
  * @return the requested container
- * @ingroup doc_catsep */
+ * @ingroup doc_catsep
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class Sep, class... Args>
 inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
@@ -972,12 +1172,30 @@ inline CharOwningContainer catseprs(Sep const& C4_RESTRICT sep, Args const& C4_R
 }
 
 
-/** catsep+resize+append: like catsep(), but receives a container, and
- * appends the arguments, resizing the container as needed to contain
- * the result. The buffer is appended to.
+/** catsep+resize+append: like @ref c4::catsep(), but receives a
+ * container, and appends the arguments, resizing the container as
+ * needed to contain the result. The buffer is appended to.
  *
  * @return a csubstr of the appended part
- * @ingroup doc_catsep */
+ * @ingroup doc_catsep
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class Sep, class... Args>
 inline csubstr catseprs_append(CharOwningContainer * C4_RESTRICT cont, Sep const& C4_RESTRICT sep, Args const& C4_RESTRICT ...args)
 {
@@ -994,12 +1212,32 @@ retry:
 
 //-----------------------------------------------------------------------------
 
-/** format+resize: like c4::format(), but receives a container, and
- * resizes it as needed to contain the result.  The container is
- * overwritten. To append to the container use the append overload.
+/** format+resize: like @ref c4::format(), but receives a container,
+ * and resizes it as needed to contain the result.  The container is
+ * overwritten. To append to the container use @ref
+ * c4::formatrs_append().
  *
- * @see c4::format()
- * @ingroup doc_format */
+ * @see @ref c4::format()
+ * @see @ref c4::formatrs_append()
+ * @ingroup doc_format
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class... Args>
 inline void formatrs(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
@@ -1011,11 +1249,29 @@ retry:
         goto retry;
 }
 
-/** format+resize: like c4::format(), but create a new container with
- * the result.
+/** format+resize: like @ref c4::format(), but create a new container
+ * with the result.
  *
  * @return the requested container
- * @ingroup doc_format */
+ * @ingroup doc_format
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class... Args>
 inline CharOwningContainer formatrs(csubstr fmt, Args const& C4_RESTRICT ...args)
 {
@@ -1024,11 +1280,30 @@ inline CharOwningContainer formatrs(csubstr fmt, Args const& C4_RESTRICT ...args
     return cont;
 }
 
-/** format+resize+append: like format(), but receives a container, and appends the
- * arguments, resizing the container as needed to contain the
- * result. The buffer is appended to.
+/** format+resize+append: like @ref c4::format(), but receives a
+ * container, and appends the arguments, resizing the container as
+ * needed to contain the result. The buffer is appended to.
+ *
  * @return the region newly appended to the original container
- * @ingroup doc_format */
+ * @ingroup doc_format
+ *
+ * @note The arguments to format are restricted (legal because they
+ * are rvalues). This may require a workaround when arguments of type
+ * char[]/const char[] are passed repeatedly to the function. For
+ * example,
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * cat(buf, str, str, str); // compile error: 'passing argument 2 to ‘restrict’-qualified parameter aliases with arguments 3, 4'
+ * @endcode
+ * It is possible to work around the problem by suppressing -Wrestrict
+ * or by using the decayed type char* or const char*, or even wrapping
+ * the argument in a csubstr():
+ * @code{.cpp}
+ * const char str[] = "Hi! ";
+ * csubstr ss = to_csubstr(str);
+ * cat(buf, ss, ss, ss); // ok! compiles cleanly
+ * @endcode
+ */
 template<class CharOwningContainer, class... Args>
 inline csubstr formatrs_append(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
