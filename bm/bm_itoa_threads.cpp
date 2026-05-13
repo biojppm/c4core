@@ -20,7 +20,7 @@ C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wcast-align")
 C4_SUPPRESS_WARNING_GCC("-Wuseless-cast")
 
-#ifdef C4CORE_BM_USE_FMTLIB
+#ifdef C4CORE_BM_FMTLIB
 C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
 C4_SUPPRESS_WARNING_GCC_CLANG("-Wfloat-equal")
 #define FMT_HEADER_ONLY
@@ -222,7 +222,7 @@ BMTHREADS(std_format_to);
 
 
 
-#ifdef C4CORE_BM_USE_FMTLIB
+#ifdef C4CORE_BM_FMTLIB
 void fmtlib_format_to(bm::State &st)
 {
     size_t sum = {};

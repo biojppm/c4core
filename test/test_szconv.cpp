@@ -121,37 +121,13 @@ test_szconv()
 }
 
 #define DO_TEST_SZCONV(ty)                      \
-    TEST_CASE("szconv." #ty "_to_int8")         \
+    TEST_CASE_TEMPLATE("szconv." #ty "_to", T,  \
+                       int8_t, uint8_t,         \
+                       int16_t, uint16_t,       \
+                       int32_t, uint32_t,       \
+                       int64_t, uint64_t)       \
     {                                           \
-        test_szconv<ty##_t, int8_t>();          \
-    }                                           \
-    TEST_CASE("zconv." #ty "_to_uint8")         \
-    {                                           \
-        test_szconv<ty##_t, uint8_t>();         \
-    }                                           \
-    TEST_CASE("zconv." #ty "_to_int16")         \
-    {                                           \
-        test_szconv<ty##_t, int16_t>();         \
-    }                                           \
-    TEST_CASE("zconv." #ty "_to_uint16")        \
-    {                                           \
-        test_szconv<ty##_t, uint16_t>();        \
-    }                                           \
-    TEST_CASE("zconv." #ty "_to_int32")         \
-    {                                           \
-        test_szconv<ty##_t, int32_t>();         \
-    }                                           \
-    TEST_CASE("zconv." #ty "_to_uint32")        \
-    {                                           \
-        test_szconv<ty##_t, uint32_t>();        \
-    }                                           \
-    TEST_CASE("zconv." #ty "_to_int64")         \
-    {                                           \
-        test_szconv<ty##_t, int64_t>();         \
-    }                                           \
-    TEST_CASE("szconv." #ty "_to_uint64")       \
-    {                                           \
-        test_szconv<ty##_t, uint64_t>();        \
+        test_szconv<ty##_t, T>();               \
     }
 
 DO_TEST_SZCONV(int8)

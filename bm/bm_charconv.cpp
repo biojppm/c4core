@@ -1609,6 +1609,7 @@ C4BM_TEMPLATE(atox_sstream,   double);
 
 int main(int argc, char *argv[])
 {
+    bm::MaybeReenterWithoutASLR(argc, argv);
     bm::Initialize(&argc, argv);
     bm::RunSpecifiedBenchmarks();
     return 0;

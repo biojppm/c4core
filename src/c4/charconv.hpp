@@ -792,36 +792,36 @@ size_t write_num_digits(substr buf, T v, size_t num_digits) noexcept
 /** @endcond */
 
 
-/** same as c4::write_dec(), but pad with zeroes on the left
- * such that the resulting string is @p num_digits wide.
- * If the given number is requires more than num_digits, then the number prevails. */
+/** same as c4::write_dec(), but pad with zeroes on the left such that
+ * the resulting string is @p num_digits wide.  If the given number
+ * requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_dec(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_dec<T>>(buf, val, num_digits);
 }
 
-/** same as c4::write_hex(), but pad with zeroes on the left
- * such that the resulting string is @p num_digits wide.
- * If the given number is requires more than num_digits, then the number prevails. */
+/** same as c4::write_hex(), but pad with zeroes on the left such that
+ * the resulting string is @p num_digits wide.  If the given number
+ * requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_hex(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_hex<T>>(buf, val, num_digits);
 }
 
-/** same as c4::write_bin(), but pad with zeroes on the left
- * such that the resulting string is @p num_digits wide.
- * If the given number is requires more than num_digits, then the number prevails. */
+/** same as c4::write_bin(), but pad with zeroes on the left such that
+ * the resulting string is @p num_digits wide.  If the given number
+ * requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_bin(substr buf, T val, size_t num_digits) noexcept
 {
     return detail::write_num_digits<T, &write_bin<T>>(buf, val, num_digits);
 }
 
-/** same as c4::write_oct(), but pad with zeroes on the left
- * such that the resulting string is @p num_digits wide.
- * If the given number is requires more than num_digits, then the number prevails. */
+/** same as c4::write_oct(), but pad with zeroes on the left such that
+ * the resulting string is @p num_digits wide.  If the given number
+ * requires more than num_digits, then the number prevails. */
 template<class T>
 C4_ALWAYS_INLINE size_t write_oct(substr buf, T val, size_t num_digits) noexcept
 {
@@ -1507,9 +1507,7 @@ template<class T>
 C4_ALWAYS_INLINE size_t atoi_first(csubstr str, T * C4_RESTRICT v)
 {
     csubstr trimmed = str.first_int_span();
-    if(trimmed.len == 0)
-        return csubstr::npos;
-    if(atoi(trimmed, v))
+    if(trimmed.len && atoi(trimmed, v))
         return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
@@ -1588,9 +1586,7 @@ template<class T>
 C4_ALWAYS_INLINE size_t atou_first(csubstr str, T *v)
 {
     csubstr trimmed = str.first_uint_span();
-    if(trimmed.len == 0)
-        return csubstr::npos;
-    if(atou(trimmed, v))
+    if(trimmed.len && atou(trimmed, v))
         return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
@@ -2342,7 +2338,13 @@ C4_ALWAYS_INLINE size_t to_chars(substr buf,   double v) noexcept { return dtoa(
 template <class T> C4_ALWAYS_INLINE auto to_chars(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type { return itoa(buf, v); }
 template <class T> C4_ALWAYS_INLINE auto to_chars(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type { return write_dec(buf, v); }
 template <class T>
-C4_ALWAYS_INLINE size_t to_chars(substr s, T *v) noexcept { return itoa(s, (intptr_t)v, (intptr_t)16); }
+C4_ALWAYS_INLINE auto to_chars(substr s, T *v) noexcept
+    -> typename std::enable_if<!std::is_same<T, char>::value &&
+                               !std::is_same<T, const char>::value,
+                               size_t>::type
+{
+    return itoa(s, (intptr_t)v, (intptr_t)16);
+}
 
 /** @} */
 
@@ -2448,37 +2450,36 @@ C4_ALWAYS_INLINE size_t to_chars(substr buf, bool v) noexcept
 /** @ingroup doc_from_chars */
 inline bool from_chars(csubstr buf, bool * C4_RESTRICT v) noexcept
 {
-    if(buf == '0')
+    if(buf.len == 1)
     {
-        *v = false; return true;
+        if(buf.str[0] == '0')
+        {
+            *v = false; return true;
+        }
+        else if(buf.str[0] == '1')
+        {
+            *v = true; return true;
+        }
     }
-    else if(buf == '1')
+    else if(buf.len == 4)
     {
-        *v = true; return true;
+        if(((buf.str[0] == 't') && (0 == memcmp(buf.str + 1, "rue", 3)))
+           ||
+           ((buf.str[0] == 'T') && ((0 == memcmp(buf.str + 1, "rue", 3) ||
+                                     0 == memcmp(buf.str + 1, "RUE", 3)))))
+        {
+            *v = true; return true;
+        }
     }
-    else if(buf == "false")
+    else if(buf.len == 5)
     {
-        *v = false; return true;
-    }
-    else if(buf == "true")
-    {
-        *v = true; return true;
-    }
-    else if(buf == "False")
-    {
-        *v = false; return true;
-    }
-    else if(buf == "True")
-    {
-        *v = true; return true;
-    }
-    else if(buf == "FALSE")
-    {
-        *v = false; return true;
-    }
-    else if(buf == "TRUE")
-    {
-        *v = true; return true;
+        if(((buf.str[0] == 'f') && (0 == memcmp(buf.str + 1, "alse", 4)))
+           ||
+           ((buf.str[0] == 'F') && ((0 == memcmp(buf.str + 1, "alse", 4) ||
+                                     0 == memcmp(buf.str + 1, "ALSE", 4)))))
+        {
+            *v = false; return true;
+        }
     }
     // fallback to c-style int bools
     int val = 0;
@@ -2583,7 +2584,7 @@ inline size_t to_chars(substr buf, substr v) noexcept
 {
     C4_ASSERT(!buf.overlaps(v));
     size_t len = buf.len < v.len ? buf.len : v.len;
-    // calling memcpy with null strings is undefined behavior
+    // calling memcpy zero len is undefined behavior
     // and will wreak havoc in calling code's branches.
     // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
     if(len)
@@ -2602,7 +2603,7 @@ inline bool from_chars(csubstr buf, substr * C4_RESTRICT v) noexcept
     // is the destination buffer wide enough?
     if(v->len >= buf.len)
     {
-        // calling memcpy with null strings is undefined behavior
+        // calling memcpy with zero len is undefined behavior
         // and will wreak havoc in calling code's branches.
         // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
         if(buf.len)
@@ -2625,7 +2626,7 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v) noexcept
     if(C4_UNLIKELY(trimmed.len == 0))
         return csubstr::npos;
     size_t len = trimmed.len > v->len ? v->len : trimmed.len;
-    // calling memcpy with null strings is undefined behavior
+    // calling memcpy with zero len is undefined behavior
     // and will wreak havoc in calling code's branches.
     // see https://github.com/biojppm/rapidyaml/pull/264#issuecomment-1262133637
     if(len)
@@ -2642,18 +2643,27 @@ inline size_t from_chars_first(csubstr buf, substr * C4_RESTRICT v) noexcept
 
 //-----------------------------------------------------------------------------
 
-/** @ingroup doc_to_chars */
+/** @ingroup doc_to_chars
+ * (1) overload for `char(&)[N]` and `const char(&)[N]` */
 template<size_t N>
-inline size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N]) noexcept
+size_t to_chars(substr buf, const char (& C4_RESTRICT v)[N]) noexcept
 {
-    csubstr sp(v);
-    return to_chars(buf, sp);
+    return to_chars(buf, csubstr{v, N-1});
 }
 
-/** @ingroup doc_to_chars */
-inline size_t to_chars(substr buf, const char * C4_RESTRICT v) noexcept
+/** @ingroup doc_to_chars
+ * (2) overload for `char*` and `const char*`. Must be zero-terminated!
+ * @warning will call strlen()
+ * @note this overload uses SFINAE to prevent it from overriding the array overload
+ * @see For a more detailed explanation on why the plain pointer overloads cannot
+ * coexist with the array overloads, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+template<class CharPtr>
+auto to_chars(substr buf, CharPtr v) noexcept
+    -> typename std::enable_if<std::is_same<CharPtr, char*>::value
+                               ||
+                               std::is_same<CharPtr, const char*>::value, size_t>::type
 {
-    return to_chars(buf, to_csubstr(v));
+    return to_chars(buf, csubstr{v, strlen(v)});
 }
 
 /** @} */

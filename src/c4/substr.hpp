@@ -164,12 +164,12 @@ public:
      * @warning the end pointer MUST BE larger than or equal to the begin pointer
      * @warning the input string need not be zero terminated. */
     C4_ALWAYS_INLINE void assign(C *beg_, C *end_) noexcept { C4_ASSERT(end_ >= beg_); str = (beg_); len = static_cast<size_t>(end_ - beg_); }
-    /** Assign from a C-string (zero-terminated string)
+    /** Assign from a C-string (zero-terminated string of type const C* or C*)
      * @warning the input string must be zero terminated.
      * @warning will call strlen()
      * @note this overload uses SFINAE to prevent it from overriding the array ctor
-     * @see For a more detailed explanation on why the plain overloads cannot
-     * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+     * @see For a more detailed explanation on why the plain pointer overloads cannot
+     * coexist with the array overloads, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
     template<class U, typename std::enable_if<std::is_same<U, C*>::value || std::is_same<U, NCC_*>::value, int>::type=0>
     C4_ALWAYS_INLINE void assign(U s_) noexcept { str = (s_); len = (s_ ? strlen(s_) : 0); }
 
@@ -177,12 +177,12 @@ public:
      * @warning the input string need not be zero terminated. */
     template<size_t N>
     C4_ALWAYS_INLINE basic_substring& operator= (C (&s_)[N]) noexcept { str = (s_); len = (N-1); return *this; }
-    /** Assign from a C-string (zero-terminated string)
+    /** Assign from a C-string (zero-terminated string of type const C* or C*)
      * @warning the input string MUST BE zero terminated.
      * @warning will call strlen()
      * @note this overload uses SFINAE to prevent it from overriding the array ctor
-     * @see For a more detailed explanation on why the plain overloads cannot
-     * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
+     * @see For a more detailed explanation on why the plain pointer overloads cannot
+     * coexist with the array overloads, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
     template<class U, typename std::enable_if<std::is_same<U, C*>::value || std::is_same<U, NCC_*>::value, int>::type=0>
     C4_ALWAYS_INLINE basic_substring& operator= (U s_) noexcept { str = s_; len = s_ ? strlen(s_) : 0; return *this; }
 

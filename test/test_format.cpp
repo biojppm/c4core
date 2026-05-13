@@ -242,6 +242,13 @@ TEST_CASE("align.right.overflow")
     CHECK_EQ(to_chars(substr(), fmt::right("0123456789.123456789.123456789.123456789", 30u)), 40u);
 }
 
+TEST_CASE("align.center.overflow")
+{
+    CHECK_EQ(to_chars(substr(), fmt::center(' ', 91u)), 91u);
+    CHECK_EQ(to_chars(substr(), fmt::center("0123456789.123456789.123456789.123456789", 91u)), 91u);
+    CHECK_EQ(to_chars(substr(), fmt::center("0123456789.123456789.123456789.123456789", 30u)), 40u);
+}
+
 TEST_CASE("align.left")
 {
     char buf[128] = {};
@@ -255,6 +262,7 @@ TEST_CASE("align.left")
     CHECK_EQ(to_chars_sub(buf, fmt::left("1", 8)), "1       ");
     CHECK_EQ(to_chars_sub(buf, fmt::left("1", 9)), "1        ");
 
+    CHECK_EQ(to_chars_sub(buf, fmt::left("1", 0, '+')), "1");
     CHECK_EQ(to_chars_sub(buf, fmt::left("1", 1, '+')), "1");
     CHECK_EQ(to_chars_sub(buf, fmt::left("1", 2, '+')), "1+");
     CHECK_EQ(to_chars_sub(buf, fmt::left("1", 3, '+')), "1++");
@@ -264,6 +272,17 @@ TEST_CASE("align.left")
     CHECK_EQ(to_chars_sub(buf, fmt::left("1", 7, '+')), "1++++++");
     CHECK_EQ(to_chars_sub(buf, fmt::left("1", 8, '+')), "1+++++++");
     CHECK_EQ(to_chars_sub(buf, fmt::left("1", 9, '+')), "1++++++++");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 0, '+')), "");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 1, '+')), "+");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 2, '+')), "++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 3, '+')), "+++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 4, '+')), "++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 5, '+')), "+++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 6, '+')), "++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 7, '+')), "+++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 8, '+')), "++++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::left("", 9, '+')), "+++++++++");
 
     CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 0)), "01234");
     CHECK_EQ(to_chars_sub(buf, fmt::left("01234", 1)), "01234");
@@ -286,6 +305,19 @@ TEST_CASE("align.left")
     CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 7)), "1234   ");
     CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 8)), "1234    ");
     CHECK_EQ(to_chars_sub(buf, fmt::left(1234, 9)), "1234     ");
+
+    // using std::cref to avoid a copy:
+    csubstr s = "1234";
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 0)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 1)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 2)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 3)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 4)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 5)), "1234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 6)), "1234  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 7)), "1234   ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 8)), "1234    ");
+    CHECK_EQ(to_chars_sub(buf, fmt::left(std::cref(s), 9)), "1234     ");
 }
 
 
@@ -302,6 +334,7 @@ TEST_CASE("align.right")
     CHECK_EQ(to_chars_sub(buf, fmt::right("1", 8)), "       1");
     CHECK_EQ(to_chars_sub(buf, fmt::right("1", 9)), "        1");
 
+    CHECK_EQ(to_chars_sub(buf, fmt::right("1", 0, '+')), "1");
     CHECK_EQ(to_chars_sub(buf, fmt::right("1", 1, '+')), "1");
     CHECK_EQ(to_chars_sub(buf, fmt::right("1", 2, '+')), "+1");
     CHECK_EQ(to_chars_sub(buf, fmt::right("1", 3, '+')), "++1");
@@ -311,6 +344,17 @@ TEST_CASE("align.right")
     CHECK_EQ(to_chars_sub(buf, fmt::right("1", 7, '+')), "++++++1");
     CHECK_EQ(to_chars_sub(buf, fmt::right("1", 8, '+')), "+++++++1");
     CHECK_EQ(to_chars_sub(buf, fmt::right("1", 9, '+')), "++++++++1");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 0, '+')), "");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 1, '+')), "+");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 2, '+')), "++");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 3, '+')), "+++");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 4, '+')), "++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 5, '+')), "+++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 6, '+')), "++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 7, '+')), "+++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 8, '+')), "++++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::right("", 9, '+')), "+++++++++");
 
     CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 0)), "01234");
     CHECK_EQ(to_chars_sub(buf, fmt::right("01234", 1)), "01234");
@@ -363,11 +407,145 @@ TEST_CASE("align.right")
     CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(0.124, 3), 7)), "  0.124");
 
     CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(1234.5222, 1), 7)), " 1234.5");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(fmt::real(1234.5222, 1), 7)), " 1234.5");
     auto r = [](double val, size_t width) { return fmt::right(fmt::real(val, 1), width); };
     CHECK_EQ(to_chars_sub(buf, r(1234.5, 7)), " 1234.5");
     c4::format(buf, "freq={}Hz\0", r(1234.5, 7));
     CHECK_EQ(to_csubstr((const char*)buf).len, to_csubstr("freq= 1234.5Hz").len);
     CHECK_EQ(to_csubstr((const char*)buf), "freq= 1234.5Hz");
+
+    // using std::cref to avoid a copy:
+    csubstr s = "1234";
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 0)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 1)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 2)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 3)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 4)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 5)), " 1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 6)), "  1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 7)), "   1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 8)), "    1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::right(std::cref(s), 9)), "     1234");
+}
+
+TEST_CASE("align.center")
+{
+    char buf[128] = {};
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 1)), "1");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 2)), "1 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 3)), " 1 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 4)), " 1  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 5)), "  1  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 6)), "  1   ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 7)), "   1   ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 8)), "   1    ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 9)), "    1    ");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 1, '+')), "1");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 2, '+')), "1+");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 3, '+')), "+1+");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 4, '+')), "+1++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 5, '+')), "++1++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 6, '+')), "++1+++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 7, '+')), "+++1+++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 8, '+')), "+++1++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("1", 9, '+')), "++++1++++");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 1, '+')), "12");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 2, '+')), "12");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 3, '+')), "12+");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 4, '+')), "+12+");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 5, '+')), "+12++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 6, '+')), "++12++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 7, '+')), "++12+++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 8, '+')), "+++12+++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12", 9, '+')), "+++12++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("12",10, '+')), "++++12++++");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 0, '+')), "");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 1, '+')), "+");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 2, '+')), "++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 3, '+')), "+++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 4, '+')), "++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 5, '+')), "+++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 6, '+')), "++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 7, '+')), "+++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 8, '+')), "++++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("", 9, '+')), "+++++++++");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("",10, '+')), "++++++++++");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 0)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 1)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 2)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 3)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 4)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 5)), "01234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 6)), "01234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 7)), " 01234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 8)), " 01234  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center("01234", 9)), "  01234  ");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 0)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 1)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 2)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 3)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 4)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 5)), "1234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 6)), " 1234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 7)), " 1234  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 8)), "  1234  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234, 9)), "  1234   ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(1234,10)), "   1234   ");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::real(0.124, 1)), "0.1"); // we assume this in what follows
+    CHECK_EQ(to_chars_sub(buf, fmt::real(0.124, 2)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::real(0.124, 3)), "0.124");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 1), 0)), "0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 1), 1)), "0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 1), 2)), "0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 1), 3)), "0.1");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 1), 4)), "0.1 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 1), 5)), " 0.1 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 1), 6)), " 0.1  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 1), 7)), "  0.1  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 2), 0)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 2), 1)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 2), 2)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 2), 3)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 2), 4)), "0.12");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 2), 5)), "0.12 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 2), 6)), " 0.12 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 2), 7)), " 0.12  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 3), 0)), "0.124");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 3), 1)), "0.124");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 3), 2)), "0.124");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 3), 3)), "0.124");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 3), 4)), "0.124");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 3), 5)), "0.124");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 3), 6)), "0.124 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(0.124, 3), 7)), " 0.124 ");
+
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(1234.5222, 1), 7)), "1234.5 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(fmt::real(1234.5222, 1), 8)), " 1234.5 ");
+    auto r = [](double val, size_t width) { return fmt::center(fmt::real(val, 1), width); };
+    CHECK_EQ(to_chars_sub(buf, r(1234.5, 7)), "1234.5 ");
+    c4::format(buf, "freq={}Hz\0", r(1234.5, 7));
+    CHECK_EQ(to_csubstr((const char*)buf).len, to_csubstr("freq=1234.5 Hz").len);
+    CHECK_EQ(to_csubstr((const char*)buf), "freq=1234.5 Hz");
+
+    // using std::cref to avoid a copy:
+    csubstr s = "1234";
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 0)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 1)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 2)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 3)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 4)), "1234");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 5)), "1234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 6)), " 1234 ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 7)), " 1234  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 8)), "  1234  ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s), 9)), "  1234   ");
+    CHECK_EQ(to_chars_sub(buf, fmt::center(std::cref(s),10)), "   1234   ");
 }
 
 
@@ -451,6 +629,85 @@ TEST_CASE("cat.tuple")
 }
 #endif // C4_TUPLE_TO_STR
 
+
+//-----------------------------------------------------------------------------
+
+template<class T>
+void test_cat_samevar5(T & v, csubstr expected)
+{
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if defined(__GNUC__) && __GNUC__ > 6
+    C4_SUPPRESS_WARNING_GCC("-Wrestrict")
+    #endif
+    CAPTURE(v);
+    char buf_[256];
+    substr buf = buf_;
+    buf.fill(0);
+    CAPTURE(buf);
+    REQUIRE_EQ(expected.len,  cat(buf, v, v, v, v, v));
+    CHECK_EQ(expected, substr(buf).first(expected.len));
+    buf.fill(0);
+    CHECK_EQ(expected,  cat_sub(buf, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  catrs<std::string>(v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  catrs<std::vector<char>>(v, v, v, v, v));
+    C4_SUPPRESS_WARNING_GCC_POP
+}
+TEST_CASE_TEMPLATE("cat.samevar_integral", T,
+                   int8_t, uint8_t,
+                   int16_t, uint16_t,
+                   int32_t, uint32_t,
+                   int64_t, uint64_t,
+                   int, uintptr_t,
+                   float, double)
+{
+    T val0 = 1;
+    T val1 = 12;
+    test_cat_samevar5<T>(val0, "11111");
+    test_cat_samevar5<T>(val1, "1212121212");
+}
+TEST_CASE_TEMPLATE("cat.samevar_char", T, char)
+{
+    T val0 = '1';
+    T val1 = '2';
+    test_cat_samevar5<T>(val0, "11111");
+    test_cat_samevar5<T>(val1, "22222");
+}
+TEST_CASE_TEMPLATE("cat.samevar_str", T, std::string)
+{
+    T val0 = "ab";
+    T val1 = "cd";
+    test_cat_samevar5<T>(val0, "ababababab");
+    test_cat_samevar5<T>(val1, "cdcdcdcdcd");
+}
+TEST_CASE_TEMPLATE("cats.samevar_str", T, char, const char)
+{
+    T val0_[] = "ab";
+    T val1_[] = "cd";
+    T *val0 = val0_;
+    T *val1 = val1_;
+    test_cat_samevar5<T*>(val0, "ababababab");
+    test_cat_samevar5<T*>(val1, "cdcdcdcdcd");
+}
+TEST_CASE("cat.samevar_str.char_arr")
+{
+    char val0[] = "ab";
+    char val1[] = "cd";
+    test_cat_samevar5<char [3]>(val0, "ababababab");
+    test_cat_samevar5<char [3]>(val1, "cdcdcdcdcd");
+}
+TEST_CASE("cat.samevar_str.const_char_arr")
+{
+    const char val0[] = "ab";
+    const char val1[] = "cd";
+    test_cat_samevar5<const char [3]>(val0, "ababababab");
+    test_cat_samevar5<const char [3]>(val1, "cdcdcdcdcd");
+}
+
+
+//-----------------------------------------------------------------------------
+
 TEST_CASE("uncat.vars")
 {
     size_t sz;
@@ -483,6 +740,8 @@ TEST_CASE("uncat.tuple")
 }
 #endif // C4_TUPLE_TO_STR
 
+
+//-----------------------------------------------------------------------------
 
 TEST_CASE("catsep.vars")
 {
@@ -589,18 +848,176 @@ TEST_CASE("catsep.tuple")
 }
 #endif // C4_TUPLE_TO_STR
 
+
+//-----------------------------------------------------------------------------
+
+template<class T>
+void test_catsep_samevar5(T & v, csubstr expected)
+{
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if defined(__GNUC__) && __GNUC__ > 6
+    C4_SUPPRESS_WARNING_GCC("-Wrestrict")
+    #endif
+    CAPTURE(v);
+    csubstr sep = "--";
+    char buf_[256];
+    substr buf = buf_;
+    buf.fill(0);
+    CAPTURE(buf);
+    REQUIRE_EQ(expected.len,  catsep(buf, sep, v, v, v, v, v));
+    CHECK_EQ(expected, substr(buf).first(expected.len));
+    buf.fill(0);
+    CHECK_EQ(expected,  catsep_sub(buf, sep, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  catseprs<std::string>(sep, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  catseprs<std::vector<char>>(sep, v, v, v, v, v));
+    C4_SUPPRESS_WARNING_GCC_POP
+}
+TEST_CASE_TEMPLATE("catsep.samevar_integral", T,
+                   int8_t, uint8_t,
+                   int16_t, uint16_t,
+                   int32_t, uint32_t,
+                   int64_t, uint64_t,
+                   int, uintptr_t,
+                   float, double)
+{
+    T val0 = 1;
+    T val1 = 12;
+    test_catsep_samevar5<T>(val0, "1--1--1--1--1");
+    test_catsep_samevar5<T>(val1, "12--12--12--12--12");
+}
+TEST_CASE_TEMPLATE("catsep.samevar_char", T, char)
+{
+    T val0 = '1';
+    T val1 = '2';
+    test_catsep_samevar5<T>(val0, "1--1--1--1--1");
+    test_catsep_samevar5<T>(val1, "2--2--2--2--2");
+}
+TEST_CASE_TEMPLATE("catsep.samevar_str", T, std::string)
+{
+    T val0 = "ab";
+    T val1 = "cd";
+    test_catsep_samevar5<T>(val0, "ab--ab--ab--ab--ab");
+    test_catsep_samevar5<T>(val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE_TEMPLATE("catsep.samevar_str", T, char, const char)
+{
+    T val0_[] = "ab";
+    T val1_[] = "cd";
+    T *val0 = val0_;
+    T *val1 = val1_;
+    test_catsep_samevar5<T*>(val0, "ab--ab--ab--ab--ab");
+    test_catsep_samevar5<T*>(val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE("catsep.samevar_str.char_arr")
+{
+    char val0[] = "ab";
+    char val1[] = "cd";
+    test_catsep_samevar5<char [3]>(val0, "ab--ab--ab--ab--ab");
+    test_catsep_samevar5<char [3]>(val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE("catsep.samevar_str.const_char_arr")
+{
+    const char val0[] = "ab";
+    const char val1[] = "cd";
+    test_catsep_samevar5<const char [3]>(val0, "ab--ab--ab--ab--ab");
+    test_catsep_samevar5<const char [3]>(val1, "cd--cd--cd--cd--cd");
+}
+
+
+//-----------------------------------------------------------------------------
+
 TEST_CASE("uncatsep.vars")
 {
-    size_t sz;
-    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
-    char sep;
+    csubstr seps[] = {
+        csubstr(" "),
+        csubstr("-"),
+        csubstr("--"),
+        csubstr("@"),
+        csubstr(" --- "),
+        csubstr("\t"),
+    };
+    std::string buf_;
+    for(csubstr sep : seps)
+    {
+        CAPTURE(sep);
+        catseprs(&buf_, sep, 1, 2, 3, 4);
+        csubstr buf = to_csubstr(buf_);
+        int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
+        size_t sz = uncatsep(buf, sep, v1, v2, v3, v4);
+        CHECK_EQ(sz, buf.len);
+        CHECK_EQ(v1, 1);
+        CHECK_EQ(v2, 2);
+        CHECK_EQ(v3, 3);
+        CHECK_EQ(v4, 4);
+    }
+    for(csubstr sep : seps)
+    {
+        CAPTURE(sep);
+        catseprs(&buf_, sep, "1", "2", "3", "4");
+        csubstr buf = to_csubstr(buf_);
+        std::string v1, v2, v3, v4;
+        size_t sz = uncatsep(buf, sep, v1, v2, v3, v4);
+        CHECK_EQ(sz, buf.len);
+        CHECK_EQ(v1, "1");
+        CHECK_EQ(v2, "2");
+        CHECK_EQ(v3, "3");
+        CHECK_EQ(v4, "4");
+    }
+}
 
-    sz = uncatsep("1 2 3 4", sep, v1, v2, v3, v4);
-    CHECK_EQ(sz, 7);
-    CHECK_EQ(v1, 1);
-    CHECK_EQ(v2, 2);
-    CHECK_EQ(v3, 3);
-    CHECK_EQ(v4, 4);
+TEST_CASE("uncatsep.fail")
+{
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
+    {
+        csubstr sep = " ";
+        CHECK_EQ(csubstr::npos, uncatsep("", sep, v1));
+        CHECK_EQ(csubstr::npos, uncatsep("1", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1 ", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 ", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1-", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1-", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 ", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 ", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2-", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2-", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 3", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 3", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 3 ", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 3 ", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 3-", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 3-", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("- 2 3 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" - 2 3 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 - 3 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 - 3 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 - 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 - 4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1 2 3 -", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep(" 1 2 3 -", sep, v1, v2, v3, v4));
+    }
+    {
+        csubstr sep = "@";
+        CHECK_EQ(csubstr::npos, uncatsep("", sep, v1));
+        CHECK_EQ(csubstr::npos, uncatsep("1", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1@", sep, v1, v2));
+        CHECK_EQ(3            , uncatsep("1@2", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1-2", sep, v1, v2));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2-", sep, v1, v2, v3));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@3", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@3@", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@3-", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("-@2@3@4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@-@3@4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@-@4", sep, v1, v2, v3, v4));
+        CHECK_EQ(csubstr::npos, uncatsep("1@2@3@-", sep, v1, v2, v3, v4));
+    }
 }
 
 #ifdef C4_TUPLE_TO_STR
@@ -833,6 +1250,86 @@ TEST_CASE("format.tuple")
     CHECK_EQ(result, "{} and {} and {} and {}");
 }
 #endif // C4_TUPLE_TO_STR
+
+
+
+//-----------------------------------------------------------------------------
+
+template<class T>
+void test_format_samevar5(csubstr fmt, T & v, csubstr expected)
+{
+    C4_SUPPRESS_WARNING_GCC_PUSH
+    #if defined(__GNUC__) && __GNUC__ > 6
+    C4_SUPPRESS_WARNING_GCC("-Wrestrict")
+    #endif
+    CAPTURE(v);
+    char buf_[256];
+    substr buf = buf_;
+    buf.fill(0);
+    CAPTURE(buf);
+    REQUIRE_EQ(expected.len,  format(buf, fmt, v, v, v, v, v));
+    CHECK_EQ(expected, substr(buf).first(expected.len));
+    buf.fill(0);
+    CHECK_EQ(expected,  format_sub(buf, fmt, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  formatrs<std::string>(fmt, v, v, v, v, v));
+    buf.fill(0);
+    CHECK_EQ(expected,  formatrs<std::vector<char>>(fmt, v, v, v, v, v));
+    C4_SUPPRESS_WARNING_GCC_POP
+}
+TEST_CASE_TEMPLATE("format.samevar_integral", T,
+                   int8_t, uint8_t,
+                   int16_t, uint16_t,
+                   int32_t, uint32_t,
+                   int64_t, uint64_t,
+                   int, uintptr_t,
+                   float, double)
+{
+    T val0 = 1;
+    T val1 = 12;
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val0, "1--1--1--1--1");
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val1, "12--12--12--12--12");
+}
+TEST_CASE_TEMPLATE("format.samevar_char", T, char)
+{
+    T val0 = '1';
+    T val1 = '2';
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val0, "1--1--1--1--1");
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val1, "2--2--2--2--2");
+}
+TEST_CASE_TEMPLATE("format.samevar_str", T, char, const char)
+{
+    T val0_[] = "ab";
+    T val1_[] = "cd";
+    T *val0 = val0_;
+    T *val1 = val1_;
+    test_format_samevar5<T*>("{}--{}--{}--{}--{}", val0, "ab--ab--ab--ab--ab");
+    test_format_samevar5<T*>("{}--{}--{}--{}--{}", val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE_TEMPLATE("format.samevar_str", T, std::string)
+{
+    T val0 = "ab";
+    T val1 = "cd";
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val0, "ab--ab--ab--ab--ab");
+    test_format_samevar5<T>("{}--{}--{}--{}--{}", val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE("format.samevar_str.char_arr")
+{
+    char val0[] = "ab";
+    char val1[] = "cd";
+    test_format_samevar5<char [3]>("{}--{}--{}--{}--{}", val0, "ab--ab--ab--ab--ab");
+    test_format_samevar5<char [3]>("{}--{}--{}--{}--{}", val1, "cd--cd--cd--cd--cd");
+}
+TEST_CASE("format.samevar_str.const_char_arr")
+{
+    const char val0[] = "ab";
+    const char val1[] = "cd";
+    test_format_samevar5<const char [3]>("{}--{}--{}--{}--{}", val0, "ab--ab--ab--ab--ab");
+    test_format_samevar5<const char [3]>("{}--{}--{}--{}--{}", val1, "cd--cd--cd--cd--cd");
+}
+
+
+//-----------------------------------------------------------------------------
 
 TEST_CASE("unformat.vars")
 {

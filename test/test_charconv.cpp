@@ -2456,6 +2456,59 @@ TEST_CASE("to_chars.std_string")
     CHECK_EQ(buf.first(3), "foo");
 }
 
+template<class T, size_t N>
+void test_to_chars__char_arr(T (&arr)[N])
+{
+    INFO(arr);
+    char buf_[32];
+    substr buf(buf_);
+    size_t num = to_chars(buf, (T(&)[N])arr);
+    size_t expected_len = strlen(arr);
+    CHECK_EQ(num, expected_len);
+    REQUIRE_LE(num, buf.len);
+    csubstr expected = to_csubstr(arr);
+    csubstr actual = buf.first(num);
+    CHECK_EQ(actual, expected);
+}
+template<class T>
+void test_to_chars__char_ptr(T ptr)
+{
+    INFO(ptr);
+    char buf_[32];
+    substr buf(buf_);
+    size_t num = to_chars(buf, ptr);
+    size_t expected_len = strlen(ptr);
+    CHECK_EQ(num, expected_len);
+    REQUIRE_LE(num, buf.len);
+    csubstr expected = to_csubstr(ptr);
+    csubstr actual = buf.first(num);
+    CHECK_EQ(actual, expected);
+}
+template<size_t N>
+void test_to_chars__char_(char (&arr)[N])
+{
+    test_to_chars__char_arr((      char (&)[N])arr);
+    test_to_chars__char_arr((const char (&)[N])arr);
+    test_to_chars__char_ptr((      char*)arr);
+    test_to_chars__char_ptr((const char*)arr);
+}
+#define test_to_chars__char(str)                \
+    {                                           \
+        char arr[] = str;                       \
+        INFO("here:\n"                          \
+             << __FILE__ << ":" << __LINE__     \
+             << ": '" << arr << "'");           \
+        test_to_chars__char_(arr);              \
+    }
+TEST_CASE("to_chars.char")
+{
+    test_to_chars__char("0123");
+    test_to_chars__char("aslkjasdlkjasde");
+    test_to_chars__char("");
+    test_to_chars__char("a");
+    test_to_chars__char("ab");
+}
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
