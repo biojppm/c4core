@@ -12,12 +12,39 @@
 /* Detect C++ standard.
  * @see http://stackoverflow.com/a/7132549/5875572 */
 #ifndef C4_CPP
-#   if defined(_MSC_VER) && !defined(__clang__)
-#       if _MSC_VER >= 1910  // >VS2015: VS2017, VS2019, VS2022
+#   if defined(__cplusplus)
+#       if __cplusplus > 202302L
+#           define C4_CPP 26
+#           define C4_CPP26
+#       elif __cplusplus >= 202302L
+#           define C4_CPP 23
+#           define C4_CPP23
+#       elif __cplusplus >= 202002L
+#           define C4_CPP 20
+#           define C4_CPP20
+#       elif __cplusplus >= 201703L
+#           define C4_CPP 17
+#           define C4_CPP17
+#       elif __cplusplus >= 201402L
+#           define C4_CPP 14
+#           define C4_CPP14
+#       elif __cplusplus >= 201103L
+#           define C4_CPP 11
+#           define C4_CPP11
+#       elif __cplusplus >= 199711L
+#           error C++ lesser than C++11 not supported
+#       else
+#           error unknown __cplusplus
+#       endif
+#   elif defined(_MSC_VER) && !defined(__clang__)
+#       if _MSC_VER >= 1910  // >VS2015: VS2017, VS2019, VS2022, VS2026
 #           if (!defined(_MSVC_LANG))
 #               error _MSVC not defined
 #           endif
-#           if _MSVC_LANG >= 201705L
+#           if _MSVC_LANG >= 202302L
+#               define C4_CPP 23
+#               define C4_CPP23
+#           elif _MSVC_LANG >= 201705L
 #               define C4_CPP 20
 #               define C4_CPP20
 #           elif _MSVC_LANG == 201703L
@@ -44,7 +71,10 @@
 #           endif
 #       endif
 #   elif defined(__INTEL_COMPILER) // https://software.intel.com/en-us/node/524490
-#       ifdef __INTEL_CXX20_MODE__ // not sure about this
+#       ifdef __INTEL_CXX23_MODE__ // not sure about this
+#           define C4_CPP 23
+#           define C4_CPP23
+#       elif __INTEL_CXX20_MODE__ // not sure about this
 #           define C4_CPP 20
 #           define C4_CPP20
 #       elif defined __INTEL_CXX17_MODE__ // not sure about this
@@ -59,30 +89,13 @@
 #       else
 #           error C++ lesser than C++11 not supported
 #       endif
-#   else
-#       ifndef __cplusplus
-#           error __cplusplus is not defined?
-#       endif
-#       if __cplusplus == 1
-#           error cannot handle __cplusplus==1
-#       elif __cplusplus >= 201709L
-#           define C4_CPP 20
-#           define C4_CPP20
-#       elif __cplusplus >= 201703L
-#           define C4_CPP 17
-#           define C4_CPP17
-#       elif __cplusplus >= 201402L
-#           define C4_CPP 14
-#           define C4_CPP14
-#       elif __cplusplus >= 201103L
-#           define C4_CPP 11
-#           define C4_CPP11
-#       elif __cplusplus >= 199711L
-#           error C++ lesser than C++11 not supported
-#       endif
 #   endif
 #else
-#   ifdef C4_CPP == 20
+#   if C4_CPP == 26
+#       define C4_CPP26
+#   elif C4_CPP == 23
+#       define C4_CPP23
+#   elif C4_CPP == 20
 #       define C4_CPP20
 #   elif C4_CPP == 17
 #       define C4_CPP17
@@ -94,11 +107,22 @@
 #       define C4_CPP98
 #       error C++ lesser than C++11 not supported
 #   else
-#       error C4_CPP must be one of 20, 17, 14, 11, 98
+#       error C4_CPP must be one of 23, 20, 17, 14, 11, 98
 #   endif
 #endif
 
-#ifdef C4_CPP20
+#if defined(C4_CPP26)
+#   define C4_CPP23
+#   define C4_CPP20
+#   define C4_CPP17
+#   define C4_CPP14
+#   define C4_CPP11
+#elif defined(C4_CPP23)
+#   define C4_CPP20
+#   define C4_CPP17
+#   define C4_CPP14
+#   define C4_CPP11
+#elif defined(C4_CPP20)
 #   define C4_CPP17
 #   define C4_CPP14
 #   define C4_CPP11

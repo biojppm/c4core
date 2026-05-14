@@ -2093,6 +2093,43 @@ C4_ALWAYS_INLINE size_t dtoa(substr str, double v, int precision=-1, RealFormat_
 /** @} */
 
 
+/** @defgroup doc_htoa htoa: float16 to chars
+ *
+ * @{ */
+
+#if (C4_CPP >= 23) && defined(__STDCPP_FLOAT16_T__)
+/** Convert a half-precision real number to string.  The string will
+ * in general be NOT null-terminated.  For FTOA_FLEX, \p precision is
+ * the number of significand digits. Otherwise \p precision is the
+ * number of decimals. It is safe to call this function with an empty
+ * or too-small buffer.
+ *
+ * @return the size of the buffer needed to write the number
+ */
+C4_ALWAYS_INLINE size_t htoa(substr str, std::float16_t v, int precision=-1, RealFormat_e formatting=FTOA_FLEX) noexcept
+{
+    return ftoa(str, (float)v, precision, formatting);
+}
+#endif
+
+#if (C4_CPP >= 23) && defined(__STDCPP_BFLOAT16_T__)
+/** Convert a half-precision real number to string.  The string will
+ * in general be NOT null-terminated.  For FTOA_FLEX, \p precision is
+ * the number of significand digits. Otherwise \p precision is the
+ * number of decimals. It is safe to call this function with an empty
+ * or too-small buffer.
+ *
+ * @return the size of the buffer needed to write the number
+ */
+C4_ALWAYS_INLINE size_t htoa(substr str, std::bfloat16_t v, int precision=-1, RealFormat_e formatting=FTOA_FLEX) noexcept
+{
+    return ftoa(str, (float)v, precision, formatting);
+}
+#endif
+
+/** @} */
+
+
 /** @defgroup doc_atof atof: chars to float32
  *
  * @{ */
@@ -2144,9 +2181,7 @@ C4_ALWAYS_INLINE bool atof(csubstr str, float * C4_RESTRICT v) noexcept
 inline size_t atof_first(csubstr str, float * C4_RESTRICT v) noexcept
 {
     csubstr trimmed = str.first_real_span();
-    if(trimmed.len == 0)
-        return csubstr::npos;
-    if(atof(trimmed, v))
+    if(trimmed.len && atof(trimmed, v))
         return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
@@ -2209,14 +2244,82 @@ C4_ALWAYS_INLINE bool atod(csubstr str, double * C4_RESTRICT v) noexcept
 inline size_t atod_first(csubstr str, double * C4_RESTRICT v) noexcept
 {
     csubstr trimmed = str.first_real_span();
-    if(trimmed.len == 0)
-        return csubstr::npos;
-    if(atod(trimmed, v))
+    if(trimmed.len && atod(trimmed, v))
         return static_cast<size_t>(trimmed.end() - str.begin());
     return csubstr::npos;
 }
 
 /** @} */
+
+
+/** @defgroup doc_atoh atoh: chars to float32
+ *
+ * @{ */
+
+#if C4_CPP >= 23 && defined(__STDCPP_FLOAT16_T__)
+/** Convert a string to a half precision real number.
+ * The input string must be trimmed to the value, ie
+ * no leading or trailing whitespace can be present.
+ * @return true iff the conversion succeeded
+ * @see atoh_first() if the string is not trimmed
+ */
+C4_ALWAYS_INLINE bool atoh(csubstr str, std::float16_t * C4_RESTRICT v) noexcept
+{
+    float tmp;
+    if(atof(str, &tmp))
+    {
+        *v = (std::float16_t)tmp;
+        return true;
+    }
+    return false;
+}
+
+/** Convert a string to a half precision real number.
+ * Leading whitespace is skipped until valid characters are found.
+ * @return the number of characters read from the string, or npos if
+ * conversion was not successful or if the string was empty */
+inline size_t atoh_first(csubstr str, std::float16_t * C4_RESTRICT v) noexcept
+{
+    csubstr trimmed = str.first_real_span();
+    if(trimmed.len && atoh(trimmed, v))
+        return static_cast<size_t>(trimmed.end() - str.begin());
+    return csubstr::npos;
+}
+#endif
+
+#if C4_CPP >= 23 && defined(__STDCPP_BFLOAT16_T__)
+/** Convert a string to a half precision real number.
+ * The input string must be trimmed to the value, ie
+ * no leading or trailing whitespace can be present.
+ * @return true iff the conversion succeeded
+ * @see atoh_first() if the string is not trimmed
+ */
+C4_ALWAYS_INLINE bool atoh(csubstr str, std::bfloat16_t * C4_RESTRICT v) noexcept
+{
+    float tmp;
+    if(atof(str, &tmp))
+    {
+        *v = (std::bfloat16_t)tmp;
+        return true;
+    }
+    return false;
+}
+
+/** Convert a string to a half precision real number.
+ * Leading whitespace is skipped until valid characters are found.
+ * @return the number of characters read from the string, or npos if
+ * conversion was not successful or if the string was empty */
+inline size_t atoh_first(csubstr str, std::bfloat16_t * C4_RESTRICT v) noexcept
+{
+    csubstr trimmed = str.first_real_span();
+    if(trimmed.len && atoh(trimmed, v))
+        return static_cast<size_t>(trimmed.end() - str.begin());
+    return csubstr::npos;
+}
+#endif
+
+/** @} */
+
 
 
 //-----------------------------------------------------------------------------
@@ -2269,6 +2372,12 @@ C4_ALWAYS_INLINE size_t xtoa(substr s,  int64_t v,  int64_t radix, size_t num_di
 
 C4_ALWAYS_INLINE size_t xtoa(substr s,  float v, int precision, RealFormat_e formatting=FTOA_FLEX) noexcept { return ftoa(s, v, precision, formatting); }
 C4_ALWAYS_INLINE size_t xtoa(substr s, double v, int precision, RealFormat_e formatting=FTOA_FLEX) noexcept { return dtoa(s, v, precision, formatting); }
+#if C4_CPP >= 23 && defined(__STDCPP_FLOAT16_T__)
+C4_ALWAYS_INLINE size_t xtoa(substr s, std::float16_t v, int precision, RealFormat_e formatting=FTOA_FLEX) noexcept { return htoa(s, v, precision, formatting); }
+#endif
+#if C4_CPP >= 23 && defined(__STDCPP_BFLOAT16_T__)
+C4_ALWAYS_INLINE size_t xtoa(substr s, std::bfloat16_t v, int precision, RealFormat_e formatting=FTOA_FLEX) noexcept { return htoa(s, v, precision, formatting); }
+#endif
 
 template <class T> C4_ALWAYS_INLINE auto xtoa(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type { return itoa(buf, v); }
 template <class T> C4_ALWAYS_INLINE auto xtoa(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type { return write_dec(buf, v); }
@@ -2294,6 +2403,13 @@ C4_ALWAYS_INLINE bool atox(csubstr s,  int32_t *C4_RESTRICT v) noexcept { return
 C4_ALWAYS_INLINE bool atox(csubstr s,  int64_t *C4_RESTRICT v) noexcept { return atoi(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s,    float *C4_RESTRICT v) noexcept { return atof(s, v); }
 C4_ALWAYS_INLINE bool atox(csubstr s,   double *C4_RESTRICT v) noexcept { return atod(s, v); }
+#if C4_CPP >= 23 && defined(__STDCPP_FLOAT16_T__)
+C4_ALWAYS_INLINE bool atox(csubstr s, std::float16_t *C4_RESTRICT v) noexcept { return atoh(s, v); }
+#endif
+#if C4_CPP >= 23 && defined(__STDCPP_BFLOAT16_T__)
+C4_ALWAYS_INLINE bool atox(csubstr s, std::bfloat16_t *C4_RESTRICT v) noexcept { return atoh(s, v); }
+#endif
+
 
 template <class T> C4_ALWAYS_INLINE auto atox(csubstr buf, T *C4_RESTRICT v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, bool)::type { return atoi(buf, v); }
 template <class T> C4_ALWAYS_INLINE auto atox(csubstr buf, T *C4_RESTRICT v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, bool)::type { return atou(buf, v); }
@@ -2334,6 +2450,12 @@ C4_ALWAYS_INLINE size_t to_chars(substr buf,  int32_t v) noexcept { return itoa(
 C4_ALWAYS_INLINE size_t to_chars(substr buf,  int64_t v) noexcept { return itoa(buf, v); }
 C4_ALWAYS_INLINE size_t to_chars(substr buf,    float v) noexcept { return ftoa(buf, v); }
 C4_ALWAYS_INLINE size_t to_chars(substr buf,   double v) noexcept { return dtoa(buf, v); }
+#if C4_CPP >= 23 && defined(__STDCPP_FLOAT16_T__)
+C4_ALWAYS_INLINE size_t to_chars(substr buf, std::float16_t v) noexcept { return htoa(buf, v); }
+#endif
+#if C4_CPP >= 23 && defined(__STDCPP_BFLOAT16_T__)
+C4_ALWAYS_INLINE size_t to_chars(substr buf, std::bfloat16_t v) noexcept { return htoa(buf, v); }
+#endif
 
 template <class T> C4_ALWAYS_INLINE auto to_chars(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_I(T, size_t)::type { return itoa(buf, v); }
 template <class T> C4_ALWAYS_INLINE auto to_chars(substr buf, T v) noexcept -> _C4_IF_NOT_FIXED_LENGTH_U(T, size_t)::type { return write_dec(buf, v); }

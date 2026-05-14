@@ -25,6 +25,20 @@ C4_SUPPRESS_WARNING_CLANG("-Wfloat-equal")
 
 #include "./test_numbers.hpp"
 
+#if C4_CPP >= 23
+#include <stdfloat>
+#ifdef __STDCPP_FLOAT16_T__
+#define WITH_FLOAT16(...) __VA_ARGS__
+#else
+#define WITH_FLOAT16(...)
+#endif
+#ifdef __STDCPP_BFLOAT16_T__
+#define WITH_BFLOAT16(...) __VA_ARGS__
+#else
+#define WITH_BFLOAT16(...)
+#endif
+#endif
+
 namespace c4 {
 
 // skip the radix prefix: 0x, -0x, 0X, -0X, 0b, -0B, etc
@@ -2230,13 +2244,13 @@ void test_rtoa(substr buf, Real f, int precision, const char *scient, const char
         ret = xtoa(buf, f, precision, FTOA_HEXA);
         REQUIRE_LE(ret, buf.len);
         INFO("buf='" << buf.first(ret) << "'");
-
         CHECK((buf.first(ret) == to_csubstr(hexa) || buf.first(ret) == to_csubstr(hexa_alternative)));
         Real readback = {};
         CHECK(atox(buf.first(ret), &readback));
         INFO("readback=" << readback);
-        REQUIRE_EQ(xtoa(buf, readback, precision, FTOA_HEXA), ret);
+        CHECK_EQ(xtoa(buf, readback, precision, FTOA_HEXA), ret);
         Real readback2 = {};
+        REQUIRE_LE(ret, buf.len);
         CHECK(atox(buf.first(ret), &readback2));
         INFO("readback2=" << readback2);
         CHECK_EQ(memcmp(&readback2, &readback, sizeof(Real)), 0);
@@ -2262,9 +2276,13 @@ TEST_CASE("ftoa.basic")
     #define _c4emscripten_alt2(alt1, alt2) , alt1
     #endif
 
+    WITH_FLOAT16(std::float16_t h = 1.1234f16);
+    WITH_BFLOAT16(std::bfloat16_t b = 1.12bf16);
     float f = 1.1234123f;
     double d = 1.1234123;
 
+    WITH_FLOAT16(test_rtoa(buf, h, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0"));
+    WITH_BFLOAT16(test_rtoa(buf, b, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0"));
     test_rtoa(buf, f, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
     test_rtoa(buf, d, 0, /*scient*/"1e+00", /*flt*/"1", /*flex*/"1", /*hexa*/"0x1p+0");
 
@@ -2339,7 +2357,7 @@ TEST_CASE("ftoa.basic")
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-TEST_CASE_TEMPLATE("atof.integral", T, float, double)
+TEST_CASE_TEMPLATE("atox.integral", T, float, double)
 {
     auto t_ = [](csubstr str, int val){
         T rval = (T)10 * (T)val;
@@ -2362,7 +2380,7 @@ TEST_CASE_TEMPLATE("atof.integral", T, float, double)
     t_(s.first(1), 1);
 }
 
-TEST_CASE_TEMPLATE("atof.hexa", T, float, double)
+TEST_CASE_TEMPLATE("atox.hexa", T, float, double)
 {
     auto t_ = [](csubstr str, bool isok){
         T rval = {};
@@ -2593,6 +2611,19 @@ TEST_CASE("to_chars.trimmed_fit_int")
 {
     test_trimmed_fit(12345678, "12345678");
 }
+
+#if C4_CPP >= 23 && defined(__STDCPP_FLOAT16_T__)
+TEST_CASE("to_chars.trimmed_fit_half")
+{
+    test_trimmed_fit((std::float16_t)1.125f16, "1.125");
+}
+#endif
+#if C4_CPP >= 23 && defined(__STDCPP_BFLOAT16_T__)
+TEST_CASE("to_chars.trimmed_fit_bhalf")
+{
+    test_trimmed_fit((std::bfloat16_t)1.125bf16, "1.125");
+}
+#endif
 
 TEST_CASE("to_chars.trimmed_fit_float")
 {
