@@ -826,6 +826,16 @@ TEST_CASE("overflow.assumptions")
 
 //-----------------------------------------------------------------------------
 
+bool isall(csubstr buf, char c)
+{
+    if(!buf.len)
+        return false;
+    for(size_t i = 0; i < buf.len; ++i)
+        if(buf.str[i] != c)
+            return false;
+    return true;
+}
+
 TEST_CASE_TEMPLATE("xtoa", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t)
 {
     char buf_[128] = {};
@@ -837,7 +847,7 @@ TEST_CASE_TEMPLATE("xtoa", T, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint3
             buf.fill('?');
             size_t retn = xtoa(substr{}, number.val);
             CHECK_EQ(retn, number.dec.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -863,7 +873,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             buf.fill('?');
             size_t retn = xtoa(substr{}, number.val, T(10));
             CHECK_EQ(retn, number.dec.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(10));
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -882,7 +892,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("dec_digits=" << dec_digits << "  more_digits=" << more_digits << "  req_digits=" << reqdigits);
             size_t retn = xtoa(substr{}, number.val, T(10), reqdigits);
             CHECK_EQ(retn, reqdigits + size_t(number.val < 0));
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(10), reqdigits);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -898,7 +908,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.dec", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("dec_digits=" << dec_digits << "  less_digits=" << less_digits << "  req_digits=" << reqdigits);
             size_t retn = xtoa(substr{}, number.val, T(10), reqdigits);
             CHECK_EQ(retn, number.dec.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(10), reqdigits);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -921,7 +931,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             buf.fill('?');
             size_t retn = xtoa(substr{}, number.val, T(16));
             CHECK_EQ(retn, number.hex.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(16));
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -940,7 +950,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("more_digits=" << more_digits << "  reqdigits=" << reqdigits);
             size_t retn = xtoa(substr{}, number.val, T(16), reqdigits);
             CHECK_EQ(retn, reqdigits + adj);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(16), reqdigits);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -961,7 +971,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.hex", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("hex_digits=" << hex_digits << "  less_digits=" << less_digits << "  req_digits=" << reqdigits);
             size_t retn = xtoa(substr{}, number.val, T(16), reqdigits);
             CHECK_EQ(retn, number.hex.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(16), reqdigits);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -984,7 +994,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             buf.fill('?');
             size_t retn = xtoa(substr{}, number.val, T(8));
             CHECK_EQ(retn, number.oct.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(8));
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -1003,7 +1013,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("more_digits=" << more_digits << "  reqdigits=" << reqdigits);
             size_t retn = xtoa(substr{}, number.val, T(8), reqdigits);
             CHECK_EQ(retn, reqdigits + adj);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(8), reqdigits);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -1024,7 +1034,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.oct", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("oct_digits=" << oct_digits << "  less_digits=" << less_digits << "  req_digits=" << reqdigits);
             size_t retn = xtoa(substr{}, number.val, T(8), reqdigits);
             CHECK_EQ(retn, number.oct.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(8), reqdigits);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -1047,7 +1057,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             buf.fill('?');
             size_t retn = xtoa(substr{}, number.val, T(2));
             CHECK_EQ(retn, number.bin.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(2));
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -1066,7 +1076,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("more_digits=" << more_digits << "  reqdigits=" << reqdigits);
             size_t retn = xtoa(substr{}, number.val, T(2), reqdigits);
             CHECK_EQ(retn, reqdigits + adj);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(2), reqdigits);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -1086,7 +1096,7 @@ TEST_CASE_TEMPLATE("xtoa_radix.bin", T, int8_t, uint8_t, int16_t, uint16_t, int3
             INFO("bin_digits=" << bin_digits << "  less_digits=" << less_digits << "  req_digits=" << reqdigits);
             size_t retn = xtoa(substr{}, number.val, T(2), reqdigits);
             CHECK_EQ(retn, number.bin.len);
-            CHECK_UNARY(buf.begins_with('?') && buf.first_not_of('?') == csubstr::npos);
+            CHECK(isall(buf, '?'));
             size_t retb = xtoa(buf, number.val, T(2), reqdigits);
             CHECK_EQ(retn, retb);
             REQUIRE_LE(retb, buf.len);
@@ -2507,6 +2517,55 @@ TEST_CASE("to_chars.char")
     test_to_chars__char("");
     test_to_chars__char("a");
     test_to_chars__char("ab");
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+TEST_CASE("to_chars.null")
+{
+    char buf_[32];
+    substr buf(buf_);
+    {
+        std::nullptr_t val = {};
+        CHECK_EQ(to_chars(substr{}, val), 0);
+        CHECK_EQ(to_chars(substr{}, nullptr), 0);
+        buf.fill('?');
+        CHECK_EQ(to_chars_sub(buf, val), "");
+        CHECK(isall(buf, '?'));
+        CHECK_EQ(to_chars_sub(buf, nullptr), "");
+        CHECK(isall(buf, '?'));
+    }
+    {
+        char *val = nullptr;
+        REQUIRE_EQ(to_chars(substr{}, val), 0);
+        REQUIRE_EQ(to_chars(buf, val), 0);
+        CHECK(isall(buf, '?'));
+    }
+    {
+        const char *val = nullptr;
+        REQUIRE_EQ(to_chars(substr{}, val), 0);
+        REQUIRE_EQ(to_chars(buf, val), 0);
+        CHECK(isall(buf, '?'));
+    }
+    {
+        const void *val = nullptr;
+        REQUIRE_EQ(to_chars(substr{}, val), 3);
+        REQUIRE_EQ(to_chars(buf, val), 3);
+        CHECK(isall(buf.sub(3), '?'));
+        CHECK_EQ(to_chars_sub(buf, val), "0x0");
+        CHECK(isall(buf.sub(3), '?'));
+    }
+    {
+        const int *val = nullptr;
+        REQUIRE_EQ(to_chars(substr{}, val), 3);
+        REQUIRE_EQ(to_chars(buf, val), 3);
+        CHECK(isall(buf.sub(3), '?'));
+        CHECK_EQ(to_chars_sub(buf, val), "0x0");
+        CHECK(isall(buf.sub(3), '?'));
+    }
 }
 
 
