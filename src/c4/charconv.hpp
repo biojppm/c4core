@@ -2663,8 +2663,21 @@ auto to_chars(substr buf, CharPtr v) noexcept
                                ||
                                std::is_same<CharPtr, const char*>::value, size_t>::type
 {
-    return to_chars(buf, csubstr{v, strlen(v)});
+    return v ? to_chars(buf, csubstr{v, strlen(v)}) : 0;
 }
+
+
+//-----------------------------------------------------------------------------
+// nullptr implementation
+
+/** @ingroup doc_to_chars */
+C4_ALWAYS_INLINE size_t to_chars(substr, std::nullptr_t) noexcept
+{
+    return 0;
+}
+
+// from_chars() and from_chars_sub() must not exist for nullptr
+
 
 /** @} */
 
