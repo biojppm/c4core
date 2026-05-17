@@ -56,7 +56,7 @@ C4_ALWAYS_INLINE C4_CONST bool mem_overlaps(void const* a, void const* b, size_t
     return (((const char*)b + szb) > a && b < ((const char*)a+sza));
 }
 
-void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times);
+C4CORE_EXPORT void mem_repeat(void* dest, void const* pattern, size_t pattern_size, size_t num_times);
 
 
 //-----------------------------------------------------------------------------

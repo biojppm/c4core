@@ -16,6 +16,8 @@ option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
 option(C4CORE_NO_DEBUG_BREAK "disable use of debug break even in debug builds" OFF)
 
 set(C4CORE_SRC_FILES
+    c4/alloc.hpp
+    c4/alloc.cpp
     c4/allocator.hpp
     c4/base64.hpp
     c4/base64.cpp

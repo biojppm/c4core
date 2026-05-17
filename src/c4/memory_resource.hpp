@@ -4,16 +4,11 @@
 /** @file memory_resource.hpp Provides facilities to allocate typeless
  *  memory, via the memory resource model consecrated with C++17. */
 
-/** @defgroup memory memory utilities */
-
-/** @defgroup raw_memory_alloc Raw memory allocation
- * @ingroup memory
- */
-
 /** @defgroup memory_resources Memory resources
  * @ingroup memory
  */
 
+#include "c4/alloc.hpp"
 #include "c4/error.hpp"
 #include "c4/types.hpp"
 
@@ -22,102 +17,29 @@ namespace c4 {
 // need these forward decls here
 struct MemoryResource;
 struct MemoryResourceMalloc;
-struct MemoryResourceStack;
-MemoryResourceMalloc* get_memory_resource_malloc();
-MemoryResourceStack* get_memory_resource_stack();
-namespace detail { MemoryResource*& get_memory_resource(); }
 
 
-// c-style allocation ---------------------------------------------------------
+/** get the current global memory resource. To avoid static initialization
+ * order problems, this is implemented using a function call to ensure
+ * that it is available when first used.
+ * @ingroup memory_resources */
+C4CORE_EXPORT MemoryResource* get_memory_resource();
 
-// this API provides aligned allocation functions.
-// These functions forward the call to a user-modifiable function.
-
-
-// aligned allocation.
-
-/** Aligned allocation. Merely calls the current get_aalloc() function.
- * @see get_aalloc()
- * @ingroup raw_memory_alloc */
-void* aalloc(size_t sz, size_t alignment);
-
-/** Aligned free. Merely calls the current get_afree() function.
- * @see get_afree()
- * @ingroup raw_memory_alloc */
-void afree(void* ptr);
-
-/** Aligned reallocation. Merely calls the current get_arealloc() function.
- * @see get_arealloc()
- * @ingroup raw_memory_alloc */
-void* arealloc(void* ptr, size_t oldsz, size_t newsz, size_t alignment);
+/** set the global memory resource
+ * @ingroup memory_resources */
+C4CORE_EXPORT void set_memory_resource(MemoryResource* mr);
 
 
-// allocation setup facilities.
-
-/** Function pointer type for aligned allocation
- * @see set_aalloc()
- * @ingroup raw_memory_alloc */
-using aalloc_pfn = void* (*)(size_t size, size_t alignment);
-
-/** Function pointer type for aligned deallocation
- * @see set_afree()
- * @ingroup raw_memory_alloc */
-using afree_pfn = void  (*)(void *ptr);
-
-/** Function pointer type for aligned reallocation
- * @see set_arealloc()
- * @ingroup raw_memory_alloc */
-using arealloc_pfn = void* (*)(void *ptr, size_t oldsz, size_t newsz, size_t alignment);
-
-
-// allocation function pointer setters/getters
-
-/** Set the global aligned allocation function.
- * @see aalloc()
- * @see get_aalloc()
- * @ingroup raw_memory_alloc */
-void set_aalloc(aalloc_pfn fn);
-
-/** Set the global aligned deallocation function.
- * @see afree()
- * @see get_afree()
- * @ingroup raw_memory_alloc */
-void set_afree(afree_pfn fn);
-
-/** Set the global aligned reallocation function.
- * @see arealloc()
- * @see get_arealloc()
- * @ingroup raw_memory_alloc */
-void set_arealloc(arealloc_pfn fn);
-
-
-/** Get the global aligned reallocation function.
- * @see arealloc()
- * @ingroup raw_memory_alloc */
-aalloc_pfn get_aalloc();
-
-/** Get the global aligned deallocation function.
- * @see afree()
- * @ingroup raw_memory_alloc */
-afree_pfn get_afree();
-
-/** Get the global aligned reallocation function.
- * @see arealloc()
- * @ingroup raw_memory_alloc */
-arealloc_pfn get_arealloc();
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 // c++-style allocation -------------------------------------------------------
+
 
 /** C++17-style memory_resource base class. See http://en.cppreference.com/w/cpp/experimental/memory_resource
  * @ingroup memory_resources */
-struct MemoryResource // NOLINT(*-member-functions)
+struct C4CORE_EXPORT MemoryResource // NOLINT(*-member-functions)
 {
     const char *name = nullptr;
-    virtual ~MemoryResource() = default;
+    MemoryResource(const char *name_=nullptr) noexcept : name(name_) {}
+    virtual ~MemoryResource() noexcept = default;
 
     void* allocate(size_t sz, size_t alignment=alignof(max_align_t), void *hint=nullptr)
     {
@@ -146,23 +68,6 @@ protected:
 
 };
 
-/** get the current global memory resource. To avoid static initialization
- * order problems, this is implemented using a function call to ensure
- * that it is available when first used.
- * @ingroup memory_resources */
-C4_ALWAYS_INLINE MemoryResource* get_memory_resource()
-{
-    return detail::get_memory_resource();
-}
-
-/** set the global memory resource
- * @ingroup memory_resources */
-C4_ALWAYS_INLINE void set_memory_resource(MemoryResource* mr)
-{
-    C4_ASSERT(mr != nullptr);
-    detail::get_memory_resource() = mr;
-}
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -170,10 +75,10 @@ C4_ALWAYS_INLINE void set_memory_resource(MemoryResource* mr)
 /** A c4::aalloc-based memory resource. Thread-safe if the implementation
  * called by c4::aalloc() is safe.
  * @ingroup memory_resources */
-struct MemoryResourceMalloc : public MemoryResource // NOLINT(*-member-functions)
+struct C4CORE_EXPORT MemoryResourceMalloc : public MemoryResource // NOLINT(*-member-functions)
 {
 
-    MemoryResourceMalloc() { name = "malloc"; }
+    MemoryResourceMalloc() noexcept : MemoryResource("malloc") {}
 
 protected:
 
@@ -199,23 +104,7 @@ protected:
 
 /** returns a malloc-based memory resource
  * @ingroup memory_resources */
-C4_ALWAYS_INLINE MemoryResourceMalloc* get_memory_resource_malloc()
-{
-    /** @todo use a nifty counter:
-     * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter */
-    static MemoryResourceMalloc mr;
-    return &mr;
-}
-
-namespace detail {
-C4_ALWAYS_INLINE MemoryResource* & get_memory_resource()
-{
-    /** @todo use a nifty counter:
-     * https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Nifty_Counter */
-    thread_local static MemoryResource* mr = get_memory_resource_malloc();
-    return mr;
-}
-} // namespace detail
+C4CORE_EXPORT MemoryResourceMalloc* get_memory_resource_malloc();
 
 
 //-----------------------------------------------------------------------------
@@ -226,7 +115,7 @@ namespace detail {
 
 /** Allows a memory resource to obtain its memory from another memory resource.
  * @ingroup memory_resources */
-struct DerivedMemoryResource : public MemoryResource
+struct C4CORE_EXPORT DerivedMemoryResource : public MemoryResource
 {
 public:
 
@@ -256,7 +145,7 @@ protected:
 
 /** Provides common facilities for memory resource consisting of a single memory block
  * @ingroup memory_resources */
-struct _MemoryResourceSingleChunk : public DerivedMemoryResource
+struct C4CORE_EXPORT _MemoryResourceSingleChunk : public DerivedMemoryResource
 {
 
     C4_NO_COPY_OR_MOVE(_MemoryResourceSingleChunk);
@@ -316,32 +205,10 @@ public:
  * malloc/free take place.
  *
  * @ingroup memory_resources */
-struct MemoryResourceLinear : public detail::_MemoryResourceSingleChunk // NOLINT(*-member-functions)
+struct C4CORE_EXPORT MemoryResourceLinear : public detail::_MemoryResourceSingleChunk // NOLINT(*-member-functions)
 {
 
     C4_NO_COPY_OR_MOVE(MemoryResourceLinear);
-
-public:
-
-    using detail::_MemoryResourceSingleChunk::_MemoryResourceSingleChunk;
-
-protected:
-
-    void* do_allocate(size_t sz, size_t alignment, void *hint) override;
-    void  do_deallocate(void* ptr, size_t sz, size_t alignment) override;
-    void* do_reallocate(void* ptr, size_t oldsz, size_t newsz, size_t alignment) override;
-};
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-/** provides a stack-type malloc-based memory resource.
- * @ingroup memory_resources */
-struct MemoryResourceStack : public detail::_MemoryResourceSingleChunk // NOLINT(*-member-functions)
-{
-
-    C4_NO_COPY_OR_MOVE(MemoryResourceStack);
 
 public:
 
@@ -374,7 +241,7 @@ struct MemoryResourceLinearArr : public MemoryResourceLinear
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-struct AllocationCounts
+struct C4CORE_EXPORT AllocationCounts
 {
     struct Item
     {
@@ -467,7 +334,7 @@ struct AllocationCounts
 /** a MemoryResource which latches onto another MemoryResource
  * and counts allocations and sizes.
  * @ingroup memory_resources */
-class MemoryResourceCounts : public MemoryResource
+class C4CORE_EXPORT MemoryResourceCounts : public MemoryResource
 {
 public:
 
@@ -518,7 +385,7 @@ protected:
 //-----------------------------------------------------------------------------
 /** RAII class which binds a memory resource with a scope duration.
  * @ingroup memory_resources */
-struct ScopedMemoryResource // NOLINT(*-member-functions)
+struct C4CORE_EXPORT ScopedMemoryResource // NOLINT(*-member-functions)
 {
     MemoryResource *m_original;
 
@@ -539,7 +406,7 @@ struct ScopedMemoryResource // NOLINT(*-member-functions)
 /** RAII class which counts allocations and frees inside a scope. Can
  * optionally set also the memory resource to be used.
  * @ingroup memory_resources */
-struct ScopedMemoryResourceCounts // NOLINT(*-member-functions)
+struct C4CORE_EXPORT ScopedMemoryResourceCounts // NOLINT(*-member-functions)
 {
     MemoryResourceCounts mr;
 
