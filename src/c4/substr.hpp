@@ -12,16 +12,10 @@
 #include "c4/error.hpp"
 #include "c4/substr_fwd.hpp"
 
-#ifdef __clang__
-#   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
-#   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wtype-limits" // disable warnings on size_t>=0, used heavily in assertions below. These assertions are a preparation step for providing the index type as a template parameter.
-#   pragma GCC diagnostic ignored "-Wuseless-cast"
-#   pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
+C4_SUPPRESS_WARNING_GCC_CLANG_PUSH
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wold-style-cast")
+C4_SUPPRESS_WARNING_GCC("-Wuseless-cast")
+C4_SUPPRESS_WARNING_GCC("-Wtype-limits") // disable warnings on size_t>=0, used heavily in assertions below. These assertions are a preparation step for providing the index type as a template parameter.
 
 namespace c4 {
 
@@ -47,6 +41,7 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 } // namespace detail
 /** @endcond */
 
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -70,7 +65,7 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
  * in rapidyaml's documentation.
  */
 template<class C>
-struct C4CORE_EXPORT basic_substring // NOLINT(cppcoreguidelines-special-member-functions,hicpp-special-member-functions)
+struct basic_substring // NOLINT(cppcoreguidelines-special-member-functions,hicpp-special-member-functions)
 {
 public:
 
@@ -223,7 +218,7 @@ public:
     /** @name Comparison methods */
     /** @{ */
 
-    C4_PURE int compare(C const c) const noexcept
+    C4_ALWAYS_INLINE C4_PURE int compare(C const c) const noexcept
     {
         C4_XASSERT((str != nullptr) || len == 0);
         if(C4_LIKELY(str != nullptr && len > 0))
@@ -2187,7 +2182,6 @@ public:
 
 }; // template class basic_substring
 
-
 #undef C4_REQUIRE_RW
 
 
@@ -2346,10 +2340,6 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
 } // namespace c4
 
 
-#ifdef __clang__
-#   pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#   pragma GCC diagnostic pop
-#endif
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 #endif /* _C4_SUBSTR_HPP_ */

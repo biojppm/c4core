@@ -8,6 +8,7 @@
 
 #include "c4/preprocessor.hpp"
 #include "c4/compiler.hpp"
+#include "c4/export.hpp"
 
 /* Detect C++ standard.
  * @see http://stackoverflow.com/a/7132549/5875572 */
@@ -348,7 +349,7 @@ template< class T >
 C4_ALWAYS_INLINE void dont_optimize(T const& value) { asm volatile("" : : "g"(value) : "memory"); } // NOLINT
 #else
 #   define C4_DONT_OPTIMIZE(var) c4::detail::use_char_pointer(reinterpret_cast< const char* >(&var))
-void use_char_pointer(char const volatile*);
+C4CORE_EXPORT void use_char_pointer(char const volatile*);
 #endif
 } // namespace detail
 } // namespace c4
@@ -360,13 +361,6 @@ void use_char_pointer(char const volatile*);
 #   define C4_KEEP_EMPTY_LOOP { char c; C4_DONT_OPTIMIZE(c); }
 #else
 #   define C4_KEEP_EMPTY_LOOP { asm(""); }
-#endif
-
-
-#if defined(__GNUC__) || defined(__DOXYGEN__)
-/** @def C4_VA_LIST_REUSE_MUST_COPY
- * @todo <jpmag> I strongly suspect that this is actually only in UNIX platforms. revisit this. */
-#   define C4_VA_LIST_REUSE_MUST_COPY
 #endif
 
 #endif /* _C4_LANGUAGE_HPP_ */
