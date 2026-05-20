@@ -15,5 +15,6 @@
     - add implementation for `nullptr_t`
     - ensure `char*`/`const char*` (using strlen) overloads accept null pointer
 - [PR#164](https://github.com/biojppm/c4core/pull/164): 
-  - Move aalloc() et al to new hdr/src c4/alloc.hpp
+  - Move `aalloc()` et al to new hdr/src c4/alloc.hpp
   - Fix shared library exports, which were causing a link error in lld-link on Windows (see [rapidyaml#600](https://github.com/biojppm/rapidyaml/issues/600)).
+- [PR#165](https://github.com/biojppm/c4core/pull/165): `c4/std/span.hpp` missing from amalgamate.py.
