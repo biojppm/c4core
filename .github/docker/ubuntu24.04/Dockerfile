@@ -1,6 +1,6 @@
 ARG  EMSCRIPTEN_VERSION=latest
-FROM ubuntu:24.04
 FROM emscripten/emsdk:$EMSCRIPTEN_VERSION
+FROM ubuntu:24.04
 
 LABEL org.opencontainers.image.source=https://github.com/biojppm/c4core
 LABEL org.opencontainers.image.description="C++ build testing: gcc, clang, arm-eabi-none, swig, emscripten"
@@ -13,7 +13,6 @@ RUN apt-get update \
  && apt-get install -y \
       apt-utils \
       ca-certificates \
-      lsb-core \
       gnupg \
       software-properties-common \
       wget \
@@ -58,21 +57,14 @@ RUN apt-get install -y \
       python3 \
       python3-setuptools \
       python3-pip \
- && pip3 install setuptools-rust \
- && pip3 install --upgrade pip \
- && pip3 install \
-      requests[security] \
-      pyopenssl \
-      ndg-httpsclient \
-      pyasn1 \
-      cpp-coveralls \
- && echo "python done"
+ && echo "python apt done"
 
 # cmany
 RUN ( \
         cd /tmp ; \
         git clone --recursive https://github.com/biojppm/cmany -b dev ; \
-        pip install ./cmany \
+        pip3 install --break-system-packages ./cmany ; \
+        rm -rf cmany \
     ) \
  && echo "cmany done"
 

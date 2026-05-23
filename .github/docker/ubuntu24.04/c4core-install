@@ -10,6 +10,8 @@ case $what in
         $script embedded
         ;;
     gcc-all)
+        $script gcc-16
+        $script gcc-15
         $script gcc-14
         $script gcc-13
         $script gcc-12
@@ -24,6 +26,9 @@ case $what in
         $script gcc-4.8
         ;;
     clang-all)
+        $script clang-22
+        $script clang-21
+        $script clang-20
         $script clang-19
         $script clang-18
         $script clang-17
@@ -105,7 +110,7 @@ case $what in
         gcc-6 --version
         g++-6 --version
         ;;
-    gcc-7)
+    g++-7|gcc-7|gcc7)
         apt-get update
         apt-get install -y \
                 wget \
@@ -120,7 +125,7 @@ case $what in
         gcc-7 --version
         g++-7 --version
         ;;
-    gcc-8)
+    g++-8|gcc-8|gcc8)
         apt-get update
         apt-get install -y \
                 wget \
@@ -135,7 +140,7 @@ case $what in
         gcc-8 --version
         g++-8 --version
         ;;
-    g++-9|gcc-9)
+    g++-9|gcc-9|gcc9)
         apt-get update
         apt-get install -y \
                 wget \
@@ -147,7 +152,7 @@ case $what in
         gcc-9 --version
         g++-9 --version
         ;;
-    g++-10|gcc-10)
+    g++-10|gcc-10|gcc10)
         apt-get update
         apt-get install -y \
                 wget \
@@ -159,7 +164,7 @@ case $what in
         gcc-10 --version
         g++-10 --version
         ;;
-    g++-11|gcc-11)
+    g++-11|gcc-11|gcc11)
         apt-get update
         apt-get install -y \
                 wget \
@@ -171,28 +176,44 @@ case $what in
         gcc-11 --version
         g++-11 --version
         ;;
-    g++-12|gcc-12)
+    g++-12|gcc-12|gcc12)
         apt-get update
         apt-get install -y \
                 cpp-12 gcc-12 g++-12 g++-12-multilib libstdc++-12-dev lib32stdc++-12-dev
         gcc-12 --version
         g++-12 --version
         ;;
-    g++-13|gcc-13)
+    g++-13|gcc-13|gcc13)
         apt-get update
         apt-get install -y \
                 cpp-13 gcc-13 g++-13 g++-13-multilib libstdc++-13-dev lib32stdc++-13-dev
         gcc-13 --version
         g++-13 --version
         ;;
-    g++-14|gcc-14)
+    g++-14|gcc-14|gcc14)
         apt-get update
         apt-get install -y \
                 cpp-14 gcc-14 g++-14 g++-14-multilib libstdc++-14-dev lib32stdc++-14-dev
         gcc-14 --version
         g++-14 --version
         ;;
-    clang++-3.9|clang-3.9)
+    g++-15|gcc-15|gcc15)
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        apt-get update
+        apt-get install -y \
+                cpp-15 gcc-15 g++-15 g++-15-multilib libstdc++-15-dev lib32stdc++-15-dev
+        gcc-15 --version
+        g++-15 --version
+        ;;
+    g++-16|gcc-16)
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        apt-get update
+        apt-get install -y \
+                cpp-16 gcc-16 g++-16 g++-16-multilib libstdc++-16-dev lib32stdc++-16-dev
+        gcc-16 --version
+        g++-16 --version
+        ;;
+    clang++-3.9|clang-3.9|clang3.9)
         apt-get update
         apt-get install -y \
                 software-properties-common
@@ -203,7 +224,7 @@ case $what in
         clang-3.9 --version
         clang++-3.9 --version
         ;;
-    clang++-4.0|clang-4.0)
+    clang++-4.0|clang-4.0|clang4.0|clang++-4|clang-4|clang4)
         apt-get update
         apt-get install -y \
                 software-properties-common
@@ -214,7 +235,7 @@ case $what in
         clang-4.0 --version
         clang++-4.0 --version
         ;;
-    #clang++-5.0|clang-5.0)
+    #clang++-5.0|clang-5.0|clang5.0|clang++-5|clang-5|clang5)
     #    apt-get update
     #    apt-get install -y \
     #            software-properties-common
@@ -225,7 +246,7 @@ case $what in
     #    clang-5.0 --version
     #    clang++-5.0 --version
     #    ;;
-    #clang++-6.0|clang-6.0)
+    #clang++-6.0|clang-6.0|clang6.0|clang++-6|clang-6|clang6)
     #    apt-get update
     #    apt-get install -y \
     #            wget \
@@ -238,7 +259,7 @@ case $what in
     #    clang-6.0 --version
     #    clang++-6.0 --version
     #    ;;
-    #clang++-7|clang-7)
+    #clang++-7|clang-7|clang7)
     #    apt-get update
     #    apt-get install -y \
     #            wget \
@@ -251,7 +272,7 @@ case $what in
     #    clang-7 --version
     #    clang++-7 --version
     #    ;;
-    #clang++-8|clang-8)
+    #clang++-8|clang-8|clang8)
     #    apt-get update
     #    apt-get install -y \
     #            wget \
@@ -264,7 +285,7 @@ case $what in
     #    clang-8 --version
     #    clang++-8 --version
     #    ;;
-    #clang++-9|clang-9)
+    #clang++-9|clang-9|clang9)
     #    apt-get update
     #    apt-get install -y \
     #            wget \
@@ -277,7 +298,7 @@ case $what in
     #    clang-9 --version
     #    clang++-9 --version
     #    ;;
-    #clang++-10|clang-10)
+    #clang++-10|clang-10|clang10)
     #    apt-get update
     #    apt-get install -y \
     #            wget \
@@ -290,54 +311,73 @@ case $what in
     #    clang-10 --version
     #    clang++-10 --version
     #    ;;
-    #clang++-11|clang-11)
+    #clang++-11|clang-11|clang11)
     #    apt-get update
     #    apt-get install -y \
     #            clang-11 clang-tidy-11
     #    clang-11 --version
     #    clang++-11 --version
     #    ;;
-    #clang++-12|clang-12)
+    #clang++-12|clang-12|clang12)
     #    apt-get update
     #    apt-add-repository --yes --no-update "deb http://apt.llvm.org/noble/ llvm-toolchain-noble main"
     #    apt-get update
     #    apt-get install -y \
     #            clang-12 clang-tidy-12
     #    ;;
-    #clang++-13|clang-13)
+    #clang++-13|clang-13|clang13)
     #    apt-get update
     #    apt-get install -y \
     #            clang-13 clang-tidy-13
     #    ;;
-    clang++-14|clang-14)
+    clang++-14|clang-14|clang14)
         apt-get update
         apt-get install -y \
                 clang-14 clang-tidy-14
         ;;
-    clang++-15|clang-15)
+    clang++-15|clang-15|clang15)
         apt-get update
         apt-get install -y \
                 clang-15 clang-tidy-15
         ;;
-    clang++-16|clang-16)
+    clang++-16|clang-16|clang16)
         apt-get update
         apt-get install -y \
                 clang-16 clang-tidy-16
         ;;
-    clang++-17|clang-17)
+    clang++-17|clang-17|clang17)
         apt-get update
         apt-get install -y \
                 clang-17 clang-tidy-17
         ;;
-    clang++-18|clang-18)
+    clang++-18|clang-18|clang18)
         apt-get update
         apt-get install -y \
                 clang-18 clang-tidy-18
         ;;
-    clang++-19|clang-19)
+    clang++-19|clang-19|clang19)
         apt-get update
         apt-get install -y \
                 clang-19 clang-tidy-19
+        ;;
+    clang++-20|clang-20|clang20)
+        apt-get update
+        apt-get install -y \
+                clang-20 clang-tidy-20
+        ;;
+    clang++-21|clang-21|clang21)
+        wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-21 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+        apt-get update
+        apt-get install -y \
+                clang-21 clang-tidy-21
+        ;;
+    clang++-22|clang-22|clang22)
+        wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+        apt-get update
+        apt-get install -y \
+                clang-22 clang-tidy-22
         ;;
     arm-none-eabi)
         apt-get update
