@@ -7,4 +7,5 @@
     - return a new dedicated type `TypeNameStr`. This spares costly include of span.hpp
   - Improve std interop headers
   - Fix: `from_chars_first()` must use `csubstr` for the chars parameters
+  - clang-tidy fixes with clang-22
 

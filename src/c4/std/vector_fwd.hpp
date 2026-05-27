@@ -16,13 +16,13 @@ __pragma(warning(push))
 __pragma(warning(disable : 4643))
 #endif
 namespace std {
-template<typename> class allocator;
+template<typename> class allocator; // NOLINT
 #ifdef _GLIBCXX_DEBUG
 inline namespace __debug {
-template<typename T, typename Alloc> class vector;
+template<typename T, typename Alloc> class vector; // NOLINT
 }
 #else
-template<typename T, typename Alloc> class vector;
+template<typename T, typename Alloc> class vector; // NOLINT
 #endif
 } // namespace std
 #if defined(_MSC_VER)
@@ -31,8 +31,8 @@ __pragma(warning(pop))
 #elif defined(_LIBCPP_ABI_NAMESPACE)
 namespace std {
 inline namespace _LIBCPP_ABI_NAMESPACE {
-template<typename> class allocator;
-template<typename T, typename Alloc> class vector;
+template<typename> class allocator; // NOLINT
+template<typename T, typename Alloc> class vector; // NOLINT
 } // namespace _LIBCPP_ABI_NAMESPACE
 } // namespace std
 #else

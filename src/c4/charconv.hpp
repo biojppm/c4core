@@ -281,7 +281,7 @@ template<> struct charconv_digits_<1u, true> // int8_t
     static constexpr csubstr min_value_oct() noexcept { return csubstr("200"); }
     static constexpr csubstr min_value_bin() noexcept { return csubstr("10000000"); }
     static constexpr csubstr max_value_dec() noexcept { return csubstr("127"); }
-    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 3) || (str.len == 3 && str[0] <= '1')); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 3) || (str.len == 3 && str.str[0] <= '1')); }
 };
 template<> struct charconv_digits_<1u, false> // uint8_t
 {
@@ -296,7 +296,7 @@ template<> struct charconv_digits_<1u, false> // uint8_t
         maxdigits_hex_nopfx =     2, // 255 0xff
     };
     static constexpr csubstr max_value_dec() noexcept { return csubstr("255"); }
-    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 3) || (str.len == 3 && str[0] <= '3')); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 3) || (str.len == 3 && str.str[0] <= '3')); }
 };
 template<> struct charconv_digits_<2u, true> // int16_t
 {
@@ -316,7 +316,7 @@ template<> struct charconv_digits_<2u, true> // int16_t
     static constexpr csubstr min_value_oct() noexcept { return csubstr("100000"); }
     static constexpr csubstr min_value_bin() noexcept { return csubstr("1000000000000000"); }
     static constexpr csubstr max_value_dec() noexcept { return csubstr("32767"); }
-    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 6)); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !(str.len < 6); }
 };
 template<> struct charconv_digits_<2u, false> // uint16_t
 {
@@ -331,7 +331,7 @@ template<> struct charconv_digits_<2u, false> // uint16_t
         maxdigits_hex_nopfx =      4, // 65535 0xffff
     };
     static constexpr csubstr max_value_dec() noexcept { return csubstr("65535"); }
-    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 6) || (str.len == 6 && str[0] <= '1')); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 6) || (str.len == 6 && str.str[0] <= '1')); }
 };
 template<> struct charconv_digits_<4u, true> // int32_t
 {
@@ -351,7 +351,7 @@ template<> struct charconv_digits_<4u, true> // int32_t
     static constexpr csubstr min_value_oct() noexcept { return csubstr("20000000000"); }
     static constexpr csubstr min_value_bin() noexcept { return csubstr("10000000000000000000000000000000"); }
     static constexpr csubstr max_value_dec() noexcept { return csubstr("2147483647"); }
-    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 11) || (str.len == 11 && str[0] <= '1')); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 11) || (str.len == 11 && str.str[0] <= '1')); }
 };
 template<> struct charconv_digits_<4u, false> // uint32_t
 {
@@ -366,7 +366,7 @@ template<> struct charconv_digits_<4u, false> // uint32_t
         maxdigits_hex_nopfx =      8, // len=10: 4294967295 0xffffffff
     };
     static constexpr csubstr max_value_dec() noexcept { return csubstr("4294967295"); }
-    static constexpr bool is_oct_overflow(csubstr str) noexcept { return !((str.len < 11) || (str.len == 11 && str[0] <= '3')); }
+    static constexpr bool is_oct_overflow(csubstr str) noexcept { return !((str.len < 11) || (str.len == 11 && str.str[0] <= '3')); }
 };
 template<> struct charconv_digits_<8u, true> // int64_t
 {
@@ -385,7 +385,7 @@ template<> struct charconv_digits_<8u, true> // int64_t
     static constexpr csubstr min_value_oct() noexcept { return csubstr("1000000000000000000000"); }
     static constexpr csubstr min_value_bin() noexcept { return csubstr("1000000000000000000000000000000000000000000000000000000000000000"); }
     static constexpr csubstr max_value_dec() noexcept { return csubstr("9223372036854775807"); }
-    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 22)); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !(str.len < 22); }
 };
 template<> struct charconv_digits_<8u, false> // uint64_t
 {
@@ -400,7 +400,7 @@ template<> struct charconv_digits_<8u, false> // uint64_t
         maxdigits_hex_nopfx =     16, // len=18: 18446744073709551615 0xffffffffffffffff
     };
     static constexpr csubstr max_value_dec() noexcept { return csubstr("18446744073709551615"); }
-    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 22) || (str.len == 22 && str[0] <= '1')); }
+    static constexpr bool    is_oct_overflow(csubstr str) noexcept { return !((str.len < 22) || (str.len == 22 && str.str[0] <= '1')); }
 };
 } // namespace detail
 
@@ -484,16 +484,26 @@ auto digits_dec(T v) noexcept
                     return (v >= 1000000000000000000) ? 19u : 18u;
             }
             else if(v >= 10000000000000000) // 17
+            {
                 return 17u;
+            }
             else
+            {
                 return(v >= 1000000000000000) ? 16u : 15u;
+            }
         }
         else if(v >= 1000000000000) // 13
+        {
             return (v >= 10000000000000) ? 14u : 13u;
+        }
         else if(v >= 100000000000) // 12
+        {
             return 12;
+        }
         else
+        {
             return(v >= 10000000000) ? 11u : 10u;
+        }
     }
     else if(v >= 10000) // 5 [5-9] range
     {
@@ -505,9 +515,13 @@ auto digits_dec(T v) noexcept
             return (v >= 100000) ? 6u : 5u;
     }
     else if(v >= 100)
+    {
         return (v >= 1000) ? 4u : 3u;
+    }
     else
+    {
         return (v >= 10) ? 2u : 1u;
+    }
 }
 
 
@@ -1615,9 +1629,9 @@ inline bool check_overflow(csubstr str, csubstr limit) noexcept
         return str.len > limit.len;
     for(size_t i = 0; i < limit.len; ++i)
     {
-        if(str[i] < limit[i])
+        if(str.str[i] < limit.str[i])
             return false;
-        else if(str[i] > limit[i])
+        else if(str.str[i] > limit.str[i])
             return true;
     }
     return false;
@@ -1685,7 +1699,7 @@ auto overflows(csubstr str) noexcept
             }
         }
     }
-    else if(C4_UNLIKELY(str[0] == '-'))
+    else if(C4_UNLIKELY(str.str[0] == '-'))
     {
         return true;
     }
@@ -1769,7 +1783,7 @@ auto overflows(csubstr str) noexcept
                 if (fno == csubstr::npos)
                     return false;
                 const size_t len = str.len - fno;
-                return !((len < sizeof (T) * 2) || (len == sizeof(T) * 2 && str[fno] <= '7'));
+                return !((len < sizeof (T) * 2) || (len == sizeof(T) * 2 && str.str[fno] <= '7'));
             }
             case 'b':
             case 'B':
@@ -2465,8 +2479,8 @@ inline bool from_chars(csubstr buf, bool * C4_RESTRICT v) noexcept
     {
         if(((buf.str[0] == 't') && (0 == memcmp(buf.str + 1, "rue", 3)))
            ||
-           ((buf.str[0] == 'T') && ((0 == memcmp(buf.str + 1, "rue", 3) ||
-                                     0 == memcmp(buf.str + 1, "RUE", 3)))))
+           ((buf.str[0] == 'T') && (0 == memcmp(buf.str + 1, "rue", 3) ||
+                                    0 == memcmp(buf.str + 1, "RUE", 3))))
         {
             *v = true; return true;
         }
@@ -2475,8 +2489,8 @@ inline bool from_chars(csubstr buf, bool * C4_RESTRICT v) noexcept
     {
         if(((buf.str[0] == 'f') && (0 == memcmp(buf.str + 1, "alse", 4)))
            ||
-           ((buf.str[0] == 'F') && ((0 == memcmp(buf.str + 1, "alse", 4) ||
-                                     0 == memcmp(buf.str + 1, "ALSE", 4)))))
+           ((buf.str[0] == 'F') && (0 == memcmp(buf.str + 1, "alse", 4) ||
+                                    0 == memcmp(buf.str + 1, "ALSE", 4))))
         {
             *v = false; return true;
         }

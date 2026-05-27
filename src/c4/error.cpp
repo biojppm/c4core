@@ -76,7 +76,7 @@ void set_error_callback(error_callback_type cb)
 
 //-----------------------------------------------------------------------------
 
-void handle_error(srcloc where, const char *fmt, ...)
+void handle_error(srcloc where, const char *fmt, ...) // NOLINT
 {
     char buf[1024];
     size_t msglen = 0;
@@ -129,7 +129,7 @@ void handle_error(srcloc where, const char *fmt, ...)
 
 //-----------------------------------------------------------------------------
 
-void handle_warning(srcloc where, const char *fmt, ...)
+void handle_warning(srcloc where, const char *fmt, ...) // NOLINT
 {
     va_list args;
     char buf[1024];

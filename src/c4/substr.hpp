@@ -297,14 +297,14 @@ public:
      * @warning the input string need not be zero terminated, but the
      * length is taken as if the string was zero terminated */
     template<size_t N>
-    C4_ALWAYS_INLINE void assign(C (&s_)[N]) noexcept { str = (s_); len = (N-1); }
+    C4_ALWAYS_INLINE void assign(C (&s_)[N]) noexcept { str = s_; len = (N-1); }
     /** Assign from a pointer and length.
      * @warning the input string need not be zero terminated. */
     C4_ALWAYS_INLINE void assign(C *s_, size_t len_) noexcept { str = s_; len = len_; C4_ASSERT(str || !len_); }
     /** Assign from two pointers.
      * @warning the end pointer MUST BE larger than or equal to the begin pointer
      * @warning the input string need not be zero terminated. */
-    C4_ALWAYS_INLINE void assign(C *beg_, C *end_) noexcept { C4_ASSERT(end_ >= beg_); str = (beg_); len = static_cast<size_t>(end_ - beg_); }
+    C4_ALWAYS_INLINE void assign(C *beg_, C *end_) noexcept { C4_ASSERT(end_ >= beg_); str = beg_; len = static_cast<size_t>(end_ - beg_); }
     /** Assign from a C-string (zero-terminated string of type const C* or C*)
      * @warning the input string must be zero terminated.
      * @warning will call strlen()
@@ -326,7 +326,7 @@ public:
     /** Assign from an array.
      * @warning the input string need not be zero terminated. */
     template<size_t N>
-    C4_ALWAYS_INLINE basic_substring& operator= (C (&s_)[N]) noexcept { str = (s_); len = (N-1); return *this; }
+    C4_ALWAYS_INLINE basic_substring& operator= (C (&s_)[N]) noexcept { str = s_; len = (N-1); return *this; }
     /** Assign from a C-string (zero-terminated string of type const C* or C*)
      * @warning the input string MUST BE zero terminated.
      * @warning will call strlen()
@@ -885,7 +885,7 @@ public:
         }
         for(size_t i = 0; i < pattern.len; ++i)
         {
-            if(str[i] != pattern[i])
+            if(str[i] != pattern.str[i])
             {
                 return false;
             }
@@ -1003,7 +1003,7 @@ public:
         {
             for(size_t j = 0; j < chars.len; ++j)
             {
-                if(str[i] == chars[j])
+                if(str[i] == chars.str[j])
                     return i;
             }
         }
