@@ -24,9 +24,11 @@ template<class T> struct is_writeable_string;
 
 // mark std::span<const char> as a string type
 template<> struct is_string<std::span<const char>> : public std::true_type {};
+template<> struct is_string<const std::span<const char>> : public std::true_type {};
 
 // mark std::span<char> as a string type
 template<> struct is_string<std::span<char>> : public std::true_type {};
+template<> struct is_string<const std::span<char>> : public std::true_type {};
 template<> struct is_writeable_string<std::span<char>> : public std::true_type {};
 
 

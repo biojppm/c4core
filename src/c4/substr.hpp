@@ -19,15 +19,91 @@ C4_SUPPRESS_WARNING_GCC("-Wtype-limits") // disable warnings on size_t>=0, used 
 
 namespace c4 {
 
-/** @defgroup doc_substr Substring: read/write string views
- * @{ */
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 
 /** @cond dev */
 namespace detail {
+
+// implementation of is_string/is_writeable_string
+template<class T> struct is_string : public std::false_type {};
+template<class T> struct is_writeable_string : public std::false_type {};
+
+template<> struct is_string<char*> : public std::true_type {};
+template<> struct is_writeable_string<char*> : public std::true_type {};
+
+template<> struct is_string<const char*> : public std::true_type {};
+template<> struct is_writeable_string<const char*> : public std::false_type {};
+
+template<size_t N> struct is_string<const char[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<const char[N]> : public std::false_type {};
+
+template<size_t N> struct is_string<char[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<char[N]> : public std::true_type {};
+
+template<size_t N> struct is_string<const char (&)[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<const char (&)[N]> : public std::false_type {};
+
+template<size_t N> struct is_string<char (&)[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<char (&)[N]> : public std::true_type {};
+
+template<size_t N> struct is_string<const char (&&)[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<const char (&&)[N]> : public std::false_type {};
+
+template<size_t N> struct is_string<char (&&)[N]> : public std::true_type {};
+template<size_t N> struct is_writeable_string<char (&&)[N]> : public std::true_type {};
+
+
+// utility trait to remove restrict keyword
+template<class T> struct remove_restrict { using type = T; };
+template<class T> struct remove_restrict<T *C4_RESTRICT> { using type = T*; };
+template<class T> struct remove_restrict<T &C4_RESTRICT> { using type = T&; }; // clang<8 does not match this!!!
+// utility trait to remove references from pointer reference
+template<class T> struct remove_ptrref { using type = T; };
+template<class T> struct remove_ptrref<T*&> { using type = T*; };
+template<class T> struct remove_ptrref<T* const&> { using type = T* const; };
+template<class T> struct remove_ptrref<T* C4_RESTRICT &> { using type = T *C4_RESTRICT; };
+template<class T> struct remove_ptrref<T* C4_RESTRICT const&> { using type = T *C4_RESTRICT const; };
+// utility trait to remove const, but only from pointer types
+template<class T> struct remove_ptrconst { using type = T; };
+template<class T> struct remove_ptrconst<T *const> { using type = T*; };
+template<class T> struct remove_ptrconst<T *C4_RESTRICT const> { using type = T* C4_RESTRICT; };
+
+
+// clean a type of qualifiers for enabling
+// SFINAE on raw-pointer types irrespective of the qualifiers.
+template<class T>
+struct bare_pointer_type
+{
+    using type = typename remove_restrict<
+        typename remove_ptrconst<
+            typename remove_ptrref<
+                T>::type
+            >::type
+        >::type;
+};
+
+
+template<class FromPointerTypeBare, class ToValueType>
+struct _is_comp_char_ptr : std::integral_constant<
+    bool,
+    std::is_same<FromPointerTypeBare,
+                 typename std::remove_const<ToValueType>::type *>::value
+    ||
+    std::is_same<FromPointerTypeBare,
+                 ToValueType const*>::value> {};
+
+
+template<class FromPointerTypeBare, class ToValueType>
+struct _can_borrow_char_ptr : std::integral_constant<
+    bool,
+    _is_comp_char_ptr<FromPointerTypeBare, ToValueType>::value
+    &&
+    (
+        std::is_const<ToValueType>::value
+        ||
+        ! std::is_const<typename std::remove_pointer<FromPointerTypeBare>::type>::value
+    )> {};
+
+
 template<typename C>
 static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
 {
@@ -39,20 +115,86 @@ static inline void _do_reverse(C *C4_RESTRICT first, C *C4_RESTRICT last)
     }
 }
 } // namespace detail
-/** @endcond */
-
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-/** @cond dev */
 // utility macros to deuglify SFINAE code; undefined after the class.
 // https://stackoverflow.com/questions/43051882/how-to-disable-a-class-member-funrtion-for-certain-template-types
 #define C4_REQUIRE_RW(ret_type) \
     template <typename U=C> \
     typename std::enable_if< ! std::is_const<U>::value, ret_type>::type
 /** @endcond */
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** @defgroup string_traits String traits classes
+ * @{ */
+
+/** a traits class to mark a type as a string type, meaning @ref
+ * c4::to_csubstr() can be used directly instead of @ref
+ * c4::to_chars() when formatting the string. */
+template<class T> struct is_string
+    : public detail::is_string<
+        typename detail::bare_pointer_type<T>::type
+      > {};
+
+
+/** a traits class to mark a type as a writeable string type, meaning
+ * @ref c4::to_substr() can be used directly instead of @ref
+ * c4::from_chars() when reading the string. */
+template<class T> struct is_writeable_string
+    : public detail::is_writeable_string<
+        typename detail::bare_pointer_type<T>::type
+      > {};
+
+
+template<typename C> struct is_string<basic_substring<C>> : public std::true_type {};
+template<> struct is_string<const basic_substring<char>> : public std::true_type {};
+template<> struct is_string<const basic_substring<const char>> : public std::true_type {};
+template<> struct is_writeable_string<basic_substring<char>> : public std::true_type {};
+template<> struct is_writeable_string<const basic_substring<char>> : public std::true_type {};
+
+
+/* traits class to query whether a pointer-type stripped of qualifiers
+ * like volatile or C4_RESTRICT is one of char* or const char*,
+ * compatible with a destination value type (one of char or const
+ * char).
+ *
+ * This is used to enable SFINAE on char* and const char* overloads
+ * for use with substr/csubstr. FromPointerType is the SFINAE-d type,
+ * and ToValueType is the char or const char destination type. See
+ * @ref c4::basic_substring below for examples of usage. */
+template<class FromPointerType, class ToValueType>
+struct is_compatible_char_ptr
+    : detail::_is_comp_char_ptr<
+        typename detail::bare_pointer_type<FromPointerType>::type,
+        ToValueType> {};
+
+
+/* traits class to query whether a pointer-type stripped of qualifiers
+ * like volatile or C4_RESTRICT is one of char* or const char*,
+ * compatible with a destination value type (one of char or const
+ * char) and further can be used to initialize a substring.
+ *
+ * This is used to enable SFINAE on char* and const char* overloads
+ * for use with substr/csubstr. FromPointerType is the SFINAE-d type,
+ * and ToValueType is the char or const char destination type. See
+ * @ref c4::basic_substring below for examples of usage. */
+template<class FromPointerType, class ToValueType>
+struct can_borrow_char_ptr
+    : detail::_can_borrow_char_ptr<
+        typename detail::bare_pointer_type<FromPointerType>::type,
+        ToValueType> {};
+
+/** @} */
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+/** @defgroup doc_substr Substring: read/write string views
+ * @{ */
 
 
 /** a non-owning string-view, consisting of a character pointer
@@ -85,6 +227,7 @@ public:
     using ro_substr = basic_substring<CC>;
     using rw_substr = basic_substring<NCC_>;
 
+    using value_type = C;
     using char_type = C;
     using size_type = size_t;
 
@@ -93,9 +236,10 @@ public:
 
     enum : size_t { npos = (size_t)-1, NONE = (size_t)-1 };
 
-    /// convert automatically to substring of const C
+    /// convert automatically from substr (of C) to csubstr (of const C)
     template<class U=C>
-    C4_ALWAYS_INLINE operator typename std::enable_if<!std::is_const<U>::value, ro_substr const&>::type () const noexcept
+    C4_ALWAYS_INLINE operator
+    typename std::enable_if<!std::is_const<U>::value, ro_substr const&>::type () const noexcept
     {
         return *(ro_substr const*)this; // don't call the str+len ctor because it does a check
     }
@@ -144,8 +288,9 @@ public:
      * @note this overload uses SFINAE to prevent it from overriding the array ctor
      * @see For a more detailed explanation on why the plain overloads cannot
      * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
-    template<class U, typename std::enable_if<std::is_same<U, C*>::value || std::is_same<U, NCC_*>::value, int>::type=0>
-    C4_ALWAYS_INLINE basic_substring(U s_) noexcept : str(s_), len(s_ ? strlen(s_) : 0) {}
+    template<class CharPtr, typename std::enable_if<can_borrow_char_ptr<CharPtr, C>::value, int>::type=0>
+    C4_ALWAYS_INLINE basic_substring(CharPtr s_) noexcept : str(s_), len(s_ ? strlen(s_) : 0) {}
+
 
     /** Assign from an array.
      * @warning the input string need not be zero terminated, but the
@@ -162,11 +307,20 @@ public:
     /** Assign from a C-string (zero-terminated string of type const C* or C*)
      * @warning the input string must be zero terminated.
      * @warning will call strlen()
-     * @note this overload uses SFINAE to prevent it from overriding the array ctor
+     * @note this overload uses SFINAE to prevent it from overriding the array assignment
      * @see For a more detailed explanation on why the plain pointer overloads cannot
      * coexist with the array overloads, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
-    template<class U, typename std::enable_if<std::is_same<U, C*>::value || std::is_same<U, NCC_*>::value, int>::type=0>
-    C4_ALWAYS_INLINE void assign(U s_) noexcept { str = (s_); len = (s_ ? strlen(s_) : 0); }
+    template<class CharPtr, typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type=0>
+    C4_ALWAYS_INLINE void assign(CharPtr s_) noexcept
+    {
+        // the SFINAE is catching const types, so that on calls like
+        // s.assign(const char*) we can do a static_assert, and so
+        // the user will see an informative error message
+        static_assert(can_borrow_char_ptr<CharPtr, C>::value, "string pointer is not mutable");
+        str = s_;
+        len = (s_ ? strlen(s_) : 0);
+    }
+
 
     /** Assign from an array.
      * @warning the input string need not be zero terminated. */
@@ -175,11 +329,20 @@ public:
     /** Assign from a C-string (zero-terminated string of type const C* or C*)
      * @warning the input string MUST BE zero terminated.
      * @warning will call strlen()
-     * @note this overload uses SFINAE to prevent it from overriding the array ctor
+     * @note this overload uses SFINAE to prevent it from overriding the array assignment
      * @see For a more detailed explanation on why the plain pointer overloads cannot
      * coexist with the array overloads, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
-    template<class U, typename std::enable_if<std::is_same<U, C*>::value || std::is_same<U, NCC_*>::value, int>::type=0>
-    C4_ALWAYS_INLINE basic_substring& operator= (U s_) noexcept { str = s_; len = s_ ? strlen(s_) : 0; return *this; }
+    template<class CharPtr, typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type=0>
+    C4_ALWAYS_INLINE basic_substring& operator= (CharPtr s_) noexcept
+    {
+        // the SFINAE is catching const types, so that on calls like
+        // substr(const char*) we can do a static_assert, and so
+        // the user will see an informative error message
+        static_assert(can_borrow_char_ptr<CharPtr, C>::value, "string pointer is not mutable");
+        str = s_;
+        len = s_ ? strlen(s_) : 0;
+        return *this;
+    }
 
     /** @} */
 
@@ -260,7 +423,18 @@ public:
         #endif
     }
 
-    C4_ALWAYS_INLINE C4_PURE int compare(ro_substr const that) const noexcept { return this->compare(that.str, that.len); }
+    template<class CharPtr>
+    C4_ALWAYS_INLINE C4_PURE auto compare(CharPtr c_str) const noexcept
+        -> typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type
+    {
+        return compare(c_str, strlen(c_str));
+    }
+
+    template<class U>
+    C4_ALWAYS_INLINE C4_PURE int compare(basic_substring<U> const that) const noexcept
+    {
+        return this->compare(that.str, that.len);
+    }
 
     C4_ALWAYS_INLINE C4_PURE bool operator== (std::nullptr_t) const noexcept { return str == nullptr; }
     C4_ALWAYS_INLINE C4_PURE bool operator!= (std::nullptr_t) const noexcept { return str != nullptr; }
@@ -279,12 +453,19 @@ public:
     template<class U> C4_ALWAYS_INLINE C4_PURE bool operator<= (basic_substring<U> const that) const noexcept { return this->compare(that) <= 0; }
     template<class U> C4_ALWAYS_INLINE C4_PURE bool operator>= (basic_substring<U> const that) const noexcept { return this->compare(that) >= 0; }
 
-    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator== (const char (&that)[N]) const noexcept { return this->compare(that, N-1) == 0; }
-    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator!= (const char (&that)[N]) const noexcept { return this->compare(that, N-1) != 0; }
-    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator<  (const char (&that)[N]) const noexcept { return this->compare(that, N-1) <  0; }
-    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator>  (const char (&that)[N]) const noexcept { return this->compare(that, N-1) >  0; }
-    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator<= (const char (&that)[N]) const noexcept { return this->compare(that, N-1) <= 0; }
-    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator>= (const char (&that)[N]) const noexcept { return this->compare(that, N-1) >= 0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator== (const char (&arr)[N]) const noexcept { return this->compare(arr, N-1) == 0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator!= (const char (&arr)[N]) const noexcept { return this->compare(arr, N-1) != 0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator<  (const char (&arr)[N]) const noexcept { return this->compare(arr, N-1) <  0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator>  (const char (&arr)[N]) const noexcept { return this->compare(arr, N-1) >  0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator<= (const char (&arr)[N]) const noexcept { return this->compare(arr, N-1) <= 0; }
+    template<size_t N> C4_ALWAYS_INLINE C4_PURE bool operator>= (const char (&arr)[N]) const noexcept { return this->compare(arr, N-1) >= 0; }
+
+    template<class CharPtr> C4_ALWAYS_INLINE C4_PURE auto operator== (CharPtr c_str) const noexcept -> typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type{ return this->compare(c_str, strlen(c_str)) == 0; }
+    template<class CharPtr> C4_ALWAYS_INLINE C4_PURE auto operator!= (CharPtr c_str) const noexcept -> typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type{ return this->compare(c_str, strlen(c_str)) != 0; }
+    template<class CharPtr> C4_ALWAYS_INLINE C4_PURE auto operator<  (CharPtr c_str) const noexcept -> typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type{ return this->compare(c_str, strlen(c_str)) <  0; }
+    template<class CharPtr> C4_ALWAYS_INLINE C4_PURE auto operator>  (CharPtr c_str) const noexcept -> typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type{ return this->compare(c_str, strlen(c_str)) >  0; }
+    template<class CharPtr> C4_ALWAYS_INLINE C4_PURE auto operator<= (CharPtr c_str) const noexcept -> typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type{ return this->compare(c_str, strlen(c_str)) <= 0; }
+    template<class CharPtr> C4_ALWAYS_INLINE C4_PURE auto operator>= (CharPtr c_str) const noexcept -> typename std::enable_if<is_compatible_char_ptr<CharPtr, C>::value, int>::type{ return this->compare(c_str, strlen(c_str)) >= 0; }
 
     /** @} */
 
@@ -2071,7 +2252,7 @@ public:
 public:
 
     /** erase part of the string. eg, with char s[] = "0123456789",
-     * substr(s).erase(3, 2) = "01256789", and s is now "01245678989"
+     * substr(s).erase(3, 2) = "01256789", and s is now "0125678989"
      * @note this method requires that the string memory is writeable and is SFINAEd out for const C */
     C4_REQUIRE_RW(basic_substring) erase(size_t pos, size_t num)
     {
@@ -2192,9 +2373,10 @@ public:
 
 /** @defgroup doc_substr_adapters substr adapters
  *
- * to_substr() and to_csubstr() is used in generic code like
- * format(), and allow adding construction of substrings from new
- * types like containers.
+ * @ref c4::to_substr() and @ref c4::to_csubstr() are used in generic
+ * code like @ref c4::format(). They enable the user to provide an
+ * entry point for the construction of substrings from custom types
+ *
  * @{ */
 
 
@@ -2206,68 +2388,38 @@ C4_ALWAYS_INLINE csubstr to_csubstr(substr s) noexcept { return csubstr{s.str, s
 C4_ALWAYS_INLINE csubstr to_csubstr(csubstr s) noexcept { return s; }
 
 
+/** neutral version for use in generic code */
 template<size_t N> C4_ALWAYS_INLINE substr to_substr(char (&s)[N]) noexcept
 {
     return substr(s, N-1);
 }
+
 template<size_t N> C4_ALWAYS_INLINE csubstr to_csubstr(const char (&s)[N]) noexcept
 {
     return csubstr(s, N-1);
 }
 
 
-/** @note this overload uses SFINAE to prevent it from overriding the array overload
+/** Create a substring from a char*-like pointer
+ * @note this overload uses SFINAE to prevent it from overriding the array overload
  * @see For a more detailed explanation on why the plain overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
 template<class U> C4_ALWAYS_INLINE auto to_substr(U s) noexcept
-    -> typename std::enable_if<std::is_same<U, char*>::value, substr>::type
+    -> typename std::enable_if<is_compatible_char_ptr<U, char>::value, substr>::type
 {
     return substr(s);
 }
-/** @note this overload uses SFINAE to prevent it from overriding the array overload
+
+/** Create a substring from a const char*-like pointer
+ *
+ * @note this overload uses SFINAE to prevent it from overriding the array overload
  * @see For a more detailed explanation on why the plain overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
 template<class U> C4_ALWAYS_INLINE auto to_csubstr(U s) noexcept
-    -> typename std::enable_if<std::is_same<U, const char*>::value || std::is_same<U, char*>::value, csubstr>::type
+    -> typename std::enable_if<is_compatible_char_ptr<U, const char>::value, csubstr>::type
 {
     return csubstr(s);
 }
-
-
-/** a traits class to mark a type as a string type
- * (meaning @ref c4::to_csubstr() can be used directly). */
-template<class T> struct is_string : public std::false_type {};
-/** a traits class to mark a type as a writeable string type
- * (meaning @ref c4::to_substr() can be used directly). */
-template<class T> struct is_writeable_string : public std::false_type {};
-
-template<typename C> struct is_string<basic_substring<C>> : public std::true_type {};
-template<> struct is_writeable_string<basic_substring<char>> : public std::true_type {};
-template<> struct is_writeable_string<basic_substring<const char>> : public std::false_type {};
-
-template<> struct is_string<const char*> : public std::true_type {};
-template<> struct is_writeable_string<const char*> : public std::false_type {};
-
-template<> struct is_string<char*> : public std::true_type {};
-template<> struct is_writeable_string<char*> : public std::true_type {};
-
-template<size_t N> struct is_string<const char[N]> : public std::true_type {};
-template<size_t N> struct is_writeable_string<const char[N]> : public std::false_type {};
-
-template<size_t N> struct is_string<char[N]> : public std::true_type {};
-template<size_t N> struct is_writeable_string<char[N]> : public std::true_type {};
-
-template<size_t N> struct is_string<const char (&)[N]> : public std::true_type {};
-template<size_t N> struct is_writeable_string<const char (&)[N]> : public std::false_type {};
-
-template<size_t N> struct is_string<char (&)[N]> : public std::true_type {};
-template<size_t N> struct is_writeable_string<char (&)[N]> : public std::true_type {};
-
-template<size_t N> struct is_string<const char (&&)[N]> : public std::true_type {};
-template<size_t N> struct is_writeable_string<const char (&&)[N]> : public std::false_type {};
-
-template<size_t N> struct is_string<char (&&)[N]> : public std::true_type {};
-template<size_t N> struct is_writeable_string<char (&&)[N]> : public std::true_type {};
 
 /** @} */
 
@@ -2279,19 +2431,33 @@ template<size_t N> struct is_writeable_string<char (&&)[N]> : public std::true_t
 /** @defgroup doc_substr_cmp substr comparison operators
  * @{ */
 
-template<typename C, size_t N> inline bool operator== (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) == 0; }
-template<typename C, size_t N> inline bool operator!= (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) != 0; }
-template<typename C, size_t N> inline bool operator<  (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) >  0; }
-template<typename C, size_t N> inline bool operator>  (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) <  0; }
-template<typename C, size_t N> inline bool operator<= (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) >= 0; }
-template<typename C, size_t N> inline bool operator>= (const char (&s)[N], basic_substring<C> const that) noexcept { return that.compare(s, N-1) <= 0; }
-
+/** @name single character @{ */
 template<typename C> inline bool operator== (const char c, basic_substring<C> const that) noexcept { return that.compare(c) == 0; }
 template<typename C> inline bool operator!= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) != 0; }
 template<typename C> inline bool operator<  (const char c, basic_substring<C> const that) noexcept { return that.compare(c) >  0; }
 template<typename C> inline bool operator>  (const char c, basic_substring<C> const that) noexcept { return that.compare(c) <  0; }
 template<typename C> inline bool operator<= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) >= 0; }
 template<typename C> inline bool operator>= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) <= 0; }
+/** @} */
+
+/** @name character array/literal @{ */
+template<typename C, size_t N> inline bool operator== (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) == 0; }
+template<typename C, size_t N> inline bool operator!= (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) != 0; }
+template<typename C, size_t N> inline bool operator<  (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) >  0; }
+template<typename C, size_t N> inline bool operator>  (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) <  0; }
+template<typename C, size_t N> inline bool operator<= (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) >= 0; }
+template<typename C, size_t N> inline bool operator>= (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) <= 0; }
+/** @} */
+
+/** @name C string (character pointer, zero terminated)
+ * @{ */
+template<typename U, typename C> inline auto operator== (U c_str, basic_substring<C> const that) noexcept -> typename std::enable_if<is_compatible_char_ptr<U, C>::value, bool>::type { return that.compare(c_str, strlen(c_str)) == 0; }
+template<typename U, typename C> inline auto operator!= (U c_str, basic_substring<C> const that) noexcept -> typename std::enable_if<is_compatible_char_ptr<U, C>::value, bool>::type { return that.compare(c_str, strlen(c_str)) != 0; }
+template<typename U, typename C> inline auto operator<  (U c_str, basic_substring<C> const that) noexcept -> typename std::enable_if<is_compatible_char_ptr<U, C>::value, bool>::type { return that.compare(c_str, strlen(c_str)) >  0; }
+template<typename U, typename C> inline auto operator>  (U c_str, basic_substring<C> const that) noexcept -> typename std::enable_if<is_compatible_char_ptr<U, C>::value, bool>::type { return that.compare(c_str, strlen(c_str)) <  0; }
+template<typename U, typename C> inline auto operator<= (U c_str, basic_substring<C> const that) noexcept -> typename std::enable_if<is_compatible_char_ptr<U, C>::value, bool>::type { return that.compare(c_str, strlen(c_str)) >= 0; }
+template<typename U, typename C> inline auto operator>= (U c_str, basic_substring<C> const that) noexcept -> typename std::enable_if<is_compatible_char_ptr<U, C>::value, bool>::type { return that.compare(c_str, strlen(c_str)) <= 0; }
+/** @} */
 
 /** @} */
 
@@ -2304,14 +2470,8 @@ template<typename C> inline bool operator>= (const char c, basic_substring<C> co
  * template operator<<
  * @see https://github.com/onqtam/doctest/pull/431 */
 #ifndef C4_SUBSTR_NO_OSTREAM_LSHIFT
-#ifdef __clang__
-#   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wsign-conversion"
-#elif defined(__GNUC__)
-#   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
 
+C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wsign-conversion")
 /** output the string to a stream */
 template<class OStream, class C>
 inline OStream& operator<< (OStream& os, basic_substring<C> s)
@@ -2319,20 +2479,8 @@ inline OStream& operator<< (OStream& os, basic_substring<C> s)
     os.write(s.str, s.len);
     return os;
 }
+C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
-// this causes ambiguity
-///** this is used by google test */
-//template<class OStream, class C>
-//inline void PrintTo(basic_substring<C> s, OStream* os)
-//{
-//    os->write(s.str, s.len);
-//}
-
-#ifdef __clang__
-#   pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#   pragma GCC diagnostic pop
-#endif
 #endif // !C4_SUBSTR_NO_OSTREAM_LSHIFT
 
 /** @} */

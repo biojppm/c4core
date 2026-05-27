@@ -43,6 +43,12 @@ template<typename T, typename Alloc> class vector;
 
 namespace c4 {
 
+template<class T> struct is_string;
+template<class T> struct is_writeable_string;
+template<class Alloc> struct is_string<std::vector<char,Alloc>>;
+template<class Alloc> struct is_string<const std::vector<char,Alloc>>;
+template<class Alloc> struct is_writeable_string<std::vector<char,Alloc>>;
+
 template<class Alloc> c4::substr to_substr(std::vector<char, Alloc> &vec);
 template<class Alloc> c4::csubstr to_csubstr(std::vector<char, Alloc> const& vec);
 

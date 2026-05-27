@@ -33,6 +33,15 @@ C4_SUPPRESS_WARNING_MSVC_POP
 
 namespace c4 {
 
+// mark std::string as a string type
+template<class T> struct is_string;
+template<> struct is_string<std::string>;
+template<> struct is_string<const std::string>;
+
+// mark std::string as a writeable string type
+template<class T> struct is_writeable_string;
+template<> struct is_writeable_string<std::string>;
+
 c4::substr to_substr(std::string &s) noexcept;
 c4::csubstr to_csubstr(std::string const& s) noexcept;
 

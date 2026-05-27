@@ -21,6 +21,7 @@ namespace c4 {
 // mark std::string_view as a string type
 template<class T> struct is_string;
 template<> struct is_string<std::string_view> : public std::true_type {};
+template<> struct is_string<const std::string_view> : public std::true_type {};
 
 
 //-----------------------------------------------------------------------------

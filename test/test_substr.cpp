@@ -8,195 +8,497 @@
 #include "c4/libtest/supprwarn_push.hpp"
 #include <iostream>
 
+#if (defined(__clang__) && defined(__clang_major__) && __clang_major__ <= 7)
+#define CLANG_WORKAROUND_RESTRICT
+#endif
+
 namespace c4 {
 
-static_assert(c4::is_string<char[2]>::value, "dump directly");
-static_assert(c4::is_string<char(&)[2]>::value, "dump directly");
-static_assert(c4::is_string<char(&&)[2]>::value, "dump directly");
-static_assert(c4::is_string<const char[2]>::value, "dump directly");
-static_assert(c4::is_string<const char(&&)[2]>::value, "dump directly");
-static_assert(c4::is_string<substr>::value, "dump directly");
-static_assert(c4::is_string<csubstr>::value, "dump directly");
-static_assert(c4::is_string<std::string>::value, "dump directly");
+// we're using functions to force the compiler to print the actual
+// types. this is useful later on; see below
+template<class Actual, class Expected>
+constexpr bool test_same()
+{
+    static_assert(std::is_same<Actual, Expected>::value, "is_same");
+    return true;
+}
+
+static_assert(test_same<detail::remove_restrict<char*>::type, char*>(), "remove restrict");
+static_assert(test_same<detail::remove_restrict<char&>::type, char&>(), "remove restrict");
+static_assert(test_same<detail::remove_restrict<char* C4_RESTRICT>::type, char*>(), "remove restrict");
+#ifndef CLANG_WORKAROUND_RESTRICT
+static_assert(test_same<detail::remove_restrict<char& C4_RESTRICT>::type, char&>(), "remove restrict");
+#endif
 
 
-TEST_CASE("substr.empty_ctor")
+//-----------------------------------------------------------------------------
+
+template<class T, class Expected>
+constexpr bool test_remove_ptrref()
+{
+    using Actual = typename detail::remove_ptrref<T>::type;
+    static_assert(std::is_same<Actual, Expected>::value, "ptrref");
+    return true;
+}
+
+static_assert(test_remove_ptrref<char*&, char*>(), "ptrref");
+static_assert(test_remove_ptrref<char* const&, char *const>(), "ptrref");
+static_assert(test_remove_ptrref<char&, char&>(), "ptrref");
+static_assert(test_remove_ptrref<char*, char*>(), "ptrref");
+static_assert(test_remove_ptrref<char& C4_RESTRICT, char& C4_RESTRICT>(), "ptrref");
+static_assert(test_remove_ptrref<char* C4_RESTRICT, char* C4_RESTRICT>(), "ptrref");
+static_assert(test_remove_ptrref<char* C4_RESTRICT &, char* C4_RESTRICT>(), "ptrref");
+static_assert(test_remove_ptrref<char* C4_RESTRICT, char* C4_RESTRICT>(), "ptrref");
+static_assert(test_remove_ptrref<char* C4_RESTRICT &, char* C4_RESTRICT>(), "ptrref");
+
+
+//-----------------------------------------------------------------------------
+
+template<class T, class Expected>
+constexpr bool test_bare_pointer_type()
+{
+    using Actual = typename detail::bare_pointer_type<T>::type;
+    static_assert(std::is_same<Actual, Expected>::value, "bare type");
+    return true;
+}
+
+static_assert(test_bare_pointer_type<char*, char*>(), "bare type");
+static_assert(test_bare_pointer_type<char* C4_RESTRICT, char*>(), "bare type");
+static_assert(test_bare_pointer_type<char* C4_RESTRICT&, char*>(), "bare type");
+#ifndef CLANG_WORKAROUND_RESTRICT
+static_assert(test_bare_pointer_type<char& C4_RESTRICT, char&>(), "bare type");
+#endif
+
+static_assert(test_bare_pointer_type<char* const, char*>(), "bare type");
+static_assert(test_bare_pointer_type<char* const&, char*>(), "bare type");
+static_assert(test_bare_pointer_type<char* const C4_RESTRICT, char*>(), "bare type");
+
+static_assert(test_bare_pointer_type<const char*, const char*>(), "bare type");
+static_assert(test_bare_pointer_type<char const*, char const*>(), "bare type");
+static_assert(test_bare_pointer_type<char const* C4_RESTRICT, char const*>(), "bare type");
+#ifndef CLANG_WORKAROUND_RESTRICT
+static_assert(test_bare_pointer_type<char const& C4_RESTRICT, char const&>(), "bare type");
+#endif
+
+static_assert(test_bare_pointer_type<char const* const, char const*>(), "bare type");
+static_assert(test_bare_pointer_type<char const* C4_RESTRICT const, char const*>(), "bare type");
+
+static_assert(test_bare_pointer_type<char[2], char[2]>(), "bare type");
+static_assert(test_bare_pointer_type<const char[2], const char[2]>(), "bare type");
+
+
+//-----------------------------------------------------------------------------
+
+
+template<class Bare, class C1, class C2>
+constexpr bool test_one_of_() noexcept
+{
+    static_assert(std::is_same<Bare, C1>::value || std::is_same<Bare, C2>::value, "one of bare");
+    return true;
+}
+template<class Bare, class C1, class C2>
+constexpr bool test_not_one_of_() noexcept
+{
+    static_assert(!std::is_same<Bare, C1>::value && !std::is_same<Bare, C2>::value, "not one of bare");
+    return true;
+}
+
+template<class T, class C1, class C2>
+constexpr bool test_one_of() noexcept
+{
+    using Bare = typename detail::bare_pointer_type<T>::type;
+    static_assert(test_one_of_<Bare, C1, C2>(), "one of");
+    return true;
+}
+template<class T, class C1, class C2>
+constexpr bool test_not_one_of() noexcept
+{
+    using Bare = typename detail::bare_pointer_type<T>::type;
+    static_assert(test_not_one_of_<Bare, C1, C2>(), "not one of");
+    return true;
+}
+
+static_assert(test_one_of<char      *      , char*, char const*>(), "can_read");
+static_assert(test_one_of<char const*      , char*, char const*>(), "can_read");
+static_assert(test_one_of<char      * const, char*, char const*>(), "can_read");
+static_assert(test_one_of<char const* const, char*, char const*>(), "can_read");
+
+static_assert(test_not_one_of< substr, char*, char const*>(), "can_read");
+static_assert(test_not_one_of<csubstr, char*, char const*>(), "can_read");
+
+
+//-----------------------------------------------------------------------------
+
+template<class From, class To>
+constexpr bool test_can_read() noexcept
+{
+    static_assert(is_compatible_char_ptr<From, To>::value, "can read");
+    return true;
+}
+template<class From, class To>
+constexpr bool test_cannot_read() noexcept
+{
+    static_assert(!is_compatible_char_ptr<From, To>::value, "can read");
+    return true;
+}
+template<class From, class To>
+constexpr bool test_can_borrow() noexcept
+{
+    static_assert(can_borrow_char_ptr<From, To>::value, "can borrow");
+    return true;
+}
+template<class From, class To>
+constexpr bool test_cannot_borrow() noexcept
+{
+    static_assert(!can_borrow_char_ptr<From, To>::value, "can borrow");
+    return true;
+}
+
+static_assert(test_can_read<      char*,       char>(), "can_read");
+static_assert(test_can_read<const char*,       char>(), "can_read");
+static_assert(test_can_read<      char*, const char>(), "can_read");
+static_assert(test_can_read<const char*, const char>(), "can_read");
+
+static_assert(test_can_borrow   <      char*,       char>(), "can_borrow");
+static_assert(test_cannot_borrow<const char*,       char>(), "can_borrow");
+static_assert(test_can_borrow   <      char*, const char>(), "can_borrow");
+static_assert(test_can_borrow   <const char*, const char>(), "can_borrow");
+
+
+static_assert(test_cannot_read< substr,       char>(), "can_read");
+static_assert(test_cannot_read<csubstr,       char>(), "can_read");
+static_assert(test_cannot_read< substr, const char>(), "can_read");
+static_assert(test_cannot_read<csubstr, const char>(), "can_read");
+
+static_assert(test_cannot_borrow< substr,       char>(), "can_borrow");
+static_assert(test_cannot_borrow<csubstr,       char>(), "can_borrow");
+static_assert(test_cannot_borrow< substr, const char>(), "can_borrow");
+static_assert(test_cannot_borrow<csubstr, const char>(), "can_borrow");
+
+
+//-----------------------------------------------------------------------------
+
+#define STRTYPES_PTR_RW(macro)                    \
+    macro(char*)                                  \
+    macro(char* const)                            \
+    macro(char* C4_RESTRICT)                      \
+    macro(char* C4_RESTRICT const)
+
+#define STRTYPES_PTR_RO(macro)                      \
+    macro(const char*)                              \
+    macro(const char* const)                        \
+    macro(const char* C4_RESTRICT)                  \
+    macro(const char* C4_RESTRICT const)
+
+#ifndef CLANG_WORKAROUND_RESTRICT
+#define STRTYPES_ARR_RW(macro, N)               \
+    macro(char[N])                              \
+    macro(char(&)[N])                           \
+    macro(char(& C4_RESTRICT)[N])
+#define STRTYPES_ARR_RO(macro, N)                   \
+    macro(const char[N])                            \
+    macro(const char(&)[N])                         \
+    macro(const char(& C4_RESTRICT)[N])
+#else
+#define STRTYPES_ARR_RW(macro, N)               \
+    macro(char[N])                              \
+    macro(char(&)[N])
+#define STRTYPES_ARR_RO(macro, N)               \
+    macro(const char[N])                        \
+    macro(const char(&)[N])
+#endif
+
+#if C4_CPP >= 20
+#define STRTYPES_CLASSES_STD_RW(macro)          \
+    macro(std::span<char>)                      \
+    macro(const std::span<char>)                \
+    macro(std::string)
+#define STRTYPES_CLASSES_STD_RO(macro)          \
+    macro(std::span<const char>)                \
+    macro(const std::span<const char>)          \
+    macro(const std::string)                    \
+    macro(std::string_view)
+#elif C4_CPP >= 17
+#define STRTYPES_CLASSES_STD_RW(macro)          \
+    macro(std::string)
+#define STRTYPES_CLASSES_STD_RO(macro)          \
+    macro(const std::string)                    \
+    macro(std::string_view)                     \
+    macro(const std::string_view)
+#else
+#define STRTYPES_CLASSES_STD_RW(macro) \
+    macro(std::string)                 \
+    macro(std::vector<char>)
+#define STRTYPES_CLASSES_STD_RO(macro) \
+    macro(const std::string)           \
+    macro(const std::vector<char>)
+#endif
+
+#define STRTYPES_RW(macro)                      \
+    STRTYPES_PTR_RW(macro)                      \
+    STRTYPES_CLASSES_STD_RW(macro)              \
+    macro(substr)                               \
+    macro(const substr)
+
+#define STRTYPES_RO(macro)                      \
+    STRTYPES_PTR_RO(macro)                      \
+    STRTYPES_CLASSES_STD_RO(macro)              \
+    macro(csubstr)                              \
+    macro(const csubstr)
+
+
+template<class T>
+constexpr bool test_is_writeable_string()
+{
+    static_assert(c4::is_string<T>::value, "is_string");
+    static_assert(c4::is_writeable_string<T>::value, "is_writeable_string");
+    return true;
+}
+template<class T>
+constexpr bool test_is_readonly_string()
+{
+    static_assert(c4::is_string<T>::value, "is_string");
+    static_assert( ! c4::is_writeable_string<T>::value, "is_writeable_string");
+    return true;
+}
+#define test_is_writeable_string_(T) static_assert(test_is_writeable_string<T>(), "is_writeable_string");
+#define test_is_readonly_string_(T) static_assert(test_is_readonly_string<T>(), "is_readonly_string");
+
+STRTYPES_RW(test_is_writeable_string_)
+STRTYPES_RO(test_is_readonly_string_)
+STRTYPES_ARR_RW(test_is_writeable_string_, 2)
+STRTYPES_ARR_RO(test_is_readonly_string_, 2)
+
+
+//-----------------------------------------------------------------------------
+
+void test_substr_convert_to_substr(csubstr cs, substr s)
+{
+    CHECK_EQ(cs.len, s.len);
+    CHECK_EQ(cs.str, s.str);
+}
+
+void test_substr_convert_to_substr(substr s)
+{
+    CAPTURE(s);
+    {
+        INFO("ctor");
+        csubstr cs(s);
+        test_substr_convert_to_substr(cs, s);
+    }
+    {
+        INFO("copy ctor");
+        csubstr cs = s;
+        test_substr_convert_to_substr(cs, s);
+    }
+    {
+        INFO("copy assign");
+        csubstr cs;
+        cs = s;
+        test_substr_convert_to_substr(cs, s);
+    }
+    {
+        INFO("implicit");
+        test_substr_convert_to_substr(s, s);
+    }
+}
+
+TEST_CASE("substr.auto_conversion_to_csubstr")
+{
+    test_substr_convert_to_substr(nullptr);
+    char buf[] = "0123456789";
+    substr s = buf;
+    for(size_t i = 0; i < s.len; ++i)
+        test_substr_convert_to_substr(s.first(i));
+}
+
+
+TEST_CASE_TEMPLATE("to_substr.string", T, std::string)
 {
     {
-        substr s;
+        T empty;
+        CHECK_EQ(to_substr(empty), "");
+        CHECK_EQ(to_substr(empty).str, empty.data());
+        CHECK_EQ(to_substr(empty).len, empty.size());
+        CHECK_EQ(to_csubstr(empty), "");
+        CHECK_EQ(to_csubstr(empty).str, empty.data());
+        CHECK_EQ(to_csubstr(empty).len, empty.size());
+    }
+    {
+        T foo("foo");
+        CHECK_EQ(to_substr(foo), "foo");
+        CHECK_EQ(to_substr(foo).str, foo.data());
+        CHECK_EQ(to_substr(foo).len, foo.size());
+        CHECK_EQ(to_csubstr(foo), "foo");
+        CHECK_EQ(to_csubstr(foo).str, foo.data());
+        CHECK_EQ(to_csubstr(foo).len, foo.size());
+    }
+}
+
+#if C4_CPP >= 17
+TEST_CASE_TEMPLATE("to_substr.const_string_view", T, const std::string, std::string_view)
+#else
+TEST_CASE_TEMPLATE("to_substr.const_string_view", T, const std::string)
+#endif
+{
+    {
+        T empty;
+        CHECK_EQ(to_csubstr(empty), "");
+        CHECK_EQ(to_csubstr(empty).str, empty.data());
+        CHECK_EQ(to_csubstr(empty).len, empty.size());
+    }
+    {
+        T foo("foo");
+        CHECK_EQ(to_csubstr(foo), "foo");
+        CHECK_EQ(to_csubstr(foo).str, foo.data());
+        CHECK_EQ(to_csubstr(foo).len, foo.size());
+    }
+}
+
+#if C4_CPP >= 20
+TEST_CASE_TEMPLATE("to_substr.vecspan", T, std::vector<char>, std::span<char>)
+#else
+TEST_CASE_TEMPLATE("to_substr.vecspan", T, std::vector<char>)
+#endif
+{
+    {
+        T empty;
+        CHECK_EQ(to_substr(empty), "");
+        CHECK_EQ(to_substr(empty).str, empty.data());
+        CHECK_EQ(to_substr(empty).len, empty.size());
+        CHECK_EQ(to_csubstr(empty), "");
+        CHECK_EQ(to_csubstr(empty).str, empty.data());
+        CHECK_EQ(to_csubstr(empty).len, empty.size());
+    }
+    {
+        typename T::value_type values[] =  {'f', 'o', 'o'};
+        T foo(std::begin(values), std::end(values));
+        CHECK_EQ(to_substr(foo), "foo");
+        CHECK_EQ(to_substr(foo).str, foo.data());
+        CHECK_EQ(to_substr(foo).len, foo.size());
+        CHECK_EQ(to_csubstr(foo), "foo");
+        CHECK_EQ(to_csubstr(foo).str, foo.data());
+        CHECK_EQ(to_csubstr(foo).len, foo.size());
+    }
+}
+
+#if C4_CPP >= 20
+TEST_CASE_TEMPLATE("to_substr.vecspan", T, const std::vector<char>, std::span<const char>)
+#else
+TEST_CASE_TEMPLATE("to_substr.vecspan", T, const std::vector<char>)
+#endif
+{
+    {
+        T empty;
+        CHECK_EQ(to_csubstr(empty), "");
+        CHECK_EQ(to_csubstr(empty).str, empty.data());
+        CHECK_EQ(to_csubstr(empty).len, empty.size());
+    }
+    {
+        typename T::value_type values[] =  {'f', 'o', 'o'};
+        T foo(std::begin(values), std::end(values));
+        CHECK_EQ(to_csubstr(foo), "foo");
+        CHECK_EQ(to_csubstr(foo).str, foo.data());
+        CHECK_EQ(to_csubstr(foo).len, foo.size());
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+
+TEST_CASE_TEMPLATE("substr.empty_ctor", T, substr, csubstr)
+{
+    {
+        T s;
         CHECK_EQ(s.str, nullptr);
         CHECK_EQ(s.len, 0u);
     }
     {
-        csubstr s;
-        CHECK_EQ(s.str, nullptr);
-        CHECK_EQ(s.len, 0u);
-    }
-    {
-        substr s = {};
-        CHECK_EQ(s.str, nullptr);
-        CHECK_EQ(s.len, 0u);
-    }
-    {
-        csubstr s = {};
+        T s = {};
         CHECK_EQ(s.str, nullptr);
         CHECK_EQ(s.len, 0u);
     }
 }
 
-TEST_CASE("substr.ctor_from_char_arr")
+
+template<class PtrType>
+void test_substr_from_ptr(PtrType ptr1, PtrType ptr2, csubstr expected1, csubstr expected2)
 {
-    SUBCASE("substr from char")
-    {
-        char buf1[] = "01";
-        char buf2[] = "012";
-        substr s(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = buf2;
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        s.assign(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = to_substr(buf2);
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        //s = to_csubstr(buf1); // deliberate compile error
-        //CHECK_EQ(s, "01");
-        //CHECK_EQ(s.str, buf1);
-        //CHECK_EQ(s.len, strlen(buf1));
-    }
-    SUBCASE("csubstr from char")
-    {
-        char buf1[] = "01";
-        char buf2[] = "012";
-        csubstr s(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = buf2;
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        s.assign(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = to_substr(buf2);
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        s = to_csubstr(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-    }
-    SUBCASE("csubstr from const char")
-    {
-        const char buf1[] = "01";
-        const char buf2[] = "012";
-        csubstr s(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = buf2;
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        s.assign(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        // s = to_substr(buf2); // deliberate compile error
-        s = to_csubstr(buf2);
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-    }
+    substr s(ptr1);
+    CHECK_EQ(s, expected1);
+    CHECK_EQ(s.str, ptr1);
+    CHECK_EQ(s.len, expected1.len);
+    s = ptr2;
+    CHECK_EQ(s, expected2);
+    CHECK_EQ(s.str, ptr2);
+    CHECK_EQ(s.len, expected2.len);
+    s.assign(ptr1);
+    CHECK_EQ(s, expected1);
+    CHECK_EQ(s.str, ptr1);
+    CHECK_EQ(s.len, expected1.len);
+    s = to_substr(ptr2);
+    CHECK_EQ(s, expected2);
+    CHECK_EQ(s.str, ptr2);
+    CHECK_EQ(s.len, expected2.len);
+}
+template<class PtrType>
+void test_csubstr_from_ptr(PtrType ptr1, PtrType ptr2, csubstr expected1, csubstr expected2)
+{
+    csubstr s(ptr1);
+    CHECK_EQ(s, expected1);
+    CHECK_EQ(s.str, ptr1);
+    CHECK_EQ(s.len, expected1.len);
+    s = ptr2;
+    CHECK_EQ(s, expected2);
+    CHECK_EQ(s.str, ptr2);
+    CHECK_EQ(s.len, expected2.len);
+    s.assign(ptr1);
+    CHECK_EQ(s, expected1);
+    CHECK_EQ(s.str, ptr1);
+    CHECK_EQ(s.len, expected1.len);
+    s = to_csubstr(ptr2);
+    CHECK_EQ(s, expected2);
+    CHECK_EQ(s.str, ptr2);
+    CHECK_EQ(s.len, expected2.len);
 }
 
-TEST_CASE("substr.ctor_from_char_ptr")
+template<class PtrType>
+void test_substr_from_ptr()
 {
-    {
-        char buf1_[] = "01";
-        char buf2_[] = "012";
-        char *buf1 = buf1_;
-        char *buf2 = buf2_;
-        substr s(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = buf2;
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        s.assign(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = to_substr(buf2);
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        //s = to_csubstr(buf1);  // deliberate compile error
-        //CHECK_EQ(s, "01");
-        //CHECK_EQ(s.str, buf1);
-        //CHECK_EQ(s.len, strlen(buf1));
-    }
-    {
-        char buf1_[] = "01";
-        char buf2_[] = "012";
-        char *buf1 = buf1_;
-        char *buf2 = buf2_;
-        csubstr s(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = buf2;
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        s.assign(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = to_substr(buf2);
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        s = to_csubstr(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-    }
-    {
-        const char buf1_[] = "01";
-        const char buf2_[] = "012";
-        const char *buf1 = buf1_;
-        const char *buf2 = buf2_;
-        csubstr s(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        s = buf2;
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-        s.assign(buf1);
-        CHECK_EQ(s, "01");
-        CHECK_EQ(s.str, buf1);
-        CHECK_EQ(s.len, strlen(buf1));
-        //s = to_substr(buf2);  // deliberate compile error
-        s = to_csubstr(buf2);
-        CHECK_EQ(s, "012");
-        CHECK_EQ(s.str, buf2);
-        CHECK_EQ(s.len, strlen(buf2));
-    }
+    char buf1[] = "012";
+    char buf2[] = "345";
+    test_substr_from_ptr<PtrType>(buf1, buf2, "012", "345");
+}
+
+template<class PtrType>
+void test_csubstr_from_ptr()
+{
+    char buf1[] = "012";
+    char buf2[] = "345";
+    test_csubstr_from_ptr<PtrType>(buf1, buf2, "012", "345");
+}
+
+#define trivial(...) __VA_ARGS__,
+
+TEST_CASE_TEMPLATE("substr.from_char_ptr",
+                   PtrType,
+                   STRTYPES_PTR_RW(trivial)
+                   STRTYPES_ARR_RW(trivial, 4)
+                   char*)
+{
+    test_substr_from_ptr<PtrType>();
+    test_csubstr_from_ptr<PtrType>();
+}
+
+TEST_CASE_TEMPLATE("csubstr.from_char_ptr",
+                   PtrType,
+                   STRTYPES_PTR_RW(trivial)
+                   STRTYPES_ARR_RW(trivial, 4)
+                   STRTYPES_PTR_RO(trivial)
+                   STRTYPES_ARR_RO(trivial, 4)
+                   char*)
+{
+    test_csubstr_from_ptr<PtrType>();
 }
 
 TEST_CASE("substr.ctor_from_two_ptrs")
@@ -1461,6 +1763,116 @@ TEST_CASE_TEMPLATE("substr.eqne", SS, csubstr, substr)
     CHECK_NE("012345", cmp);
     CHECK_NE(cmp, "012345");
 }
+
+template<class Substr, class Type>
+void test_cmp(Substr subject,
+              Type eq, Type ne,
+              Type lt, Type gt)
+{
+    CHECK_EQ(subject, eq);
+    CHECK_EQ(eq, subject);
+
+    CHECK_NE(subject, ne);
+    CHECK_NE(ne, subject);
+
+    CHECK_LE(eq, subject);
+    CHECK_LT(lt, subject);
+    CHECK_GE(subject, lt);
+    CHECK_GE(subject, eq);
+
+    CHECK_GE(eq, subject);
+    CHECK_GT(gt, subject);
+    CHECK_LE(subject, gt);
+    CHECK_LE(subject, eq);
+}
+
+TEST_CASE_TEMPLATE("substr.cmp_char", T, char, const char)
+{
+    char buf[] = "d";
+    test_cmp<substr, T>(buf,
+                        /*eq*/'d', /*ne*/'a',
+                        /*lt*/'a', /*gt*/'e');
+}
+TEST_CASE_TEMPLATE("csubstr.cmp_char", T, char, const char)
+{
+    const char buf[] = "d";
+    test_cmp<csubstr, T>(buf,
+                        /*eq*/'d', /*ne*/'a',
+                        /*lt*/'a', /*gt*/'e');
+}
+
+TEST_CASE_TEMPLATE("substr.cmp",
+                   T,
+                   STRTYPES_PTR_RW(trivial)
+                   STRTYPES_ARR_RW(trivial, 4)
+                   std::string)
+{
+    char buf[] = "bcd";
+    char eq[] = "bcd";
+    char ne[] = "xxx";
+    char lt[] = "abc";
+    char gt[] = "cde";
+    test_cmp<substr, T>(buf, eq, ne, lt, gt);
+}
+
+#if C4_CPP >= 17
+#define string_view_types  std::string_view, const std::string_view,
+#else
+#define string_view_types
+#endif
+
+TEST_CASE_TEMPLATE("csubstr.cmp",
+                   T,
+                   STRTYPES_PTR_RW(trivial)
+                   STRTYPES_ARR_RW(trivial, 4)
+                   STRTYPES_PTR_RO(trivial)
+                   STRTYPES_ARR_RO(trivial, 4)
+                   std::string,
+                   const std::string,
+                   string_view_types
+                   char*
+                   )
+{
+    char buf[] = "bcd";
+    char eq[] = "bcd";
+    char ne[] = "xxx";
+    char lt[] = "abc";
+    char gt[] = "cde";
+    test_cmp<csubstr, T>(buf, eq, ne, lt, gt);
+}
+
+#if C4_CPP >= 20
+TEST_CASE_TEMPLATE("substr.cmp_span",
+                   T,
+                   std::span<char>,
+                   const std::span<char>
+    )
+{
+    char buf[] = "bcd";
+    char eq[3] = {'b','c','d'};
+    char ne[3] = {'x','x','x'};
+    char lt[3] = {'a','b','c'};
+    char gt[3] = {'c','d','e'};
+    test_cmp<substr, T>(buf, eq, ne, lt, gt);
+}
+TEST_CASE_TEMPLATE("csubstr.cmp_span",
+                   T,
+                   std::span<char>,
+                   const std::span<char>,
+                   std::span<const char>,
+                   const std::span<const char>
+                   )
+{
+    char buf[] = "bcd";
+    char eq[3] = {'b','c','d'};
+    char ne[3] = {'x','x','x'};
+    char lt[3] = {'a','b','c'};
+    char gt[3] = {'c','d','e'};
+    test_cmp<csubstr, T>(buf, eq, ne, lt, gt);
+}
+#endif
+
+//-----------------------------------------------------------------------------
 
 TEST_CASE("substr.substr2csubstr")
 {
