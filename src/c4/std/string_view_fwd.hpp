@@ -22,7 +22,6 @@
 namespace c4 {
 
 template<class T> struct is_string;
-template<class T> struct is_writeable_string;
 
 // mark std::string_view as a string type
 template<> struct is_string<std::string_view>;

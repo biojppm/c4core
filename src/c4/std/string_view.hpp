@@ -4,13 +4,17 @@
 /** @file string_view.hpp */
 
 #ifndef C4CORE_SINGLE_HEADER
+#ifndef _C4_LANGUAGE_HPP_
 #include "c4/language.hpp"
+#endif
 #endif
 
 #if (C4_CPP >= 17 && defined(__cpp_lib_string_view)) || defined(__DOXYGEN__)
 
 #ifndef C4CORE_SINGLE_HEADER
+#ifndef _C4_SUBSTR_HPP_
 #include "c4/substr.hpp"
+#endif
 #endif
 
 #include <string_view>

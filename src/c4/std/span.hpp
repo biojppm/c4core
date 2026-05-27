@@ -30,6 +30,7 @@ template<> struct is_string<const std::span<const char>> : public std::true_type
 template<> struct is_string<std::span<char>> : public std::true_type {};
 template<> struct is_string<const std::span<char>> : public std::true_type {};
 template<> struct is_writeable_string<std::span<char>> : public std::true_type {};
+template<> struct is_writeable_string<const std::span<char>> : public std::true_type {};
 
 
 //-----------------------------------------------------------------------------

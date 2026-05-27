@@ -1,7 +1,9 @@
 #ifndef _C4_STD_SPAN_FWD_HPP_
 #define _C4_STD_SPAN_FWD_HPP_
 
-/** @file span_fwd.hpp */
+/** @file span_fwd.hpp Provides forward declaration of std::span
+ * to enable order-independent includes for use with ref @ref
+ * c4::to_chars() and @ref c4::from_chars(). */
 
 #ifndef C4CORE_SINGLE_HEADER
 #include "c4/language.hpp"
@@ -23,14 +25,14 @@ template<class T> struct is_string;
 template<class T> struct is_writeable_string;
 
 // mark std::span<const char> as a string type
-template<> struct is_string<std::span<const char>> : public std::true_type {};
-template<> struct is_string<const std::span<const char>> : public std::true_type {};
+template<> struct is_string<std::span<const char>>;
+template<> struct is_string<const std::span<const char>>;
 
 // mark std::span<char> as a string type
-template<> struct is_string<std::span<char>> : public std::true_type {};
-template<> struct is_string<const std::span<char>> : public std::true_type {};
-template<> struct is_writeable_string<std::span<char>> : public std::true_type {};
-template<> struct is_writeable_string<const std::span<char>> : public std::true_type {};
+template<> struct is_string<std::span<char>>;
+template<> struct is_string<const std::span<char>>;
+template<> struct is_writeable_string<std::span<char>>;
+template<> struct is_writeable_string<const std::span<char>>;
 
 
 //-----------------------------------------------------------------------------

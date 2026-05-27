@@ -1,7 +1,9 @@
 #ifndef _C4_STD_STRING_FWD_HPP_
 #define _C4_STD_STRING_FWD_HPP_
 
-/** @file string_fwd.hpp */
+/** @file string_fwd.hpp Provides forward declaration of std::string
+ * to enable order-independent includes for use with ref @ref
+ * c4::to_chars() and @ref c4::from_chars(). */
 
 #ifndef DOXYGEN
 

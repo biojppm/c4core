@@ -1,4 +1,5 @@
 #ifndef C4CORE_SINGLE_HEADER
+#include "c4/std/std_fwd.hpp" // include this to test compatibility of fwd and actual headers
 #include "c4/std/std.hpp"
 #include "c4/substr.hpp"
 #endif

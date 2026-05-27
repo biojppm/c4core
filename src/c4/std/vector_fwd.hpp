@@ -1,7 +1,9 @@
 #ifndef _C4_STD_VECTOR_FWD_HPP_
 #define _C4_STD_VECTOR_FWD_HPP_
 
-/** @file vector_fwd.hpp */
+/** @file vector_fwd.hpp Provides forward declaration of std::vector
+ * to enable order-independent includes for use with ref
+ * @ref c4::to_chars() and @ref c4::from_chars(). */
 
 #include <cstddef>
 

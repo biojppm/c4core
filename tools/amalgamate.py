@@ -92,6 +92,7 @@ INSTRUCTIONS:
         am.onlyif(with_stl, "src/c4/std/vector_fwd.hpp"),
         am.onlyif(with_stl, "src/c4/std/span_fwd.hpp"),
         am.onlyif(with_stl, "src/c4/std/string_fwd.hpp"),
+        am.onlyif(with_stl, "src/c4/std/string_view_fwd.hpp"),
         am.onlyif(with_stl, "src/c4/std/std_fwd.hpp"),
         am.injcode(required_charconv_include),
         "src/c4/charconv.hpp",
@@ -103,6 +104,7 @@ INSTRUCTIONS:
         "src/c4/span.hpp",
         "src/c4/type_name.hpp",
         "src/c4/base64.hpp",
+        am.onlyif(with_stl, am.ignfile("src/c4/std/std.hpp")), # this is an umbrella include
         am.onlyif(with_stl, "src/c4/std/span.hpp"),
         am.onlyif(with_stl, "src/c4/std/string.hpp"),
         am.onlyif(with_stl, "src/c4/std/string_view.hpp"),
