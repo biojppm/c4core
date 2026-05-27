@@ -58,3 +58,26 @@ c4core_test(format           test_format.cpp)
 c4core_test(dump             test_dump.cpp)
 c4core_test(base64           test_base64.cpp)
 c4core_test(std              test_std.cpp)
+
+
+#----------------------------------------------------------
+
+function(c4core_test_failbuild subject name code)
+    set(target c4core-test-${subject}-failbuild-${name})
+    set(test ${target})
+    set(filename "${CMAKE_CURRENT_BINARY_DIR}/${name}.cpp")
+    file(WRITE "${filename}" "${code}")
+    c4_add_executable(${target}
+        SOURCES ${filename}
+        LIBS c4core
+        FOLDER test)
+    set_target_properties(${target} PROPERTIES
+        EXCLUDE_FROM_ALL TRUE
+        EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+    add_test(NAME ${test}
+        COMMAND ${CMAKE_COMMAND} --build . --target ${target} --config $<CONFIGURATION>
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    set_tests_properties(${test} PROPERTIES WILL_FAIL TRUE)
+endfunction()
+
+include(test_substr.cmake)

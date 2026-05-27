@@ -103,7 +103,7 @@ jobs:
 
   #----------------------------------------------------------------------------
   vsclang:
-    :: setup-job('windows' 'clang')
+    :: setup-job('windows' 'vsclang')
     name: vsclang/c++${{matrix.std}}/${{matrix.bt}}
     runs-on: windows-${{matrix.os}}
     strategy:
