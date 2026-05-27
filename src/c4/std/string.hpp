@@ -14,6 +14,7 @@ namespace c4 {
 // mark std::string as a string type
 template<class T> struct is_string;
 template<> struct is_string<std::string> : public std::true_type {};
+template<> struct is_string<const std::string> : public std::true_type {};
 
 // mark std::string as a writeable string type
 template<class T> struct is_writeable_string;
@@ -33,7 +34,7 @@ C4_ALWAYS_INLINE c4::substr to_substr(std::string &s) noexcept
     #error this function will have undefined behavior
     #endif
     // since c++11 it is legal to call s[s.size()].
-    return c4::substr(&s[0], s.size()); // NOLINT(readability-container-data-pointer)
+    return c4::substr(&s[0], s.size()); // NOLINT
 }
 
 /** get a readonly view to an existing std::string.
@@ -47,7 +48,7 @@ C4_ALWAYS_INLINE c4::csubstr to_csubstr(std::string const& s) noexcept
     #error this function will have undefined behavior
     #endif
     // since c++11 it is legal to call s[s.size()].
-    return c4::csubstr(&s[0], s.size()); // NOLINT(readability-container-data-pointer)
+    return c4::csubstr(&s[0], s.size()); // NOLINT
 }
 
 //-----------------------------------------------------------------------------

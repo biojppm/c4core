@@ -69,6 +69,7 @@ Checks:
   - -misc-no-recursion # function 'reserve' is within a recursive call chain
   - -misc-non-private-member-variables-in-classes # member variable 'data' has public visibility
   - -modernize-avoid-c-arrays # allow C arrays
+  - -modernize-avoid-c-style-cast
   - -modernize-concat-nested-namespaces # nested namespaces can be concatenated
   - -modernize-deprecated-headers # inclusion of deprecated C++ header 'stdlib.h'; consider using 'cstdlib' instead
   - -modernize-deprecated-headers # inclusion of deprecated C++ header 'stdlib.h'; consider using 'cstdlib' instead
@@ -91,6 +92,7 @@ Checks:
   - -readability-identifier-length # variable name 'c' is too short, expected at least 3 characters
   - -readability-implicit-bool-conversion # implicit conversion 'NodeData *' -> 'bool'
   - -readability-inconsistent-declaration-parameter-name # definition with different parameter names
+  - -readability-inconsistent-ifelse-braces
   - -readability-isolate-declaration # multiple declarations in a single statement reduces readability
   - -readability-magic-numbers # 16 is a magic number; consider replacing it with a named constant
   - -readability-math-missing-parentheses # 

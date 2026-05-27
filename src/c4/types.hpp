@@ -40,7 +40,7 @@ using u64 = uint64_t;
 using f32 =  float;
 using f64 = double;
 
-using ssize_t = typename std::make_signed<size_t>::type;
+using ssize_t = typename std::make_signed<size_t>::type; // NOLINT
 
 /** @} */
 

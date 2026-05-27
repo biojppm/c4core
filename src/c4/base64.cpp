@@ -144,7 +144,7 @@ size_t base64_encode(substr buf, cblob data)
     }
     else if(rem == 1)
     {
-        const uint32_t val = ((uint32_t(d[0]) << 16));
+        const uint32_t val = (uint32_t(d[0]) << 16);
         c4append_idx_((val >> 18) & sextet_mask);
         c4append_idx_((val >> 12) & sextet_mask);
         c4append_('=');
