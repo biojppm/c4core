@@ -2,6 +2,7 @@
 
 #ifndef C4CORE_SINGLE_HEADER
 #include "c4/type_name.hpp"
+#include "c4/substr.hpp"
 #endif
 
 class  SomeTypeName {};
@@ -12,38 +13,47 @@ namespace c4 {
 class  SomeTypeNameInsideANamespace {};
 struct SomeStructNameInsideANamespace {};
 
-template<size_t N>
-cspan<char> cstr(const char (&s)[N])
+template<class T>
+void test_type_name(csubstr expected)
 {
-    cspan<char> o(s, N-1);
-    return o;
+    {
+        TypeNameStr result = type_name<T>();
+        csubstr actual{result.str, result.len};
+        CHECK_EQ(actual, expected);
+    }
+    {
+        T val{};
+        TypeNameStr result = type_name(val);
+        csubstr actual{result.str, result.len};
+        CHECK_EQ(actual, expected);
+    }
 }
 
 TEST_CASE("type_name.intrinsic_types")
 {
-    CHECK_EQ(type_name<int>(), cstr("int"));
-    CHECK_EQ(type_name<float>(), cstr("float"));
-    CHECK_EQ(type_name<double>(), cstr("double"));
+    test_type_name<int>("int");
+    test_type_name<float>("float");
+    test_type_name<double>("double");
 }
 TEST_CASE("type_name.classes")
 {
-    CHECK_EQ(type_name<SomeTypeName>(), cstr("SomeTypeName"));
-    CHECK_EQ(type_name<::SomeTypeName>(), cstr("SomeTypeName"));
+    test_type_name<SomeTypeName>("SomeTypeName");
+    test_type_name<::SomeTypeName>("SomeTypeName");
 }
 TEST_CASE("type_name.structs")
 {
-    CHECK_EQ(type_name<SomeStructName>(), cstr("SomeStructName"));
-    CHECK_EQ(type_name<::SomeStructName>(), cstr("SomeStructName"));
+    test_type_name<SomeStructName>("SomeStructName");
+    test_type_name<::SomeStructName>("SomeStructName");
 }
 TEST_CASE("type_name.inside_namespace")
 {
-    CHECK_EQ(type_name<SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
-    CHECK_EQ(type_name<c4::SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
-    CHECK_EQ(type_name<::c4::SomeTypeNameInsideANamespace>(), cstr("c4::SomeTypeNameInsideANamespace"));
+    test_type_name<SomeTypeNameInsideANamespace>("c4::SomeTypeNameInsideANamespace");
+    test_type_name<c4::SomeTypeNameInsideANamespace>("c4::SomeTypeNameInsideANamespace");
+    test_type_name<::c4::SomeTypeNameInsideANamespace>("c4::SomeTypeNameInsideANamespace");
 
-    CHECK_EQ(type_name<SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
-    CHECK_EQ(type_name<c4::SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
-    CHECK_EQ(type_name<::c4::SomeStructNameInsideANamespace>(), cstr("c4::SomeStructNameInsideANamespace"));
+    test_type_name<SomeStructNameInsideANamespace>("c4::SomeStructNameInsideANamespace");
+    test_type_name<c4::SomeStructNameInsideANamespace>("c4::SomeStructNameInsideANamespace");
+    test_type_name<::c4::SomeStructNameInsideANamespace>("c4::SomeStructNameInsideANamespace");
 }
 
 } // namespace c4
