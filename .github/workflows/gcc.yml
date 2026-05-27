@@ -30,25 +30,25 @@ jobs:
       matrix:
         include:
         - std: 11
-          cxx: g++-14
+          cxx: g++-16
           bt: Debug
           bitlinks: shared64 static32
-          img: 22.04
+          img: 24.04
         - std: 11
-          cxx: g++-14
+          cxx: g++-16
           bt: Release
           bitlinks: shared64 static32
-          img: 22.04
-        - std: 20
-          cxx: g++-14
+          img: 24.04
+        - std: 23
+          cxx: g++-16
           bt: Debug
           bitlinks: shared64 static32
-          img: 22.04
-        - std: 20
-          cxx: g++-14
+          img: 24.04
+        - std: 23
+          cxx: g++-16
           bt: Release
           bitlinks: shared64 static32
-          img: 22.04
+          img: 24.04
         - std: 11
           cxx: g++-5
           bt: Debug
@@ -184,15 +184,15 @@ jobs:
           bitlinks: shared64 static32
           img: 18.04
         - std: 20
-          cxx: g++-14
+          cxx: g++-16
           bt: Debug
           bitlinks: shared64 static32
-          img: 22.04
+          img: 24.04
         - std: 20
-          cxx: g++-14
+          cxx: g++-16
           bt: Release
           bitlinks: shared64 static32
-          img: 22.04
+          img: 24.04
     env:
       STD: ${{matrix.std}}
       CXX_: ${{matrix.cxx}}
@@ -298,45 +298,75 @@ jobs:
       matrix:
         include:
         - std: 11
-          cxx: 14
+          cxx: 16
           bits: 64
           vg: 'ON'
-          img: 22.04
+          img: 24.04
         - std: 11
-          cxx: 14
+          cxx: 16
           bits: 32
           vg: 'ON'
-          img: 22.04
+          img: 24.04
         - std: 14
-          cxx: 14
+          cxx: 16
           bits: 64
           vg: 'ON'
-          img: 22.04
+          img: 24.04
         - std: 14
-          cxx: 14
+          cxx: 16
           bits: 32
           vg: 'ON'
-          img: 22.04
+          img: 24.04
         - std: 17
-          cxx: 14
+          cxx: 16
           bits: 64
           vg: 'ON'
-          img: 22.04
+          img: 24.04
         - std: 17
-          cxx: 14
+          cxx: 16
           bits: 32
           vg: 'ON'
-          img: 22.04
+          img: 24.04
         - std: 20
-          cxx: 14
+          cxx: 16
           bits: 64
           vg: 'ON'
-          img: 22.04
+          img: 24.04
         - std: 20
-          cxx: 14
+          cxx: 16
           bits: 32
           vg: 'ON'
-          img: 22.04
+          img: 24.04
+        - std: 23
+          cxx: 16
+          bits: 64
+          vg: 'ON'
+          img: 24.04
+        - std: 23
+          cxx: 16
+          bits: 32
+          vg: 'ON'
+          img: 24.04
+        - std: 11
+          cxx: 15
+          bits: 64
+          vg: 'OFF'
+          img: 24.04
+        - std: 11
+          cxx: 15
+          bits: 32
+          vg: 'OFF'
+          img: 24.04
+        - std: 11
+          cxx: 14
+          bits: 64
+          vg: 'OFF'
+          img: 24.04
+        - std: 11
+          cxx: 14
+          bits: 32
+          vg: 'OFF'
+          img: 24.04
         - std: 11
           cxx: 13
           bits: 64
@@ -348,12 +378,12 @@ jobs:
           vg: 'OFF'
           img: 22.04
         - std: 11
-          cxx: 13
+          cxx: 12
           bits: 64
           vg: 'OFF'
           img: 22.04
         - std: 11
-          cxx: 13
+          cxx: 12
           bits: 32
           vg: 'OFF'
           img: 22.04
@@ -578,73 +608,89 @@ jobs:
     continue-on-error: false
     name: ${{matrix.bt}}/${{matrix.cxx}}/c++${{matrix.std}}
     runs-on: ubuntu-24.04
-    container: ghcr.io/biojppm/c4core/ubuntu22.04:latest
+    container: ghcr.io/biojppm/c4core/ubuntu24.04:latest
     strategy:
       fail-fast: false
       matrix:
         include:
         - std: 11
-          cxx: g++-14
+          cxx: g++-16
           bt: asan
           bitlinks: static64
         - std: 14
-          cxx: g++-14
+          cxx: g++-16
           bt: asan
           bitlinks: static64
         - std: 17
-          cxx: g++-14
+          cxx: g++-16
           bt: asan
           bitlinks: static64
         - std: 20
-          cxx: g++-14
+          cxx: g++-16
+          bt: asan
+          bitlinks: static64
+        - std: 23
+          cxx: g++-16
           bt: asan
           bitlinks: static64
         - std: 11
-          cxx: g++-14
+          cxx: g++-16
           bt: lsan
           bitlinks: static64
         - std: 14
-          cxx: g++-14
+          cxx: g++-16
           bt: lsan
           bitlinks: static64
         - std: 17
-          cxx: g++-14
+          cxx: g++-16
           bt: lsan
           bitlinks: static64
         - std: 20
-          cxx: g++-14
+          cxx: g++-16
+          bt: lsan
+          bitlinks: static64
+        - std: 23
+          cxx: g++-16
           bt: lsan
           bitlinks: static64
         - std: 11
-          cxx: g++-14
+          cxx: g++-16
           bt: tsan
           bitlinks: static64
         - std: 14
-          cxx: g++-14
+          cxx: g++-16
           bt: tsan
           bitlinks: static64
         - std: 17
-          cxx: g++-14
+          cxx: g++-16
           bt: tsan
           bitlinks: static64
         - std: 20
-          cxx: g++-14
+          cxx: g++-16
+          bt: tsan
+          bitlinks: static64
+        - std: 23
+          cxx: g++-16
           bt: tsan
           bitlinks: static64
         - std: 11
-          cxx: g++-14
+          cxx: g++-16
           bt: ubsan
           bitlinks: static64
         - std: 14
-          cxx: g++-14
+          cxx: g++-16
           bt: ubsan
           bitlinks: static64
         - std: 17
-          cxx: g++-14
+          cxx: g++-16
           bt: ubsan
           bitlinks: static64
         - std: 20
-          cxx: g++-14
+          cxx: g++-16
+          bt: ubsan
+          bitlinks: static64
+        - std: 23
+          cxx: g++-16
           bt: ubsan
           bitlinks: static64
     env:

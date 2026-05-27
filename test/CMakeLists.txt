@@ -58,6 +58,9 @@ c4core_test(format           test_format.cpp)
 c4core_test(dump             test_dump.cpp)
 c4core_test(base64           test_base64.cpp)
 c4core_test(std              test_std.cpp)
+if(MSVC) # MSVC bigobj
+    target_compile_options(c4core-test-charconv PRIVATE /bigobj)
+endif()
 
 
 #----------------------------------------------------------
@@ -65,7 +68,11 @@ c4core_test(std              test_std.cpp)
 function(c4core_test_failbuild subject name code)
     set(target c4core-test-${subject}-failbuild-${name})
     set(test ${target})
-    set(filename "${CMAKE_CURRENT_BINARY_DIR}/${name}.cpp")
+    set(srcdir "${CMAKE_CURRENT_BINARY_DIR}/failbuild")
+    set(filename "${srcdir}/${subject}-${name}.cpp")
+    if(NOT (EXISTS "${srcdir}"))
+        file(MAKE_DIRECTORY "${srcdir}")
+    endif()
     file(WRITE "${filename}" "${code}")
     c4_add_executable(${target}
         SOURCES ${filename}
