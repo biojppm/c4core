@@ -2566,7 +2566,7 @@ inline bool from_chars(csubstr buf, csubstr *C4_RESTRICT v) noexcept
 }
 
 /** @ingroup doc_from_chars_first */
-inline size_t from_chars_first(substr buf, csubstr * C4_RESTRICT v) noexcept
+inline size_t from_chars_first(csubstr buf, csubstr * C4_RESTRICT v) noexcept
 {
     csubstr trimmed = buf.first_non_empty_span();
     if(trimmed.len == 0)
