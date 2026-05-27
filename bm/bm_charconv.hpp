@@ -207,6 +207,7 @@ struct random_values
     mutable size_t curr;
     size_t szm1;
     T next() const { T f = v[curr]; curr = (curr + 1) & szm1; return f; }
+    random_values() : v(), curr(), szm1() {}
     random_values(bool positive_only, size_t sz) : v(sz), curr(0), szm1(sz)
     {
         C4_CHECK(is_pot(sz));

@@ -104,6 +104,7 @@ INSTRUCTIONS:
         "src/c4/span.hpp",
         "src/c4/type_name.hpp",
         "src/c4/base64.hpp",
+        "src/c4/format_base64.hpp",
         am.onlyif(with_stl, am.ignfile("src/c4/std/std.hpp")), # this is an umbrella include
         am.onlyif(with_stl, "src/c4/std/span.hpp"),
         am.onlyif(with_stl, "src/c4/std/string.hpp"),

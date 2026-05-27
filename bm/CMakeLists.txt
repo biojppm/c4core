@@ -145,6 +145,27 @@ endif()
 
 #----------------------------------------------
 
+option(C4CORE_BM_BASE64 "compare between base64 implementations" ON)
+if(C4CORE_BM_BASE64)
+    c4_require_subproject(aklomp_base64
+        REMOTE
+            GIT_REPOSITORY https://github.com/aklomp/base64
+            GIT_TAG v0.5.2 GIT_SHALLOW ON
+        OVERRIDE
+            BASE64_BUILD_CLI OFF
+        EXCLUDE_FROM_ALL
+        SET_FOLDER_TARGETS ext base64
+    )
+    c4_add_executable(c4core-bm-base64
+        SOURCES bm_base64.cpp bm_charconv.hpp
+        LIBS c4core benchmark
+        FOLDER bm)
+    target_link_libraries(c4core-bm-base64 PRIVATE base64)
+endif()
+
+
+#----------------------------------------------
+
 
 option(C4CORE_BM_ITOA_THREADS "compare itoa thread degradation across alternative implementations" OFF)
 if(C4CORE_BM_ITOA_THREADS)

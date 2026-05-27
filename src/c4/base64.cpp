@@ -1,24 +1,34 @@
+#ifndef _C4_BASE64_HPP_
 #include "c4/base64.hpp"
-
-#ifdef __clang__
-#   pragma clang diagnostic push
-#   pragma clang diagnostic ignored "-Wchar-subscripts" // array subscript is of type 'char'
-#   pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
-#   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wuseless-cast"
-#   pragma GCC diagnostic ignored "-Wchar-subscripts"
-#   pragma GCC diagnostic ignored "-Wtype-limits"
-#   pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
+#ifndef _C4_ERROR_HPP_
+#include "c4/error.hpp"
+#endif
+
+#include <stdint.h>
+#include <string.h>
+#include <type_traits>
+
+#define C4_PREFER_BSWAP
+
+#if defined(C4_PREFER_BSWAP) && C4_LITTLE_ENDIAN && defined(_MSC_VER)
+#include <intrin.h>
+#endif
+
+C4_SUPPRESS_WARNING_PUSH
+C4_SUPPRESS_WARNING_GCC("-Wtype-limits")
+C4_SUPPRESS_WARNING_GCC("-Wuseless-cast")
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wold-style-cast")
+C4_SUPPRESS_WARNING_GCC_CLANG("-Wchar-subscripts")
+
 
 // NOLINTBEGIN(bugprone-signed-char-misuse,cert-str34-c,hicpp-signed-bitwise)
 
 namespace c4 {
 
-namespace detail {
+namespace {
 
-constexpr static const char base64_sextet_to_char_[64] = {
+const char base64_sextet_to_char_[64] = {
     /* 0/ 65*/ 'A', /* 1/ 66*/ 'B', /* 2/ 67*/ 'C', /* 3/ 68*/ 'D',
     /* 4/ 69*/ 'E', /* 5/ 70*/ 'F', /* 6/ 71*/ 'G', /* 7/ 72*/ 'H',
     /* 8/ 73*/ 'I', /* 9/ 74*/ 'J', /*10/ 75*/ 'K', /*11/ 74*/ 'L',
@@ -37,9 +47,12 @@ constexpr static const char base64_sextet_to_char_[64] = {
     /*60/ 56*/ '8', /*61/ 57*/ '9', /*62/ 43*/ '+', /*63/ 47*/ '/',
 };
 
+using dectype = uint8_t;
+
+#define __ dectype(-1) // undefined below
+
 // https://www.cs.cmu.edu/~pattis/15-1XX/common/handouts/ascii.html
-constexpr static const char base64_char_to_sextet_[128] = {
-    #define __ char(-1) // undefined below
+const dectype base64_char_to_sextet_[128] = {
     /*  0 NUL*/ __, /*  1 SOH*/ __, /*  2 STX*/ __, /*  3 ETX*/ __,
     /*  4 EOT*/ __, /*  5 ENQ*/ __, /*  6 ACK*/ __, /*  7 BEL*/ __,
     /*  8 BS */ __, /*  9 TAB*/ __, /* 10 LF */ __, /* 11 VT */ __,
@@ -72,155 +85,421 @@ constexpr static const char base64_char_to_sextet_[128] = {
     /*116 t  */ 45, /*117 u  */ 46, /*118 v  */ 47, /*119 w  */ 48,
     /*120 x  */ 49, /*121 y  */ 50, /*122 z  */ 51, /*123 {  */ __,
     /*124 |  */ __, /*125 }  */ __, /*126 ~  */ __, /*127 DEL*/ __,
-    #undef __
 };
+} // namespace
 
 #ifndef NDEBUG
+namespace detail {
 C4CORE_EXPORT void base64_test_tables() // NOLINT(*use-internal-linkage*)
 {
-    for(size_t i = 0; i < C4_COUNTOF(detail::base64_sextet_to_char_); ++i)
+    for(size_t i = 0; i < C4_COUNTOF(base64_sextet_to_char_); ++i)
     {
         char s2c = base64_sextet_to_char_[i];
-        char c2s = base64_char_to_sextet_[(unsigned)s2c];
+        dectype c2s = base64_char_to_sextet_[(unsigned)s2c];
         C4_CHECK((size_t)c2s == i);
     }
-    for(size_t i = 0; i < C4_COUNTOF(detail::base64_char_to_sextet_); ++i)
+    for(size_t i = 0; i < C4_COUNTOF(base64_char_to_sextet_); ++i)
     {
-        char c2s = base64_char_to_sextet_[i];
-        if(c2s == char(-1))
+        dectype c2s = base64_char_to_sextet_[i];
+        if(c2s == __)
             continue;
         char s2c = base64_sextet_to_char_[(unsigned)c2s];
         C4_CHECK((size_t)s2c == i);
     }
 }
-#endif
 } // namespace detail
+#endif
 
 
-bool base64_valid(csubstr encoded)
+//-----------------------------------------------------------------------------
+
+namespace {
+#if C4_CPP >= 17
+C4_HOT C4_ALWAYS_INLINE bool is_valid_encoded_char_(char c) noexcept
 {
-    if((encoded.len & size_t(3u)) != size_t(0)) // (encoded.len % 4u)
+    if constexpr (std::is_unsigned_v<char>)
+        return ((c < 128) && (base64_char_to_sextet_[c] != __));
+    else
+        return ((c >= 0) && (base64_char_to_sextet_[c] != __));
+}
+#else // pre c++-17 implementation requires SFINAE
+template<class Char>
+C4_HOT C4_ALWAYS_INLINE auto is_valid_encoded_char_(Char c) noexcept
+    -> typename std::enable_if<std::is_unsigned<Char>::value, bool>::type
+{
+    return ((c < 128) && (base64_char_to_sextet_[c] != __));
+}
+template<class Char>
+C4_HOT C4_ALWAYS_INLINE auto is_valid_encoded_char_(Char c) noexcept
+    -> typename std::enable_if< ! std::is_unsigned<Char>::value, bool>::type
+{
+    return ((c >= 0) && (base64_char_to_sextet_[c] != __));
+}
+#endif
+
+#undef __
+
+
+C4_HOT C4_ALWAYS_INLINE bool is_valid_encoded_group4_(const char *C4_RESTRICT c) noexcept
+{
+    return is_valid_encoded_char_(c[0])
+        && is_valid_encoded_char_(c[1])
+        && is_valid_encoded_char_(c[2])
+        && is_valid_encoded_char_(c[3]);
+}
+C4_HOT C4_ALWAYS_INLINE bool is_valid_encoded_group8_(const char *C4_RESTRICT c) noexcept
+{
+    return is_valid_encoded_char_(c[0])
+        && is_valid_encoded_char_(c[1])
+        && is_valid_encoded_char_(c[2])
+        && is_valid_encoded_char_(c[3])
+        && is_valid_encoded_char_(c[4])
+        && is_valid_encoded_char_(c[5])
+        && is_valid_encoded_char_(c[6])
+        && is_valid_encoded_char_(c[7]);
+}
+#if (C4_WORDSIZE >= 8)
+C4_HOT C4_ALWAYS_INLINE bool is_valid_encoded_group16_(const char *C4_RESTRICT c, size_t num) noexcept
+{
+    C4_ASSERT(num >= 16);
+    C4_ASSERT(!(num & 15)); // must be multiple of 16
+    size_t rem = num;
+    for( ; rem >= 16; rem -= 16, c += 16)
+        if(C4_UNLIKELY(!is_valid_encoded_group8_(c)
+                    || !is_valid_encoded_group8_(c + 8)))
+            return false;
+    return true;
+}
+#endif
+
+
+#ifdef C4_PREFER_BSWAP
+#    if C4_BIG_ENDIAN || (C4_MIXED_ENDIAN                               \
+                          && defined(__BYTE_ORDER__)                    \
+                          && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
+#       define _BSWAP_TO_BIG_ENDIAN64(x)
+#       define _BSWAP_TO_BIG_ENDIAN32(x)
+#    elif C4_LITTLE_ENDIAN || (C4_MIXED_ENDIAN                          \
+                               && defined(__BYTE_ORDER__)               \
+                               && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
+#       ifdef _MSC_VER
+#           define _BSWAP_TO_BIG_ENDIAN64(x) (x) = _byteswap_uint64(x)
+#           define _BSWAP_TO_BIG_ENDIAN32(x) (x) = _byteswap_ulong(x)
+#       else
+#           define _BSWAP_TO_BIG_ENDIAN64(x) (x) = __builtin_bswap64(x)
+#           define _BSWAP_TO_BIG_ENDIAN32(x) (x) = __builtin_bswap32(x)
+#       endif
+#    else
+#       error not implemented
+#    endif
+#endif
+
+
+enum : uint32_t { mask32 = uint32_t((1 << 6u) - 1u) }; // NOLINT
+#if (C4_WORDSIZE >= 8)
+enum : uint64_t { mask64 = uint64_t((1 << 6u) - 1u) }; // NOLINT
+C4_HOT C4_ALWAYS_INLINE void base64_encode_block64_(const uint8_t *C4_RESTRICT const data, char *C4_RESTRICT const encoded) noexcept
+{
+    #if defined(C4_PREFER_BSWAP)
+    uint64_t val;                    // MSB    ->     LSB
+    memcpy(&val, data, sizeof(val)); // |.|.|5|4|3|2|1|0|
+    _BSWAP_TO_BIG_ENDIAN64(val);     // |0|1|2|3|4|5|.|.|
+    encoded[0] = base64_sextet_to_char_[(val >> 58) & mask64];
+    encoded[1] = base64_sextet_to_char_[(val >> 52) & mask64];
+    encoded[2] = base64_sextet_to_char_[(val >> 46) & mask64];
+    encoded[3] = base64_sextet_to_char_[(val >> 40) & mask64];
+    encoded[4] = base64_sextet_to_char_[(val >> 34) & mask64];
+    encoded[5] = base64_sextet_to_char_[(val >> 28) & mask64];
+    encoded[6] = base64_sextet_to_char_[(val >> 22) & mask64];
+    encoded[7] = base64_sextet_to_char_[(val >> 16) & mask64];
+    #else
+    const uint64_t val = ((uint64_t(data[0]) << 40) | // |.|.|0|1|2|3|4|5|
+                          (uint64_t(data[1]) << 32) |
+                          (uint64_t(data[2]) << 24) |
+                          (uint64_t(data[3]) << 16) |
+                          (uint64_t(data[4]) <<  8) |
+                          (uint64_t(data[5])));
+    encoded[0] = base64_sextet_to_char_[(val >> 42) & mask64];
+    encoded[1] = base64_sextet_to_char_[(val >> 36) & mask64];
+    encoded[2] = base64_sextet_to_char_[(val >> 30) & mask64];
+    encoded[3] = base64_sextet_to_char_[(val >> 24) & mask64];
+    encoded[4] = base64_sextet_to_char_[(val >> 18) & mask64];
+    encoded[5] = base64_sextet_to_char_[(val >> 12) & mask64];
+    encoded[6] = base64_sextet_to_char_[(val >>  6) & mask64];
+    encoded[7] = base64_sextet_to_char_[(val      ) & mask64];
+    #endif
+}
+#endif
+
+C4_HOT void base64_encode_block32_(const uint8_t *C4_RESTRICT const data, char *C4_RESTRICT const encoded) noexcept
+{
+    #if defined(C4_PREFER_BSWAP)
+    uint32_t val = 0;
+    memcpy(&val, data, sizeof(val)); // MSB: |.|2|1|0| :LSB
+    _BSWAP_TO_BIG_ENDIAN32(val);     // MSB: |0|1|2|.| :LSB
+    encoded[0] = base64_sextet_to_char_[(val >> 26) & mask32];
+    encoded[1] = base64_sextet_to_char_[(val >> 20) & mask32];
+    encoded[2] = base64_sextet_to_char_[(val >> 14) & mask32];
+    encoded[3] = base64_sextet_to_char_[(val >>  8) & mask32];
+    #else
+    // MSB: |.|0|1|2| :LSB
+    const uint32_t val = ((uint32_t(data[0]) << 16) | (uint32_t(data[1]) << 8) | (uint32_t(data[2])));
+    encoded[0] = base64_sextet_to_char_[(val >> 18) & mask32];
+    encoded[1] = base64_sextet_to_char_[(val >> 12) & mask32];
+    encoded[2] = base64_sextet_to_char_[(val >>  6) & mask32];
+    encoded[3] = base64_sextet_to_char_[(val      ) & mask32];
+    #endif
+}
+void base64_encode_block32_term2_(const uint8_t *C4_RESTRICT data, char *C4_RESTRICT encoded) noexcept
+{
+    // MSB: |.|.|0|1| :LSB
+    const uint32_t val = ((uint32_t(data[0]) << 16) | (uint32_t(data[1]) << 8));
+    encoded[0] = base64_sextet_to_char_[(val >> 18) & mask32];
+    encoded[1] = base64_sextet_to_char_[(val >> 12) & mask32];
+    encoded[2] = base64_sextet_to_char_[(val >>  6) & mask32];
+    encoded[3] = '=';
+}
+void base64_encode_block32_term1_(const uint8_t *C4_RESTRICT data, char *C4_RESTRICT encoded) noexcept
+{
+    // MSB: |.|.|.|0| :LSB
+    const uint32_t val = ((uint32_t(data[0]) << 16));
+    encoded[0] = base64_sextet_to_char_[(val >> 18) & mask32];
+    encoded[1] = base64_sextet_to_char_[(val >> 12) & mask32];
+    encoded[2] = '=';
+    encoded[3] = '=';
+}
+
+
+//-----------------------------------------------------------------------------
+
+enum : uint32_t { dmask32 = 0xff }; // NOLINT
+#if (C4_WORDSIZE >= 8)
+enum : uint64_t { dmask64 = 0xff }; // NOLINT
+void base64_decode_block64_(const char *C4_RESTRICT encoded, dectype *C4_RESTRICT data) noexcept
+{
+    uint64_t val =
+          (((uint64_t)base64_char_to_sextet_[encoded[0]]) << 42)
+        | (((uint64_t)base64_char_to_sextet_[encoded[1]]) << 36)
+        | (((uint64_t)base64_char_to_sextet_[encoded[2]]) << 30)
+        | (((uint64_t)base64_char_to_sextet_[encoded[3]]) << 24)
+        | (((uint64_t)base64_char_to_sextet_[encoded[4]]) << 18)
+        | (((uint64_t)base64_char_to_sextet_[encoded[5]]) << 12)
+        | (((uint64_t)base64_char_to_sextet_[encoded[6]]) <<  6)
+        | (((uint64_t)base64_char_to_sextet_[encoded[7]])      );
+    data[0] = (dectype)((val >> 40) & dmask64);
+    data[1] = (dectype)((val >> 32) & dmask64);
+    data[2] = (dectype)((val >> 24) & dmask64);
+    data[3] = (dectype)((val >> 16) & dmask64);
+    data[4] = (dectype)((val >>  8) & dmask64);
+    data[5] = (dectype)((val      ) & dmask64);
+}
+#endif
+C4_HOT void base64_decode_block32_(const char *C4_RESTRICT encoded, dectype *C4_RESTRICT data) noexcept
+{
+    const uint32_t val =
+          (((uint32_t)base64_char_to_sextet_[encoded[0]]) << 18)
+        | (((uint32_t)base64_char_to_sextet_[encoded[1]]) << 12)
+        | (((uint32_t)base64_char_to_sextet_[encoded[2]]) <<  6)
+        | (((uint32_t)base64_char_to_sextet_[encoded[3]])      );
+    data[0] = (dectype)((val >> 16) & dmask32);
+    data[1] = (dectype)((val >>  8) & dmask32);
+    data[2] = (dectype)((val      ) & dmask32);
+}
+void base64_decode_block32_term1_(const char *C4_RESTRICT encoded, dectype *C4_RESTRICT data) noexcept
+{
+    const uint32_t val =
+          (((uint32_t)base64_char_to_sextet_[encoded[0]]) << 18)
+        | (((uint32_t)base64_char_to_sextet_[encoded[1]]) << 12);
+    data[0] = (dectype)((val >> 16) & dmask32);
+}
+void base64_decode_block32_term2_(const char *C4_RESTRICT encoded, dectype *C4_RESTRICT data) noexcept
+{
+    const uint32_t val =
+          (((uint32_t)base64_char_to_sextet_[encoded[0]]) << 18)
+        | (((uint32_t)base64_char_to_sextet_[encoded[1]]) << 12)
+        | (((uint32_t)base64_char_to_sextet_[encoded[2]]) <<  6);
+    data[0] = (dectype)((val >> 16) & dmask32);
+    data[1] = (dectype)((val >>  8) & dmask32);
+}
+
+} // namespace
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+bool base64_valid(const char *encoded_, size_t encoded_sz)
+{
+    if(!encoded_sz)
+        return true;
+    if((encoded_sz & size_t(3u))) // is it not a multiple of 4?
         return false;
-    for(const char c : encoded)
-    {
-        if(c < 0/* || c >= 128*/)
+    const char *C4_RESTRICT encoded = encoded_;
+    size_t i = 0;
+    #if C4_WORDSIZE >= 8
+    for( ; i + 8 < encoded_sz; i += 8)
+        if(!is_valid_encoded_group8_(encoded + i))
             return false;
-        if(c == '=')
-            continue;
-        if(detail::base64_char_to_sextet_[c] == char(-1))
+    #endif
+    for( ; i + 4 < encoded_sz; i += 4)
+        if(!is_valid_encoded_group4_(encoded + i))
             return false;
-    }
+    if(!is_valid_encoded_char_(encoded[i])
+       || !is_valid_encoded_char_(encoded[i + 1]))
+        return false;
+    if(!is_valid_encoded_char_(encoded[i + 2]))
+        return (encoded[i + 2] == '=' && encoded[i + 3] == '=');
+    if(!is_valid_encoded_char_(encoded[i + 3]))
+        return (encoded[i + 3] == '=');
     return true;
 }
 
 
-size_t base64_encode(substr buf, cblob data)
+//-----------------------------------------------------------------------------
+
+size_t base64_encode(char *encoded_, size_t encoded_sz, const void *data_, size_t data_sz)
 {
-    #define c4append_(c) { if(pos < buf.len) { buf.str[pos] = (c); } ++pos; }
-    #define c4append_idx_(char_idx) \
-    {\
-         C4_XASSERT((char_idx) < sizeof(detail::base64_sextet_to_char_));\
-         c4append_(detail::base64_sextet_to_char_[(char_idx)]);\
-    }
-    size_t rem, pos = 0;
-    constexpr const uint32_t sextet_mask = uint32_t(1 << 6) - 1;
-    const unsigned char *C4_RESTRICT d = (const unsigned char *) data.buf; // cast to unsigned to avoid wrapping high-bits
-    for(rem = data.len; rem >= 3; rem -= 3, d += 3)
+    C4_ASSERT(encoded_ != nullptr || encoded_sz == 0);
+    C4_ASSERT(data_ != nullptr || data_sz == 0);
+    //                     ....................... how many groups of 3 bytes to read
+    //                                            .... each group results in 4 bytes written
+    size_t required_sz = ((data_sz + 3 - 1) / 3) * 4;
+    if(encoded_sz < required_sz)
+        return required_sz;
+    size_t rem = data_sz;
+    char *C4_RESTRICT encoded = encoded_;
+    const uint8_t *C4_RESTRICT data = (const uint8_t *) data_; // cast to unsigned to avoid wrapping high-bits
+#if (C4_WORDSIZE >= 8)
+    for( ; rem >= 15; rem -= 12) // leave 3 at the end (15=12+3)
     {
-        const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8) | (uint32_t(d[2])));
-        c4append_idx_((val >> 18) & sextet_mask);
-        c4append_idx_((val >> 12) & sextet_mask);
-        c4append_idx_((val >>  6) & sextet_mask);
-        c4append_idx_((val      ) & sextet_mask);
+        base64_encode_block64_(data, encoded); data += 6; encoded += 8;
+        base64_encode_block64_(data, encoded); data += 6; encoded += 8;
+    }
+    for( ; rem >= 9; rem -= 6) // leave 3 at the end (9=6+3)
+    {
+        base64_encode_block64_(data, encoded); data += 6; encoded += 8;
+    }
+#else
+    for( ; rem >= 15; rem -= 12) // leave 3 at the end (15=12+3)
+    {
+        base64_encode_block32_(data, encoded); data += 3; encoded += 4;
+        base64_encode_block32_(data, encoded); data += 3; encoded += 4;
+        base64_encode_block32_(data, encoded); data += 3; encoded += 4;
+        base64_encode_block32_(data, encoded); data += 3; encoded += 4;
+    }
+    for( ; rem >= 9; rem -= 6) // leave 3 at the end (9=6+3)
+    {
+        base64_encode_block32_(data, encoded); data += 3; encoded += 4;
+        base64_encode_block32_(data, encoded); data += 3; encoded += 4;
+    }
+#endif
+    for( ; rem >= 3; rem -= 3)
+    {
+        base64_encode_block32_(data, encoded); data += 3; encoded += 4;
     }
     C4_ASSERT(rem < 3);
     if(rem == 2)
-    {
-        const uint32_t val = ((uint32_t(d[0]) << 16) | (uint32_t(d[1]) << 8));
-        c4append_idx_((val >> 18) & sextet_mask);
-        c4append_idx_((val >> 12) & sextet_mask);
-        c4append_idx_((val >>  6) & sextet_mask);
-        c4append_('=');
-    }
+        base64_encode_block32_term2_(data, encoded);
     else if(rem == 1)
-    {
-        const uint32_t val = (uint32_t(d[0]) << 16);
-        c4append_idx_((val >> 18) & sextet_mask);
-        c4append_idx_((val >> 12) & sextet_mask);
-        c4append_('=');
-        c4append_('=');
-    }
-    return pos;
-
-    #undef c4append_
-    #undef c4append_idx_
+        base64_encode_block32_term1_(data, encoded);
+    return required_sz;
 }
 
 
-size_t base64_decode(csubstr encoded, blob data)
+//-----------------------------------------------------------------------------
+
+bool base64_decode(char const* encoded_, size_t encoded_sz,
+                   void * data_, size_t data_sz,
+                   size_t *data_sz_required)
 {
-    #define c4append_(c) { if(wpos < data.len) { data.buf[wpos] = static_cast<c4::byte>(c); } ++wpos; }
-    #define c4appendval_(c, shift)\
-    {\
-        C4_XASSERT((c) >= 0);\
-        C4_XASSERT(size_t(c) < sizeof(detail::base64_char_to_sextet_));\
-        val |= static_cast<uint32_t>(detail::base64_char_to_sextet_[(c)]) << ((shift) * 6);\
-    }
-    C4_ASSERT(base64_valid(encoded));
-    C4_CHECK((encoded.len & 3u) == 0);
-    size_t wpos = 0;  // the write position
-    const char *C4_RESTRICT d = encoded.str;
-    constexpr const uint32_t full_byte = 0xff;
-    // process every quartet of input 6 bits --> triplet of output bytes
-    for(size_t rpos = 0; rpos < encoded.len; rpos += 4, d += 4)
+    C4_ASSERT(encoded_ != nullptr || encoded_sz == 0);
+    C4_ASSERT(data_ != nullptr || data_sz == 0);
+    C4_ASSERT(data_sz_required != nullptr);
+    if(!encoded_sz)
     {
-        if(d[2] == '=' || d[3] == '=') // skip the last quartet if it is padded
-        {
-            C4_ASSERT(d + 4 == encoded.str + encoded.len);
-            break;
-        }
-        uint32_t val = 0;
-        c4appendval_(d[3], 0);
-        c4appendval_(d[2], 1);
-        c4appendval_(d[1], 2);
-        c4appendval_(d[0], 3);
-        c4append_((val >> (2 * 8)) & full_byte);
-        c4append_((val >> (1 * 8)) & full_byte);
-        c4append_((val           ) & full_byte);
+        *data_sz_required = 0;
+        return true;
     }
-    // deal with the last quartet when it is padded
-    if(d == encoded.str + encoded.len)
-        return wpos;
-    if(d[2] == '=') // 2 padding chars
+    else if(encoded_sz & 3u) // is encoded_sz not a multiple of 4?
     {
-        C4_ASSERT(d + 4 == encoded.str + encoded.len);
-        C4_ASSERT(d[3] == '=');
-        uint32_t val = 0;
-        c4appendval_(d[1], 2);
-        c4appendval_(d[0], 3);
-        c4append_((val >> (2 * 8)) & full_byte);
+        return false;
     }
-    else if(d[3] == '=') // 1 padding char
+    // compute the required size for the decoded buffer:
+    //                  ................ how many 4-byte groups of encoded data to decode
+    //                                  .... each group results in 3 decoded bytes
+    *data_sz_required = (encoded_sz / 4) * 3;
+    const char *C4_RESTRICT encoded = encoded_;
+    // account for padded bytes at the end
+    C4_ASSERT(encoded_sz >= 4);
+    if(encoded[encoded_sz - 1] == '=')
     {
-        C4_ASSERT(d + 4 == encoded.str + encoded.len);
-        uint32_t val = 0;
-        c4appendval_(d[2], 1);
-        c4appendval_(d[1], 2);
-        c4appendval_(d[0], 3);
-        c4append_((val >> (2 * 8)) & full_byte);
-        c4append_((val >> (1 * 8)) & full_byte);
+        C4_ASSERT(*data_sz_required >= 3);
+        if(encoded[encoded_sz - 2] == '=')
+            *data_sz_required -= 2;
+        else
+            *data_sz_required -= 1;
     }
-    return wpos;
-    #undef c4append_
-    #undef c4appendval_
+    if(data_sz < *data_sz_required)
+        return false;
+    // we have enough room
+    size_t rem = *data_sz_required; // numbytes remaining to write
+    dectype *C4_RESTRICT data = (dectype *)data_;
+    C4_STATIC_ASSERT(sizeof(dectype) == 1);
+#if (C4_WORDSIZE >= 8)
+    for( ; rem >= 15; rem -= 12)
+    {
+        if(C4_UNLIKELY(!is_valid_encoded_group16_(encoded, 16)))
+            return false;
+        base64_decode_block64_(encoded, data); encoded += 8; data += 6;
+        base64_decode_block64_(encoded, data); encoded += 8; data += 6;
+    }
+    for( ; rem >= 9; rem -= 6)
+    {
+        if(C4_UNLIKELY(!is_valid_encoded_group8_(encoded)))
+            return false;
+        base64_decode_block64_(encoded, data); encoded += 8; data += 6;
+    }
+#else
+    for( ; rem >= 9; rem -= 6)
+    {
+        if(C4_UNLIKELY(!is_valid_encoded_group8_(encoded)))
+            return false;
+        base64_decode_block32_(encoded, data); encoded += 4; data += 3;
+        base64_decode_block32_(encoded, data); encoded += 4; data += 3;
+    }
+#endif
+    for( ; rem >= 3; rem -= 3)
+    {
+        if(C4_UNLIKELY(!is_valid_encoded_group4_(encoded)))
+            return false;
+        base64_decode_block32_(encoded, data); encoded += 4; data += 3;
+    }
+    C4_ASSERT(rem < 3);
+    // the last quartet requires dealing with padded chars
+    if(rem == 1) // 1 remaining byte, 2 padding chars
+    {
+        if(!is_valid_encoded_char_(encoded[0])
+           || !is_valid_encoded_char_(encoded[1])
+           || encoded[2] != '='
+           || encoded[3] != '=')
+            return false;
+        base64_decode_block32_term1_(encoded, data);
+    }
+    else if(rem == 2) // 2 remaining bytes, 1 padding char
+    {
+        if(!is_valid_encoded_char_(encoded[0])
+           || !is_valid_encoded_char_(encoded[1])
+           || !is_valid_encoded_char_(encoded[2])
+           || encoded[3] != '=')
+            return false;
+        base64_decode_block32_term2_(encoded, data);
+    }
+    return true;
 }
 
 } // namespace c4
 
 // NOLINTEND(bugprone-signed-char-misuse,cert-str34-c,hicpp-signed-bitwise)
 
-#ifdef __clang__
-#    pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#    pragma GCC diagnostic pop
-#endif
+C4_SUPPRESS_WARNING_POP
