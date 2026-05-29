@@ -848,122 +848,90 @@ public:
 public:
 
     /** true if the first character of the string is @p c */
-    bool begins_with(const C c) const
+    bool begins_with(const C c) const noexcept
     {
+        C4_SUPPRESS_WARNING_GCC_PUSH
         #if defined(__GNUC__) && (__GNUC__ >= 6)
-        C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Wnull-dereference")
+        C4_SUPPRESS_WARNING_GCC("-Wnull-dereference")
         #endif
-        return len > 0 ? str[0] == c : false;
-        #if defined(__GNUC__) && (__GNUC__ >= 6)
+        return len && str[0] == c;
         C4_SUPPRESS_WARNING_GCC_POP
-        #endif
     }
 
     /** true if the first @p num characters of the string are @p c */
-    bool begins_with(const C c, size_t num) const
+    bool begins_with(const C c, size_t num) const noexcept
     {
         if(len < num)
-        {
             return false;
-        }
         for(size_t i = 0; i < num; ++i)
-        {
             if(str[i] != c)
-            {
                 return false;
-            }
-        }
-        return true;
+        return num > 0;
     }
 
     /** true if the string begins with the given @p pattern */
-    bool begins_with(ro_substr pattern) const
+    bool begins_with(ro_substr pattern) const noexcept
     {
         if(len < pattern.len)
-        {
             return false;
-        }
         for(size_t i = 0; i < pattern.len; ++i)
-        {
             if(str[i] != pattern.str[i])
-            {
                 return false;
-            }
-        }
-        return true;
+        return pattern.len > 0;
     }
 
     /** true if the first character of the string is any of the given @p chars */
-    bool begins_with_any(ro_substr chars) const
+    bool begins_with_any(ro_substr chars) const noexcept
     {
-        if(len == 0)
-        {
-            return false;
-        }
-        for(size_t i = 0; i < chars.len; ++i)
-        {
-            if(str[0] == chars.str[i])
-            {
-                return true;
-            }
-        }
+        if(len)
+            for(size_t i = 0; i < chars.len; ++i)
+                if(str[0] == chars.str[i])
+                    return true;
         return false;
     }
 
+
     /** true if the last character of the string is @p c */
-    bool ends_with(const C c) const
+    bool ends_with(const C c) const noexcept
     {
-        return len > 0 ? str[len-1] == c : false;
+        return len && str[len-1] == c;
     }
 
     /** true if the last @p num characters of the string are @p c */
-    bool ends_with(const C c, size_t num) const
+    bool ends_with(const C c, const size_t num) const noexcept
+    #if (defined(_MSC_VER) && _MSC_VER >= 1951) && !defined(__DOXYGEN__)
+    // workaround for a bug in MSVC cl.exe 19.51:
+    // see https://developercommunity.microsoft.com/t/C-compiler-miscompiles-doctest-CHECK/11099010?fTime=6m&q=miscompile
+    { return basic_substring::ends_with_impl__(str, len, c, num); }
+    static bool ends_with_impl__(C const* const str, size_t len, const C c, const size_t num) noexcept
+    #endif
     {
         if(len < num)
-        {
             return false;
-        }
         for(size_t i = len - num; i < len; ++i)
-        {
             if(str[i] != c)
-            {
                 return false;
-            }
-        }
-        return true;
+        return num > 0;
     }
 
     /** true if the string ends with the given @p pattern */
-    bool ends_with(ro_substr pattern) const
+    bool ends_with(ro_substr pattern) const noexcept
     {
         if(len < pattern.len)
-        {
             return false;
-        }
         for(size_t i = 0, s = len-pattern.len; i < pattern.len; ++i)
-        {
             if(str[s+i] != pattern[i])
-            {
                 return false;
-            }
-        }
-        return true;
+        return pattern.len > 0;
     }
 
     /** true if the last character of the string is any of the given @p chars */
-    bool ends_with_any(ro_substr chars) const
+    bool ends_with_any(ro_substr chars) const noexcept
     {
-        if(len == 0)
-        {
-            return false;
-        }
-        for(size_t i = 0; i < chars.len; ++i)
-        {
-            if(str[len - 1] == chars[i])
-            {
-                return true;
-            }
-        }
+        if(len)
+            for(size_t i = 0; i < chars.len; ++i)
+                if(str[len - 1] == chars[i])
+                    return true;
         return false;
     }
 

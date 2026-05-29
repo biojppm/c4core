@@ -1,3 +1,5 @@
+- [PR#167](https://github.com/biojppm/c4core/pull/167): fixes to `substr`:
+  - `.begins_with()` and `.ends_with()` now return false when input length is 0
 - [PR#166](https://github.com/biojppm/c4core/pull/166): fixes to `substr` and `type_name()`
   - `substr`:
     - improve SFINAE rules and overloads
