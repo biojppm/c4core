@@ -1261,6 +1261,18 @@ TEST_CASE("substr.begins_with")
     CHECK_UNARY(   csubstr(  "0001234").begins_with_any("102"));
 }
 
+
+// workaround for a VS2026 cl.exe 19.51 compiler bug:
+// https://developercommunity.microsoft.com/t/C-compiler-miscompiles-doctest-CHECK/11099010
+// the failure happens only when calling csubstr::ends_with() in
+// doctest's CHECK() macro, so we only need to wrap the call here.
+// to play safe, we're calling C4_CHECK() on the original condition, which passes.
+static C4_NO_INLINE bool ends_with(csubstr s, const char c, const size_t num) noexcept
+{
+    return s.ends_with(c, num);
+}
+
+
 TEST_CASE("substr.ends_with")
 {
     CHECK_UNARY(csubstr("{% if foo %}bar{% endif %}").ends_with("{% endif %}"));
@@ -1321,17 +1333,20 @@ TEST_CASE("substr.ends_with")
     CHECK_UNARY( ! csubstr("1234").ends_with('0', 4));
     CHECK_UNARY( ! csubstr("1234").ends_with('1'));
     CHECK_UNARY( ! csubstr("1234").ends_with('1', 0));
-    CHECK_UNARY( ! csubstr("1234").ends_with('1', 1)); // vsfail
+    CHECK_UNARY( ! ends_with("1234", '1', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("1234").ends_with('1', 1)); // vsfail
     CHECK_UNARY( ! csubstr("1234").ends_with('1', 2));
     CHECK_UNARY( ! csubstr("1234").ends_with('1', 3));
     CHECK_UNARY( ! csubstr("1234").ends_with('2'));
     CHECK_UNARY( ! csubstr("1234").ends_with('2', 0));
-    CHECK_UNARY( ! csubstr("1234").ends_with('2', 1)); // vsfail
+    CHECK_UNARY( ! ends_with("1234", '2', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("1234").ends_with('2', 1)); // vsfail
     CHECK_UNARY( ! csubstr("1234").ends_with('2', 2));
     CHECK_UNARY( ! csubstr("1234").ends_with('2', 3));
     CHECK_UNARY(   csubstr("1234").ends_with('4'));
     CHECK_UNARY( ! csubstr("1234").ends_with('4', 0));
-    CHECK_UNARY(   csubstr("1234").ends_with('4', 1)); // vsfail
+    CHECK_UNARY(   ends_with("1234", '4', 1)); // vsfail
+    C4_CHECK   (   csubstr("1234").ends_with('4', 1)); // vsfail
     CHECK_UNARY( ! csubstr("1234").ends_with('4', 2));
     CHECK_UNARY( ! csubstr("1234").ends_with('4', 3));
     CHECK_UNARY( ! csubstr("1234").ends_with(""));
@@ -1362,18 +1377,21 @@ TEST_CASE("substr.ends_with")
 
     CHECK_UNARY(   csubstr("12340").ends_with('0'));
     CHECK_UNARY( ! csubstr("12340").ends_with('0', 0));
-    CHECK_UNARY(   csubstr("12340").ends_with('0', 1)); // vsfail
+    CHECK_UNARY(   ends_with("12340", '0', 1)); // vsfail
+    C4_CHECK   (   csubstr("12340").ends_with('0', 1)); // vsfail
     CHECK_UNARY( ! csubstr("12340").ends_with('0', 2));
     CHECK_UNARY( ! csubstr("12340").ends_with('0', 3));
     CHECK_UNARY( ! csubstr("12340").ends_with('0', 4));
     CHECK_UNARY( ! csubstr("12340").ends_with('1'));
     CHECK_UNARY( ! csubstr("12340").ends_with('1', 0));
-    CHECK_UNARY( ! csubstr("12340").ends_with('1', 1)); // vsfail
+    CHECK_UNARY( ! ends_with("12340", '1', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("12340").ends_with('1', 1)); // vsfail
     CHECK_UNARY( ! csubstr("12340").ends_with('1', 2));
     CHECK_UNARY( ! csubstr("12340").ends_with('1', 3));
     CHECK_UNARY( ! csubstr("12340").ends_with('2'));
     CHECK_UNARY( ! csubstr("12340").ends_with('2', 0));
-    CHECK_UNARY( ! csubstr("12340").ends_with('2', 1)); // vsfail
+    CHECK_UNARY( ! ends_with("12340", '2', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("12340").ends_with('2', 1)); // vsfail
     CHECK_UNARY( ! csubstr("12340").ends_with('2', 2));
     CHECK_UNARY( ! csubstr("12340").ends_with('2', 3));
     CHECK_UNARY( ! csubstr("12340").ends_with(""));
@@ -1403,18 +1421,21 @@ TEST_CASE("substr.ends_with")
 
     CHECK_UNARY(   csubstr("123400").ends_with('0'));
     CHECK_UNARY( ! csubstr("123400").ends_with('0', 0));
-    CHECK_UNARY(   csubstr("123400").ends_with('0', 1)); // vsfail
+    CHECK_UNARY(   ends_with("123400", '0', 1)); // vsfail
+    C4_CHECK   (   csubstr("123400").ends_with('0', 1)); // vsfail
     CHECK_UNARY(   csubstr("123400").ends_with('0', 2));
     CHECK_UNARY( ! csubstr("123400").ends_with('0', 3));
     CHECK_UNARY( ! csubstr("123400").ends_with('0', 4));
     CHECK_UNARY( ! csubstr("123400").ends_with('1'));
     CHECK_UNARY( ! csubstr("123400").ends_with('1', 0));
-    CHECK_UNARY( ! csubstr("123400").ends_with('1', 1)); // vsfail
+    CHECK_UNARY( ! ends_with("123400", '1', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("123400").ends_with('1', 1)); // vsfail
     CHECK_UNARY( ! csubstr("123400").ends_with('1', 2));
     CHECK_UNARY( ! csubstr("123400").ends_with('1', 3));
     CHECK_UNARY( ! csubstr("123400").ends_with('2'));
     CHECK_UNARY( ! csubstr("123400").ends_with('2', 0));
-    CHECK_UNARY( ! csubstr("123400").ends_with('2', 1)); // vsfail
+    CHECK_UNARY( ! ends_with("123400", '2', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("123400").ends_with('2', 1)); // vsfail
     CHECK_UNARY( ! csubstr("123400").ends_with('2', 2));
     CHECK_UNARY( ! csubstr("123400").ends_with('2', 3));
     CHECK_UNARY( ! csubstr("123400").ends_with(""));
@@ -1444,13 +1465,15 @@ TEST_CASE("substr.ends_with")
 
     CHECK_UNARY(   csubstr("1234000").ends_with('0'));
     CHECK_UNARY( ! csubstr("1234000").ends_with('0', 0));
-    CHECK_UNARY(   csubstr("1234000").ends_with('0', 1));
+    CHECK_UNARY(   ends_with("1234000", '0', 1)); // vsfail
+    C4_CHECK   (   csubstr("1234000").ends_with('0', 1)); // vsfail
     CHECK_UNARY(   csubstr("1234000").ends_with('0', 2));
     CHECK_UNARY(   csubstr("1234000").ends_with('0', 3));
     CHECK_UNARY( ! csubstr("1234000").ends_with('0', 4));
     CHECK_UNARY( ! csubstr("1234000").ends_with('1'));
     CHECK_UNARY( ! csubstr("1234000").ends_with('1', 0));
-    CHECK_UNARY( ! csubstr("1234000").ends_with('1', 1));
+    CHECK_UNARY( ! ends_with("1234000", '1', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("1234000").ends_with('1', 1)); // vsfail
     CHECK_UNARY( ! csubstr("1234000").ends_with('1', 2));
     CHECK_UNARY( ! csubstr("1234000").ends_with('1', 3));
     CHECK_UNARY( ! csubstr("1234000").ends_with('2'));

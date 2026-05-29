@@ -899,12 +899,6 @@ public:
 
     /** true if the last @p num characters of the string are @p c */
     bool ends_with(const C c, const size_t num) const noexcept
-    #if (defined(_MSC_VER) && _MSC_VER >= 1951) && !defined(__DOXYGEN__)
-    // workaround for a bug in MSVC cl.exe 19.51:
-    // see https://developercommunity.microsoft.com/t/C-compiler-miscompiles-doctest-CHECK/11099010?fTime=6m&q=miscompile
-    { return basic_substring::ends_with_impl__(str, len, c, num); }
-    static bool ends_with_impl__(C const* const str, size_t len, const C c, const size_t num) noexcept
-    #endif
     {
         if(len < num)
             return false;
