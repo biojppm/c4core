@@ -15,10 +15,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-14 , bt: Debug  , bitlinks: shared64 static32, img: 22.04}
-          - {std: 11, cxx: g++-14 , bt: Release, bitlinks: shared64 static32, img: 22.04}
-          - {std: 20, cxx: g++-14 , bt: Debug  , bitlinks: shared64 static32, img: 22.04}
-          - {std: 20, cxx: g++-14 , bt: Release, bitlinks: shared64 static32, img: 22.04}
+          - {std: 11, cxx: g++-16 , bt: Debug  , bitlinks: shared64 static32, img: 24.04}
+          - {std: 11, cxx: g++-16 , bt: Release, bitlinks: shared64 static32, img: 24.04}
+          - {std: 23, cxx: g++-16 , bt: Debug  , bitlinks: shared64 static32, img: 24.04}
+          - {std: 23, cxx: g++-16 , bt: Release, bitlinks: shared64 static32, img: 24.04}
           - {std: 11, cxx: g++-5  , bt: Debug  , bitlinks: shared64 static32, img: 18.04}
           - {std: 11, cxx: g++-5  , bt: Release, bitlinks: shared64 static32, img: 18.04}
           - {std: 11, cxx: g++-4.8, bt: Debug  , bitlinks: shared64 static32, img: 18.04}
@@ -41,8 +41,8 @@ jobs:
         include:
           - {std: 11, cxx: g++-5, bt: Debug  , bitlinks: shared64 static32, img: 18.04}
           - {std: 11, cxx: g++-5, bt: Release, bitlinks: shared64 static32, img: 18.04}
-          - {std: 20, cxx: g++-14, bt: Debug  , bitlinks: shared64 static32, img: 22.04}
-          - {std: 20, cxx: g++-14, bt: Release, bitlinks: shared64 static32, img: 22.04}
+          - {std: 20, cxx: g++-16, bt: Debug  , bitlinks: shared64 static32, img: 24.04}
+          - {std: 20, cxx: g++-16, bt: Release, bitlinks: shared64 static32, img: 24.04}
     env:: load('share/env.yaml')
     steps:
       - :: checkout-manual
@@ -61,19 +61,25 @@ jobs:
         include:
           # with valgrind: only latest gcc
           #                              VALGRIND
-          - {std: 11, cxx: 14 , bits: 64, vg: ON , img: 22.04}
-          - {std: 11, cxx: 14 , bits: 32, vg: ON , img: 22.04}
-          - {std: 14, cxx: 14 , bits: 64, vg: ON , img: 22.04}
-          - {std: 14, cxx: 14 , bits: 32, vg: ON , img: 22.04}
-          - {std: 17, cxx: 14 , bits: 64, vg: ON , img: 22.04}
-          - {std: 17, cxx: 14 , bits: 32, vg: ON , img: 22.04}
-          - {std: 20, cxx: 14 , bits: 64, vg: ON , img: 22.04}
-          - {std: 20, cxx: 14 , bits: 32, vg: ON , img: 22.04}
+          - {std: 11, cxx: 16 , bits: 64, vg: ON , img: 24.04}
+          - {std: 11, cxx: 16 , bits: 32, vg: ON , img: 24.04}
+          - {std: 14, cxx: 16 , bits: 64, vg: ON , img: 24.04}
+          - {std: 14, cxx: 16 , bits: 32, vg: ON , img: 24.04}
+          - {std: 17, cxx: 16 , bits: 64, vg: ON , img: 24.04}
+          - {std: 17, cxx: 16 , bits: 32, vg: ON , img: 24.04}
+          - {std: 20, cxx: 16 , bits: 64, vg: ON , img: 24.04}
+          - {std: 20, cxx: 16 , bits: 32, vg: ON , img: 24.04}
+          - {std: 23, cxx: 16 , bits: 64, vg: ON , img: 24.04}
+          - {std: 23, cxx: 16 , bits: 32, vg: ON , img: 24.04}
           # without valgrind
+          - {std: 11, cxx: 15 , bits: 64, vg: OFF, img: 24.04}
+          - {std: 11, cxx: 15 , bits: 32, vg: OFF, img: 24.04}
+          - {std: 11, cxx: 14 , bits: 64, vg: OFF, img: 24.04}
+          - {std: 11, cxx: 14 , bits: 32, vg: OFF, img: 24.04}
           - {std: 11, cxx: 13 , bits: 64, vg: OFF, img: 22.04}
           - {std: 11, cxx: 13 , bits: 32, vg: OFF, img: 22.04}
-          - {std: 11, cxx: 13 , bits: 64, vg: OFF, img: 22.04}
-          - {std: 11, cxx: 13 , bits: 32, vg: OFF, img: 22.04}
+          - {std: 11, cxx: 12 , bits: 64, vg: OFF, img: 22.04}
+          - {std: 11, cxx: 12 , bits: 32, vg: OFF, img: 22.04}
           - {std: 11, cxx: 11 , bits: 64, vg: OFF, img: 22.04}
           - {std: 11, cxx: 11 , bits: 32, vg: OFF, img: 22.04, extra_flags: -Wno-stringop-overflow}
           - {std: 11, cxx: 10 , bits: 64, vg: OFF, img: 22.04}
@@ -107,27 +113,31 @@ jobs:
   gccsan:
     :: setup-job("gcc" "gccsan")
     name: ${{matrix.bt}}/${{matrix.cxx}}/c++${{matrix.std}}
-    :: runs-on-docker-c4core('22.04')
+    :: runs-on-docker-c4core('24.04')
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: g++-14, bt: asan, bitlinks: static64}
-          - {std: 14, cxx: g++-14, bt: asan, bitlinks: static64}
-          - {std: 17, cxx: g++-14, bt: asan, bitlinks: static64}
-          - {std: 20, cxx: g++-14, bt: asan, bitlinks: static64}
-          - {std: 11, cxx: g++-14, bt: lsan, bitlinks: static64}
-          - {std: 14, cxx: g++-14, bt: lsan, bitlinks: static64}
-          - {std: 17, cxx: g++-14, bt: lsan, bitlinks: static64}
-          - {std: 20, cxx: g++-14, bt: lsan, bitlinks: static64}
-          - {std: 11, cxx: g++-14, bt: tsan, bitlinks: static64}
-          - {std: 14, cxx: g++-14, bt: tsan, bitlinks: static64}
-          - {std: 17, cxx: g++-14, bt: tsan, bitlinks: static64}
-          - {std: 20, cxx: g++-14, bt: tsan, bitlinks: static64}
-          - {std: 11, cxx: g++-14, bt: ubsan, bitlinks: static64}
-          - {std: 14, cxx: g++-14, bt: ubsan, bitlinks: static64}
-          - {std: 17, cxx: g++-14, bt: ubsan, bitlinks: static64}
-          - {std: 20, cxx: g++-14, bt: ubsan, bitlinks: static64}
+          - {std: 11, cxx: g++-16, bt: asan, bitlinks: static64}
+          - {std: 14, cxx: g++-16, bt: asan, bitlinks: static64}
+          - {std: 17, cxx: g++-16, bt: asan, bitlinks: static64}
+          - {std: 20, cxx: g++-16, bt: asan, bitlinks: static64}
+          - {std: 23, cxx: g++-16, bt: asan, bitlinks: static64}
+          - {std: 11, cxx: g++-16, bt: lsan, bitlinks: static64}
+          - {std: 14, cxx: g++-16, bt: lsan, bitlinks: static64}
+          - {std: 17, cxx: g++-16, bt: lsan, bitlinks: static64}
+          - {std: 20, cxx: g++-16, bt: lsan, bitlinks: static64}
+          - {std: 23, cxx: g++-16, bt: lsan, bitlinks: static64}
+          - {std: 11, cxx: g++-16, bt: tsan, bitlinks: static64}
+          - {std: 14, cxx: g++-16, bt: tsan, bitlinks: static64}
+          - {std: 17, cxx: g++-16, bt: tsan, bitlinks: static64}
+          - {std: 20, cxx: g++-16, bt: tsan, bitlinks: static64}
+          - {std: 23, cxx: g++-16, bt: tsan, bitlinks: static64}
+          - {std: 11, cxx: g++-16, bt: ubsan, bitlinks: static64}
+          - {std: 14, cxx: g++-16, bt: ubsan, bitlinks: static64}
+          - {std: 17, cxx: g++-16, bt: ubsan, bitlinks: static64}
+          - {std: 20, cxx: g++-16, bt: ubsan, bitlinks: static64}
+          - {std: 23, cxx: g++-16, bt: ubsan, bitlinks: static64}
     env:: load('share/env.yaml')
     steps:
       - :: checkout-action-docker

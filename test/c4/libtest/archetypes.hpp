@@ -105,9 +105,10 @@ struct archetype_proto_base
 #   pragma clang diagnostic ignored "-Wmissing-braces" //  warning : suggest braces around initialization of subobject [-Wmissing-braces]
 #endif
 
+
 // for scalar types: ints and floats
-template< class T >
-struct archetype_proto : public archetype_proto_base< T, archetype_proto<T> >
+template<class T>
+struct archetype_proto : public archetype_proto_base<T, archetype_proto<T>>
 {
     static_assert(std::is_fundamental< T >::value, "T must be a fundamental type");
     static std::array<T, 8> const& arr()
@@ -120,22 +121,11 @@ struct archetype_proto : public archetype_proto_base< T, archetype_proto<T> >
         static const std::array<Counting<T>, 8> arr_ = {0, 1, 2, 3, 4, 5, 6, 7};
         return arr_;
     }
-    static std::initializer_list< T > il()
-    {
-        static const std::initializer_list< T > l{0, 1, 2, 3, 4, 5, 6, 7};
-        return l;
-    }
-    static std::initializer_list< Counting<T> > cil()
-    {
-        static const std::initializer_list< Counting<T> > l = {0, 1, 2, 3, 4, 5, 6, 7};
-        C4_ASSERT(l.size() == 8);
-        return l;
-    }
 };
 
 #define _C4_DECLARE_ARCHETYPE_PROTO(ty, ...)                            \
 template<>                                                              \
-struct archetype_proto<ty> : public archetype_proto_base< ty, archetype_proto<ty> > \
+struct archetype_proto<ty> : public archetype_proto_base<ty, archetype_proto<ty>> \
 {                                                                       \
     static std::array<ty, 8> const& arr()                               \
     {                                                                   \
@@ -146,22 +136,12 @@ struct archetype_proto<ty> : public archetype_proto_base< ty, archetype_proto<ty
     {                                                                   \
         static const std::array<Counting<ty>, 8> arr_{__VA_ARGS__};     \
         return arr_;                                                    \
-    }                                                                   \
-    static std::initializer_list< ty > il()                             \
-    {                                                                   \
-        static const std::initializer_list< ty > l{__VA_ARGS__};        \
-        return l;                                                       \
-    }                                                                   \
-    static std::initializer_list< Counting<ty> > cil()                  \
-    {                                                                   \
-        static const std::initializer_list< Counting<ty> > l{__VA_ARGS__}; \
-        return l;                                                       \
     }                                                                   \
 }
 
 #define _C4_DECLARE_ARCHETYPE_PROTO_TPL1(tplparam1, ty, ...)            \
-template< tplparam1 >                                                   \
-struct archetype_proto< ty > : public archetype_proto_base< ty, archetype_proto<ty> > \
+template<tplparam1>                                                     \
+struct archetype_proto<ty> : public archetype_proto_base<ty, archetype_proto<ty>> \
 {                                                                       \
     static std::array<ty, 8> const& arr()                               \
     {                                                                   \
@@ -172,22 +152,13 @@ struct archetype_proto< ty > : public archetype_proto_base< ty, archetype_proto<
     {                                                                   \
         static const std::array<Counting<ty>, 8> arr_{__VA_ARGS__};     \
         return arr_;                                                    \
-    }                                                                   \
-    static std::initializer_list< ty > il()                             \
-    {                                                                   \
-        static const std::initializer_list< ty > l{__VA_ARGS__};        \
-        return l;                                                       \
-    }                                                                   \
-    static std::initializer_list< Counting<ty> > cil()                  \
-    {                                                                   \
-        static const std::initializer_list< Counting<ty> > l{__VA_ARGS__}; \
-        return l;                                                       \
     }                                                                   \
 }
 
 _C4_DECLARE_ARCHETYPE_PROTO(std::string,
     "str0", "str1", "str2", "str3",
     "str4", "str5", "str6", "str7");
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -282,7 +253,7 @@ struct MemOwner
         EXPECT_NE(mem, that.mem);
     }
 
-    ~MemOwner()
+    ~MemOwner() noexcept
     {
         if(!mem) return;
         mem->~T();
@@ -306,9 +277,9 @@ struct MemOwner
         mem = (T*)mr.allocate(sizeof(T), alignof(T));
         new (mem) T(*that.mem);
     }
-    MemOwner(MemOwner && that)
+    MemOwner(MemOwner && that) noexcept
     {
-        mem = that.mem;
+        mem = std::move(that.mem);
         that.mem = nullptr;
     }
     MemOwner& operator= (MemOwner const& that)
@@ -324,7 +295,7 @@ struct MemOwner
         new (mem) T(*that.mem);
         return *this;
     }
-    MemOwner& operator= (MemOwner && that)
+    MemOwner& operator= (MemOwner && that) noexcept
     {
         if(mem)
         {

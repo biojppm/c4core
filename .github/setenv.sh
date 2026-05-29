@@ -298,7 +298,7 @@ function c4_cfg_test()
             CXXFLAGS="-s DISABLE_EXCEPTION_CATCHING=0 $CXXFLAGS"
             ;;
         *)
-            echo "unknown compiler"
+            echo "unknown compiler: $CXX_"
             exit 1
             ;;
     esac
@@ -316,6 +316,13 @@ function c4_cfg_test()
     # quoted strings in variables and then expand the variables with correct quotes
     # so we have to do this precious jewell of chicanery:
     case "$CXX_" in
+        vs2026)
+            cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
+                  -G 'Visual Studio 18 2026' -A $(_c4vsarchtype $id) \
+                  $(_c4_add_ehsc_to_vs_arm32 $id) \
+                  -DCMAKE_BUILD_TYPE=$BT $CMFLAGS \
+                  -DCMAKE_C_FLAGS=" $CFLAGS" -DCMAKE_CXX_FLAGS=" $CXXFLAGS"
+            ;;
         vs2022)
             cmake -S $PROJ_DIR -B $build_dir -DCMAKE_INSTALL_PREFIX="$install_dir" \
                   -G 'Visual Studio 17 2022' -A $(_c4vsarchtype $id) \
@@ -381,7 +388,7 @@ function c4_cfg_test()
                   -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS"
             ;;
         *)
-            echo "unknown compiler"
+            echo "unknown compiler: $CXX_"
             exit 1
             ;;
     esac
@@ -446,7 +453,7 @@ function _c4_add_ehsc_to_vs_arm32()
 function _c4_parallel_build_flags()
 {
     case "$CXX_" in
-        vs2022|vs2019|vs2017|vs2015)
+        vs*|vs2026|vs2022|vs2019|vs2017|vs2015)
             # https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-command-line-reference?view=vs-2019
             # https://stackoverflow.com/questions/2619198/how-to-get-number-of-cores-in-win32
             if [ -z "$NUM_JOBS_BUILD" ] ; then
@@ -474,7 +481,7 @@ function _c4_parallel_build_flags()
         "") # allow empty compiler
             ;;
         *)
-            echo "unknown compiler"
+            echo "unknown compiler: $CXX_"
             exit 1
             ;;
     esac
@@ -483,7 +490,7 @@ function _c4_parallel_build_flags()
 function _c4_generator_build_flags()
 {
     case "$CXX_" in
-        vs2022|vs2019|vs2017|vs2015)
+        vs*|vs2026|vs2022|vs2019|vs2017|vs2015)
             ;;
         xcode)
             # WTF???
@@ -496,7 +503,7 @@ function _c4_generator_build_flags()
         "") # allow empty compiler
             ;;
         *)
-            echo "unknown compiler"
+            echo "unknown compiler: $CXX_"
             exit 1
             ;;
     esac

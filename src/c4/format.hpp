@@ -1334,7 +1334,9 @@ template<class CharOwningContainer, class... Args>
 inline csubstr formatrs_append(CharOwningContainer * C4_RESTRICT cont, csubstr fmt, Args const& C4_RESTRICT ...args)
 {
     const size_t pos = cont->size();
+    C4_SUPPRESS_WARNING_GCC_WITH_PUSH("-Warray-bounds")
     cont->resize(cont->capacity()); // improve the odds of fitting in the original buffer
+    C4_SUPPRESS_WARNING_GCC_POP
 retry:
     substr buf = to_substr(*cont).sub(pos);
     size_t ret = format(buf, fmt, args...);

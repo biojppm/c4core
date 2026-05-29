@@ -1105,46 +1105,407 @@ TEST_CASE("substr.select")
 
 TEST_CASE("substr.begins_with")
 {
-    CHECK (csubstr(": ").begins_with(":" ));
-    CHECK (csubstr(": ").begins_with(':' ));
-    CHECK_FALSE(csubstr(":") .begins_with(": "));
+    CHECK_UNARY(   csubstr(": ").begins_with(":" ));
+    CHECK_UNARY(   csubstr(": ").begins_with(':' ));
+    CHECK_UNARY( ! csubstr(":") .begins_with(": "));
 
-    CHECK (csubstr(    "1234").begins_with('0', 0));
-    CHECK (csubstr(   "01234").begins_with('0', 1));
-    CHECK_FALSE(csubstr(   "01234").begins_with('0', 2));
-    CHECK (csubstr(  "001234").begins_with('0', 1));
-    CHECK (csubstr(  "001234").begins_with('0', 2));
-    CHECK_FALSE(csubstr(  "001234").begins_with('0', 3));
-    CHECK (csubstr( "0001234").begins_with('0', 1));
-    CHECK (csubstr( "0001234").begins_with('0', 2));
-    CHECK (csubstr( "0001234").begins_with('0', 3));
-    CHECK_FALSE(csubstr( "0001234").begins_with('0', 4));
-    CHECK (csubstr("00001234").begins_with('0', 1));
-    CHECK (csubstr("00001234").begins_with('0', 2));
-    CHECK (csubstr("00001234").begins_with('0', 3));
-    CHECK (csubstr("00001234").begins_with('0', 4));
-    CHECK_FALSE(csubstr("00001234").begins_with('0', 5));
+    CHECK_UNARY( ! csubstr(    "").begins_with('0'));
+    CHECK_UNARY( ! csubstr(    "").begins_with('0', 0));
+    CHECK_UNARY( ! csubstr(    "").begins_with('0', 1));
+    CHECK_UNARY( ! csubstr(    "").begins_with('1'));
+    CHECK_UNARY( ! csubstr(    "").begins_with('1', 0));
+    CHECK_UNARY( ! csubstr(    "").begins_with('1', 1));
+    CHECK_UNARY( ! csubstr(    "").begins_with('1', 2));
+    CHECK_UNARY( ! csubstr(    "").begins_with('2'));
+    CHECK_UNARY( ! csubstr(    "").begins_with('2', 0));
+    CHECK_UNARY( ! csubstr(    "").begins_with('2', 1));
+    CHECK_UNARY( ! csubstr(    "").begins_with('2', 2));
+    CHECK_UNARY( ! csubstr(    "").begins_with(""));
+    CHECK_UNARY( ! csubstr(    "").begins_with("0"));
+    CHECK_UNARY( ! csubstr(    "").begins_with("1"));
+    CHECK_UNARY( ! csubstr(    "").begins_with("01"));
+    CHECK_UNARY( ! csubstr(    "").begins_with("10"));
+    CHECK_UNARY( ! csubstr(    "").begins_with("12"));
+    CHECK_UNARY( ! csubstr(    "").begins_with_any(""));
+    CHECK_UNARY( ! csubstr(    "").begins_with_any("0"));
+    CHECK_UNARY( ! csubstr(    "").begins_with_any("1"));
+    CHECK_UNARY( ! csubstr(    "").begins_with_any("01"));
+    CHECK_UNARY( ! csubstr(    "").begins_with_any("12"));
+    CHECK_UNARY( ! csubstr(    "").begins_with_any("23"));
+
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('0'));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('0', 0));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('0', 1));
+    CHECK_UNARY(   csubstr(    "1234").begins_with('1'));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('1', 0));
+    CHECK_UNARY(   csubstr(    "1234").begins_with('1', 1));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('1', 2));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('2'));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('2', 0));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('2', 1));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with('2', 2));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with(""));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with("0"));
+    CHECK_UNARY(   csubstr(    "1234").begins_with("1"));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with("01"));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with("10"));
+    CHECK_UNARY(   csubstr(    "1234").begins_with("12"));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with_any(""));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with_any("0"));
+    CHECK_UNARY(   csubstr(    "1234").begins_with_any("1"));
+    CHECK_UNARY(   csubstr(    "1234").begins_with_any("01"));
+    CHECK_UNARY(   csubstr(    "1234").begins_with_any("12"));
+    CHECK_UNARY( ! csubstr(    "1234").begins_with_any("23"));
+
+    CHECK_UNARY(   csubstr(   "01234").begins_with('0'));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('0', 0));
+    CHECK_UNARY(   csubstr(   "01234").begins_with('0', 1));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('0', 2));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('1'));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('1', 0));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('1', 1));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('1', 2));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('2'));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('2', 0));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('2', 1));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with('2', 2));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with(""));
+    CHECK_UNARY(   csubstr(   "01234").begins_with("0"));
+    CHECK_UNARY(   csubstr(   "01234").begins_with("01"));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with("00"));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with("02"));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with("12"));
+    CHECK_UNARY(   csubstr(   "01234").begins_with("012"));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with_any(""));
+    CHECK_UNARY(   csubstr(   "01234").begins_with_any("0"));
+    CHECK_UNARY(   csubstr(   "01234").begins_with_any("01"));
+    CHECK_UNARY(   csubstr(   "01234").begins_with_any("012"));
+    CHECK_UNARY(   csubstr(   "01234").begins_with_any("02"));
+    CHECK_UNARY( ! csubstr(   "01234").begins_with_any("12"));
+
+    CHECK_UNARY(   csubstr(  "001234").begins_with('0'));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('0', 0));
+    CHECK_UNARY(   csubstr(  "001234").begins_with('0', 1));
+    CHECK_UNARY(   csubstr(  "001234").begins_with('0', 2));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('0', 3));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('1'));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('1', 0));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('1', 1));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('1', 2));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('1', 3));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('2'));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('2', 0));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('2', 1));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('2', 2));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with('2', 3));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with(""));
+    CHECK_UNARY(   csubstr(  "001234").begins_with("0"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with("00"));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with("000"));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with("01"));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with("012"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with("001"));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with("002"));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with_any(""));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("0"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("00"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("01"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("012"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("001"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("002"));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with_any("1"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("10"));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with_any("11"));
+    CHECK_UNARY( ! csubstr(  "001234").begins_with_any("112"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("101"));
+    CHECK_UNARY(   csubstr(  "001234").begins_with_any("102"));
+
+    CHECK_UNARY(   csubstr(  "0001234").begins_with('0'));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('0', 0));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with('0', 1));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with('0', 2));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with('0', 3));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('0', 4));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('1'));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('1', 0));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('1', 1));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('1', 2));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('1', 3));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('2'));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('2', 0));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('2', 1));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('2', 2));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with('2', 3));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with(""));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with("0"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with("00"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with("000"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with("0000"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with("01"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with("012"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with("001"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with("0001"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with("0002"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with_any(""));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("0"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("00"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("01"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("012"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("001"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("002"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with_any("1"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("10"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with_any("11"));
+    CHECK_UNARY( ! csubstr(  "0001234").begins_with_any("112"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("101"));
+    CHECK_UNARY(   csubstr(  "0001234").begins_with_any("102"));
 }
+
+
+// workaround for a VS2026 cl.exe 19.51 compiler bug:
+// https://developercommunity.microsoft.com/t/C-compiler-miscompiles-doctest-CHECK/11099010
+// the failure happens only when calling csubstr::ends_with() in
+// doctest's CHECK() macro, so we only need to wrap the call here.
+// to play safe, we're calling C4_CHECK() on the original condition, which passes.
+static C4_NO_INLINE bool ends_with(csubstr s, const char c, const size_t num) noexcept
+{
+    return s.ends_with(c, num);
+}
+
 
 TEST_CASE("substr.ends_with")
 {
     CHECK_UNARY(csubstr("{% if foo %}bar{% endif %}").ends_with("{% endif %}"));
 
-    CHECK (csubstr("1234"    ).ends_with('0', 0));
-    CHECK (csubstr("12340"   ).ends_with('0', 1));
-    CHECK_FALSE(csubstr("12340"   ).ends_with('0', 2));
-    CHECK (csubstr("123400"  ).ends_with('0', 1));
-    CHECK (csubstr("123400"  ).ends_with('0', 2));
-    CHECK_FALSE(csubstr("123400"  ).ends_with('0', 3));
-    CHECK (csubstr("1234000" ).ends_with('0', 1));
-    CHECK (csubstr("1234000" ).ends_with('0', 2));
-    CHECK (csubstr("1234000" ).ends_with('0', 3));
-    CHECK_FALSE(csubstr("1234000" ).ends_with('0', 4));
-    CHECK (csubstr("12340000").ends_with('0', 1));
-    CHECK (csubstr("12340000").ends_with('0', 2));
-    CHECK (csubstr("12340000").ends_with('0', 3));
-    CHECK (csubstr("12340000").ends_with('0', 4));
-    CHECK_FALSE(csubstr("12340000").ends_with('0', 5));
+    CHECK_UNARY( ! csubstr(    "").ends_with('0'));
+    CHECK_UNARY( ! csubstr(    "").ends_with('0', 0));
+    CHECK_UNARY( ! csubstr(    "").ends_with('0', 1));
+    CHECK_UNARY( ! csubstr(    "").ends_with('1'));
+    CHECK_UNARY( ! csubstr(    "").ends_with('1', 0));
+    CHECK_UNARY( ! csubstr(    "").ends_with('1', 1));
+    CHECK_UNARY( ! csubstr(    "").ends_with('1', 2));
+    CHECK_UNARY( ! csubstr(    "").ends_with('2'));
+    CHECK_UNARY( ! csubstr(    "").ends_with('2', 0));
+    CHECK_UNARY( ! csubstr(    "").ends_with('2', 1));
+    CHECK_UNARY( ! csubstr(    "").ends_with('2', 2));
+    CHECK_UNARY( ! csubstr(    "").ends_with(""));
+    CHECK_UNARY( ! csubstr(    "").ends_with("0"));
+    CHECK_UNARY( ! csubstr(    "").ends_with("1"));
+    CHECK_UNARY( ! csubstr(    "").ends_with("01"));
+    CHECK_UNARY( ! csubstr(    "").ends_with("10"));
+    CHECK_UNARY( ! csubstr(    "").ends_with("12"));
+    CHECK_UNARY( ! csubstr(    "").ends_with_any("0"));
+    CHECK_UNARY( ! csubstr(    "").ends_with_any("1"));
+    CHECK_UNARY( ! csubstr(    "").ends_with_any("01"));
+    CHECK_UNARY( ! csubstr(    "").ends_with_any("12"));
+    CHECK_UNARY( ! csubstr(    "").ends_with_any("23"));
+
+    CHECK_UNARY(   csubstr(    "0").ends_with('0'));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('0', 0));
+    CHECK_UNARY(   csubstr(    "0").ends_with('0', 1));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('1'));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('1', 0));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('1', 1));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('1', 2));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('2'));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('2', 0));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('2', 1));
+    CHECK_UNARY( ! csubstr(    "0").ends_with('2', 2));
+    CHECK_UNARY( ! csubstr(    "0").ends_with(""));
+    CHECK_UNARY(   csubstr(    "0").ends_with("0"));
+    CHECK_UNARY( ! csubstr(    "0").ends_with("1"));
+    CHECK_UNARY( ! csubstr(    "0").ends_with("01"));
+    CHECK_UNARY( ! csubstr(    "0").ends_with("10"));
+    CHECK_UNARY( ! csubstr(    "0").ends_with("12"));
+    CHECK_UNARY(   csubstr(    "0").ends_with_any("0"));
+    CHECK_UNARY( ! csubstr(    "0").ends_with_any("1"));
+    CHECK_UNARY(   csubstr(    "0").ends_with_any("01"));
+    CHECK_UNARY( ! csubstr(    "0").ends_with_any("12"));
+    CHECK_UNARY( ! csubstr(    "0").ends_with_any("23"));
+
+    // there is a miscompile in VS2026 with cl.exe 19.51+:
+    // see https://developercommunity.microsoft.com/t/C-compiler-miscompiles-doctest-CHECK/11099010?fTime=6m&q=miscompile
+    CHECK_UNARY( ! csubstr("1234").ends_with('0'));
+    CHECK_UNARY( ! csubstr("1234").ends_with('0', 0));
+    CHECK_UNARY( ! csubstr("1234").ends_with('0', 1));
+    CHECK_UNARY( ! csubstr("1234").ends_with('0', 2));
+    CHECK_UNARY( ! csubstr("1234").ends_with('0', 3));
+    CHECK_UNARY( ! csubstr("1234").ends_with('0', 4));
+    CHECK_UNARY( ! csubstr("1234").ends_with('1'));
+    CHECK_UNARY( ! csubstr("1234").ends_with('1', 0));
+    CHECK_UNARY( ! ends_with("1234", '1', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("1234").ends_with('1', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("1234").ends_with('1', 2));
+    CHECK_UNARY( ! csubstr("1234").ends_with('1', 3));
+    CHECK_UNARY( ! csubstr("1234").ends_with('2'));
+    CHECK_UNARY( ! csubstr("1234").ends_with('2', 0));
+    CHECK_UNARY( ! ends_with("1234", '2', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("1234").ends_with('2', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("1234").ends_with('2', 2));
+    CHECK_UNARY( ! csubstr("1234").ends_with('2', 3));
+    CHECK_UNARY(   csubstr("1234").ends_with('4'));
+    CHECK_UNARY( ! csubstr("1234").ends_with('4', 0));
+    CHECK_UNARY(   ends_with("1234", '4', 1)); // vsfail
+    C4_CHECK   (   csubstr("1234").ends_with('4', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("1234").ends_with('4', 2));
+    CHECK_UNARY( ! csubstr("1234").ends_with('4', 3));
+    CHECK_UNARY( ! csubstr("1234").ends_with(""));
+    CHECK_UNARY(   csubstr("1234").ends_with("4"));
+    CHECK_UNARY( ! csubstr("1234").ends_with("44"));
+    CHECK_UNARY( ! csubstr("1234").ends_with("444"));
+    CHECK_UNARY( ! csubstr("1234").ends_with("4444"));
+    CHECK_UNARY(   csubstr("1234").ends_with("34"));
+    CHECK_UNARY( ! csubstr("1234").ends_with("344"));
+    CHECK_UNARY( ! csubstr("1234").ends_with("334"));
+    CHECK_UNARY(   csubstr("1234").ends_with("1234"));
+    CHECK_UNARY( ! csubstr("1234").ends_with("01234"));
+    CHECK_UNARY( ! csubstr("1234").ends_with("12340"));
+    CHECK_UNARY( ! csubstr("1234").ends_with("400"));
+    CHECK_UNARY( ! csubstr("1234").ends_with_any(""));
+    CHECK_UNARY( ! csubstr("1234").ends_with_any("0"));
+    CHECK_UNARY( ! csubstr("1234").ends_with_any("00"));
+    CHECK_UNARY(   csubstr("1234").ends_with_any("04"));
+    CHECK_UNARY( ! csubstr("1234").ends_with_any("03"));
+    CHECK_UNARY(   csubstr("1234").ends_with_any("004"));
+    CHECK_UNARY( ! csubstr("1234").ends_with_any("003"));
+    CHECK_UNARY(   csubstr("1234").ends_with_any("4"));
+    CHECK_UNARY(   csubstr("1234").ends_with_any("40"));
+    CHECK_UNARY(   csubstr("1234").ends_with_any("44"));
+    CHECK_UNARY(   csubstr("1234").ends_with_any("443"));
+    CHECK_UNARY(   csubstr("1234").ends_with_any("404"));
+    CHECK_UNARY( ! csubstr("1234").ends_with_any("303"));
+
+    CHECK_UNARY(   csubstr("12340").ends_with('0'));
+    CHECK_UNARY( ! csubstr("12340").ends_with('0', 0));
+    CHECK_UNARY(   ends_with("12340", '0', 1)); // vsfail
+    C4_CHECK   (   csubstr("12340").ends_with('0', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("12340").ends_with('0', 2));
+    CHECK_UNARY( ! csubstr("12340").ends_with('0', 3));
+    CHECK_UNARY( ! csubstr("12340").ends_with('0', 4));
+    CHECK_UNARY( ! csubstr("12340").ends_with('1'));
+    CHECK_UNARY( ! csubstr("12340").ends_with('1', 0));
+    CHECK_UNARY( ! ends_with("12340", '1', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("12340").ends_with('1', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("12340").ends_with('1', 2));
+    CHECK_UNARY( ! csubstr("12340").ends_with('1', 3));
+    CHECK_UNARY( ! csubstr("12340").ends_with('2'));
+    CHECK_UNARY( ! csubstr("12340").ends_with('2', 0));
+    CHECK_UNARY( ! ends_with("12340", '2', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("12340").ends_with('2', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("12340").ends_with('2', 2));
+    CHECK_UNARY( ! csubstr("12340").ends_with('2', 3));
+    CHECK_UNARY( ! csubstr("12340").ends_with(""));
+    CHECK_UNARY(   csubstr("12340").ends_with("0"));
+    CHECK_UNARY( ! csubstr("12340").ends_with("00"));
+    CHECK_UNARY( ! csubstr("12340").ends_with("000"));
+    CHECK_UNARY( ! csubstr("12340").ends_with("0000"));
+    CHECK_UNARY(   csubstr("12340").ends_with("40"));
+    CHECK_UNARY( ! csubstr("12340").ends_with("400"));
+    CHECK_UNARY(   csubstr("12340").ends_with("340"));
+    CHECK_UNARY(   csubstr("12340").ends_with("12340"));
+    CHECK_UNARY( ! csubstr("12340").ends_with("012340"));
+    CHECK_UNARY( ! csubstr("12340").ends_with("400"));
+    CHECK_UNARY( ! csubstr("12340").ends_with_any(""));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("0"));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("00"));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("04"));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("03"));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("004"));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("003"));
+    CHECK_UNARY( ! csubstr("12340").ends_with_any("4"));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("40"));
+    CHECK_UNARY( ! csubstr("12340").ends_with_any("44"));
+    CHECK_UNARY( ! csubstr("12340").ends_with_any("443"));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("404"));
+    CHECK_UNARY(   csubstr("12340").ends_with_any("303"));
+
+    CHECK_UNARY(   csubstr("123400").ends_with('0'));
+    CHECK_UNARY( ! csubstr("123400").ends_with('0', 0));
+    CHECK_UNARY(   ends_with("123400", '0', 1)); // vsfail
+    C4_CHECK   (   csubstr("123400").ends_with('0', 1)); // vsfail
+    CHECK_UNARY(   csubstr("123400").ends_with('0', 2));
+    CHECK_UNARY( ! csubstr("123400").ends_with('0', 3));
+    CHECK_UNARY( ! csubstr("123400").ends_with('0', 4));
+    CHECK_UNARY( ! csubstr("123400").ends_with('1'));
+    CHECK_UNARY( ! csubstr("123400").ends_with('1', 0));
+    CHECK_UNARY( ! ends_with("123400", '1', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("123400").ends_with('1', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("123400").ends_with('1', 2));
+    CHECK_UNARY( ! csubstr("123400").ends_with('1', 3));
+    CHECK_UNARY( ! csubstr("123400").ends_with('2'));
+    CHECK_UNARY( ! csubstr("123400").ends_with('2', 0));
+    CHECK_UNARY( ! ends_with("123400", '2', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("123400").ends_with('2', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("123400").ends_with('2', 2));
+    CHECK_UNARY( ! csubstr("123400").ends_with('2', 3));
+    CHECK_UNARY( ! csubstr("123400").ends_with(""));
+    CHECK_UNARY(   csubstr("123400").ends_with("0"));
+    CHECK_UNARY(   csubstr("123400").ends_with("00"));
+    CHECK_UNARY( ! csubstr("123400").ends_with("000"));
+    CHECK_UNARY( ! csubstr("123400").ends_with("0000"));
+    CHECK_UNARY( ! csubstr("123400").ends_with("40"));
+    CHECK_UNARY(   csubstr("123400").ends_with("400"));
+    CHECK_UNARY(   csubstr("123400").ends_with("3400"));
+    CHECK_UNARY(   csubstr("123400").ends_with("123400"));
+    CHECK_UNARY( ! csubstr("123400").ends_with("0123400"));
+    CHECK_UNARY( ! csubstr("123400").ends_with("4000"));
+    CHECK_UNARY( ! csubstr("123400").ends_with_any(""));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("0"));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("00"));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("04"));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("03"));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("004"));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("003"));
+    CHECK_UNARY( ! csubstr("123400").ends_with_any("4"));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("40"));
+    CHECK_UNARY( ! csubstr("123400").ends_with_any("44"));
+    CHECK_UNARY( ! csubstr("123400").ends_with_any("443"));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("404"));
+    CHECK_UNARY(   csubstr("123400").ends_with_any("303"));
+
+    CHECK_UNARY(   csubstr("1234000").ends_with('0'));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('0', 0));
+    CHECK_UNARY(   ends_with("1234000", '0', 1)); // vsfail
+    C4_CHECK   (   csubstr("1234000").ends_with('0', 1)); // vsfail
+    CHECK_UNARY(   csubstr("1234000").ends_with('0', 2));
+    CHECK_UNARY(   csubstr("1234000").ends_with('0', 3));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('0', 4));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('1'));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('1', 0));
+    CHECK_UNARY( ! ends_with("1234000", '1', 1)); // vsfail
+    C4_CHECK   ( ! csubstr("1234000").ends_with('1', 1)); // vsfail
+    CHECK_UNARY( ! csubstr("1234000").ends_with('1', 2));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('1', 3));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('2'));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('2', 0));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('2', 1));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('2', 2));
+    CHECK_UNARY( ! csubstr("1234000").ends_with('2', 3));
+    CHECK_UNARY( ! csubstr("1234000").ends_with(""));
+    CHECK_UNARY(   csubstr("1234000").ends_with("0"));
+    CHECK_UNARY(   csubstr("1234000").ends_with("00"));
+    CHECK_UNARY(   csubstr("1234000").ends_with("000"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with("0000"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with("40"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with("400"));
+    CHECK_UNARY(   csubstr("1234000").ends_with("4000"));
+    CHECK_UNARY(   csubstr("1234000").ends_with("34000"));
+    CHECK_UNARY(   csubstr("1234000").ends_with("1234000"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with("01234000"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with("40000"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with_any(""));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("0"));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("00"));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("01"));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("012"));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("001"));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("002"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with_any("1"));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("10"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with_any("11"));
+    CHECK_UNARY( ! csubstr("1234000").ends_with_any("112"));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("101"));
+    CHECK_UNARY(   csubstr("1234000").ends_with_any("102"));
 }
 
 TEST_CASE("substr.find")

@@ -37,10 +37,22 @@ jobs:
           - {std: 17, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
           - {std: 20, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
           - {std: 20, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          #
+          - {std: 11, cxx: vs2026, bt: Debug  , os: windows-latest, bitlinks: shared64 static32}
+          - {std: 11, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64 static32}
+          - {std: 14, cxx: vs2026, bt: Debug  , os: windows-latest, bitlinks: shared64 static32}
+          - {std: 14, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64 static32}
+          - {std: 17, cxx: vs2026, bt: Debug  , os: windows-latest, bitlinks: shared64 static32}
+          - {std: 17, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2026, bt: Debug  , os: windows-latest, bitlinks: shared64 static32}
+          - {std: 20, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64 static32}
+          - {std: 23, cxx: vs2026, bt: Debug  , os: windows-latest, bitlinks: shared64 static32}
+          - {std: 23, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64 static32}
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - :: checkout-action
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - {name: install NSIS, uses: repolevedavaj/install-nsis@v1.2.0, with: {nsis-version: '3.12'}}
       - :: run-steps
 
   #----------------------------------------------------------------------------
@@ -52,16 +64,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
-          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
-          - {std: 20, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64 static32}
-          - {std: 20, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64 static32}
+          - {std: 11, cxx: vs2026, bt: Debug  , os: windows-latest, bitlinks: shared64 static32}
+          - {std: 11, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64 static32}
+          - {std: 23, cxx: vs2026, bt: Debug  , os: windows-latest, bitlinks: shared64 static32}
+          - {std: 23, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64 static32}
     # https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model?view=msvc-170
     # https://learn.microsoft.com/en-us/cpp/build/reference/gr-enable-run-time-type-information?view=msvc-170
     env: {CXXFLAGS: "/EHa- /EHs- /EHc /EHr- /GR- /wd4530", STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - :: checkout-action
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - {name: install NSIS, uses: repolevedavaj/install-nsis@v1.2.0, with: {nsis-version: '3.12'}}
       - :: run-steps
 
   #----------------------------------------------------------------------------
@@ -73,8 +86,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022}
-          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022}
+          - {std: 11, cxx: vs2026, bt: Debug  , os: windows-latest}
+          - {std: 11, cxx: vs2026, bt: Release, os: windows-latest}
     steps:
       - :: checkout-action
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
@@ -84,6 +97,7 @@ jobs:
           cmake -S . -B build \
             -G "Unix Makefiles" \
             -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_COMPILER=c \
             -DCMAKE_INSTALL_PREFIX=install \
             -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
             -DC4_CXX_STANDARD=${{matrix.std}} \
@@ -110,10 +124,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - {std: 11, name: vs2022/debug/static  , os: 2022, bt: Debug  , shared: OFF}
-        - {std: 11, name: vs2022/release/shared, os: 2022, bt: Release, shared: ON }
-        - {std: 20, name: vs2022/debug/shared  , os: 2022, bt: Debug  , shared: OFF}
-        - {std: 20, name: vs2022/release/shared, os: 2022, bt: Release, shared: ON }
+        - {std: 11, name: vs2026/debug/static  , os: latest, bt: Debug  , shared: OFF}
+        - {std: 11, name: vs2026/release/shared, os: latest, bt: Release, shared: ON }
+        - {std: 20, name: vs2026/debug/shared  , os: latest, bt: Debug  , shared: OFF}
+        - {std: 20, name: vs2026/release/shared, os: latest, bt: Release, shared: ON }
     steps:
     - :: checkout-action
     - name: ----------------(-T ClangCL)
@@ -121,7 +135,7 @@ jobs:
     - name: config (-T ClangCL)
       run: |
         cmake -B build/ts \
-              -G "Visual Studio 17 2022" -T ClangCL -A x64 \
+              -G "Visual Studio 18 2026" -T ClangCL -A x64 \
               -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
               -DCMAKE_CXX_STANDARD=${{matrix.std}} \
               -DCMAKE_CXX_FLAGS=' /DWIN32 /D_WINDOWS /W3 /GR /EHsc /D_CRT_SECURE_NO_WARNINGS ' \
@@ -175,12 +189,13 @@ jobs:
           #
           # vs2022 has an internal compiler error on iarm32 Release builds:
           # https://github.com/biojppm/c4core/runs/5593534734?check_suite_focus=true#step:15:126
-          #- {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64arm static32arm}
-          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64arm }
-          #- {std: 20, cxx: vs2022, bt: Debug  , os: windows-2022, bitlinks: shared64arm static32arm}
-          - {std: 20, cxx: vs2022, bt: Release, os: windows-2022, bitlinks: shared64arm }
+          #- {std: 11, cxx: vs2026, bt: Debug  , os: windows-2022, bitlinks: shared64arm static32arm}
+          - {std: 11, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64arm }
+          #- {std: 20, cxx: vs2026, bt: Debug  , os: windows-latest, bitlinks: shared64arm static32arm}
+          - {std: 20, cxx: vs2026, bt: Release, os: windows-latest, bitlinks: shared64arm }
     env: {STD: "${{matrix.std}}", CXX_: "${{matrix.cxx}}", BT: "${{matrix.bt}}", BITLINKS: "${{matrix.bitlinks}}", VG: "${{matrix.vg}}", SAN: "${{matrix.san}}", LINT: "${{matrix.lint}}", OS: "${{matrix.os}}"}
     steps:
       - :: checkout-action
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
+      - {name: install NSIS, uses: repolevedavaj/install-nsis@v1.2.0, with: {nsis-version: '3.12'}}
       - :: run-steps-arm
