@@ -10,4 +10,14 @@
   - Improve std interop headers
   - Fix: `from_chars_first()` must use `csubstr` for the chars parameters
   - clang-tidy fixes with clang-22
-
+- [PR#161](https://github.com/biojppm/c4core/pull/161) Improve base64 facilities:
+  - Move encoding/decoding/validation to low-level functions without abstractions:
+    - `c4::base64_valid()`
+    - `c4::base64_encode()`
+    - `c4::base64_decode()`
+  - Change the semantics of `base64_decode()` to return true when decode succeeds, or false when decode fails or the output buffer is insufficient.
+  - Move the formatting facilities to `c4/format_base64.hpp`:
+    - `c4::fmt::base64()`
+    - `c4::to_chars(buf, fmt::cbase64())`
+    - `c4::from_chars(buf, fmt::cbase64())`
+  - Add `c4/std/string_view_fwd.hpp`

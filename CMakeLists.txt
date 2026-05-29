@@ -40,6 +40,7 @@ set(C4CORE_SRC_FILES
     c4/export.hpp
     c4/format.hpp
     c4/format.cpp
+    c4/format_base64.hpp
     c4/gcc-4.8.hpp
     c4/hash.hpp
     c4/language.hpp

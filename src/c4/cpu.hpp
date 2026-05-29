@@ -112,7 +112,6 @@
 #       define C4_WORDSIZE 4
 #   endif
 #   define C4_BYTE_ORDER _C4EM
-   // ppc is bi-endian - check byte order below
 
 #elif defined(__s390x__) || defined(__zarch__) || defined(__SYSC_ZARCH_)
 #   define C4_CPU_S390_X
