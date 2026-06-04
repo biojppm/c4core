@@ -285,18 +285,16 @@ C4_ALWAYS_INLINE overflow_checked_<T> overflow_checked(T &val)
 /** format an integer signed type
  * @ingroup doc_to_chars */
 template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if<std::is_signed<T>::value, size_t>::type
-to_chars(substr buf, fmt::integral_<T> fmt)
+C4_ALWAYS_INLINE auto to_chars(substr buf, fmt::integral_<T> fmt)
+    -> typename std::enable_if<std::is_signed<T>::value, size_t>::type
 {
     return itoa(buf, fmt.val, fmt.radix);
 }
 /** format an integer signed type, pad with zeroes
  * @ingroup doc_to_chars */
 template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if<std::is_signed<T>::value, size_t>::type
-to_chars(substr buf, fmt::integral_padded_<T> fmt)
+C4_ALWAYS_INLINE auto to_chars(substr buf, fmt::integral_padded_<T> fmt)
+    -> typename std::enable_if<std::is_signed<T>::value, size_t>::type
 {
     return itoa(buf, fmt.val, fmt.radix, fmt.num_digits);
 }
@@ -304,18 +302,16 @@ to_chars(substr buf, fmt::integral_padded_<T> fmt)
 /** format an integer unsigned type
  * @ingroup doc_to_chars */
 template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
-to_chars(substr buf, fmt::integral_<T> fmt)
+C4_ALWAYS_INLINE auto to_chars(substr buf, fmt::integral_<T> fmt)
+    -> typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
 {
     return utoa(buf, fmt.val, fmt.radix);
 }
 /** format an integer unsigned type, pad with zeroes
  * @ingroup doc_to_chars */
 template<typename T>
-C4_ALWAYS_INLINE
-typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
-to_chars(substr buf, fmt::integral_padded_<T> fmt)
+C4_ALWAYS_INLINE auto to_chars(substr buf, fmt::integral_padded_<T> fmt)
+    -> typename std::enable_if<std::is_unsigned<T>::value, size_t>::type
 {
     return utoa(buf, fmt.val, fmt.radix, fmt.num_digits);
 }

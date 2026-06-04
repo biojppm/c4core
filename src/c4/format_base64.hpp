@@ -13,13 +13,11 @@
 #include "c4/base64.hpp"
 #endif
 
+
 namespace c4 {
 namespace fmt {
 
-/** @addtogroup doc_format_specifiers
- * @{ */
-
-/** @defgroup doc_base64_fmt Base64
+/** @defgroup doc_base64_fmt Base64 format specifiers
  *
  *  ```c++
  *  // given these variables:
@@ -54,6 +52,8 @@ namespace fmt {
  *  bool ok = from_chars(buf, base64(vec.data(), vec.size(), &reqbytes)); // for the container, but same call as above
  *  bool ok = from_chars(buf, base64(vec, &reqbytes)); // same effect as prev call
  *  ```
+ * @ingroup doc_format_specifiers
+ * @ingroup doc_base64
  * @{ */
 
 /** @cond dev */
@@ -206,12 +206,13 @@ C4_ALWAYS_INLINE auto base64(T & arg, size_t *reqsize=nullptr) // NOLINT
 
 /** @} */ // base64_fmt
 
-/** @} */ // format_specifiers
-
 } // namespace fmt
 
 
 //-----------------------------------------------------------------------------
+
+/** @addtogroup doc_base64
+ * @{ */
 
 /** (1) read a variable in base64 format
  * @ingroup doc_from_chars */
@@ -284,10 +285,12 @@ bool from_chars(csubstr buf, fmt::base64_container_wrapper<T> const& b)
  * accomodate the result
  * @ingroup doc_from_chars */
 template<class T>
-bool from_chars(csubstr buf, fmt::base64_container_wrapper<T> * b)
+bool from_chars(csubstr buf, fmt::base64_container_wrapper<T> const* b)
 {
     return from_chars(buf, *b);
 }
+
+/** @} */ // base64
 
 } // namespace c4
 

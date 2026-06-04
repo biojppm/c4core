@@ -2352,6 +2352,11 @@ public:
 
 }; // template class basic_substring
 
+#ifdef __DOXYGEN__
+using substr = basic_substring<char>; /**< a mutable string view */
+using csubstr = basic_substring<const char>; /**< an immutable string view */
+#endif
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -2362,33 +2367,33 @@ public:
  *
  * @ref c4::to_substr() and @ref c4::to_csubstr() are used in generic
  * code like @ref c4::format(). They enable the user to provide an
- * entry point for the construction of substrings from custom types
+ * entry point for the construction of substrings from custom types.
  *
  * @{ */
 
 
-/** neutral version for use in generic code */
-C4_ALWAYS_INLINE substr to_substr(substr s) noexcept { return s; }
-/** neutral version for use in generic code */
-C4_ALWAYS_INLINE csubstr to_csubstr(substr s) noexcept { return csubstr{s.str, s.len}; }
-/** neutral version for use in generic code */
-C4_ALWAYS_INLINE csubstr to_csubstr(csubstr s) noexcept { return s; }
-
-
-/** neutral version for use in generic code */
+/** @defgroup doc_substr_adapters_literal create substrings from a char literal
+ * @{ */
 template<size_t N> C4_ALWAYS_INLINE substr to_substr(char (&s)[N]) noexcept
 {
     return substr(s, N-1);
 }
-
 template<size_t N> C4_ALWAYS_INLINE csubstr to_csubstr(const char (&s)[N]) noexcept
 {
     return csubstr(s, N-1);
 }
+/** @} */
 
 
-/** Create a substring from a char*-like pointer
- * @note this overload uses SFINAE to prevent it from overriding the array overload
+/** @defgroup doc_substr_adapters_cstring create substrings from C strings
+ * @{ */
+
+/** Create a substring from a C-string (char*-like pointer)
+ *
+ * @note this overload uses SFINAE to prevent it from overriding the
+ * literal/array overload. U must be is a non-const-char pointer for
+ * this function to be considered in the overload set.
+ *
  * @see For a more detailed explanation on why the plain overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
 template<class U> C4_ALWAYS_INLINE auto to_substr(U s) noexcept
@@ -2399,7 +2404,9 @@ template<class U> C4_ALWAYS_INLINE auto to_substr(U s) noexcept
 
 /** Create a substring from a const char*-like pointer
  *
- * @note this overload uses SFINAE to prevent it from overriding the array overload
+ * @note this overload uses SFINAE to prevent it from overriding the
+ * literal/array overload
+ *
  * @see For a more detailed explanation on why the plain overloads cannot
  * coexist, see http://cplusplus.bordoon.com/specializeForCharacterArrays.html */
 template<class U> C4_ALWAYS_INLINE auto to_csubstr(U s) noexcept
@@ -2407,6 +2414,15 @@ template<class U> C4_ALWAYS_INLINE auto to_csubstr(U s) noexcept
 {
     return csubstr(s);
 }
+/** @} */
+
+
+/** @defgroup doc_substr_adapters_neutral neutral version for use in generic code
+ * @{ */
+C4_ALWAYS_INLINE substr to_substr(substr s) noexcept { return s; }
+C4_ALWAYS_INLINE csubstr to_csubstr(substr s) noexcept { return csubstr{s.str, s.len}; }
+C4_ALWAYS_INLINE csubstr to_csubstr(csubstr s) noexcept { return s; }
+/** @} */
 
 /** @} */
 
@@ -2415,10 +2431,11 @@ template<class U> C4_ALWAYS_INLINE auto to_csubstr(U s) noexcept
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-/** @defgroup doc_substr_cmp substr comparison operators
+/** @defgroup doc_substr_cmp substr left-comparison operators
  * @{ */
 
-/** @name single character @{ */
+/** @defgroup doc_substr_cmp_singlechar left-compare a single char with a csubstr
+ * @{ */
 template<typename C> inline bool operator== (const char c, basic_substring<C> const that) noexcept { return that.compare(c) == 0; }
 template<typename C> inline bool operator!= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) != 0; }
 template<typename C> inline bool operator<  (const char c, basic_substring<C> const that) noexcept { return that.compare(c) >  0; }
@@ -2427,7 +2444,8 @@ template<typename C> inline bool operator<= (const char c, basic_substring<C> co
 template<typename C> inline bool operator>= (const char c, basic_substring<C> const that) noexcept { return that.compare(c) <= 0; }
 /** @} */
 
-/** @name character array/literal @{ */
+/** @defgroup doc_substr_cmp_literal left-compare a string literal with a csubstr
+ * @{ */
 template<typename C, size_t N> inline bool operator== (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) == 0; }
 template<typename C, size_t N> inline bool operator!= (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) != 0; }
 template<typename C, size_t N> inline bool operator<  (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) >  0; }
@@ -2436,7 +2454,7 @@ template<typename C, size_t N> inline bool operator<= (const char (&arr)[N], bas
 template<typename C, size_t N> inline bool operator>= (const char (&arr)[N], basic_substring<C> const that) noexcept { return that.compare(arr, N-1) <= 0; }
 /** @} */
 
-/** @name C string (character pointer, zero terminated)
+/** @defgroup doc_substr_cmp_cstring left-compare a C-string with a csubstr
  * @{ */
 template<typename U, typename C> inline auto operator== (U c_str, basic_substring<C> const that) noexcept -> typename std::enable_if<is_compatible_char_ptr<U, C>::value, bool>::type { return that.compare(c_str, strlen(c_str)) == 0; }
 template<typename U, typename C> inline auto operator!= (U c_str, basic_substring<C> const that) noexcept -> typename std::enable_if<is_compatible_char_ptr<U, C>::value, bool>::type { return that.compare(c_str, strlen(c_str)) != 0; }
@@ -2458,15 +2476,15 @@ template<typename U, typename C> inline auto operator>= (U c_str, basic_substrin
  * @see https://github.com/onqtam/doctest/pull/431 */
 #ifndef C4_SUBSTR_NO_OSTREAM_LSHIFT
 
-C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wsign-conversion")
-/** output the string to a stream */
+/** output the string to an ostream-like type */
 template<class OStream, class C>
 inline OStream& operator<< (OStream& os, basic_substring<C> s)
 {
+    C4_SUPPRESS_WARNING_GCC_CLANG_WITH_PUSH("-Wsign-conversion")
     os.write(s.str, s.len);
+    C4_SUPPRESS_WARNING_GCC_CLANG_POP
     return os;
 }
-C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 #endif // !C4_SUBSTR_NO_OSTREAM_LSHIFT
 
