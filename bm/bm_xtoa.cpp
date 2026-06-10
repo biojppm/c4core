@@ -709,7 +709,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkall_divrem_write1(c4::substr buf, T v) no
     C4_ASSERT(v >= 0);
     size_t pos = 0;
     do {
-        if(C4_LIKELY(pos < buf.len))
+        if C4_LIKELY(pos < buf.len)
             buf.str[pos] = (char)('0' + (v % T(10)));
         ++pos;
         v /= T(10);
@@ -728,7 +728,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkall_divrem_write2(c4::substr buf, T v) no
 	{
         const auto num = (v % T(100)) << 1u;
         v /= T(100);
-        if(C4_LIKELY(pos + 2 < buf.len))
+        if C4_LIKELY(pos + 2 < buf.len)
         {
             buf.str[pos++] = digits0099[num + 1];
             buf.str[pos++] = digits0099[num];
@@ -737,7 +737,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkall_divrem_write2(c4::substr buf, T v) no
     if(v >= T(10))
 	{
         const auto num = v << 1u;
-        if(C4_LIKELY(pos + 2 < buf.len))
+        if C4_LIKELY(pos + 2 < buf.len)
         {
             buf.str[pos++] = digits0099[num + 1];
             buf.str[pos++] = digits0099[num];
@@ -745,7 +745,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkall_divrem_write2(c4::substr buf, T v) no
 	}
     else
     {
-        if(C4_LIKELY(pos < buf.len))
+        if C4_LIKELY(pos < buf.len)
             buf.str[pos++] = (char)('0' + v);
     }
     buf.reverse_range(0, pos);
@@ -765,7 +765,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkall_singlediv_write1(c4::substr buf, T v)
         const T quo = v / T(10);
         const auto rem = v - quo * T(10);
         v = quo;
-        if(C4_LIKELY(pos < buf.len))
+        if C4_LIKELY(pos < buf.len)
             buf.str[pos] = (char)('0' + rem);
         ++pos;
     } while(v);
@@ -784,7 +784,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkall_singlediv_write2(c4::substr buf, T v)
         const T quo = v / T(100);
         const auto num = (v - quo * T(100)) << 1u;
         v = quo;
-        if(C4_LIKELY(pos+2 < buf.len))
+        if C4_LIKELY(pos+2 < buf.len)
         {
             buf.str[pos++] = digits0099[num + 1];
             buf.str[pos++] = digits0099[num];
@@ -793,7 +793,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkall_singlediv_write2(c4::substr buf, T v)
     if(v >= T(10))
 	{
         const auto num = v << 1u;
-        if(C4_LIKELY(pos+2 < buf.len))
+        if C4_LIKELY(pos+2 < buf.len)
         {
             buf.str[pos++] = digits0099[num + 1];
             buf.str[pos++] = digits0099[num    ];
@@ -801,7 +801,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkall_singlediv_write2(c4::substr buf, T v)
 	}
     else
     {
-        if(C4_LIKELY(pos < buf.len))
+        if C4_LIKELY(pos < buf.len)
             buf.str[pos++] = (char)('0' + v);
     }
     buf.reverse_range(0, pos);
@@ -816,7 +816,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkoncemax_divrem_write1(c4::substr buf, T v
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < c4::detail::charconv_digits<T>::maxdigits_dec))
+    if C4_UNLIKELY(buf.len < c4::detail::charconv_digits<T>::maxdigits_dec)
         return c4::detail::charconv_digits<T>::maxdigits_dec;
     size_t pos = 0;
     do {
@@ -832,7 +832,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkoncemax_divrem_write2(c4::substr buf, T v
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < c4::detail::charconv_digits<T>::maxdigits_dec))
+    if C4_UNLIKELY(buf.len < c4::detail::charconv_digits<T>::maxdigits_dec)
         return c4::detail::charconv_digits<T>::maxdigits_dec;
     size_t pos = 0;
     while(v >= T(100))
@@ -864,7 +864,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkoncemax_singlediv_write1(c4::substr buf, 
 {
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
-    if(C4_UNLIKELY(buf.len < c4::detail::charconv_digits<T>::maxdigits_dec))
+    if C4_UNLIKELY(buf.len < c4::detail::charconv_digits<T>::maxdigits_dec)
         return c4::detail::charconv_digits<T>::maxdigits_dec;
     size_t pos = 0;
     do {
@@ -883,7 +883,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkoncemax_singlediv_write2(c4::substr buf, 
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
     size_t pos = 0;
-    if(C4_UNLIKELY(buf.len < c4::detail::charconv_digits<T>::maxdigits_dec))
+    if C4_UNLIKELY(buf.len < c4::detail::charconv_digits<T>::maxdigits_dec)
         return c4::detail::charconv_digits<T>::maxdigits_dec;
     while(v >= T(100))
 	{
@@ -916,7 +916,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkoncelog_divrem_write1(c4::substr buf, T v
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
     unsigned digits = digitsfunc(v);
-    if(C4_UNLIKELY(buf.len < digits))
+    if C4_UNLIKELY(buf.len < digits)
         return digits;
     size_t pos = digits;
     do {
@@ -932,7 +932,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkoncelog_divrem_write2(c4::substr buf, T v
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
     unsigned digits = digitsfunc(v);
-    if(C4_UNLIKELY(buf.len < digits))
+    if C4_UNLIKELY(buf.len < digits)
         return digits;
     size_t pos = digits;
     while(v >= T(100))
@@ -964,7 +964,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkoncelog_singlediv_write1(c4::substr buf, 
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
     unsigned digits = digitsfunc(v);
-    if(C4_UNLIKELY(buf.len < digits))
+    if C4_UNLIKELY(buf.len < digits)
         return digits;
     size_t pos = digits;
     do {
@@ -982,7 +982,7 @@ C4_ALWAYS_INLINE size_t write_dec_checkoncelog_singlediv_write2(c4::substr buf, 
     C4_STATIC_ASSERT(std::is_integral<T>::value);
     C4_ASSERT(v >= 0);
     unsigned digits = digitsfunc(v);
-    if(C4_UNLIKELY(buf.len < digits))
+    if C4_UNLIKELY(buf.len < digits)
         return digits;
     size_t pos = digits;
     while(v >= T(100))

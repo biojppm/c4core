@@ -195,6 +195,7 @@
 #define C4_BEGIN_HIDDEN_NAMESPACE namespace /*hidden*/ {
 #define C4_END_HIDDEN_NAMESPACE } /* namespace hidden */
 
+
 //------------------------------------------------------------
 
 #ifndef C4_API
@@ -224,8 +225,6 @@
 #   define C4_COLD        /** @todo */
 #   define C4_ASSUME(...) __assume(__VA_ARGS__)
 #   define C4_EXPECT(x, y) x /** @todo */
-#   define C4_LIKELY(x)   x
-#   define C4_UNLIKELY(x) x
 #   define C4_UNREACHABLE() _c4_msvc_unreachable()
 #   define C4_ATTR_FORMAT(...) /** */
 #   define C4_NORETURN [[noreturn]]
@@ -263,8 +262,6 @@
  * @see http://stackoverflow.com/questions/15028990/semantics-of-gcc-hot-attribute */
 #   define C4_COLD __attribute__((cold))
 #   define C4_EXPECT(x, y) __builtin_expect(x, y) ///< @see https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
-#   define C4_LIKELY(x)   __builtin_expect(x, 1)
-#   define C4_UNLIKELY(x) __builtin_expect(x, 0)
 #   define C4_UNREACHABLE() __builtin_unreachable()
 #   define C4_ATTR_FORMAT(...) //__attribute__((format (__VA_ARGS__))) ///< @see https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#Common-Function-Attributes
 #   define C4_NORETURN __attribute__((noreturn))
@@ -305,6 +302,30 @@
 #   ifndef C4_ASSUME
 #       define C4_ASSUME(...)
 #   endif
+#endif
+
+
+#ifdef __has_cpp_attribute
+#   if (__has_cpp_attribute(unlikely) >= 201803L) && (C4_CPP >= 20)
+#       define C4_UNLIKELY_IS_ATTR_
+#   endif
+#endif
+
+#ifdef C4_UNLIKELY_IS_ATTR_
+#   define C4_LIKELY(x)   (x) [[likely]]
+#   define C4_UNLIKELY(x) (x) [[unlikely]]
+#   define C4_LIKELY20   [[likely]]
+#   define C4_UNLIKELY20 [[unlikely]]
+#elif defined(__clang__) || defined(__GNUC__)
+#   define C4_LIKELY(x)   (__builtin_expect(x, 1))
+#   define C4_UNLIKELY(x) (__builtin_expect(x, 0))
+#   define C4_LIKELY20
+#   define C4_UNLIKELY20
+#elif defined(_MSC_VER)
+#   define C4_LIKELY(x)   (x)
+#   define C4_UNLIKELY(x) (x)
+#   define C4_LIKELY20
+#   define C4_UNLIKELY20
 #endif
 
 

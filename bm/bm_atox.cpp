@@ -11,7 +11,7 @@ bool range_based_restrictvar0(c4::csubstr s, T * v)
     *v = 0;
     for(char c : s)
     {
-        if(C4_UNLIKELY(c < '0' || c > '9'))
+        if C4_UNLIKELY(c < '0' || c > '9')
             return false;
         *v = (*v) * T(10) + (T(c) - T('0'));
     }
@@ -24,7 +24,7 @@ bool range_based_restrictvar1(c4::csubstr s, T *C4_RESTRICT v)
     *v = 0;
     for(char c : s)
     {
-        if(C4_UNLIKELY(c < '0' || c > '9'))
+        if C4_UNLIKELY(c < '0' || c > '9')
             return false;
         *v = (*v) * T(10) + (T(c) - T('0'));
     }
@@ -38,7 +38,7 @@ bool indexloop_restrictvar0(c4::csubstr s, T * v)
     for(size_t i = 0; i < s.len; ++i)
     {
         const char c = s.str[i];
-        if(C4_UNLIKELY(c < '0' || c > '9'))
+        if C4_UNLIKELY(c < '0' || c > '9')
             return false;
         *v = (*v) * T(10) + (T(c) - T('0'));
     }
@@ -52,7 +52,7 @@ bool indexloop_restrictvar1(c4::csubstr s, T *C4_RESTRICT v)
     for(size_t i = 0; i < s.len; ++i)
     {
         const char c = s.str[i];
-        if(C4_UNLIKELY(c < '0' || c > '9'))
+        if C4_UNLIKELY(c < '0' || c > '9')
             return false;
         *v = (*v) * T(10) + (T(c) - T('0'));
     }
@@ -65,7 +65,7 @@ bool prefer_likely(c4::csubstr s, T * v)
     *v = 0;
     for(char c : s)
     {
-        if(C4_LIKELY(c >= '0' && c <= '9'))
+        if C4_LIKELY(c >= '0' && c <= '9')
             *v = (*v) * T(10) + (T(c) - T('0'));
         else
             return false;
@@ -80,7 +80,7 @@ bool no_early_return(c4::csubstr s, T *C4_RESTRICT v)
     bool stat = true;
     for(char c : s)
     {
-        if(C4_LIKELY(c >= '0' && c <= '9'))
+        if C4_LIKELY(c >= '0' && c <= '9')
             *v = (*v) * T(10) + (T(c) - T('0'));
         else
         {
@@ -98,7 +98,7 @@ bool no_early_return_auto_type(c4::csubstr s, T *C4_RESTRICT v)
     bool stat = true;
     for(char c : s)
     {
-        if(C4_LIKELY(c >= '0' && c <= '9'))
+        if C4_LIKELY(c >= '0' && c <= '9')
             *v = (*v) * T(10) + (T)(c - '0');
         else
         {
@@ -116,7 +116,7 @@ bool no_early_return_auto_type2(c4::csubstr s, T *C4_RESTRICT v)
     bool stat = true;
     for(char c : s)
     {
-        if(C4_LIKELY(c >= '0' && c <= '9'))
+        if C4_LIKELY(c >= '0' && c <= '9')
         {
             *v *= 10;
             *v += (T)(c - '0');
@@ -399,7 +399,7 @@ C4_ALWAYS_INLINE auto unroll_switch(c4::csubstr s, T *C4_RESTRICT v)
         for( ; i + 10 < s.len; ++i)
         {
             *v = *v * T(10) + _(i);
-            if(C4_UNLIKELY(!ok(i)))
+            if C4_UNLIKELY(!ok(i))
                 return false;
         }
         *v = T(1000000000) * _(i) + T(100000000) * _(i+1) + T(10000000) * _(i+2) + T(1000000) * _(i+3) + T(100000) * _(i+4) + T(10000) * _(i+5) + T(1000) * _(i+6) + T(100) * _(i+7) + T(10) * _(i+8) + _(i+9);
