@@ -52,7 +52,7 @@ jobs:
     steps:
       - :: checkout-action
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
-      - {name: install NSIS, uses: repolevedavaj/install-nsis@v1.2.0, with: {nsis-version: '3.12'}}
+      - {name: install NSIS, uses: repolevedavaj/install-nsis, with: {nsis-version: '3.12'}}
       - :: run-steps
 
   #----------------------------------------------------------------------------
@@ -74,7 +74,7 @@ jobs:
     steps:
       - :: checkout-action
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
-      - {name: install NSIS, uses: repolevedavaj/install-nsis@v1.2.0, with: {nsis-version: '3.12'}}
+      - {name: install NSIS, uses: repolevedavaj/install-nsis, with: {nsis-version: '3.12'}}
       - :: run-steps
 
   #----------------------------------------------------------------------------
@@ -197,5 +197,5 @@ jobs:
     steps:
       - :: checkout-action
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
-      - {name: install NSIS, uses: repolevedavaj/install-nsis@v1.2.0, with: {nsis-version: '3.12'}}
+      - {name: install NSIS, uses: repolevedavaj/install-nsis, with: {nsis-version: '3.12'}}
       - :: run-steps-arm
