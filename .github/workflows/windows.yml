@@ -136,7 +136,7 @@ jobs:
     - name: install requirements
       run: source .github/reqs.sh && c4_install_test_requirements $OS
     - name: install NSIS
-      uses: repolevedavaj/install-nsis@v1.2.0
+      uses: repolevedavaj/install-nsis
       with:
         nsis-version: '3.12'
     - name: show info
@@ -221,7 +221,7 @@ jobs:
     - name: install requirements
       run: source .github/reqs.sh && c4_install_test_requirements $OS
     - name: install NSIS
-      uses: repolevedavaj/install-nsis@v1.2.0
+      uses: repolevedavaj/install-nsis
       with:
         nsis-version: '3.12'
     - name: show info
@@ -418,7 +418,7 @@ jobs:
     - name: install requirements
       run: source .github/reqs.sh && c4_install_test_requirements $OS
     - name: install NSIS
-      uses: repolevedavaj/install-nsis@v1.2.0
+      uses: repolevedavaj/install-nsis
       with:
         nsis-version: '3.12'
     - name: show info
