@@ -24,6 +24,9 @@
 #   if __GNUC__ >= 5
 #       pragma GCC diagnostic ignored "-Wshift-count-overflow"
 #   endif
+#   if __GNUC__ >= 6
+#       pragma GCC diagnostic ignored "-Wnull-dereference"
+#   endif
 #endif
 
 #include "c4/ext/fast_float_all.h"
