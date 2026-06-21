@@ -7,6 +7,5 @@
 #include "c4/std/string.hpp"
 #include "c4/std/span.hpp"
 #include "c4/std/string_view.hpp"
-#include "c4/std/tuple.hpp"
 
 #endif // _C4_STD_STD_HPP_
