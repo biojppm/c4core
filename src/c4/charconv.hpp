@@ -1471,8 +1471,9 @@ C4_ALWAYS_INLINE bool atoi(csubstr str, T * C4_RESTRICT v) noexcept
 
     if(C4_UNLIKELY(str.len == 0))
         return false;
-
-    C4_ASSERT(str.str[0] != '+');
+    // no need for the assertion, but we leave it here to document
+    // the expectation:
+    //C4_ASSERT(str.str[0] != '+');
 
     T sign = 1;
     size_t start = 0;
@@ -1973,11 +1974,13 @@ C4_ALWAYS_INLINE size_t rtoa(substr buf, T v, int precision=-1, RealFormat_e for
 template<class T>
 C4_ALWAYS_INLINE bool scan_rhex(csubstr s, T *C4_RESTRICT val) noexcept
 {
-    C4_ASSERT(s.len > 0);
-    C4_ASSERT(s.str[0] != '-');
-    C4_ASSERT(s.str[0] != '+');
-    C4_ASSERT(!s.begins_with("0x"));
-    C4_ASSERT(!s.begins_with("0X"));
+    // no need for these asserts, but we leave them here to show
+    // the expectation:
+    //C4_ASSERT(s.len > 0);
+    //C4_ASSERT(s.str[0] != '-');
+    //C4_ASSERT(s.str[0] != '+');
+    //C4_ASSERT(!s.begins_with("0x"));
+    //C4_ASSERT(!s.begins_with("0X"));
     size_t pos = 0;
     // integer part
     for( ; pos < s.len; ++pos)
@@ -2125,7 +2128,7 @@ C4_ALWAYS_INLINE bool atof(csubstr str, float * C4_RESTRICT v) noexcept
     // fastfloat cannot parse hexadecimal floats
     bool isneg = (str.str[0] == '-');
     csubstr rem = str.sub(isneg || str.str[0] == '+');
-    if(!(rem.len >= 2 && (rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X'))))
+    if( ! (rem.len >= 2 && (rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X'))))
     {
         fast_float::from_chars_result result;
         result = fast_float::from_chars(str.str, str.str + str.len, *v);
@@ -2186,7 +2189,7 @@ C4_ALWAYS_INLINE bool atod(csubstr str, double * C4_RESTRICT v) noexcept
     // fastfloat cannot parse hexadecimal floats
     bool isneg = (str.str[0] == '-');
     csubstr rem = str.sub(isneg || str.str[0] == '+');
-    if(!(rem.len >= 2 && (rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X'))))
+    if( ! (rem.len >= 2 && (rem.str[0] == '0' && (rem.str[1] == 'x' || rem.str[1] == 'X'))))
     {
         fast_float::from_chars_result result;
         #ifndef CLANG_TIDY   // suppress a false-positive error (cannot be done with NOLINT: https://stackoverflow.com/questions/62838193/ )
