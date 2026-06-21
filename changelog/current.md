@@ -1,0 +1,2 @@
+- [PR#169](https://github.com/biojppm/c4core/pull/169) atof()/atod():
+  - disable assertions that prevent returning false
