@@ -6,10 +6,12 @@ import urllib.request
 
 projdir = abspath(dirname(dirname(__file__)))
 sys.path.insert(0, f"{projdir}/cmake")
-sys.path.insert(0, f"{projdir}")
 import amalgamate_utils as am
-from conanfile import FASTFLOAT_VERSION
 
+# fast_float currently at v8.2.10, but the latest revision available on ConanCenter is 8.1.0
+# (and tools/amalgamate.py::FASTFLOAT_VERSION)
+FASTFLOAT_REF = "fast_float/[>=8.1 <8.3]"
+FASTFLOAT_VERSION = "8.2.10"
 
 def amalgamate_fastfloat():
     out = f"{projdir}/src/c4/ext/fast_float_all.h"

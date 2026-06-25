@@ -1,14 +1,11 @@
 import os
-
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
 from conan.tools.files import copy
 
-
-# fast_float currently at v8.2.10, but the latest revision available on ConanCenter is 8.1.0
-# (and tools/amalgamate.py::FASTFLOAT_VERSION)
-FASTFLOAT_REF = "fast_float/[>=8.1 <8.3]"
-FASTFLOAT_VERSION = "8.2.10"
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from tools.amalgamate import FASTFLOAT_REF
 
 class C4coreConan(ConanFile):
     name = "c4core"

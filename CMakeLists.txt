@@ -106,11 +106,9 @@ c4_add_library(c4core
 )
 if(C4CORE_WITH_FASTFLOAT)
     # fast_float is no longer vendored under src/c4/ext
-    # Obtain fast_float. Prefer a packaged copy (conan toolchain, or a
-    # system / vcpkg install); otherwise fetch it at configure time so
-    # every build works without the dependency being pre-installed.
     find_package(fast_float QUIET)
     if(fast_float_FOUND)
+        # Prefer a packaged copy (conan / system / vcpkg install)
         if(TARGET fast_float::fast_float)
             target_link_libraries(c4core PUBLIC fast_float::fast_float)
         elseif(TARGET FastFloat::fast_float)
@@ -119,11 +117,14 @@ if(C4CORE_WITH_FASTFLOAT)
             target_link_libraries(c4core PUBLIC fast_float)
         endif()
     else()
+        # otherwise fetch it at configure time so every build works without the dependency being pre-installed.
+        file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/tools/amalgamate.py" _ff_line REGEX "^FASTFLOAT_VERSION")
+        string(REGEX REPLACE ".*\"([^\"]+)\".*" "\\1" C4CORE_FASTFLOAT_VERSION "${_ff_line}")
         include(FetchContent)
         set(FASTFLOAT_INSTALL OFF CACHE BOOL "" FORCE)
         FetchContent_Declare(fast_float
             GIT_REPOSITORY https://github.com/fastfloat/fast_float.git
-            GIT_TAG v8.2.10
+            GIT_TAG v${C4CORE_FASTFLOAT_VERSION}
             GIT_SHALLOW TRUE)
         FetchContent_MakeAvailable(fast_float)
         # header-only: use the include dir directly so c4core's
