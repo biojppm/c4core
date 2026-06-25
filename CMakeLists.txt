@@ -106,8 +106,31 @@ c4_add_library(c4core
 )
 if(C4CORE_WITH_FASTFLOAT)
     # fast_float is no longer vendored under src/c4/ext
-    find_package(fast_float REQUIRED)
-    target_link_libraries(c4core PUBLIC fast_float::fast_float)
+    # Obtain fast_float. Prefer a packaged copy (conan toolchain, or a
+    # system / vcpkg install); otherwise fetch it at configure time so
+    # every build works without the dependency being pre-installed.
+    find_package(fast_float QUIET)
+    if(fast_float_FOUND)
+        if(TARGET fast_float::fast_float)
+            target_link_libraries(c4core PUBLIC fast_float::fast_float)
+        elseif(TARGET FastFloat::fast_float)
+            target_link_libraries(c4core PUBLIC FastFloat::fast_float)
+        else()
+            target_link_libraries(c4core PUBLIC fast_float)
+        endif()
+    else()
+        include(FetchContent)
+        set(FASTFLOAT_INSTALL OFF CACHE BOOL "" FORCE)
+        FetchContent_Declare(fast_float
+            GIT_REPOSITORY https://github.com/fastfloat/fast_float.git
+            GIT_TAG v8.2.10
+            GIT_SHALLOW TRUE)
+        FetchContent_MakeAvailable(fast_float)
+        # header-only: use the include dir directly so c4core's
+        # install/export does not require fast_float in its export set.
+        target_include_directories(c4core PUBLIC
+            $<BUILD_INTERFACE:${fast_float_SOURCE_DIR}/include>)
+    endif()
 else()
     target_compile_definitions(c4core PUBLIC -DC4CORE_NO_FAST_FLOAT)
 endif()
