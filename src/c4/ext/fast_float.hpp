@@ -29,7 +29,7 @@
 #   endif
 #endif
 
-#include "c4/ext/fast_float_all.h"
+#include <fast_float/fast_float.h>
 
 #ifdef _MSC_VER
 #   pragma warning(pop)

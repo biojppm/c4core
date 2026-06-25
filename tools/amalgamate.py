@@ -2,20 +2,21 @@ import re
 from os.path import abspath, dirname
 import sys
 import subprocess
+import urllib.request
 
 projdir = abspath(dirname(dirname(__file__)))
 sys.path.insert(0, f"{projdir}/cmake")
+sys.path.insert(0, f"{projdir}")
 import amalgamate_utils as am
+from conanfile import FASTFLOAT_VERSION
 
 
 def amalgamate_fastfloat():
-    fastfloatdir = f"{projdir}/src/c4/ext/fast_float"
-    subprocess.run([
-        sys.executable,
-        f"{fastfloatdir}/script/amalgamate.py",
-        "--license", "MIT",
-        "--output", f"{fastfloatdir}/../fast_float_all.h"
-    ], cwd=fastfloatdir).check_returncode()
+    out = f"{projdir}/src/c4/ext/fast_float_all.h"
+    url = ("https://github.com/fastfloat/fast_float/releases/download/"
+           f"v{FASTFLOAT_VERSION}/fast_float.h")
+    print(f"amalgamate: fetching fast_float v{FASTFLOAT_VERSION} -> {out}")
+    urllib.request.urlretrieve(url, out)
 
 
 def amalgamate_c4core(filename: str,
@@ -141,6 +142,9 @@ INSTRUCTIONS:
                          include_regexes=[
                              re.compile(r'^\s*#\s*include "(c4/.*)".*$'),
                              re.compile(r'^\s*#\s*include <(c4/.*)>.*$'),
+                             # fast_float.hpp now includes the external conan header; drop it
+                             # in the amalgamation (code is injected via fast_float_all.h)
+                             re.compile(r'^\s*#\s*include <(fast_float/.*)>.*$'),
                          ],
                          definition_macro=defmacro,
                          repo=repo,

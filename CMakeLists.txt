@@ -86,7 +86,6 @@ set(C4CORE_SRC_FILES
 if(C4CORE_WITH_FASTFLOAT)
     list(APPEND C4CORE_SRC_FILES
         c4/ext/fast_float.hpp
-        c4/ext/fast_float_all.h
         )
 endif()
 set(C4CORE_AMALGAMATED ${C4CORE_SRC_DIR}/../src_singleheader/c4/c4core_all.hpp)
@@ -105,7 +104,11 @@ c4_add_library(c4core
     SOURCE_ROOT ${C4CORE_SRC_DIR}
     SOURCES ${C4CORE_SRC_FILES}
 )
-if(NOT C4CORE_WITH_FASTFLOAT)
+if(C4CORE_WITH_FASTFLOAT)
+    # fast_float is no longer vendored under src/c4/ext
+    find_package(fast_float REQUIRED)
+    target_link_libraries(c4core PUBLIC fast_float::fast_float)
+else()
     target_compile_definitions(c4core PUBLIC -DC4CORE_NO_FAST_FLOAT)
 endif()
 if(C4CORE_NO_DEBUG_BREAK)
