@@ -2,7 +2,6 @@
 
 [![MIT Licensed](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/biojppm/c4core/blob/master/LICENSE.txt)
 [![ci](https://github.com/biojppm/c4core/workflows/ci/badge.svg)](https://github.com/biojppm/c4core/actions?query=ci)
-[![conan](https://github.com/biojppm/c4core/workflows/conan/badge.svg)](https://github.com/biojppm/c4core/actions?query=conan)
 [![Codecov](https://codecov.io/gh/biojppm/c4core/branch/master/graph/badge.svg)](https://codecov.io/gh/biojppm/c4core)
 <!-- [![Coveralls](https://coveralls.io/repos/github/biojppm/c4core/badge.svg)](https://coveralls.io/github/biojppm/c4core) -->
 
@@ -44,7 +43,6 @@ these are not in the list of official architectures.
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 - [c4core - C++ core utilities](#c4core---c-core-utilities)
     - [Obtaining c4core](#obtaining-c4core)
-        - [Dependencies](#dependencies)
     - [Using c4core in your project](#using-c4core-in-your-project)
         - [CMake](#cmake)
         - [Conan](#conan)
@@ -70,8 +68,8 @@ these are not in the list of official architectures.
 
 ## Obtaining c4core
 
-c4core uses git submodules for its CMake helpers and for the `debugbreak`
-utility. It is best to clone c4core with the `--recursive` option:
+c4core uses git submodules. It is best to clone c4core with the `--recursive`
+option:
 
 ```bash
 # using --recursive makes sure git submodules are also cloned at the same time
@@ -81,32 +79,6 @@ git clone --recursive https://github.com/biojppm/c4core
 If you ommit the `--recursive` option, then after cloning you will have to
 make git checkout the current version of the submodules, using `git submodule
 init` followed by `git submodule update`.
-
-
-### Dependencies
-
-c4core has a single external dependency:
-[fast_float](https://github.com/fastfloat/fast_float), which is used to
-accelerate floating-point parsing. As of c4core 0.4.0 this dependency is
-consumed through [conan](https://conan.io) (see
-[`conanfile.py`](conanfile.py)) and is no longer vendored in the source tree
-(it used to be a git submodule under `src/c4/ext/`).
-
-To fetch it, install conan (v2) and run the following from the c4core root:
-
-```bash
-conan profile detect --force
-conan install . --build=missing
-```
-
-If you would rather not use conan, you have two alternatives:
-
-  * provide fast_float yourself — any installation that CMake can locate with
-    `find_package(fast_float)` works (for example a system package or a
-    [vcpkg](https://vcpkg.io) install); or
-  * build c4core without it by configuring with `-DC4CORE_WITH_FASTFLOAT=OFF`.
-    The floating-point parsing then falls back to `sscanf()`, and the
-    `C4CORE_NO_FAST_FLOAT` macro is defined.
 
 
 ## Using c4core in your project
@@ -137,41 +109,7 @@ Note above that the call to `target_link_libraries()` is using PUBLIC
 linking. This is required to make sure the include directories from `c4core`
 are transitively used by clients of `foo`.
 
-Because c4core links [fast_float](https://github.com/fastfloat/fast_float),
-make sure it is available to CMake before configuring — either install it
-with conan (see [Conan](#conan) below), provide it through another package
-manager, or disable it with `-DC4CORE_WITH_FASTFLOAT=OFF`. The relevant cmake
-options are:
-
-  * `C4CORE_WITH_FASTFLOAT` (default `ON`): use fast_float to parse floats. When
-    `ON`, c4core calls `find_package(fast_float)` and links the
-    `fast_float::fast_float` target.
-  * `C4CORE_NO_DEBUG_BREAK` (default `OFF`): disable the use of debug break even
-    in debug builds.
-  * `C4CORE_INSTALL` (default `ON`): create the install target.
-
-
-### Conan
-
-c4core ships a [conan](https://conan.io) v2 recipe
-([`conanfile.py`](conanfile.py)) that pulls in its fast_float dependency and
-wires it into the CMake build through a generated toolchain. A typical build
-looks like this:
-
-```bash
-conan profile detect --force
-# downloads fast_float and generates the CMake toolchain + presets
-conan install . --build=missing -s build_type=Release
-cmake --preset conan-release
-cmake --build --preset conan-release
-```
-
-The recipe exposes the same knobs as the cmake project through conan options,
-e.g. `-o c4core/*:with_fastfloat=False` mirrors `-DC4CORE_WITH_FASTFLOAT=OFF`.
-
-You can also consume c4core itself as a conan package: add it to your own
-recipe's `requires` and link the `c4core::c4core` target — the fast_float
-dependency is propagated transitively.
+If you want to use your own pre-installed [fast_float](https://github.com/fastfloat/fast_float), you can enable it with `-DC4CORE_WITH_SYSTEM_FASTFLOAT=ON`. 
 
 
 ### Header-only
@@ -179,24 +117,21 @@ dependency is propagated transitively.
 If you prefer to pick a single header to get you quickly going, [there is an amalgamation tool](tools/amalgamate.py) which generates this header:
 ```console
 [user@host c4core]$ python tools/amalgamate.py -h
-usage: amalgamate.py [-h] [--fastfloat | --no-fastfloat] [--stl | --no-stl] [output]
+usage: amalgamate.py [-h] [--fastfloat | --no-fastfloat] [--system-ff | --no-system-ff] [--ff-dir] [--stl | --no-stl] [output]
 
 positional arguments:
   output          output file. defaults to stdout
 
 options:
   -h, --help      show this help message and exit
-  --fastfloat     enable fastfloat library. this is the default.
-  --no-fastfloat  enable fastfloat library. the default is --fastfloat.
+  --fastfloat     enable fastfloat bundled library. this is the default.
+  --no-fastfloat  disable fastfloat library. the default is --fastfloat.
+  --system-ff     enable fastfloat pre-installed package. the default is --no-system-ff.
+  --no-system-ff  enable fastfloat bundled library. this is the default.
+  --ff-dir        optional fastfloat pre-installed include directory.
   --stl           enable stl interop. this is the default.
-  --no-stl        enable stl interop. the default is --stl.
+  --no-stl        disable stl interop. the default is --stl.
 ```
-
-When `--fastfloat` is enabled (the default), the amalgamation tool fetches the
-matching upstream fast_float single-header on demand and inlines it into the
-result, so the generated header remains fully self-contained. Because the
-library is no longer vendored, this step needs an internet connection the first
-time it runs; use `--no-fastfloat` to skip it.
 
 
 ### Package managers

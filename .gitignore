@@ -32,7 +32,3 @@ compile_commands.json
 .github/vagrant/.vagrant
 .github/vagrant/macos/.vagrant
 src_singleheader/
-
-# fast_float is fetched via conan; amalgamate.py downloads this on demand
-/src/c4/ext/fast_float_all.h
-CMakeUserPresets.json

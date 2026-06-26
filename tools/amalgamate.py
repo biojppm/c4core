@@ -1,30 +1,48 @@
 import re
-from os.path import abspath, dirname
+import os
+import shutil
 import sys
 import subprocess
-import urllib.request
 
-projdir = abspath(dirname(dirname(__file__)))
+projdir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, f"{projdir}/cmake")
 import amalgamate_utils as am
 
-# fast_float currently at v8.2.10, but the latest revision available on ConanCenter is 8.1.0
-# (and tools/amalgamate.py::FASTFLOAT_VERSION)
-FASTFLOAT_REF = "fast_float/[>=8.1 <8.3]"
-FASTFLOAT_VERSION = "8.2.10"
 
 def amalgamate_fastfloat():
-    out = f"{projdir}/src/c4/ext/fast_float_all.h"
-    url = ("https://github.com/fastfloat/fast_float/releases/download/"
-           f"v{FASTFLOAT_VERSION}/fast_float.h")
-    print(f"amalgamate: fetching fast_float v{FASTFLOAT_VERSION} -> {out}")
-    urllib.request.urlretrieve(url, out)
+    fastfloatdir = f"{projdir}/src/c4/ext/fast_float"
+    subprocess.run([
+        sys.executable,
+        f"{fastfloatdir}/script/amalgamate.py",
+        "--license", "MIT",
+        "--output", f"{fastfloatdir}/../fast_float_all.h"
+    ], cwd=fastfloatdir).check_returncode()
+
+
+def amalgamate_system_fastfloat(ff_dir):
+    # (amalgamate) overlay a pre-installed (conan/system/vcpkg) fast_float onto the submodule
+    if not ff_dir:
+        raise SystemExit("--system-ff requires --ff-dir <fast_float include root>")
+    src = os.path.join(ff_dir, "fast_float")
+    if not os.path.isfile(os.path.join(src, "fast_float.h")):
+        raise SystemExit(f"--ff-dir must contain fast_float/fast_float.h (got: {ff_dir})")
+    dst = f"{projdir}/src/c4/ext/fast_float/include/fast_float"
+    os.makedirs(dst, exist_ok=True)
+    for name in os.listdir(src):
+        s = os.path.join(src, name)
+        if os.path.isfile(s):
+            shutil.copy(s, os.path.join(dst, name))
 
 
 def amalgamate_c4core(filename: str,
                       with_stl: bool=True,
-                      with_fastfloat: bool=True):
+                      with_fastfloat: bool=True,
+                      with_system_ff: bool=False,
+                      ff_dir: str=None,
+                      ):
     if with_fastfloat:
+        if with_system_ff:
+            amalgamate_system_fastfloat(ff_dir)
         amalgamate_fastfloat()
     repo = "https://github.com/biojppm/c4core"
     defmacro = "C4CORE_SINGLE_HDR_DEFINE_NOW"
@@ -144,9 +162,6 @@ INSTRUCTIONS:
                          include_regexes=[
                              re.compile(r'^\s*#\s*include "(c4/.*)".*$'),
                              re.compile(r'^\s*#\s*include <(c4/.*)>.*$'),
-                             # fast_float.hpp now includes the external conan header; drop it
-                             # in the amalgamation (code is injected via fast_float_all.h)
-                             re.compile(r'^\s*#\s*include <(fast_float/.*)>.*$'),
                          ],
                          definition_macro=defmacro,
                          repo=repo,
@@ -156,12 +171,18 @@ INSTRUCTIONS:
 
 
 def mkparser():
-    return am.mkparser(fastfloat=(True, "enable fastfloat library"),
-                       stl=(True, "enable stl interop"))
+    parser = am.mkparser(fastfloat=(True, "enable fastfloat bundled library"),
+                         system_ff=(False, "enable fastfloat pre-installed library")
+                         stl=(True, "enable stl interop"))
+    parser.add_argument("--ff-dir", default=None,
+                        help="the root dir containing fast_float/; required with --system-ff")
+    return parser
 
 
 if __name__ == "__main__":
     args = mkparser().parse_args()
     amalgamate_c4core(filename=args.output,
                       with_fastfloat=args.fastfloat,
-                      with_stl=args.stl)
+                      with_stl=args.stl,
+                      with_system_ff=args.system_ff,
+                      ff_dir=args.ff_dir)
