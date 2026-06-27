@@ -189,51 +189,61 @@ jobs:
           bits: 64
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 23
           cxx: 22
           bits: 32
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 20
           cxx: 22
           bits: 64
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 20
           cxx: 22
           bits: 32
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 17
           cxx: 22
           bits: 64
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 17
           cxx: 22
           bits: 32
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 14
           cxx: 22
           bits: 64
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 14
           cxx: 22
           bits: 32
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 11
           cxx: 22
           bits: 64
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 11
           cxx: 22
           bits: 32
           vg: 'ON'
           img: 24.04
+          flags: ' -Wreserved-identifier '
         - std: 11
           cxx: 21
           bits: 64
@@ -485,65 +495,65 @@ jobs:
     - run: c4core-install clang++-${{matrix.cxx}}
     - name: '---------------------------------------------------------'
       run: |
-        echo "Debug ::: -m${{matrix.bits}}"
-    - name: 'configure Debug ::: -m${{matrix.bits}}'
-      run: "rm -rf build/Debug\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Debug \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Debug \\\n  -DCMAKE_CXX_FLAGS_DEBUG=\"-m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_DEBUG=\"-m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
-    - name: 'build Debug ::: -m${{matrix.bits}}'
+        echo "Debug ::: -m${{matrix.bits}} ${{matrix.flags}}"
+    - name: 'configure Debug ::: -m${{matrix.bits}} ${{matrix.flags}}'
+      run: "rm -rf build/Debug\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Debug \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Debug \\\n  -DCMAKE_CXX_FLAGS_DEBUG=\"-m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DCMAKE_C_FLAGS_DEBUG=\"-m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Debug ::: -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         cmake --build build/Debug --target c4core-test-build --parallel --verbose
-    - name: 'run Debug ::: -m${{matrix.bits}}'
+    - name: 'run Debug ::: -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         source .github/setenv.sh
         export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Debug --target c4core-test-run
     - name: '---------------------------------------------------------'
       run: |
-        echo "Release ::: -O1 -DNDEBUG -m${{matrix.bits}}"
-    - name: 'configure Release ::: -O1 -DNDEBUG -m${{matrix.bits}}'
-      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O1 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O1 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
-    - name: 'build Release ::: -O1 -DNDEBUG -m${{matrix.bits}}'
+        echo "Release ::: -O1 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}"
+    - name: 'configure Release ::: -O1 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
+      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O1 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O1 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Release ::: -O1 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         cmake --build build/Release --target c4core-test-build --parallel --verbose
-    - name: 'run Release ::: -O1 -DNDEBUG -m${{matrix.bits}}'
+    - name: 'run Release ::: -O1 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         source .github/setenv.sh
         export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Release --target c4core-test-run
     - name: '---------------------------------------------------------'
       run: |
-        echo "Release ::: -O2 -DNDEBUG -m${{matrix.bits}}"
-    - name: 'configure Release ::: -O2 -DNDEBUG -m${{matrix.bits}}'
-      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O2 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O2 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
-    - name: 'build Release ::: -O2 -DNDEBUG -m${{matrix.bits}}'
+        echo "Release ::: -O2 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}"
+    - name: 'configure Release ::: -O2 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
+      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O2 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O2 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Release ::: -O2 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         cmake --build build/Release --target c4core-test-build --parallel --verbose
-    - name: 'run Release ::: -O2 -DNDEBUG -m${{matrix.bits}}'
+    - name: 'run Release ::: -O2 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         source .github/setenv.sh
         export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Release --target c4core-test-run
     - name: '---------------------------------------------------------'
       run: |
-        echo "Release ::: -O3 -DNDEBUG -m${{matrix.bits}}"
-    - name: 'configure Release ::: -O3 -DNDEBUG -m${{matrix.bits}}'
-      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O3 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O3 -DNDEBUG -m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
-    - name: 'build Release ::: -O3 -DNDEBUG -m${{matrix.bits}}'
+        echo "Release ::: -O3 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}"
+    - name: 'configure Release ::: -O3 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
+      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-O3 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-O3 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Release ::: -O3 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         cmake --build build/Release --target c4core-test-build --parallel --verbose
-    - name: 'run Release ::: -O3 -DNDEBUG -m${{matrix.bits}}'
+    - name: 'run Release ::: -O3 -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         source .github/setenv.sh
         export CTEST_PARALLEL_LEVEL=`_c4getnumcores`
         cmake --build build/Release --target c4core-test-run
     - name: '---------------------------------------------------------'
       run: |
-        echo "Release ::: -Os -DNDEBUG -m${{matrix.bits}}"
-    - name: 'configure Release ::: -Os -DNDEBUG -m${{matrix.bits}}'
-      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-Os -DNDEBUG -m${{matrix.bits}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-Os -DNDEBUG -m${{matrix.bits}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
-    - name: 'build Release ::: -Os -DNDEBUG -m${{matrix.bits}}'
+        echo "Release ::: -Os -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}"
+    - name: 'configure Release ::: -Os -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
+      run: "rm -rf build/Release\nexport C4_EXTERN_DIR=`pwd`/build/extern\ncmake -S . -B build/Release \\\n  -DCMAKE_CXX_COMPILER=clang++-${{matrix.cxx}} \\\n  -DCMAKE_C_COMPILER=clang-${{matrix.cxx}} \\\n  -DCMAKE_BUILD_TYPE=Release \\\n  -DCMAKE_CXX_FLAGS_RELEASE=\"-Os -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DCMAKE_C_FLAGS_RELEASE=\"-Os -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}\" \\\n  -DC4_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_CXX_STANDARD=${{matrix.std}} \\\n  -DC4CORE_BUILD_TESTS=ON \\\n  -DC4CORE_VALGRIND=${{matrix.vg}} \\\n  -DC4CORE_DEV=ON \\\n  -DC4CORE_BUILD_BENCHMARKS=OFF \\\n  -DC4CORE_DBG=OFF \\\n  \n"
+    - name: 'build Release ::: -Os -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         cmake --build build/Release --target c4core-test-build --parallel --verbose
-    - name: 'run Release ::: -Os -DNDEBUG -m${{matrix.bits}}'
+    - name: 'run Release ::: -Os -DNDEBUG -m${{matrix.bits}} ${{matrix.flags}}'
       run: |
         source .github/setenv.sh
         export CTEST_PARALLEL_LEVEL=`_c4getnumcores`

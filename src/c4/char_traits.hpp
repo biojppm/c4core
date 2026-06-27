@@ -1,5 +1,5 @@
-#ifndef _C4_CHAR_TRAITS_HPP_
-#define _C4_CHAR_TRAITS_HPP_
+#ifndef C4_CHAR_TRAITS_HPP_
+#define C4_CHAR_TRAITS_HPP_
 
 #include "c4/config.hpp"
 
@@ -95,4 +95,4 @@ struct literal_as<wchar_t>
 
 } // namespace c4
 
-#endif /* _C4_CHAR_TRAITS_HPP_ */
+#endif /* C4_CHAR_TRAITS_HPP_ */

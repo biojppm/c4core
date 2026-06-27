@@ -1,5 +1,5 @@
-#ifndef _C4_ALLOCATOR_HPP_
-#define _C4_ALLOCATOR_HPP_
+#ifndef C4_ALLOCATOR_HPP_
+#define C4_ALLOCATOR_HPP_
 
 #include "c4/memory_resource.hpp"
 #include "c4/ctor_dtor.hpp"
@@ -73,7 +73,7 @@ public:
 
 namespace detail {
 template<class MemRes>
-struct _AllocatorUtil;
+struct AllocatorUtil_;
 
 template<class T, class ...Args>
 struct has_no_alloc
@@ -100,7 +100,7 @@ struct has_alloc
 
 
 template<class MemRes>
-struct detail::_AllocatorUtil : public MemRes
+struct detail::AllocatorUtil_ : public MemRes
 {
     using MemRes::MemRes;
 
@@ -173,11 +173,11 @@ struct detail::_AllocatorUtil : public MemRes
  * @param MemResProvider
  * @ingroup allocators */
 template<class T, class MemResProvider=MemResGlobal>
-class Allocator : public detail::_AllocatorUtil<MemResProvider> // NOLINT(*-member-functions)
+class Allocator : public detail::AllocatorUtil_<MemResProvider> // NOLINT(*-member-functions)
 {
 public:
 
-    using impl_type = detail::_AllocatorUtil<MemResProvider>;
+    using impl_type = detail::AllocatorUtil_<MemResProvider>;
 
     using value_type = T;
     using pointer = T*;
@@ -265,11 +265,11 @@ public:
 
 /** @ingroup allocators */
 template<class T, size_t N=16, size_t Alignment=alignof(T), class MemResProvider=MemResGlobal>
-class SmallAllocator : public detail::_AllocatorUtil<MemResProvider> // NOLINT(*-member-functions)
+class SmallAllocator : public detail::AllocatorUtil_<MemResProvider> // NOLINT(*-member-functions)
 {
     static_assert(Alignment >= alignof(T), "invalid alignment");
 
-    using impl_type = detail::_AllocatorUtil<MemResProvider>;
+    using impl_type = detail::AllocatorUtil_<MemResProvider>;
 
     alignas(Alignment) char m_arr[N * sizeof(T)];
     size_t m_num{0};
@@ -406,4 +406,4 @@ C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 
-#endif /* _C4_ALLOCATOR_HPP_ */
+#endif /* C4_ALLOCATOR_HPP_ */

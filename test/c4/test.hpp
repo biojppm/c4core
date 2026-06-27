@@ -1,5 +1,5 @@
-#ifndef _C4_TEST_HPP_
-#define _C4_TEST_HPP_
+#ifndef C4_TEST_HPP_
+#define C4_TEST_HPP_
 
 #ifdef C4CORE_SINGLE_HEADER
 #include "c4/c4core_all.hpp"
@@ -416,4 +416,4 @@ public:
 
 } // namespace c4
 
-#endif // _C4_LIBTEST_TEST_HPP_
+#endif // C4_TEST_HPP_

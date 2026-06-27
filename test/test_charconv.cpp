@@ -2467,7 +2467,7 @@ TEST_CASE("to_chars.std_string")
 }
 
 template<class T, size_t N>
-void test_to_chars__char_arr(T (&arr)[N])
+void test_to_chars_char_arr(T (&arr)[N])
 {
     INFO(arr);
     char buf_[32];
@@ -2481,7 +2481,7 @@ void test_to_chars__char_arr(T (&arr)[N])
     CHECK_EQ(actual, expected);
 }
 template<class T>
-void test_to_chars__char_ptr(T ptr)
+void test_to_chars_char_ptr(T ptr)
 {
     INFO(ptr);
     char buf_[32];
@@ -2495,28 +2495,28 @@ void test_to_chars__char_ptr(T ptr)
     CHECK_EQ(actual, expected);
 }
 template<size_t N>
-void test_to_chars__char_(char (&arr)[N])
+void test_to_chars_char_(char (&arr)[N])
 {
-    test_to_chars__char_arr((      char (&)[N])arr);
-    test_to_chars__char_arr((const char (&)[N])arr);
-    test_to_chars__char_ptr((      char*)arr);
-    test_to_chars__char_ptr((const char*)arr);
+    test_to_chars_char_arr((      char (&)[N])arr);
+    test_to_chars_char_arr((const char (&)[N])arr);
+    test_to_chars_char_ptr((      char*)arr);
+    test_to_chars_char_ptr((const char*)arr);
 }
-#define test_to_chars__char(str)                \
+#define test_to_chars_char(str)                \
     {                                           \
         char arr[] = str;                       \
         INFO("here:\n"                          \
              << __FILE__ << ":" << __LINE__     \
              << ": '" << arr << "'");           \
-        test_to_chars__char_(arr);              \
+        test_to_chars_char_(arr);              \
     }
 TEST_CASE("to_chars.char")
 {
-    test_to_chars__char("0123");
-    test_to_chars__char("aslkjasdlkjasde");
-    test_to_chars__char("");
-    test_to_chars__char("a");
-    test_to_chars__char("ab");
+    test_to_chars_char("0123");
+    test_to_chars_char("aslkjasdlkjasde");
+    test_to_chars_char("");
+    test_to_chars_char("a");
+    test_to_chars_char("ab");
 }
 
 

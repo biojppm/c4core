@@ -191,7 +191,7 @@ C4_SUPPRESS_WARNING_MSVC(4310)
 
 // these numbers were generated with printintegers.py, in this dir.
 
-#define ncp__(tyval, val, dec, hex, bin, oct, tyvalp1, valp1) number_case<value_type>((value_type)(tyval(val)), csubstr{dec}, csubstr{hex}, csubstr{bin}, csubstr{oct}, (value_type)(tyvalp1(valp1)))
+#define ncpa_(tyval, val, dec, hex, bin, oct, tyvalp1, valp1) number_case<value_type>((value_type)(tyval(val)), csubstr{dec}, csubstr{hex}, csubstr{bin}, csubstr{oct}, (value_type)(tyvalp1(valp1)))
 #define ncp_(ty, val, dec, hex, bin, oct, valp1) number_case<value_type>((value_type)(ty(val)), csubstr{dec}, csubstr{hex}, csubstr{bin}, csubstr{oct}, (value_type)(ty(valp1)))
 #define nc_(ty, val, dec, hex, bin, oct) number_case<value_type>((value_type)(ty(val)), csubstr{dec}, csubstr{hex}, csubstr{bin}, csubstr{oct})
 
@@ -996,7 +996,7 @@ struct numbers<int64_t>
         #define nc(val, dec, hex, bin, oct) nc_(INT64_C, val, dec, hex, bin, oct)
         #define ncm1(val, dec, hex, bin, oct) nc_(INT64_1, val, dec, hex, bin, oct)
         #define pc(val, dec, hex, bin, oct, valp1) ncp_(INT64_C, val, dec, hex, bin, oct, valp1)
-        #define pcm1(val, dec, hex, bin, oct, valp1) ncp__(INT64_C, val, dec, hex, bin, oct, INT64_1, valp1)
+        #define pcm1(val, dec, hex, bin, oct, valp1) ncpa_(INT64_C, val, dec, hex, bin, oct, INT64_1, valp1)
         ncm1(-9223372036854775807, "-9223372036854775808", "-0x8000000000000000", "-0o1000000000000000000000", "-0b1000000000000000000000000000000000000000000000000000000000000000"),
         nc(-9223372036854775807, "-9223372036854775807", "-0x7fffffffffffffff", "-0o777777777777777777777", "-0b111111111111111111111111111111111111111111111111111111111111111"),
         nc(-9223372036854775806, "-9223372036854775806", "-0x7ffffffffffffffe", "-0o777777777777777777776", "-0b111111111111111111111111111111111111111111111111111111111111110"),

@@ -1,5 +1,5 @@
-#ifndef _C4_TYPENAME_HPP_
-#define _C4_TYPENAME_HPP_
+#ifndef C4_TYPENAME_HPP_
+#define C4_TYPENAME_HPP_
 
 /** @file type_name.hpp compile-time type name */
 
@@ -146,4 +146,4 @@ C4_CONSTEXPR14 C4_ALWAYS_INLINE TypeNameStr type_name(T const&) noexcept
 
 } // namespace c4
 
-#endif //_C4_TYPENAME_HPP_
+#endif // C4_TYPENAME_HPP_
