@@ -1,5 +1,5 @@
-#ifndef _C4_ENUM_COMMON_HPP_
-#define _C4_ENUM_COMMON_HPP_
+#ifndef C4_ENUM_COMMON_HPP_
+#define C4_ENUM_COMMON_HPP_
 
 #ifndef C4CORE_SINGLE_HEADER
 #include <c4/enum.hpp>
@@ -210,4 +210,4 @@ template<> inline size_t eoffs_pfx<BmClassWithoutNull>()
 } // namespace c4
 
 
-#endif /* _C4_ENUM_COMMON_HPP_ */
+#endif /* C4_ENUM_COMMON_HPP_ */

@@ -1,5 +1,5 @@
-#ifndef _C4_TEST_ARCHETYPES_HPP_
-#define _C4_TEST_ARCHETYPES_HPP_
+#ifndef C4_TEST_ARCHETYPES_HPP_
+#define C4_TEST_ARCHETYPES_HPP_
 
 #ifdef C4CORE_SINGLE_HEADER
 #include "c4/c4core_all.hpp"
@@ -123,7 +123,7 @@ struct archetype_proto : public archetype_proto_base<T, archetype_proto<T>>
     }
 };
 
-#define _C4_DECLARE_ARCHETYPE_PROTO(ty, ...)                            \
+#define C4_DECLARE_ARCHETYPE_PROTO_(ty, ...)                            \
 template<>                                                              \
 struct archetype_proto<ty> : public archetype_proto_base<ty, archetype_proto<ty>> \
 {                                                                       \
@@ -139,7 +139,7 @@ struct archetype_proto<ty> : public archetype_proto_base<ty, archetype_proto<ty>
     }                                                                   \
 }
 
-#define _C4_DECLARE_ARCHETYPE_PROTO_TPL1(tplparam1, ty, ...)            \
+#define C4_DECLARE_ARCHETYPE_PROTO_TPL1_(tplparam1, ty, ...)            \
 template<tplparam1>                                                     \
 struct archetype_proto<ty> : public archetype_proto_base<ty, archetype_proto<ty>> \
 {                                                                       \
@@ -155,7 +155,7 @@ struct archetype_proto<ty> : public archetype_proto_base<ty, archetype_proto<ty>
     }                                                                   \
 }
 
-_C4_DECLARE_ARCHETYPE_PROTO(std::string,
+C4_DECLARE_ARCHETYPE_PROTO_(std::string,
     "str0", "str1", "str2", "str3",
     "str4", "str5", "str6", "str7");
 
@@ -191,7 +191,7 @@ sstream< String >& operator>> (sstream< String >& ss, exvec3<T> & v)
 
 #define _ C4_COMMA
 #define c4v(v0, v1, v2) exvec3<T>{v0 _ v1 _ v2}
-_C4_DECLARE_ARCHETYPE_PROTO_TPL1(class T, exvec3<T>,
+C4_DECLARE_ARCHETYPE_PROTO_TPL1_(class T, exvec3<T>,
             c4v(0, 1, 2), c4v(3, 4, 5), c4v(6, 7, 8), c4v(9, 10, 11),
             c4v(100, 101, 102), c4v(103, 104, 105), c4v(106, 107, 108), c4v(109, 110, 111)
         );
@@ -230,7 +230,7 @@ struct IdOwner
     }
 };
 
-_C4_DECLARE_ARCHETYPE_PROTO(IdOwner, 0, 1, 2, 3, 4, 5, 6, 7);
+C4_DECLARE_ARCHETYPE_PROTO_(IdOwner, 0, 1, 2, 3, 4, 5, 6, 7);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -314,7 +314,7 @@ struct MemOwner
 
 #define _ C4_COMMA
 #define c4v(which) MemOwner<T>{varargs _ archetype_proto<T>::get(which)}
-_C4_DECLARE_ARCHETYPE_PROTO_TPL1(class T, MemOwner<T>,
+C4_DECLARE_ARCHETYPE_PROTO_TPL1_(class T, MemOwner<T>,
             c4v(0), c4v(1), c4v(2), c4v(3),
             c4v(4), c4v(5), c4v(6), c4v(7)
         );
@@ -414,7 +414,7 @@ struct MemOwnerAlloc
 
 #define _ C4_COMMA
 #define c4v(which) MemOwnerAlloc<T>{varargs _ archetype_proto<T>::get(which)}
-_C4_DECLARE_ARCHETYPE_PROTO_TPL1(class T, MemOwnerAlloc<T>,
+C4_DECLARE_ARCHETYPE_PROTO_TPL1_(class T, MemOwnerAlloc<T>,
             c4v(0), c4v(1), c4v(2), c4v(3),
             c4v(4), c4v(5), c4v(6), c4v(7)
         );
@@ -472,7 +472,7 @@ struct InsidePtr
 };
 
 #define _ C4_COMMA
-_C4_DECLARE_ARCHETYPE_PROTO_TPL1(class T, InsidePtr<T>,
+C4_DECLARE_ARCHETYPE_PROTO_TPL1_(class T, InsidePtr<T>,
             0, 1, 2, 3, 4, 5, 6, 7
         );
 #undef _
@@ -524,4 +524,4 @@ C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 
-#endif // _C4_TEST_ARCHETYPES_HPP_
+#endif // C4_TEST_ARCHETYPES_HPP_

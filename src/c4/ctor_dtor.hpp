@@ -1,5 +1,5 @@
-#ifndef _C4_CTOR_DTOR_HPP_
-#define _C4_CTOR_DTOR_HPP_
+#ifndef C4_CTOR_DTOR_HPP_
+#define C4_CTOR_DTOR_HPP_
 
 #include "c4/preprocessor.hpp"
 #include "c4/language.hpp"
@@ -461,4 +461,4 @@ C4_SUPPRESS_WARNING_GCC_CLANG_POP
 
 } // namespace c4
 
-#endif /* _C4_CTOR_DTOR_HPP_ */
+#endif /* C4_CTOR_DTOR_HPP_ */

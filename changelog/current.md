@@ -1,2 +1,3 @@
 - [PR#169](https://github.com/biojppm/c4core/pull/169) atof()/atod():
   - disable assertions that prevent returning false
+- [PR#170](https://github.com/biojppm/c4core/pull/170) c4/std/std.hpp: remove tuple.hpp

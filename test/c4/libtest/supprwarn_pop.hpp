@@ -1,5 +1,5 @@
-#ifndef _C4_SUPPRWARN_POP_HPP_
-#define _C4_SUPPRWARN_POP_HPP_
+#ifndef C4_SUPPRWARN_POP_HPP_
+#define C4_SUPPRWARN_POP_HPP_
 
 #ifdef __clang__
 #   pragma clang diagnostic pop
@@ -9,4 +9,4 @@
 #   pragma warning(pop)
 #endif
 
-#endif /* SUPPRWARN_POP_H */
+#endif /* C4_SUPPRWARN_POP_H */

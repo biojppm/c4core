@@ -1,5 +1,5 @@
-#ifndef _C4_LIBTEST_SUPPRWARN_PUSH_HPP_
-#define _C4_LIBTEST_SUPPRWARN_PUSH_HPP_
+#ifndef C4_LIBTEST_SUPPRWARN_PUSH_HPP_
+#define C4_LIBTEST_SUPPRWARN_PUSH_HPP_
 
 /** @file supprwarn_push.hpp this file contains directives to make the
  * compiler ignore warnings in test code. It should NOT be used for c4stl
@@ -48,4 +48,4 @@
 #   pragma warning(disable:4702)   // unreachable code
 #endif
 
-#endif /* _C4_LIBTEST_SUPPRWARN_PUSH_HPP_ */
+#endif /* C4_LIBTEST_SUPPRWARN_PUSH_HPP_ */
