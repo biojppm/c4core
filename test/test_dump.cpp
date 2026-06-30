@@ -68,7 +68,7 @@ void printf(csubstr fmt, Args&& ...args)
 {
     static thread_local std::string writebuf(16, '\0');
     DumpResults results = format_dump_resume<&test_dumper>(c4::to_substr(writebuf), fmt, std::forward<Args>(args)...);
-    if(C4_UNLIKELY(results.bufsize > writebuf.size())) // bufsize will be that of the largest element serialized. Eg int(1), will require 1 byte.
+    if C4_UNLIKELY(results.bufsize > writebuf.size()) // bufsize will be that of the largest element serialized. Eg int(1), will require 1 byte.
     {
         size_t dup = 2 * writebuf.size();
         writebuf.resize(dup > results.bufsize ? dup : results.bufsize);
