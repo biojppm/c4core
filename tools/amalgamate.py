@@ -20,8 +20,11 @@ def amalgamate_fastfloat():
 
 def amalgamate_c4core(filename: str,
                       with_stl: bool=True,
-                      with_fastfloat: bool=True):
-    if with_fastfloat:
+                      with_fastfloat: bool=True,
+                      with_fastfloat_sys: bool=False,
+                      fastfloat_sys_dir: str=None,
+                      ):
+    if with_fastfloat and not with_fastfloat_sys:
         amalgamate_fastfloat()
     repo = "https://github.com/biojppm/c4core"
     defmacro = "C4CORE_SINGLE_HDR_DEFINE_NOW"
@@ -87,7 +90,7 @@ INSTRUCTIONS:
         "src/c4/blob.hpp",
         "src/c4/substr_fwd.hpp",
         "src/c4/substr.hpp",
-        am.onlyif(with_fastfloat, am.injfile("src/c4/ext/fast_float_all.h", "c4/ext/fast_float_all.h")),
+        am.onlyif(with_fastfloat and not with_fastfloat_sys, am.injfile("src/c4/ext/fast_float_all.h", "c4/ext/fast_float_all.h")),
         am.onlyif(with_fastfloat, "src/c4/ext/fast_float.hpp"),
         am.onlyif(with_stl, "src/c4/std/vector_fwd.hpp"),
         am.onlyif(with_stl, "src/c4/std/span_fwd.hpp"),
@@ -150,12 +153,20 @@ INSTRUCTIONS:
 
 
 def mkparser():
-    return am.mkparser(fastfloat=(True, "enable fastfloat library"),
-                       stl=(True, "enable stl interop"))
+    parser = am.mkparser(fastfloat=(True, "enable fastfloat bundled library"),
+                         fastfloat_sys=(False, "use fastfloat from the system (pre-installed)")
+                         stl=(True, "enable stl interop"))
+    parser.add_argument("--fastfloat_sys_dir",
+                        default=None,
+                        required='--fastfloat_sys' in sys.argv,
+                        help="dir where fast_float/ is to be found; required with --fastfloat_sys")
+    return parser
 
 
 if __name__ == "__main__":
     args = mkparser().parse_args()
     amalgamate_c4core(filename=args.output,
                       with_fastfloat=args.fastfloat,
-                      with_stl=args.stl)
+                      with_stl=args.stl,
+                      with_fastfloat_sys=args.fastfloat_sys,
+                      fastfloat_sys_dir=args.fastfloat_sys_dir)

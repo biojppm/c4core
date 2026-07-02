@@ -45,6 +45,7 @@ these are not in the list of official architectures.
     - [Obtaining c4core](#obtaining-c4core)
     - [Using c4core in your project](#using-c4core-in-your-project)
         - [CMake](#cmake)
+        - [Conan](#conan)
         - [Bazel](#bazel)
         - [Header-only](#header-only)
         - [Package managers](#package-managers)
@@ -108,23 +109,28 @@ Note above that the call to `target_link_libraries()` is using PUBLIC
 linking. This is required to make sure the include directories from `c4core`
 are transitively used by clients of `foo`.
 
+If you want to use your own pre-installed [fast_float](https://github.com/fastfloat/fast_float), you can enable it with `-DC4CORE_WITH_FASTFLOAT_SYSTEM=ON`. 
+
 
 ### Header-only
 
 If you prefer to pick a single header to get you quickly going, [there is an amalgamation tool](tools/amalgamate.py) which generates this header:
 ```console
 [user@host c4core]$ python tools/amalgamate.py -h
-usage: amalgamate.py [-h] [--fastfloat | --no-fastfloat] [--stl | --no-stl] [output]
+usage: amalgamate.py [-h] [--fastfloat | --no-fastfloat] [--fastfloat_sys | --no-fastfloat_sys] [--fastfloat_sys_dir] [--stl | --no-stl] [output]
 
 positional arguments:
   output          output file. defaults to stdout
 
 options:
-  -h, --help      show this help message and exit
-  --fastfloat     enable fastfloat library. this is the default.
-  --no-fastfloat  enable fastfloat library. the default is --fastfloat.
-  --stl           enable stl interop. this is the default.
-  --no-stl        enable stl interop. the default is --stl.
+  -h, --help           show this help message and exit
+  --fastfloat          enable fastfloat bundled library. this is the default.
+  --no-fastfloat       disable fastfloat library. the default is --fastfloat.
+  --fastfloat_sys      use fastfloat from the system (pre-installed). the default is --no-fastfloat_sys.
+  --no-fastfloat_sys   enable fastfloat bundled library. this is the default.
+  --fastfloat_sys_dir  dir where fast_float/ is to be found; required with --fastfloat_sys
+  --stl                enable stl interop. this is the default.
+  --no-stl             disable stl interop. the default is --stl.
 ```
 
 
@@ -132,6 +138,7 @@ options:
 
 c4core is available through the following package managers:
 
+  * [conan](https://conan.io/center/recipes/c4core)
   * [vcpkg](https://vcpkg.io/en/packages.html): `vcpkg install c4core`
   * Arch Linux/Manjaro:
     * [rapidyaml](https://aur.archlinux.org/packages/rapidyaml/)
