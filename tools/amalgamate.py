@@ -1,10 +1,9 @@
 import re
-import os
-import shutil
+from os.path import abspath, dirname
 import sys
 import subprocess
 
-projdir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+projdir = abspath(dirname(dirname(__file__)))
 sys.path.insert(0, f"{projdir}/cmake")
 import amalgamate_utils as am
 
@@ -19,30 +18,13 @@ def amalgamate_fastfloat():
     ], cwd=fastfloatdir).check_returncode()
 
 
-def amalgamate_system_fastfloat(ff_dir):
-    # (amalgamate) overlay a pre-installed (conan/system/vcpkg) fast_float onto the submodule
-    if not ff_dir:
-        raise SystemExit("--system-ff requires --ff-dir <fast_float include root>")
-    src = os.path.join(ff_dir, "fast_float")
-    if not os.path.isfile(os.path.join(src, "fast_float.h")):
-        raise SystemExit(f"--ff-dir must contain fast_float/fast_float.h (got: {ff_dir})")
-    dst = f"{projdir}/src/c4/ext/fast_float/include/fast_float"
-    os.makedirs(dst, exist_ok=True)
-    for name in os.listdir(src):
-        s = os.path.join(src, name)
-        if os.path.isfile(s):
-            shutil.copy(s, os.path.join(dst, name))
-
-
 def amalgamate_c4core(filename: str,
                       with_stl: bool=True,
                       with_fastfloat: bool=True,
-                      with_system_ff: bool=False,
-                      ff_dir: str=None,
+                      with_fastfloat_sys: bool=False,
+                      fastfloat_sys_dir: str=None,
                       ):
-    if with_fastfloat:
-        if with_system_ff:
-            amalgamate_system_fastfloat(ff_dir)
+    if with_fastfloat and not with_fastfloat_sys:
         amalgamate_fastfloat()
     repo = "https://github.com/biojppm/c4core"
     defmacro = "C4CORE_SINGLE_HDR_DEFINE_NOW"
@@ -108,7 +90,7 @@ INSTRUCTIONS:
         "src/c4/blob.hpp",
         "src/c4/substr_fwd.hpp",
         "src/c4/substr.hpp",
-        am.onlyif(with_fastfloat, am.injfile("src/c4/ext/fast_float_all.h", "c4/ext/fast_float_all.h")),
+        am.onlyif(with_fastfloat and not with_fastfloat_sys, am.injfile("src/c4/ext/fast_float_all.h", "c4/ext/fast_float_all.h")),
         am.onlyif(with_fastfloat, "src/c4/ext/fast_float.hpp"),
         am.onlyif(with_stl, "src/c4/std/vector_fwd.hpp"),
         am.onlyif(with_stl, "src/c4/std/span_fwd.hpp"),
@@ -172,10 +154,12 @@ INSTRUCTIONS:
 
 def mkparser():
     parser = am.mkparser(fastfloat=(True, "enable fastfloat bundled library"),
-                         system_ff=(False, "enable fastfloat pre-installed library")
+                         fastfloat_sys=(False, "use fastfloat from the system (pre-installed)")
                          stl=(True, "enable stl interop"))
-    parser.add_argument("--ff-dir", default=None,
-                        help="the root dir containing fast_float/; required with --system-ff")
+    parser.add_argument("--fastfloat_sys_dir",
+                        default=None,
+                        required='--fastfloat_sys' in sys.argv,
+                        help="dir where fast_float/ is to be found; required with --fastfloat_sys")
     return parser
 
 
@@ -184,5 +168,5 @@ if __name__ == "__main__":
     amalgamate_c4core(filename=args.output,
                       with_fastfloat=args.fastfloat,
                       with_stl=args.stl,
-                      with_system_ff=args.system_ff,
-                      ff_dir=args.ff_dir)
+                      with_fastfloat_sys=args.fastfloat_sys,
+                      fastfloat_sys_dir=args.fastfloat_sys_dir)
