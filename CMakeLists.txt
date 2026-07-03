@@ -13,6 +13,7 @@ c4_project(VERSION 0.4.0
 
 option(C4CORE_INSTALL "create install target" ON)
 option(C4CORE_WITH_FASTFLOAT "use fastfloat to parse floats" ON)
+option(C4CORE_WITH_FASTFLOAT_SYSTEM "Use system-installed fastfloat instead of the one provided with c4core" OFF)
 option(C4CORE_NO_DEBUG_BREAK "disable use of debug break even in debug builds" OFF)
 
 set(C4CORE_SRC_FILES
@@ -83,7 +84,26 @@ set(C4CORE_SRC_FILES
     c4/ext/rng/rng.hpp
     c4/ext/sg14/inplace_function.h
     )
-if(C4CORE_WITH_FASTFLOAT)
+
+set(C4CORE_AMALGAMATED_ARGS "")   # extra args for the amalgamate dev target
+if(C4CORE_WITH_FASTFLOAT AND C4CORE_WITH_FASTFLOAT_SYSTEM)
+    find_package(fast_float QUIET)
+    if(NOT fast_float_FOUND)
+        message(FATAL_ERROR "C4CORE_WITH_FASTFLOAT_SYSTEM enabled but fast_float package not installed.")
+    endif()
+    if(TARGET fast_float::fast_float)
+        set(C4CORE_SYS_FF_TARGET fast_float::fast_float)
+    elseif(TARGET FastFloat::fast_float)
+        set(C4CORE_SYS_FF_TARGET FastFloat::fast_float)
+    else()
+        set(C4CORE_SYS_FF_TARGET fast_float)
+    endif()
+    # include root (dir containing fast_float/) so the amalgamate dev target can bundle it
+    get_target_property(C4CORE_SYS_FF_INCDIRS ${C4CORE_SYS_FF_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+    list(GET C4CORE_SYS_FF_INCDIRS 0 C4CORE_SYS_FF_INCDIR)
+    set(C4CORE_AMALGAMATED_ARGS --fastfloat_sys --fastfloat_sys_dir "${C4CORE_SYS_FF_INCDIR}")
+    list(APPEND C4CORE_SRC_FILES c4/ext/fast_float.hpp)
+elseif(C4CORE_WITH_FASTFLOAT)
     list(APPEND C4CORE_SRC_FILES
         c4/ext/fast_float.hpp
         c4/ext/fast_float_all.h
@@ -93,8 +113,8 @@ set(C4CORE_AMALGAMATED ${C4CORE_SRC_DIR}/../src_singleheader/c4/c4core_all.hpp)
 list(TRANSFORM C4CORE_SRC_FILES PREPEND "${C4CORE_SRC_DIR}/" OUTPUT_VARIABLE C4CORE_SRC_FILES_FULL)
 
 add_custom_target(c4core-amalgamate
-    python ${CMAKE_CURRENT_LIST_DIR}/tools/amalgamate.py ${C4CORE_AMALGAMATED}
-    COMMENT "${CMAKE_CURRENT_LIST_DIR}/tools/amalgamate.py ${C4CORE_AMALGAMATED}"
+    python ${CMAKE_CURRENT_LIST_DIR}/tools/amalgamate.py ${C4CORE_AMALGAMATED_ARGS} ${C4CORE_AMALGAMATED}
+    COMMENT "${CMAKE_CURRENT_LIST_DIR}/tools/amalgamate.py ${C4CORE_AMALGAMATED_ARGS} ${C4CORE_AMALGAMATED}"
     BYPRODUCTS ${C4CORE_AMALGAMATED}
     DEPENDS ${C4CORE_SRC_FILES_FULL}
     )
@@ -107,6 +127,9 @@ c4_add_library(c4core
 )
 if(NOT C4CORE_WITH_FASTFLOAT)
     target_compile_definitions(c4core PUBLIC -DC4CORE_NO_FAST_FLOAT)
+elseif(C4CORE_WITH_FASTFLOAT_SYSTEM)
+    target_compile_definitions(c4core PUBLIC -DC4CORE_SYS_FAST_FLOAT)
+    target_link_libraries(c4core PUBLIC ${C4CORE_SYS_FF_TARGET})
 endif()
 if(C4CORE_NO_DEBUG_BREAK)
     target_compile_definitions(c4core PUBLIC -DC4_NO_DEBUG_BREAK)

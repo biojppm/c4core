@@ -40,7 +40,11 @@
 #   endif
 #endif
 
+#ifndef C4CORE_SYS_FAST_FLOAT
 #include "c4/ext/fast_float_all.h"
+#else
+#include <fast_float/fast_float.h>
+#endif
 
 #ifdef _MSC_VER
 #   pragma warning(pop)
