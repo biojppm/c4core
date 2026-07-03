@@ -21,8 +21,7 @@ def amalgamate_fastfloat():
 def amalgamate_c4core(filename: str,
                       with_stl: bool=True,
                       with_fastfloat: bool=True,
-                      with_fastfloat_sys: bool=False,
-                      fastfloat_sys_dir: str=None,
+                      with_fastfloat_sys: bool=False
                       ):
     if with_fastfloat and not with_fastfloat_sys:
         amalgamate_fastfloat()
@@ -147,19 +146,20 @@ INSTRUCTIONS:
                          ],
                          definition_macro=defmacro,
                          repo=repo,
-                         result_incguard="_C4CORE_SINGLE_HEADER_AMALGAMATED_HPP_")
+                         result_incguard="C4CORE_SINGLE_HEADER_AMALGAMATED_HPP_")
     result_with_only_first_includes = am.include_only_first(result)
     am.file_put_contents(filename, result_with_only_first_includes)
 
 
 def mkparser():
-    parser = am.mkparser(fastfloat=(True, "enable fastfloat bundled library"),
-                         fastfloat_sys=(False, "use fastfloat from the system (pre-installed)"),
+    parser = am.mkparser(fastfloat=(True, "enable use of fastfloat library"),
+                         fastfloat_sys=(False, """include fastfloat from
+                         the system and do not amalgate it. By default, the
+                         version of fastfloat bundled with c4core is
+                         amalgamated. When this option is enabled,
+                         fastfloat is not amalgamated, but will
+                         instead be #included from the system"""),
                          stl=(True, "enable stl interop"))
-    parser.add_argument("--fastfloat_sys_dir",
-                        default=None,
-                        required='--fastfloat_sys' in sys.argv,
-                        help="dir where fast_float/ is to be found; required with --fastfloat_sys")
     return parser
 
 
@@ -168,5 +168,4 @@ if __name__ == "__main__":
     amalgamate_c4core(filename=args.output,
                       with_fastfloat=args.fastfloat,
                       with_stl=args.stl,
-                      with_fastfloat_sys=args.fastfloat_sys,
-                      fastfloat_sys_dir=args.fastfloat_sys_dir)
+                      with_fastfloat_sys=args.fastfloat_sys)
