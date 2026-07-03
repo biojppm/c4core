@@ -43,6 +43,34 @@ jobs:
           echo "ERROR: generated workflows are out of date"
         fi
         exit $status
+  check_amalgamate:
+    if: always()
+    continue-on-error: false
+    runs-on: ubuntu-24.04
+    steps:
+    - name: checkout (action)
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: standard
+      run: |
+        python tools/amalgamate.py > /dev/null
+    - name: stl
+      run: |
+        python tools/amalgamate.py --stl > /dev/null
+    - name: nostl
+      run: |
+        python tools/amalgamate.py --no-stl > /dev/null
+    - name: fastfloat
+      run: |
+        python tools/amalgamate.py --fastfloat > /dev/null
+    - name: nofastfloat
+      run: |
+        python tools/amalgamate.py --no-fastfloat > /dev/null
+    - name: fastfloatsys
+      run: |
+        python tools/amalgamate.py --fastfloat --fastfloat_sys > /dev/null
   check_fast_float:
     if: always()
     continue-on-error: false
