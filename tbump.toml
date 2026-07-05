@@ -2,7 +2,7 @@
 # github_url = "https://github.com/<user or organization>/<project>/"
 
 [version]
-current = "0.4.0"
+current = "0.5.0"
 
 # Example of a semver regexp.
 # Make sure this matches current_version before
@@ -34,7 +34,7 @@ src = "test/test_singleheader/CMakeLists.txt"
 search = "c4_project\\(VERSION {current_version}"
 [[file]]
 src = "src/c4/version.hpp"
-search = "#define C4CORE_VERSION ['\"]{current_version}['\"]"
+search = '#define C4CORE_VERSION "{current_version}"'
 [[file]]
 src = "src/c4/version.hpp"
 version_template = "{major}"
