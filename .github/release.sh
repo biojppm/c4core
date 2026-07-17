@@ -106,6 +106,36 @@ function _c4_validate_ver()
     fi
     ver=$(echo $ver | sed "s:v\(.*\):\1:")
     #sver=$(echo $ver | sed "s:\([0-9]*\.[0-9]*\..[0-9]*\).*:\1:")
+    # check the ABI version
+    rootdir=`git rev-parse --show-toplevel`
+    curr=$(cat $rootdir/tbump.toml \
+               | grep -E '^current.*=.*"' \
+               | sed 's/^current.*=.*"\(.*\)"/\1/')
+    if [[ "$ver" < "$curr" ]] ; then
+        echo "error: next version ($ver) is smaller than current ($curr)"
+        exit 1
+    fi
+    currmajor=$(echo $curr | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\1:')
+    currminor=$(echo $curr | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\2:')
+    currpatch=$(echo $curr | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\3:')
+    nextmajor=$(echo $ver  | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\1:')
+    nextminor=$(echo $ver  | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\2:')
+    nextpatch=$(echo $ver  | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\3:')
+    abi_must_be_same=0
+    if [ $nextmajor -gt 0 ] ; then
+        if [ $nextmajor -eq $currmajor ] ; then
+            abi_must_be_same=1
+        fi
+    else
+        if [ $nextminor -eq $currminor ] ; then
+            abi_must_be_same=1
+        fi
+    fi
+    if [ $abi_must_be_same == 1 ] ; then
+        echo "ABI must be same"
+        check_abi.sh c4core v$curr
+    fi
+    # changelog
     if [ ! -f changelog/$ver.md ] ; then \
         if [ -f changelog/current.md ] ; then
             git mv changelog/current.md changelog/$ver.md
