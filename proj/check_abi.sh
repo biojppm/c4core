@@ -6,12 +6,10 @@ rootdir=`git rev-parse --show-toplevel`
 branch=`git rev-parse --abbrev-ref HEAD`
 
 libname=$1 ; shift
-oldver=$1  ; shift
-if [ -v 1 ] ; then
-    newver=$1 ; shift
-else
-    newver=$branch
-fi
+currver=$1 ; shift
+nextver=$1 ; shift
+nextsoname=$1 ; shift
+
 flags="-g -Og"
 
 function gitcheckout()
@@ -28,7 +26,10 @@ function gitcheckout()
 function dumpbuild()
 {
     id=$1
-    gitcheckout $id
+    soname=
+    if [ -v 2 ] ; then
+        soname=$2
+    fi
     bdir=$rootdir/build/abicheck-$id
     mkdir -p $bdir
     cmake -S $rootdir -B $bdir \
@@ -37,13 +38,26 @@ function dumpbuild()
           -D CMAKE_C_FLAGS="$flags" \
           -D BUILD_SHARED_LIBS=ON
     cmake --build $bdir -j
-    abi-dumper $bdir/lib$libname.so \
+    solib=$bdir/lib$libname.so
+    abi-dumper $solib \
                -o $bdir/abi.dump \
                -lver $id
+    if [ -n "$soname" ] ; then
+        objdump -p $solib | grep SONAME
+        soname_actual=$(objdump -p $solib | grep SONAME | sed "s:.*SONAME.*$libname\.so\.\(.*\):\1:")
+        if [ "$soname_actual" != "$soname" ] ; then
+            echo "error: SONAME: expected $soname, got $soname_actual"
+            exit 1
+        fi
+    fi
 }
 
-dumpbuild $newver ; newabi=$bdir/abi.dump
-dumpbuild $oldver ; oldabi=$bdir/abi.dump
+if [ $nextver != master ] ; then
+    gitcheckout $nextver
+fi
+dumpbuild $nextver $nextsoname ; newabi=$bdir/abi.dump
+gitcheckout $currver
+dumpbuild $currver ; oldabi=$bdir/abi.dump
 gitcheckout $branch
 
 stat=0
@@ -56,7 +70,7 @@ abi-compliance-checker -l $libname \
 
 set +x
 echo "REPORT:"
-echo "    $rootdir/build/compat_reports/c4core/${oldver}_to_${newver}/compat_report.html"
+echo "    $rootdir/build/compat_reports/c4core/${currver}_to_${nextver}/compat_report.html"
 echo "    status=$stat"
 
 exit $stat

@@ -32,9 +32,15 @@ function c4_release_bump()
 {
     ( \
       set -euxo pipefail ; \
-      ver=$(_c4_validate_ver $1) ; \
+      rootdir=`git rev-parse --show-toplevel` ; \
+      curr=$(cat $rootdir/tbump.toml \
+               | grep -E '^current.*=.*"' \
+               | sed 's/^current.*=.*"\(.*\)"/\1/') ; \
+      ver=$(_c4_validate_ver $1 $curr) ; \
+      _c4_set_ver_changelog $ver ; \
       tbump --non-interactive --only-patch $ver ; \
-      sed 's/C[0-9]CORE_/C4CORE_/g' -i src/c4/version.hpp \
+      sed 's/C[0-9]CORE_/C4CORE_/g' -i src/c4/version.hpp ; \
+      _c4_check_abi_ver $curr $ver ; \
       )
 }
 
@@ -98,51 +104,72 @@ function c4_release_force_push()
     )
 }
 
-function _c4_validate_ver()
+function _c4_set_ver_changelog()
 {
     ver=$1
-    if [ -z "$ver" ] ; then \
+    if [ -z "$ver" ] ; then
         exit 1
     fi
     ver=$(echo $ver | sed "s:v\(.*\):\1:")
-    #sver=$(echo $ver | sed "s:\([0-9]*\.[0-9]*\..[0-9]*\).*:\1:")
-    # check the ABI version
-    rootdir=`git rev-parse --show-toplevel`
-    curr=$(cat $rootdir/tbump.toml \
-               | grep -E '^current.*=.*"' \
-               | sed 's/^current.*=.*"\(.*\)"/\1/')
-    if [[ "$ver" < "$curr" ]] ; then
-        echo "error: next version ($ver) is smaller than current ($curr)"
-        exit 1
-    fi
-    currmajor=$(echo $curr | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\1:')
-    currminor=$(echo $curr | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\2:')
-    currpatch=$(echo $curr | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\3:')
-    nextmajor=$(echo $ver  | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\1:')
-    nextminor=$(echo $ver  | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\2:')
-    nextpatch=$(echo $ver  | sed 's:\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\):\3:')
-    abi_must_be_same=0
-    if [ $nextmajor -gt 0 ] ; then
-        if [ $nextmajor -eq $currmajor ] ; then
-            abi_must_be_same=1
-        fi
-    else
-        if [ $nextminor -eq $currminor ] ; then
-            abi_must_be_same=1
-        fi
-    fi
-    if [ $abi_must_be_same == 1 ] ; then
-        echo "ABI must be same"
-        check_abi.sh c4core v$curr
-    fi
-    # changelog
-    if [ ! -f changelog/$ver.md ] ; then \
+    if [ ! -f changelog/$ver.md ] ; then
         if [ -f changelog/current.md ] ; then
             git mv changelog/current.md changelog/$ver.md
             touch changelog/current.md
             git add changelog/current.md
         else
             echo "ERROR: could not find changelog/$ver.md or changelog/current.md"
+            exit 1
+        fi
+    fi
+}
+
+function _c4_check_abi_ver()
+{
+    curr=$1
+    ver=$2
+    # check the ABI version
+    rxver="\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\(.*\)"
+    currmajor=$(echo $curr | sed "s:${rxver}:\1:")
+    currminor=$(echo $curr | sed "s:${rxver}:\2:")
+    currpatch=$(echo $curr | sed "s:${rxver}:\3:")
+    nextmajor=$(echo $ver  | sed "s:${rxver}:\1:")
+    nextminor=$(echo $ver  | sed "s:${rxver}:\2:")
+    nextpatch=$(echo $ver  | sed "s:${rxver}:\3:")
+    abi_must_be_same=0
+    if [ $nextmajor -gt 0 ] ; then
+        nextsoname=$nextmajor
+        if [ $nextmajor -eq $currmajor ] ; then
+            abi_must_be_same=1
+        fi
+    else
+        nextsoname=$nextmajor.$nextminor
+        if [ $nextminor -eq $currminor ] ; then
+            abi_must_be_same=1
+        fi
+    fi
+    if [ $abi_must_be_same == 1 ] ; then
+        echo "ABI must be same"
+        git commit -am "WIP abi check"
+        rootdir=$(git rev-parse --show-toplevel)
+        $rootdir/proj/check_abi.sh c4core v$curr master $nextsoname
+        git reset --mixed HEAD~1
+    fi
+}
+
+function _c4_validate_ver()
+{
+    ver=$1
+    if [ -z "$ver" ] ; then
+        exit 1
+    fi
+    ver=$(echo $ver | sed "s:v\(.*\):\1:")
+    curr=
+    if [ -v 2 ] ; then
+        curr=$2
+    fi
+    if [ -n "$curr" ] ; then
+        if [[ "$ver" < "$curr" ]] ; then
+            echo "error: next version ($ver) is smaller than current ($curr)"
             exit 1
         fi
     fi
