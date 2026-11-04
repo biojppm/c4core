@@ -33,15 +33,9 @@
 #       else
 #           if __has_include(<charconv>)
 #               include <charconv>
-#               if defined(__cpp_lib_to_chars)
-#                   define C4CORE_HAVE_STD_TOCHARS 1
-#                   define C4CORE_HAVE_STD_FROMCHARS 0 // glibc uses fast_float internally
-#                   define C4CORE_HAVE_FAST_FLOAT 1
-#               else
-#                   define C4CORE_HAVE_STD_TOCHARS 0
-#                   define C4CORE_HAVE_STD_FROMCHARS 0
-#                   define C4CORE_HAVE_FAST_FLOAT 1
-#               endif
+#               define C4CORE_HAVE_STD_TOCHARS 1
+#               define C4CORE_HAVE_STD_FROMCHARS 0 // prefer fast_float
+#               define C4CORE_HAVE_FAST_FLOAT 1
 #           else
 #               define C4CORE_HAVE_STD_TOCHARS 0
 #               define C4CORE_HAVE_STD_FROMCHARS 0
@@ -49,7 +43,7 @@
 #           endif
 #       endif
 #   else
-#       define C4CORE_HAVE_STD_TOCHARS 0
+#       define C4CORE_HAVE_STD_TOCHARS 0 // this will fall back to snprintf()
 #       define C4CORE_HAVE_STD_FROMCHARS 0
 #       define C4CORE_HAVE_FAST_FLOAT 1
 #   endif

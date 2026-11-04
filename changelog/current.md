@@ -1,0 +1,1 @@
+- [PR#181](https://github.com/biojppm/c4core/pull/181): prefer using std::to_chars on c++17 (reported in [rapidyaml#678](https://github.com/biojppm/c4core/pull/678))
