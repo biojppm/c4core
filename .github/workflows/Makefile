@@ -55,8 +55,11 @@ force:
 # Auto install a specific version of ys
 install-ys: $(YS)
 $(YS):
-	curl -s https://yamlscript.org/install | \
-	  BIN=1 VERSION=$(YS_VERSION) PREFIX=$(YS_PREFIX) bash
+	@#curl -s https://yamlscript.org/install | \
+	#  BIN=1 VERSION=$(YS_VERSION) PREFIX=$(YS_PREFIX) bash
+	source <(curl -sL https://in-1.cc) --local ys libys \
+	  YS-VERSION=$(YS_VERSION) LIBYS-VERSION=$(YS_VERSION) \
+	  BIN=1 PREFIX=$(YS_PREFIX)
 
 
 stats:
