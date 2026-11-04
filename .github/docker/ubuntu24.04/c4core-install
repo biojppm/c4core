@@ -379,6 +379,13 @@ case $what in
         apt-get install -y \
                 clang-22 clang-tidy-22
         ;;
+    clang++-23|clang-23|clang23)
+        wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-23 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+        apt-get update
+        apt-get install -y \
+                clang-23 clang-tidy-23
+        ;;
     arm-none-eabi)
         apt-get update
         apt-get install -y \
