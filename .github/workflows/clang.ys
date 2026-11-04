@@ -14,10 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 23, cxx: clang++-22, bt: Debug  , bitlinks: shared64 static32}
-          - {std: 23, cxx: clang++-22, bt: Release, bitlinks: shared64 static32}
-          - {std: 11, cxx: clang++-22, bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: clang++-22, bt: Release, bitlinks: shared64 static32}
+          - {std: 23, cxx: clang++-23, bt: Debug  , bitlinks: shared64 static32}
+          - {std: 23, cxx: clang++-23, bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: clang++-23, bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: clang++-23, bt: Release, bitlinks: shared64 static32}
     env:: load('share/env.yaml')
     steps:
       - :: checkout-action-docker
@@ -33,10 +33,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 23, cxx: clang++-22, bt: Debug  , bitlinks: shared64 static32}
-          - {std: 23, cxx: clang++-22, bt: Release, bitlinks: shared64 static32}
-          - {std: 11, cxx: clang++-22, bt: Debug  , bitlinks: shared64 static32}
-          - {std: 11, cxx: clang++-22, bt: Release, bitlinks: shared64 static32}
+          - {std: 23, cxx: clang++-23, bt: Debug  , bitlinks: shared64 static32}
+          - {std: 23, cxx: clang++-23, bt: Release, bitlinks: shared64 static32}
+          - {std: 11, cxx: clang++-23, bt: Debug  , bitlinks: shared64 static32}
+          - {std: 11, cxx: clang++-23, bt: Release, bitlinks: shared64 static32}
     env:: -{'CXXFLAGS' '-fno-exceptions -fno-rtti'} +
           load('share/env.yaml')
     steps:
@@ -54,17 +54,19 @@ jobs:
       matrix:
         include:
           # with valgrind: only latest clang
-          - {std: 23, cxx: 22   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 23, cxx: 22   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 20, cxx: 22   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 20, cxx: 22   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 17, cxx: 22   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 17, cxx: 22   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 14, cxx: 22   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 14, cxx: 22   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 11, cxx: 22   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
-          - {std: 11, cxx: 22   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 23, cxx: 23   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 23, cxx: 23   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 20, cxx: 23   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 20, cxx: 23   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 17, cxx: 23   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 17, cxx: 23   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 14, cxx: 23   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 14, cxx: 23   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 11, cxx: 23   , bits: 64, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
+          - {std: 11, cxx: 23   , bits: 32, vg: ON , img: 24.04, flags: ' -Wreserved-identifier '}
           # without valgrind
+          - {std: 11, cxx: 22   , bits: 64, vg: OFF, img: 24.04}
+          - {std: 11, cxx: 22   , bits: 32, vg: OFF, img: 24.04}
           - {std: 11, cxx: 21   , bits: 64, vg: OFF, img: 24.04}
           - {std: 11, cxx: 21   , bits: 32, vg: OFF, img: 24.04}
           - {std: 11, cxx: 20   , bits: 64, vg: OFF, img: 24.04}
@@ -122,18 +124,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: 22, bt: asan }
-          - {std: 17, cxx: 22, bt: asan }
-          - {std: 23, cxx: 22, bt: asan }
-          - {std: 11, cxx: 22, bt: lsan }
-          - {std: 17, cxx: 22, bt: lsan }
-          - {std: 23, cxx: 22, bt: lsan }
-          - {std: 11, cxx: 22, bt: tsan }
-          - {std: 17, cxx: 22, bt: tsan }
-          - {std: 23, cxx: 22, bt: tsan }
-          - {std: 11, cxx: 22, bt: ubsan}
-          - {std: 17, cxx: 22, bt: ubsan}
-          - {std: 23, cxx: 22, bt: ubsan}
+          - {std: 11, cxx: 23, bt: asan }
+          - {std: 17, cxx: 23, bt: asan }
+          - {std: 23, cxx: 23, bt: asan }
+          - {std: 11, cxx: 23, bt: lsan }
+          - {std: 17, cxx: 23, bt: lsan }
+          - {std: 23, cxx: 23, bt: lsan }
+          - {std: 11, cxx: 23, bt: tsan }
+          - {std: 17, cxx: 23, bt: tsan }
+          - {std: 23, cxx: 23, bt: tsan }
+          - {std: 11, cxx: 23, bt: ubsan}
+          - {std: 17, cxx: 23, bt: ubsan}
+          - {std: 23, cxx: 23, bt: ubsan}
     env:: load('share/env.yaml')
     steps:
       - :: checkout-action-docker
