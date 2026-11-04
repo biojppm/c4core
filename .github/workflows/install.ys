@@ -75,9 +75,9 @@ jobs:
       - :: checkout-action
       - {name: install requirements, run: source .github/reqs.sh && c4_install_test_requirements $OS}
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
-      - name: Install python 3.9
-        uses: actions/setup-python@v4
-        with: { python-version: 3.9 }
+      - name: Install python 3.12
+        uses: actions/setup-python@v7
+        with: { python-version: 3.12 }
       - name: dirs
         run: |
           set -x
