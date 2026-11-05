@@ -14,7 +14,7 @@ struct c4t_
     const char *str;
     size_t sz;
     template<size_t N> C4_ALWAYS_INLINE constexpr
-    c4t_(const char (&s)[N]) noexcept : str(s), sz(N-1) {} // take off the \0
+    c4t_(const char (&s)[N]) noexcept : str(s), sz(N-1) {} // take off the \0 // NOLINT
 };
 template<class T>
 #if !defined(__GNUC__) || (__GNUC__ >= 5) || (C4_CPP >= 14)

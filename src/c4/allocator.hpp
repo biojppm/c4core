@@ -43,7 +43,7 @@ class MemRes
 public:
 
     MemRes() : m_resource(get_memory_resource()) {}
-    MemRes(MemoryResource* r) noexcept : m_resource(r ? r : get_memory_resource()) {}
+    MemRes(MemoryResource* r) noexcept : m_resource(r ? r : get_memory_resource()) {} // NOLINT
 
     MemoryResource* resource() const { return m_resource; }
 
@@ -61,7 +61,7 @@ class MemResGlobal
 public:
 
     MemResGlobal() = default;
-    MemResGlobal(MemoryResource* r) noexcept { C4_UNUSED(r); C4_ASSERT(r == get_memory_resource()); }
+    MemResGlobal(MemoryResource* r) noexcept { C4_UNUSED(r); C4_ASSERT(r == get_memory_resource()); } // NOLINT
 
     static MemoryResource* resource() { return get_memory_resource(); }
 };
@@ -220,7 +220,7 @@ public:
     using impl_type::impl_type;
     Allocator() : impl_type() {} // VS demands this
 
-    template<class U> Allocator(Allocator<U, MemResProvider> const& that) : impl_type(that.resource()) {}
+    template<class U> Allocator(Allocator<U, MemResProvider> const& that) : impl_type(that.resource()) {} // NOLINT
 
     Allocator(Allocator const&) = default;
     Allocator(Allocator     &&) = default;
@@ -316,7 +316,7 @@ public:
     SmallAllocator() : impl_type() {} // VS demands this
 
     template<class U, size_t N2, size_t A2, class MP2>
-    SmallAllocator(SmallAllocator<U,N2,A2,MP2> const& that) : impl_type(that.resource())
+    SmallAllocator(SmallAllocator<U,N2,A2,MP2> const& that) : impl_type(that.resource()) // NOLINT
     {
         C4_ASSERT(that.m_num == 0);
     }
