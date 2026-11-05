@@ -60,6 +60,7 @@ Checks:
   - -llvm-header-guard # header guard does not follow preferred style
   - -llvm-include-order # #includes are not sorted properly
   - -llvm-namespace-comment # anonymous namespace not terminated with a closing comment
+  - -llvm-prefer-static-over-anonymous-namespace # declared in an anonymous namespace; prefer using 'static' for restricting visibility
   - -llvmlibc-callee-namespace # ... must resolve to a function declared within the namespace defined by the ... macro
   - -llvmlibc-implementation-in-namespace # the outermost namespace should be the 'LIBC_NAMESPACE' macro
   - -llvmlibc-inline-function-decl # '_is_idchar' must be tagged with the LIBC_INLINE macro; the macro should be placed at the beginning of the declaration
