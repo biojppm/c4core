@@ -67,8 +67,15 @@ jobs:
           build/${{env.BUILD_ID}}/lcov-tmp/
           build/${{env.BUILD_ID}}/lcov-tmp/result.lcov
     - name: upload codecov
-      run: |
-        cmake --build build/$BUILD_ID --target c4core-coverage-submit-codecov --verbose
+      #run: |
+      #  cmake --build build/$BUILD_ID --target c4core-coverage-submit-codecov --verbose
+      uses: codecov/codecov-action@v7
+      with:
+        files: build/${{env.BUILD_ID}}/lcov-tmp/result.lcov
+        disable_search: true # send only the files we specify
+        fail_ci_if_error: true # optional (default = false)
+        use_oidc: true # token is not available for forks!
+        verbose: true # optional (default = false)
     ## https://docs.coveralls.io/parallel-builds
     #- name: upload coveralls
     #  uses: coverallsapp/github-action@v2
