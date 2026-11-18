@@ -55,11 +55,19 @@ force:
 # Auto install a specific version of ys
 install-ys: $(YS)
 $(YS):
-	@#curl -s https://yamlscript.org/install | \
-	#  BIN=1 VERSION=$(YS_VERSION) PREFIX=$(YS_PREFIX) bash
-	source <(curl -sL https://in-1.cc) --local ys libys \
-	  YS-VERSION=$(YS_VERSION) LIBYS-VERSION=$(YS_VERSION) \
-	  BIN=1 PREFIX=$(YS_PREFIX)
+	set -eu; \
+	platform="$$(uname -s)"; arch="$$(uname -m)"; \
+	case "$$platform" in Linux) platform=linux ;; Darwin) platform=macos ;; *) echo "Unsupported platform: $$platform" >&2; exit 1 ;; esac; \
+	case "$$arch" in x86_64) arch=x64 ;; aarch64|arm64) arch=aarch64 ;; *) echo "Unsupported architecture: $$arch" >&2; exit 1 ;; esac; \
+	mkdir -p "$(YS_PREFIX)/downloads"; \
+	for package in ys libyamlscript; do \
+	  name="$$package-$(YS_VERSION)-$$platform-$$arch"; \
+	  curl --fail --location --retry 3 \
+	    "https://github.com/yaml/yamlscript/releases/download/$(YS_VERSION)/$$name.tar.xz" \
+	    --output "$(YS_PREFIX)/downloads/$$name.tar.xz"; \
+	  tar -xJf "$(YS_PREFIX)/downloads/$$name.tar.xz" -C "$(YS_PREFIX)/downloads"; \
+	  $(MAKE) -C "$(YS_PREFIX)/downloads/$$name" PREFIX="$(YS_PREFIX)" install; \
+	done
 
 
 stats:
