@@ -2400,6 +2400,24 @@ TEST_CASE_TEMPLATE("atof.hexa", T, float, double)
     t_("0x1.agA+0", _scanf_accepts(false));
 }
 
+TEST_CASE_TEMPLATE("atof.hexa_alpha_digits", T, float, double)
+{
+    auto t_ = [](csubstr str, T expected){
+        T rval = {};
+        INFO("str=" << str);
+        CHECK_EQ(atox(str, &rval), true);
+        CHECK_EQ(rval, expected);
+    };
+    t_("0x2a1", T(673));
+    t_("0X2A1", T(673));
+    t_("0xff", T(255));
+    t_("0XFF", T(255));
+    t_("0x0.a", T(0.625));
+    t_("0X0.F", T(0.9375));
+    t_("0xa.fp+0", T(10.9375));
+    t_("-0xA.Fp+0", T(-10.9375));
+}
+
 TEST_CASE_TEMPLATE("atof.infnan", T, float, double)
 {
     T pinf = std::numeric_limits<T>::infinity();
