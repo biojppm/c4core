@@ -161,7 +161,7 @@ jobs:
           - {std: 14, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc}
           - {std: 17, bt: Debug  , toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc}
           - {std: 17, bt: Release, toolchain: cmake/Toolchain-Arm-ubuntu.cmake, cxx: arm-linux-gnueabihf-gcc}
-    env:: -{'TOOLCHAIN' '${{matrix.toolchain}}'} +
+    env:: +{'TOOLCHAIN' '${{matrix.toolchain}}'} +
           load('share/env.yaml')
     steps:
       - :: checkout-manual

@@ -37,7 +37,7 @@ jobs:
           - {std: 23, cxx: clang++-23, bt: Release, bitlinks: shared64 static32}
           - {std: 11, cxx: clang++-23, bt: Debug  , bitlinks: shared64 static32}
           - {std: 11, cxx: clang++-23, bt: Release, bitlinks: shared64 static32}
-    env:: -{'CXXFLAGS' '-fno-exceptions -fno-rtti'} +
+    env:: +{'CXXFLAGS' '-fno-exceptions -fno-rtti'} +
           load('share/env.yaml')
     steps:
       - :: checkout-action-docker

@@ -1,6 +1,6 @@
 SHELL := bash
 
-YS_VERSION := 0.1.88
+YS_VERSION := 0.2.24
 YS_PREFIX := $(shell cd ../.. ; pwd)/build/ys
 YS := $(YS_PREFIX)/bin/ys-$(YS_VERSION)
 
