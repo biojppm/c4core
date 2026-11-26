@@ -51,6 +51,8 @@ jobs:
       LCOV_ARGS: -v --ignore-errors mismatch,mismatch --ignore-errors unused,unused
       BUILD_ID: cpp${{matrix.std}}_${{matrix.namesfx}}
       CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
+    permissions:
+      id-token: write
     steps:
     - name: checkout (action)
       uses: actions/checkout@v4
@@ -89,7 +91,7 @@ jobs:
       run: |
         cmake --build build/$BUILD_ID --verbose --target c4core-coverage
     - name: upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-${{env.BUILD_ID}}
         path: |

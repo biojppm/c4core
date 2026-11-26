@@ -268,13 +268,13 @@ jobs:
       matrix:
         include:
         - std: 11
-          cxx: vs2026
+          cxx: vs2022
           bt: Debug
-          os: windows-latest
+          os: windows-2022
         - std: 11
-          cxx: vs2026
+          cxx: vs2022
           bt: Release
-          os: windows-latest
+          os: windows-2022
     steps:
     - name: checkout (action)
       uses: actions/checkout@v4
@@ -286,8 +286,9 @@ jobs:
     - name: configure
       run: |
         set -x
+        # using ninja to work around a problem in the latest windows image
         cmake -S . -B build \
-          -G "Unix Makefiles" \
+          -G Ninja \
           -DCMAKE_CXX_COMPILER=clang++ \
           -DCMAKE_C_COMPILER=c \
           -DCMAKE_INSTALL_PREFIX=install \
@@ -316,25 +317,29 @@ jobs:
       matrix:
         include:
         - std: 11
-          name: vs2026/debug/static
-          os: latest
+          name: vs2022/debug/static
+          os: 2022
           bt: Debug
           shared: 'OFF'
+          cmkflags: -G "Visual Studio 17 2022"
         - std: 11
-          name: vs2026/release/shared
-          os: latest
+          name: vs2022/release/shared
+          os: 2022
           bt: Release
           shared: 'ON'
+          cmkflags: -G "Visual Studio 17 2022"
         - std: 20
-          name: vs2026/debug/shared
-          os: latest
+          name: vs2022/debug/shared
+          os: 2022
           bt: Debug
           shared: 'OFF'
+          cmkflags: -G "Visual Studio 17 2022"
         - std: 20
-          name: vs2026/release/shared
-          os: latest
+          name: vs2022/release/shared
+          os: 2022
           bt: Release
           shared: 'ON'
+          cmkflags: -G "Visual Studio 17 2022"
     steps:
     - name: checkout (action)
       uses: actions/checkout@v4
@@ -346,7 +351,7 @@ jobs:
     - name: config (-T ClangCL)
       run: |
         cmake -B build/ts \
-              -G "Visual Studio 18 2026" -T ClangCL -A x64 \
+              ${{matrix.cmkflags}} -T ClangCL -A x64 \
               -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
               -DCMAKE_CXX_STANDARD=${{matrix.std}} \
               -DCMAKE_CXX_FLAGS=' /DWIN32 /D_WINDOWS /W3 /GR /EHsc /D_CRT_SECURE_NO_WARNINGS ' \
