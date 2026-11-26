@@ -86,16 +86,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {std: 11, cxx: vs2026, bt: Debug  , os: windows-latest}
-          - {std: 11, cxx: vs2026, bt: Release, os: windows-latest}
+          # use windows-2022/vs2022 because "Unix Makefiles" is using
+          # gmake, and causing problems in windows-latest/vs2026
+          - {std: 11, cxx: vs2022, bt: Debug  , os: windows-2022}
+          - {std: 11, cxx: vs2022, bt: Release, os: windows-2022}
     steps:
       - :: checkout-action
       - {name: show info, run: source .github/setenv.sh && c4_show_info}
       - name: configure
         run: |
           set -x
+          # using ninja to work around a problem in the latest windows image
           cmake -S . -B build \
-            -G "Unix Makefiles" \
+            -G Ninja \
             -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_C_COMPILER=c \
             -DCMAKE_INSTALL_PREFIX=install \
@@ -124,10 +127,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - {std: 11, name: vs2026/debug/static  , os: latest, bt: Debug  , shared: OFF}
-        - {std: 11, name: vs2026/release/shared, os: latest, bt: Release, shared: ON }
-        - {std: 20, name: vs2026/debug/shared  , os: latest, bt: Debug  , shared: OFF}
-        - {std: 20, name: vs2026/release/shared, os: latest, bt: Release, shared: ON }
+        # use windows-2022/vs2022 because "Unix Makefiles" is using
+        # gmake, and causing problems in windows-latest/vs2026
+        - {std: 11, name: vs2022/debug/static  , os: 2022, bt: Debug  , shared: OFF, cmkflags: -G "Visual Studio 17 2022"}
+        - {std: 11, name: vs2022/release/shared, os: 2022, bt: Release, shared: ON , cmkflags: -G "Visual Studio 17 2022"}
+        - {std: 20, name: vs2022/debug/shared  , os: 2022, bt: Debug  , shared: OFF, cmkflags: -G "Visual Studio 17 2022"}
+        - {std: 20, name: vs2022/release/shared, os: 2022, bt: Release, shared: ON , cmkflags: -G "Visual Studio 17 2022"}
     steps:
     - :: checkout-action
     - name: ----------------(-T ClangCL)
@@ -135,7 +140,7 @@ jobs:
     - name: config (-T ClangCL)
       run: |
         cmake -B build/ts \
-              -G "Visual Studio 18 2026" -T ClangCL -A x64 \
+              ${{matrix.cmkflags}} -T ClangCL -A x64 \
               -DCMAKE_BUILD_TYPE=${{matrix.bt}} \
               -DCMAKE_CXX_STANDARD=${{matrix.std}} \
               -DCMAKE_CXX_FLAGS=' /DWIN32 /D_WINDOWS /W3 /GR /EHsc /D_CRT_SECURE_NO_WARNINGS ' \
